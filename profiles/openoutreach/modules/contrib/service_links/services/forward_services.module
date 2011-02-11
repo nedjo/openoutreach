@@ -1,0 +1,22 @@
+<?php
+// $Id: forward_services.module,v 1.1.2.2.2.3 2010/10/30 15:27:21 thecrow Exp $
+
+/**
+ * @file
+ * Add the support for Forward module
+ */
+
+/**
+ * Implements hook_service_links().
+ */
+function forward_services_service_links() {
+  $links = array();
+
+  $links['forward'] = array(
+    'name' => 'Forward',
+    'link' => url('forward', array('absolute' => TRUE, 'query' => array('path=<encoded-query>'))),
+    'description' => t('Send to a friend'),
+  );
+
+  return $links;
+}

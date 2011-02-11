@@ -1,0 +1,25 @@
+<?php
+
+include_once('debut_article.features.inc');
+
+/**
+ * Implements hook_node_view().
+ */
+function debut_article_node_view($node, $view_mode) {
+  drupal_add_css(drupal_get_path('module', 'debut_article') . '/debut_article.css');
+}
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the article view page.
+ */
+function debut_article_menu_alter(&$items) {
+  if (isset($items['node/add/article'])) {
+    $items['article/add'] = $items['node/add/article'];
+    $items['article/add']['title'] = 'Add a new article';
+    $items['article/add']['type'] = MENU_LOCAL_ACTION;
+  }
+}
+
+

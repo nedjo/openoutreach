@@ -1,0 +1,53 @@
+<?php
+
+include_once('debut_event.features.inc');
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the event view page.
+ */
+function debut_event_menu_alter(&$items) {
+  if (isset($items['node/add/event'])) {
+    $items['event/add'] = $items['node/add/event'];
+    $items['event/add']['title'] = 'Add a new event';
+    $items['event/add']['type'] = MENU_LOCAL_ACTION;
+  }
+}
+
+/**
+ * Implementations of hook_date_format_types().
+ */
+function debut_event_date_format_types() {
+  return array(
+    'event_day' => t('Day'),
+    'event_time' => t('Time'),
+  );
+}
+
+/**
+ * Implementation of hook_date_formats().
+ */
+function debut_event_date_formats() {
+  $condensed = array(
+    'event_day' => array(
+      'l, M j',
+      'l, j M',
+    ),
+    'event_time' => array(
+      'g:ia',
+      'H:i',
+    ),
+  );
+  $formats = array();
+  foreach ($condensed as $type => $f) {
+    foreach ($f as $format) {
+      $formats[] = array(
+        'type' => $type,
+        'format' => $format,
+        'locales' => array(),
+      );
+    }
+  }
+  return $formats;
+}

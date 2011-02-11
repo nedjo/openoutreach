@@ -1,0 +1,17 @@
+; $Id: service_links_share.info,v 1.1.4.2 2010/10/30 15:27:21 thecrow Exp $
+name = Service Links Share
+description = Provide the integration between Service Links and Share module
+core = 7.x
+package = Share - tabs
+dependencies[] = service_links
+dependencies[] = share
+dependencies[] = share_widget
+
+version = VERSION
+files[] = service_links_share.module
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "service_links"
+datestamp = "1297125270"
+

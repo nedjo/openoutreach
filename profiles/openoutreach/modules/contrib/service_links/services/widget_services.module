@@ -1,0 +1,73 @@
+<?php
+// $Id: widget_services.module,v 1.1.4.3 2011/02/07 18:37:55 thecrow Exp $
+
+/**
+ * @file
+ * Widgets show some info about the content and the social network.
+ */
+
+/**
+ * Implementation of hook_service_links().
+ */
+function widget_services_service_links() {
+  $links = array();
+
+  $links['facebook_widget'] = array(
+    'name' => 'Share in Facebook',
+    'link' => 'http://www.facebook.com/sharer.php?u=<encoded-url>&t=<encoded-title>&src=sp',
+    //'link' => 'http://www.facebook.com/sharer.php?u='. urlencode('http://www.bloggerplugins.org/2009/10/facebook-share-count-button-blogger.html'). '&t=<encoded-title>&src=sp',
+    'description' => t('Share on Facebook'),
+    'javascript' => 'http://static.ak.fbcdn.net/connect.php/js/FB.Share',
+    'icon' => 'facebook.png',
+    // type: button_count, box_count
+    'attributes' => array('type' => 'button_count', 'name' => 'fb_share', 'expr:share_url' => '<url>'),
+    'style' => SERVICE_LINKS_STYLE_EMPTY,
+    'callback' => 'ws_facebook_widget_shareurl',
+  );
+  $links['twitter_widget'] = array(
+    'name' => 'Tweet Widget',
+    'link' => 'http://twitter.com/share',
+    'icon' => 'twitter.png',
+    'description' => t('Tweet This'),
+    // data-count: vertical, horizontal
+    // data-via: account_id
+    // data-related: second_id:description of this second account
+    'attributes' => array('class' => array('twitter-share-button'), 'data-count' => 'horizontal', 'data-url' => '<url>'),
+    'javascript' => 'http://platform.twitter.com/widgets.js',
+    'style' => SERVICE_LINKS_STYLE_EMPTY,
+    'callback' => 'ws_twitter_widget_dataurl',
+  );
+
+  $links['facebook_like'] = array(
+    'name' => 'Facebook Like',
+    'link' => 'http://www.facebook.com/plugins/like.php?href=<encoded-url>',
+    //'link' => 'http://www.facebook.com/plugins/like.php?href='. urlencode('http://developers.facebook.com/docs/reference/plugins/like'),
+    'icon' => 'facebook.png',
+    'description' => t('I Like it'),
+    // layout: standard, button_count, box_count
+    // show_faces: true, false
+    // colorscheme: light, dark
+    // action: like, recommended
+    'attributes' => array('layout' => 'button_count', 'show_faces' => 'false', 'width' => '100', 'height' => 21, 'action' => 'like', 'colorscheme' => 'light' ),
+    'javascript' => 'facebook_like.js',
+    'style' => SERVICE_LINKS_STYLE_EMPTY,
+  );
+
+  return $links;
+}
+
+/**
+ * Callback function for Twitter Widget.
+ */
+function ws_twitter_widget_dataurl(&$service, $subst) {
+  $service['attributes']['data-url'] = $subst['url'];
+  //$service['attributes']['data-url'] = 'http://twitter.com/about/resources/tweetbutton';
+}
+
+/**
+ * Callback function for Facebook Share Widget.
+ */
+function ws_facebook_widget_shareurl(&$service, $subst) {
+  $service['attributes']['expr:share_url'] = $subst['url'];
+  //$service['attributes']['expr:share_url'] = 'http://www.bloggerplugins.org/2009/10/facebook-share-count-button-blogger.html';
+}

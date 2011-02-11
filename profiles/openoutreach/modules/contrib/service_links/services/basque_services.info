@@ -1,0 +1,15 @@
+; $Id: basque_services.info,v 1.1.2.2.2.1 2010/10/10 09:02:22 thecrow Exp $
+name = Basque Services
+description = Provide the Basque Services: Zabaldu, Bildu, Aupatu
+core = 7.x
+package = Service Links
+dependencies[] = service_links
+version = VERSION
+files[] = basque_services.module
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "service_links"
+datestamp = "1297125270"
+

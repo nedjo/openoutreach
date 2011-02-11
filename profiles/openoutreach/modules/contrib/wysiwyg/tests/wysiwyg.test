@@ -1,0 +1,8 @@
+<?php
+// $Id: wysiwyg.test,v 1.1 2011/01/23 01:58:34 sun Exp $
+
+/**
+ * @file
+ * Tests for Wysiwyg module.
+ */
+

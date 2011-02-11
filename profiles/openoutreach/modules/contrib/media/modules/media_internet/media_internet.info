@@ -1,0 +1,16 @@
+; $Id: media_internet.info,v 1.1 2010/09/03 19:04:53 JacobSingh Exp $
+
+name = Media Internet Sources
+description = Provides an API for accessing media on various internet services
+package = Media
+core = 7.x
+php = 5.2
+files[] = media_internet.module
+dependencies[] = media
+
+; Information added by drupal.org packaging script on 2011-01-15
+version = "7.x-1.0-beta3"
+core = "7.x"
+project = "media"
+datestamp = "1295055169"
+

@@ -1,0 +1,24 @@
+name = Media Gallery
+description = A flexible gallery of media.
+core = 7.x
+package = Media
+
+dependencies[] = list
+dependencies[] = number
+dependencies[] = media
+dependencies[] = taxonomy
+dependencies[] = multiform
+
+files[] = media_gallery.module
+files[] = media_gallery.admin.inc
+files[] = media_gallery.fields.inc
+files[] = media_gallery.theme.inc
+
+configure = admin/config/media/galleries
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-beta3"
+core = "7.x"
+project = "media_gallery"
+datestamp = "1295320004"
+

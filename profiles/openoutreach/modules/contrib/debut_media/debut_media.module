@@ -1,0 +1,30 @@
+<?php
+
+include_once('debut_media.features.inc');
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the article view page.
+ */
+function debut_media_init() {
+  if (arg(0) == 'media' && is_null(arg(1))) {
+    $path = drupal_get_path('module', 'media');
+    drupal_add_js($path . '/javascript/media-admin.js');
+    module_load_include('inc', 'media', 'media.browser');
+    media_include_browser_js();
+  }
+}
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the article view page.
+ */
+function debut_media_menu_alter(&$items) {
+  if (isset($items['media/browser'])) {
+    $items['media/add'] = $items['media/browser'];
+    $items['media/add']['type'] = MENU_LOCAL_ACTION;
+  }
+}
+

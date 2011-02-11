@@ -1,0 +1,419 @@
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from file: forward.module,v 1.11.2.14 2006/05/31 21:41:06 seanr
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2006-06-01 09:40+0100\n"
+"PO-Revision-Date: 2009-09-15 09:58+0100\n"
+"Last-Translator: Karin <karin@hotmail.com>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: forward.module:29
+msgid "Enables users to forward pages to friends."
+msgstr "Gör det möjligt för användare att tipsa vänner om sidor."
+
+#: forward.module:40
+msgid "forward this page"
+msgstr "tipsa en vän om den här sidan"
+
+#: forward.module:48
+msgid "Send an e-Postcard"
+msgstr "Skicka ett e-vykort"
+
+#: forward.module:56
+msgid "forward tracking"
+msgstr "tipsspårning"
+
+#: forward.module:80
+msgid "Administrative Options"
+msgstr "Administrativa alternativ"
+
+#: forward.module:86
+msgid "Use Node Type in Link"
+msgstr "Använd nod-id i länk"
+
+#: forward.module:89
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Om ikryssad kommer det att stå &quot;e-posta denna <em>nodtyp</em>&quot; i länken; om inte kommer det bara att stå &quot;e-posta denna sida&quot;"
+
+#: forward.module:93
+msgid "Show link on main page"
+msgstr "Visa länk på huvudsida"
+
+#: forward.module:96
+msgid "If checked, the link will appear on your home page"
+msgstr "Om ikryssad kommer länken att visas på din startsida"
+
+#: forward.module:100
+msgid "Form Type"
+msgstr "Formulärtyp"
+
+#: forward.module:103
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Välj länk för att tipsa om sidan genom länk eller formulär för att tipsa om den genom ett utfällbart formulär."
+
+#: forward.module:107
+msgid "Flood Control Limit"
+msgstr "Gräns för överbelastningskontroll"
+
+#: forward.module:110
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Hur många gånger en användare kan använda formuläret på en timme. Detta förhindrar att modulen Tipsa en vän används för spam."
+
+#: forward.module:114
+msgid "Flood Control Error"
+msgstr "Fel i överbelastningskontroll"
+
+#: forward.module:115;453
+msgid "You can't send more than %number messages per hour. Please try again later."
+msgstr "Du kan inte skicka fler än %number meddelanden per timme. Var vänlig försök igen senare."
+
+#: forward.module:118
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Denna text visas om en användare överskrider gränsen för överbelastningskontroll. Gränsvärdet för överbelastningskontroll visas istället för %number i meddelandet som presenteras för användaren"
+
+#: forward.module:124
+msgid "Page Text Values"
+msgstr "Sidtextvärden"
+
+#: forward.module:130
+msgid "Forward Instructions"
+msgstr "Instruktioner till Tipsa en vän"
+
+#: forward.module:131;264
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Tack för att du tipsar om"
+
+#: forward.module:131;264
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "OBSERVERA: Vi ber bara om din e-postadress för att personen du tipsar om sidan ska veta att tipset kommer från dig och inte är skräppost. Vi sparar inga e-postadresser."
+
+#: forward.module:134
+msgid "This message will be displayed above the form."
+msgstr "Detta meddelande kommer att visas ovanför formuläret."
+
+#: forward.module:138
+msgid "Thank You Message"
+msgstr "Tackmeddelande"
+
+#: forward.module:139;583
+msgid "Thank you for your help in spreading the word about"
+msgstr "Tack för att du tipsar om"
+
+#: forward.module:139;583
+msgid "We appreciate your help."
+msgstr "Vi uppskattar din hjälp."
+
+#: forward.module:142
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Detta meddelande kommer att visas när användaren har skickat in formuläret."
+
+#: forward.module:148
+msgid "Forward Form Default Values"
+msgstr "Standardvärden för Tipsa en vän-formulär"
+
+#: forward.module:154
+msgid "From Address"
+msgstr "Från adress"
+
+#: forward.module:158
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "Avsändaradress. Bör vara en fungerande e-postadress."
+
+#: forward.module:162
+msgid "Header Image for Email"
+msgstr "Toppbild för e-post"
+
+#: forward.module:166
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Ange webbadressen till den bild som ska användas som logotyp högst upp på tipsade sidor."
+
+#: forward.module:171
+msgid "Forward Message Subject"
+msgstr "Ämne för Tipsa en vän-meddelande"
+
+#: forward.module:172
+msgid "%name has forwarded a page to you from %site"
+msgstr "%name vill tipsa dig om en sida på %site"
+
+#: forward.module:175
+msgid "Email subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "E-postämnesrad. Avsändarens namn ersätter %name i ämnesraden. Webbplatsens namn ersätter %site."
+
+#: forward.module:179
+msgid "Forward Message Body"
+msgstr "Brödtext för tipsmeddelande"
+
+#: forward.module:180
+msgid "%name thought you would like to see this page from the %site web site."
+msgstr "%name tror att du skulle vilja se den här sidan från webbplatsen %site."
+
+#: forward.module:183
+msgid "Email message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Brödtext för e-postmeddelande. Avsändarens namn ersätter %name i brödtexten. Webbplatsens namn ersätter %site. Efter detta kan avsändaren lägga till sitt eget meddelande."
+
+#: forward.module:187
+msgid "e-Postcard Message Subject"
+msgstr "Ämne för e-vykortsmeddelande"
+
+#: forward.module:188
+msgid "%name has sent you an e-postcard from %site"
+msgstr "%name har skickat ett e-vykort till dig från %site"
+
+#: forward.module:191
+msgid "Postcard subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "Ämnesrad för vykort. Avsändarens namn ersätter &name i ämnet. Webbplatsens namn ersätter %site."
+
+#: forward.module:195
+msgid "e-Postcard Message Body"
+msgstr "Brödtext för e-vykort"
+
+#: forward.module:196
+msgid "%name has sent you an e-postcard from the %site web site.  Please take a moment to visit our web site."
+msgstr "%name har skickat ett e-vykort till dig från webbplatsen %site. Ägna gärna en stund åt att besöka vår webbplats."
+
+#: forward.module:199
+msgid "Postcard message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Brödtext för vykortsmeddelande. Avsändarens namn ersätter %name i brödtexten. Webbplatsens namn ersätter %site. Efter detta kan avsändaren lägga till sitt eget meddelande."
+
+#: forward.module:203
+msgid "Oranization Ad"
+msgstr "Organisationsannons"
+
+#: forward.module:207
+msgid "This message will be just above the footer message in the email."
+msgstr "Detta meddelande kommer att visas precis ovanför sidfoten i e-postmeddelandet."
+
+#: forward.module:211
+msgid "Footer Message"
+msgstr "Sidfot"
+
+#: forward.module:215
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Detta meddelande kommer att bifogas som ett sidfotmeddelande till e-postmeddelandet."
+
+#: forward.module:218
+msgid "Latest Blog Articles"
+msgstr "Senaste blogginlägg"
+
+#: forward.module:219
+msgid "Latest Users"
+msgstr "Senaste användare"
+
+#: forward.module:220
+msgid "Latest Comments"
+msgstr "Senaste kommentarer"
+
+#: forward.module:221;528
+msgid "Most Popular Content"
+msgstr "Mest populära innehåll"
+
+#: forward.module:222
+msgid "None"
+msgstr "Ingen"
+
+#: forward.module:226
+msgid "Dynamic Block"
+msgstr "Dynamiskt block"
+
+#: forward.module:229
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Välj ett dynamiskt block som ska skickas med dessa e-postmeddelanden"
+
+#: forward.module:276
+msgid "Message to Send"
+msgstr "Meddelande att skickas"
+
+#: forward.module:281;374
+msgid "Your Email"
+msgstr "Din e-postadress"
+
+#: forward.module:291;384
+msgid "Your Name"
+msgstr "Ditt namn"
+
+#: forward.module:301;394
+msgid "Send To"
+msgstr "Skicka till"
+
+#: forward.module:305;398
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "Ange flera adresser på separata linjer eller separera dem med kommatecken."
+
+#: forward.module:312
+msgid "Page Being Sent"
+msgstr "Sidan skickas"
+
+#: forward.module:318;404
+msgid "Message Subject"
+msgstr "Ämne för meddelande"
+
+#: forward.module:319;325;405;411
+msgid "(Your Name)"
+msgstr "(Ditt namn)"
+
+#: forward.module:324;410
+msgid "Message Body"
+msgstr "Brödtext för meddelande"
+
+#: forward.module:330;416
+msgid "Your Personal Message"
+msgstr "Ditt personliga meddelande"
+
+#: forward.module:348;434
+msgid "Send Message"
+msgstr "Skicka meddelande"
+
+#: forward.module:367;614;622;626
+msgid "Forward this page to a friend"
+msgstr "Tipsa en vän om den här sidan"
+
+#: forward.module:480
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Försök till header injection upptäckt. Ange inte radmatningstecken i formulärfältet!"
+
+#: forward.module:483
+msgid "Your Email address is invalid."
+msgstr "Din e-postadress är ogiltig."
+
+#: forward.module:486
+msgid "You must enter your name."
+msgstr "Du måste ange ditt namn."
+
+#: forward.module:489
+msgid "You did not enter any recipients."
+msgstr "Du har inte angivit några mottagare."
+
+#: forward.module:494
+msgid "One of your Recipient addresses is invalid:"
+msgstr "En av dina mottagaradresser är ogiltig:"
+
+#: forward.module:499
+msgid "You must enter a message."
+msgstr "Du måste skriva ett meddelande."
+
+#: forward.module:513
+msgid "Recent blog posts"
+msgstr "Senaste blogginlägg"
+
+#: forward.module:518
+msgid "Who's new"
+msgstr "Vem är ny"
+
+#: forward.module:523
+msgid "Recent comments"
+msgstr "Senaste kommentarer"
+
+#: forward.module:605
+msgid "email this page"
+msgstr "e-posta denna sida"
+
+#: forward.module:614;622;626
+msgid "email this %type"
+msgstr "e-posta denna &type"
+
+#: forward.module:637
+msgid "Time"
+msgstr "Tid"
+
+#: forward.module:638
+msgid "Type"
+msgstr "Typ"
+
+#: forward.module:639
+msgid "Path"
+msgstr "Sökväg"
+
+#: forward.module:640
+msgid "Title"
+msgstr "Rubrik"
+
+#: forward.module:657
+msgid "emails sent to"
+msgstr "e-post skickad till"
+
+#: forward.module:657
+msgid "recipients"
+msgstr "mottagare"
+
+#: forward.module:661
+msgid "No one has used Forward yet."
+msgstr "Ingen har använt Tipsa en vän än."
+
+#: forward.module:664
+msgid "Forward Tracking"
+msgstr "Tipsspårning"
+
+#: forward.module:674;714
+msgid "Most Emailed"
+msgstr "Mest e-postade"
+
+#: forward.module:678
+msgid "Most Emailed Today"
+msgstr "Mest e-postade i dag"
+
+#: forward.module:679
+msgid "Most Emailed This Week"
+msgstr "Mest e-postade denna vecka"
+
+#: forward.module:680
+msgid "Most Emailed of All Time"
+msgstr "Mest e-postade någonsin"
+
+#: forward.module:681;719
+msgid "Most Recently Emailed"
+msgstr "Senast e-postade"
+
+#: forward.module:685
+msgid "Block Type"
+msgstr "Blocktyp"
+
+#: forward.module:688
+msgid "Choose the block type"
+msgstr "Välj blocktyp"
+
+#: forward.module:703
+msgid "Today's Most Emailed"
+msgstr "Dagens mest e-postade"
+
+#: forward.module:709
+msgid "This Week's Most Emailed"
+msgstr "Veckans mest e-postade"
+
+#: forward.module:776
+msgid "Forward module installed tables successfully."
+msgstr "Modulen Tipsa en vän har installerat tabeller."
+
+#: forward.module:779
+msgid "The installation of forward module was unsuccessful."
+msgstr "Installationen av modulen Tipsa en vän misslyckades."
+
+#: forward.module:24
+msgid "access forward"
+msgstr "tillgång till tips"
+
+#: forward.module:24
+msgid "administer forward"
+msgstr "administrera tips"
+
+#: forward.module:0
+msgid "forward"
+msgstr "tipsa en vän"
+
+#: forward.theme:45;102
+msgid "Message from Sender"
+msgstr "Meddelande från avsändaren"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Klicka här för att läsa mer på vår webbplats"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Klicka här för att besöka vår webbplats"
+

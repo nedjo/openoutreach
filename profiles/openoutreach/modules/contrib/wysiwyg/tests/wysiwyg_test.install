@@ -1,0 +1,8 @@
+<?php
+// $Id: wysiwyg_test.install,v 1.1 2011/01/23 01:58:34 sun Exp $
+
+/**
+ * @file
+ * Installation functionality for Wysiwyg testing module.
+ */
+

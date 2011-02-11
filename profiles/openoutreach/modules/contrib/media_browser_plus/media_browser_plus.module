@@ -1,0 +1,188 @@
+<?php
+// $Id$ 
+
+/**
+ * @file
+ * Adds fields to the media browser forms for better UX
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_browser_plus_form_media_add_upload_multiple_alter(&$form, &$form_state) {
+  // This builds the tags textfield and adds the autocomplete handlers to it.
+  // The #element_validate may not be necessary because this never triggers
+  // hook_field_update() or hook_field_insert()
+  $form['field_tags'] = array(
+    '#weight' => 1,
+    '#language' => LANGUAGE_NONE,
+    '#field_name' => 'field_tags',
+    '#columns' => array('tid'),
+    '#title' => 'Tags',
+    '#description' => 'Enter a comma-separated list of words to describe your image.',
+    '#required' => FALSE,
+    '#delta' => 0,
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#autocomplete_path' => 'taxonomy/autocomplete/field_tags',
+    '#element_validate' => array('media_browser_plus_prepare_taxonomy_autocomplete_validate', 'taxonomy_autocomplete_validate'),
+    '#size' => 60,
+  );
+  // Change the weight of the other form items so they appear in the right order
+  $form['upload']['#weight'] = 0;
+  $form['submit']['#weight'] = 2;
+
+  // Add an additional form submission callback that fires after the default.
+  $form['#submit'][] = 'media_browser_plus_submit';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_browser_plus_form_media_internet_add_alter(&$form, &$form_state) {
+  // Add an additional form submission callback that fires after the default.
+  $form['#submit'][] = 'media_browser_plus_submit';
+}
+
+/**
+ * Form element validate handler for taxonomy term autocomplete element.
+ *
+ * Because media_browser_plus_form_media_add_upload_multiple_alter() adds a
+ * tags widget to a form that is not an entity editing form, but it is desired
+ * for taxonomy_autocomplete_validate() to have access to the settings of the
+ * field for which this widget is being added, this handler runs before
+ * taxonomy_autocomplete_validate(), and adds the expected information to
+ * $form_state, as expected by taxonomy_autocomplete_validate().
+ */
+function media_browser_plus_prepare_taxonomy_autocomplete_validate($element, &$form_state) {
+  $form_state['field'][$element['#field_name']][$element['#language']]['field'] = field_info_field($element['#field_name']);
+}
+
+/**
+ * Form submit handler for the media browser forms that create new media entities.
+ *
+ * Enhances the media creation process by populating field content for the newly
+ * created entities from user-submitted data and/or data available from a
+ * remote provider.
+ *
+ * @see media_browser_plus_form_media_add_upload_multiple_alter()
+ * @see media_browser_plus_form_media_internet_add_alter()
+ */
+function media_browser_plus_submit($form, &$form_state) {
+  // Grab the fids of the newly created media entities from the redirect query
+  // string that was created by the form's primary submit handler, and load the
+  // corresponding entities.
+  $fids = $form_state['redirect'][1]['query']['fid'];
+  if (!is_array($fids)) {
+    $fids = array($fids);
+  }
+  $media_entities = media_load_multiple($fids);
+  $needs_save = FALSE;
+
+  // If tags have been entered, apply them to each new entity.
+  if (!empty($form_state['values']['field_tags'])) {
+    // Create any new taxonomy terms.
+    foreach ($form_state['values']['field_tags'] as $i => &$item) {
+      if ($item['tid'] == 'autocreate') {
+        $term = (object) $item;
+        unset($term->tid);
+        taxonomy_term_save($term);
+        $item['tid'] = $term->tid;
+      }
+      unset($item);
+    }
+
+    foreach ($media_entities as $media) {
+      $media->field_tags[LANGUAGE_NONE] = $form_state['values']['field_tags'];
+    }
+    $needs_save = TRUE;
+  }
+
+  // If the new media is from a 3rd party provider, and that provider also
+  // provides MRSS data about the media, then populate the title and description
+  // fields from that data.
+  if (!empty($form_state['values']['embed_code'])) {
+    $provider = media_internet_get_provider($form_state['values']['embed_code']);
+    if ($data = _media_browser_plus_metadata($provider)) {
+      foreach ($data as $field_name => $value) {
+        $field = field_info_field($field_name);
+        // Limiting value population only if the field is of type 'text' or
+        // 'text_long' isn't as extensible as would be ideal, but we need some
+        // protection against populating a field with incompatible content.
+        if (isset($field) && in_array($field['type'], array('text', 'text_long')) && isset($field['bundles']['media'])) {
+          foreach ($media_entities as $media) {
+            if (in_array($media->type, $field['bundles']['media']) && !isset($media->{$field_name}[LANGUAGE_NONE][0]['value'])) {
+              $media->{$field_name}[LANGUAGE_NONE][0]['value'] = $value;
+              $needs_save = TRUE;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if ($needs_save) {
+    foreach ($media_entities as $media) {
+      media_save($media);
+    }
+  }
+}
+
+/**
+ * Helper function to return metadata that is available from a 3rd party media provider, such as YouTube.
+ *
+ * @param $provider
+ *   A provider object as returned by media_internet_get_provider().
+ *
+ * @return
+ *   An array of media metadata available from the provider, keyed on field
+ *   name.
+ *
+ * @see http://video.search.yahoo.com/mrss
+ * @see media_internet_get_provider()
+ * @see MediaInternetYouTubeHandler::getMRSS()
+ */
+function _media_browser_plus_metadata($provider) {
+  // @todo This is early, experimental code, still subject to much change. For
+  //   now, we assume $provider->getMRSS() returns a SimpleXML element. We'll
+  //   want to change this assumption and have it return an array instead, but
+  //   that requires fixing media_retrieve_xml() to handle XML namespaces
+  //   properly.
+  $data = array();
+  if (is_callable(array($provider, 'getMRSS')) && ($rss = $provider->getMRSS())) {
+    // MRSS is an extension of RSS, so the title field is available in the
+    // default (ATOM) namespace.
+    $data['media_title'] = (string) $rss->title;
+    // The MRSS extensions are in their own namespace.
+    $mrss = $rss->children('http://search.yahoo.com/mrss/');
+    $data['media_description'] = (string) $mrss->group->description;
+  }
+  $data = array_filter($data, 'strlen');
+  return $data;
+}
+
+/**
+ * Implements MODULE_preprocess_media_link().
+ */
+function media_browser_plus_preprocess_media_link(&$variables) {
+  // Use the value of the title field, when there is one, as the link text for
+  // all links that would otherwise default to the filename.
+  // @todo Solve generically using the 'label' key of hook_entity_indo(). See
+  //   http://drupal.org/node/910396.
+  $media = media_load($variables['file']->fid);
+  if (empty($variables['file']->description) && isset($media->media_title[LANGUAGE_NONE][0]['value'])) {
+    $variables['file']->description = $media->media_title[LANGUAGE_NONE][0]['value'];
+  }
+}
+
+/**
+ * Implements MODULE_preprocess_media_thubmnail().
+ */
+function media_browser_plus_preprocess_media_thumbnail(&$variables) {
+  // See media_browser_plus_preprocess_media_link(). Same thing here, but for
+  // the links that appear underneath thumbnail previews.
+  $media = $variables['element']['#object'];
+  if (isset($media->media_title[LANGUAGE_NONE][0]['value'])) {
+    $variables['element']['#name'] = $media->media_title[LANGUAGE_NONE][0]['value'];
+  }
+}

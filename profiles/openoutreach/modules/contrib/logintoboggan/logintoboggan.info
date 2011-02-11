@@ -1,0 +1,16 @@
+; $Id: logintoboggan.info,v 1.9 2011/01/05 18:58:18 thehunmonkgroup Exp $
+
+name = "LoginToboggan"
+description = "Improves Drupal's login system."
+core = "7.x"
+configure = admin/config/system/logintoboggan
+
+stylesheets[all][] = logintoboggan.css
+
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.1"
+core = "7.x"
+project = "logintoboggan"
+datestamp = "1295518337"
+

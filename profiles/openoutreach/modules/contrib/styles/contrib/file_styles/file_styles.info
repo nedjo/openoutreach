@@ -1,0 +1,18 @@
+; $Id: file_styles.info,v 1.1.2.3.2.1 2011/01/05 15:40:07 aaron Exp $
+
+name = File Styles
+description = Allows preset transformation of files and media for display.
+package = Styles
+core = 7.x
+files[] = file_styles.module
+files[] = file_styles.admin.inc
+files[] = includes/styles/FileStyles.inc
+dependencies[] = styles
+dependencies[] = image
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-2.0-alpha5"
+core = "7.x"
+project = "styles"
+datestamp = "1295391391"
+

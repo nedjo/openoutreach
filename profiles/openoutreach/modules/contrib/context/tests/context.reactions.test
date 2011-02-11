@@ -1,0 +1,168 @@
+<?php
+// $Id: context.reactions.test,v 1.1.2.3.2.5 2010/12/09 22:26:23 yhahn Exp $
+
+class ContextReactionBlockTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: block',
+      'description' => 'Test block reaction.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+    $admin_user = $this->drupalCreateUser(array(
+      'administer site configuration'
+    ));
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    ctools_include('export');
+    $context = ctools_export_new_object('context');
+    $context->name = 'testcontext';
+    $context->conditions = array('sitewide' => array('values' => array(1)));
+    $context->reactions = array('block' => array('blocks' => array(
+      'user-online' => array(
+        'module' => 'user',
+        'delta' => 'online',
+        'region' => 'sidebar_first',
+        'weight' => 0,
+      ),
+    )));
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    theme_enable(array('bartik'));
+    variable_set('theme_default', 'bartik');
+    $this->refreshVariables();
+
+    $this->drupalGet('node');
+    $this->assertText('Who\'s online');
+
+    // Cleanup
+    context_delete($context);
+
+    // @TODO:
+    // - Implement & test title overrides (if we plan to support them).
+    // - Implement & test core + context block visibility conditions
+  }
+}
+
+class ContextReactionBlockAjaxTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: block ajax',
+      'description' => 'Test block reaction ajax behavior.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+  }
+
+  function test() {
+    $this->drupalGet('node', array(
+      'query' => array('context_block' => 'user-3,testcontext')
+    ));
+
+    $this->assertText('"status": 1');
+    $this->assertText("Who\'s online");
+  }
+}
+
+class ContextReactionMenuTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: menu',
+      'description' => 'Test menu reaction.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools', 'menu', 'blog');
+    $admin_user = $this->drupalCreateUser(array(
+      'administer menu',
+      'administer nodes',
+      'administer site configuration',
+      'create blog content',
+    ));
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    ctools_include('export');
+    $context = ctools_export_new_object('context');
+    $context->name = 'testcontext';
+    $context->conditions = array('sitewide' => array('values' => array(1)));
+    $context->reactions = array('menu' => 'node/add');
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    $this->drupalPost('admin/structure/menu/settings', array('menu_main_links_source' => 'management'), 'Save configuration');
+    theme_enable(array('bartik'));
+    variable_set('theme_default', 'bartik');
+    $this->refreshVariables();
+
+    $output = $this->drupalGet('user');
+    $url = url('node/add');
+    $active = $this->xpath('//li[contains(@class, "active")]/a[@href="'. $url .'"]');
+    $this->assertTrue(!empty($active), t('Active menu item found.'));
+
+    // Cleanup
+    context_delete($context);
+  }
+}
+
+class ContextReactionBreadcrumbTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: breadcrumb',
+      'description' => 'Test breadcrumb reaction.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+    $admin_user = $this->drupalCreateUser(array(
+      'access administration pages',
+      'administer nodes',
+      'administer site configuration'
+    ));
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    ctools_include('export');
+    $context = ctools_export_new_object('context');
+    $context->name = 'testcontext';
+    $context->conditions = array('path' => array('values' => array('node')));
+    $context->reactions = array('breadcrumb' => 'admin/structure');
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    theme_enable(array('bartik'));
+    variable_set('theme_default', 'bartik');
+    $this->refreshVariables();
+
+    $output = $this->drupalGet('node');
+    $this->assertText('Home » Administer » Structure');
+    $output = $this->drupalGet('user');
+    $this->assertNoText('Home » Administer » Structure');
+
+    // Cleanup
+    context_delete($context);
+  }
+}

@@ -1,0 +1,17 @@
+; $Id: service_links_sprites.info,v 1.1.4.2 2010/11/23 09:44:22 thecrow Exp $
+name = Service Links Sprites
+description = Add the ability to handle sprites with Service Links
+core = 7.x
+package = Service Links
+dependencies[] = service_links
+
+version = VERSION
+files[] = service_links_sprites.module
+configure = admin/config/services/service-links
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "service_links"
+datestamp = "1297125270"
+

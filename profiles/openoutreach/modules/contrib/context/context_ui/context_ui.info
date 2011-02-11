@@ -1,0 +1,16 @@
+; $Id: context_ui.info,v 1.3.8.1 2010/09/13 21:10:58 jmiccolis Exp $
+name = Context UI
+description = "Provides a simple UI for settings up a site structure using Context."
+dependencies[] = context
+package = Context
+core = "7.x"
+
+files[] = context.module
+files[] = tests/context_ui.test
+
+; Information added by drupal.org packaging script on 2011-01-03
+version = "7.x-3.0-alpha3"
+core = "7.x"
+project = "context"
+datestamp = "1294089953"
+

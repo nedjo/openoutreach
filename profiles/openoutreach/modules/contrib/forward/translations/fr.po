@@ -1,0 +1,625 @@
+# $Id: fr.po,v 1.2 2010/08/30 21:30:29 seanr Exp $
+#
+# French translation of Drupal (general)
+# Copyright YEAR NAME &lt;EMAIL@ADDRESS&gt;
+# Generated from files:
+#  forward.tpl.php,v 1.1.2.8 2010/03/22 19:14:41 seanr
+#  forward.theme,v 1.7.2.7 2010/03/09 18:46:34 seanr
+#  forward.views.inc,v 1.1.2.4 2009/09/21 15:43:44 seanr
+#  forward.module,v 1.55.2.34 2010/03/22 19:14:41 seanr
+#  forward.info,v 1.2 2007/07/24 16:20:44 seanr
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2010-08-24 10:56-0700\n"
+"PO-Revision-Date: 2010-08-24 10:56-0700\n"
+"Last-Translator: NAME &lt;EMAIL@ADDRESS&gt;\n"
+"Language-Team: French &lt;EMAIL@ADDRESS&gt;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: forward.tpl.php:34 forward.theme:40;81
+msgid "Message from Sender"
+msgstr ""
+
+#: forward.views.inc:13 forward.module:1100;1201;51 forward.info:0
+msgid "Forward"
+msgstr ""
+
+#: forward.views.inc:24
+msgid "forward count"
+msgstr ""
+
+#: forward.views.inc:25;32;39
+msgid "The module that associated a product with the node."
+msgstr ""
+
+#: forward.views.inc:31
+msgid "clickthrough count"
+msgstr ""
+
+#: forward.views.inc:38
+msgid "most recent timestamp"
+msgstr ""
+
+#: forward.module:50
+msgid "Configure settings for forward module."
+msgstr ""
+
+#: forward.module:96
+msgid "Administrative Options"
+msgstr ""
+
+#: forward.module:102
+msgid "Link style"
+msgstr "Style de lien"
+
+#: forward.module:104
+msgid "Text only"
+msgstr "Texte seulement"
+
+#: forward.module:104
+msgid "Icon only"
+msgstr "Icône seulement"
+
+#: forward.module:104
+msgid "Icon and text"
+msgstr ""
+
+#: forward.module:105
+msgid "Select the visual style of the link."
+msgstr "Choisissez le style visuel du lien."
+
+#: forward.module:109
+msgid "Use node type in link"
+msgstr ""
+
+#: forward.module:112
+msgid "If checked, the link will read &amp;quot;email this &lt;em&gt;nodetype&lt;/em&gt;&amp;quot;; if not, it will just read &amp;quot;email this page&amp;quot;"
+msgstr ""
+
+#: forward.module:116
+msgid "Link title"
+msgstr "Titre du lien"
+
+#: forward.module:119
+msgid "Set the text of the link.  Use !type as a place holder for the node's content type or 'page' depending on the setting above."
+msgstr ""
+
+#: forward.module:123
+msgid "Show Forward on nodes"
+msgstr ""
+
+#: forward.module:126
+msgid "If checked, the link/form will appear on nodes"
+msgstr ""
+
+#: forward.module:130
+msgid "Show Forward on teasers"
+msgstr ""
+
+#: forward.module:133
+msgid "If checked, the link/form will appear on teasers in lists of nodes"
+msgstr ""
+
+#: forward.module:137
+msgid "Show Forward on comments"
+msgstr ""
+
+#: forward.module:140
+msgid "If checked, the link/form will appear on comments"
+msgstr ""
+
+#: forward.module:144
+msgid "Show Forward on non-node pages"
+msgstr ""
+
+#: forward.module:147
+msgid "If checked, the link/form will appear on non-node pages like views and other module pages"
+msgstr ""
+
+#: forward.module:151
+msgid "Use forward.tpl.php template instead of old style theme functions"
+msgstr ""
+
+#: forward.module:153
+msgid "If you are upgrading from an old site and customized theme_forward_email or theme_forward_postcard, leave this unchecked unless you wish to convert your customizations to the new forward.tpl.php style.  If upgrading, make sure you flush the theme registry before making this change or Drupal may not find the new template."
+msgstr ""
+
+#: forward.module:157
+msgid "Form type"
+msgstr ""
+
+#: forward.module:160
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr ""
+
+#: forward.module:164
+msgid "Flood control limit"
+msgstr ""
+
+#: forward.module:167
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr ""
+
+#: forward.module:171
+msgid "Flood control error"
+msgstr ""
+
+#: forward.module:172;656
+msgid "You can't send more than !number messages per hour. Please try again later."
+msgstr ""
+
+#: forward.module:175
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of !number in the message presented to users"
+msgstr ""
+
+#: forward.module:179
+msgid "Personal messages"
+msgstr ""
+
+#: forward.module:182
+msgid "Choose whether the personal message field will be disabled, optional, or required."
+msgstr ""
+
+#: forward.module:186
+msgid "Allow HTML in personal messages"
+msgstr ""
+
+#: forward.module:189
+msgid "If checked, will filter XSS and all tags not allowed below from the custom body field.  Otherwise, the body will converted to plain text with all HTML converted to character entities"
+msgstr ""
+
+#: forward.module:193
+msgid "Allowed HTML tags"
+msgstr "Balises HTML autorisées"
+
+#: forward.module:196
+msgid "List of allowed tags (separated by commas) that will be allowed by the XSS filter if enabled above.  The default tags allowed are: p,br,em,strong,cite,code,ul,ol,li,dl,dt,dd"
+msgstr ""
+
+#: forward.module:200
+msgid "From address"
+msgstr "E-mail de l'expéditeur"
+
+#: forward.module:204
+msgid "If left blank, the from address entered in the form will be used as the from address for the email.  Enter a valid email address here to override that.  The sender's email will still appear in the body of the message."
+msgstr ""
+
+#: forward.module:218
+msgid "Content types"
+msgstr "Types de contenu"
+
+#: forward.module:221
+msgid "Choose which content types to display the Forward link on."
+msgstr ""
+
+#: forward.module:227
+msgid "Page Text Values"
+msgstr ""
+
+#: forward.module:233
+msgid "Forward Instructions"
+msgstr ""
+
+#: forward.module:237
+msgid "This message will be displayed above the form.  The token !site will be replaced with the site name."
+msgstr ""
+
+#: forward.module:241
+msgid "Thank You Message"
+msgstr "Message de remerciement"
+
+#: forward.module:245
+msgid "This message will be displayed after the user successfully submits the form.  The token !site will be replaced with the site name."
+msgstr ""
+
+#: forward.module:251
+msgid "Default Values for Email This Page"
+msgstr ""
+
+#: forward.module:254
+msgid "These options will set the default values for the \"email this page\" form."
+msgstr ""
+
+#: forward.module:258
+msgid "Email width"
+msgstr ""
+
+#: forward.module:261
+msgid "Set a width for the table in the email template.  Ideally, this should be somewhere between 400 and 600 pixels to avoid breaking the layout in various email clients."
+msgstr ""
+
+#: forward.module:266
+msgid "Header Image for Email"
+msgstr ""
+
+#: forward.module:270
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr ""
+
+#: forward.module:275
+msgid "Forward Page Title"
+msgstr ""
+
+#: forward.module:276
+msgid "Forward this page"
+msgstr ""
+
+#: forward.module:279;319
+msgid "Title to display above the Forward page form"
+msgstr ""
+
+#: forward.module:283
+msgid "Forward Message Subject"
+msgstr ""
+
+#: forward.module:284
+msgid "!name has forwarded a page to you from !site"
+msgstr "!name t'a envoyé une page de !site"
+
+#: forward.module:287
+msgid "Email subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr ""
+
+#: forward.module:291
+msgid "Forward Message Body"
+msgstr ""
+
+#: forward.module:292
+msgid "!name thought you would like to see this page from the !site web site."
+msgstr "!name a pensé que vous voudriez voir cette page du site Web de !site."
+
+#: forward.module:295
+msgid "Email message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this."
+msgstr ""
+
+#: forward.module:299
+msgid "Include full node"
+msgstr ""
+
+#: forward.module:302
+msgid "If checked, Forward will include the full body of the node rather than just the teaser"
+msgstr ""
+
+#: forward.module:308
+msgid "Default Values for e-Postcard"
+msgstr ""
+
+#: forward.module:311
+msgid "These options will set the default values for the \"Send an e-Postcard\" form."
+msgstr ""
+
+#: forward.module:315
+msgid "Forward e-Postcard Title"
+msgstr ""
+
+#: forward.module:316
+msgid "Send an e-Postcard"
+msgstr ""
+
+#: forward.module:323
+msgid "e-Postcard Message Subject"
+msgstr ""
+
+#: forward.module:324
+msgid "!name has sent you an e-postcard from !site"
+msgstr ""
+
+#: forward.module:327
+msgid "Postcard subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr ""
+
+#: forward.module:331
+msgid "e-Postcard Message Body"
+msgstr ""
+
+#: forward.module:332
+msgid "!name has sent you an e-postcard from the !site web site.  Please take a moment to visit our web site."
+msgstr ""
+
+#: forward.module:335
+msgid "Postcard message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this.  You can use HTML in this field to add a special postcard image to the email above the sender's message."
+msgstr ""
+
+#: forward.module:339
+msgid "Oranization Ad"
+msgstr ""
+
+#: forward.module:343
+msgid "This message will be just above the footer message in the email."
+msgstr ""
+
+#: forward.module:347
+msgid "Footer Message"
+msgstr ""
+
+#: forward.module:351
+msgid "This message will be appended as a footer message to the email."
+msgstr ""
+
+#: forward.module:354
+msgid "Latest Blog Articles"
+msgstr ""
+
+#: forward.module:355
+msgid "Latest Users"
+msgstr ""
+
+#: forward.module:356
+msgid "Latest Comments"
+msgstr ""
+
+#: forward.module:357;689
+msgid "Most Popular Content"
+msgstr ""
+
+#: forward.module:358
+msgid "None"
+msgstr "Aucun"
+
+#: forward.module:362
+msgid "Dynamic Block"
+msgstr ""
+
+#: forward.module:365
+msgid "Choose the dynamic block to send with these emails"
+msgstr ""
+
+#: forward.module:371
+msgid "e-Postcard Return URL"
+msgstr ""
+
+#: forward.module:374
+msgid "URL of path to redirect users to after submitting the epostcard form."
+msgstr ""
+
+#: forward.module:433
+msgid "No path was selected to forward"
+msgstr ""
+
+#: forward.module:497;904;1175
+msgid "Email this !type"
+msgstr ""
+
+#: forward.module:505
+msgid "&lt;p&gt;Thank you for your interest in spreading the word on !site.&lt;/p&gt;&lt;p&gt;NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address.&lt;/p&gt;"
+msgstr ""
+
+#: forward.module:509
+msgid "Your Email"
+msgstr "Votre Courriel"
+
+#: forward.module:516
+msgid "Your Name"
+msgstr "Votre Nom"
+
+#: forward.module:523
+msgid "Send To"
+msgstr "Envoyer à"
+
+#: forward.module:527
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr ""
+"Entrez les adresses multiples sur les lignes séparées ou "
+"séparez-les avec des virgules."
+
+#: forward.module:533
+msgid "You are going to email the following"
+msgstr "Vous allez envoyer le suivant"
+
+#: forward.module:539
+msgid "Message Subject"
+msgstr "Objet"
+
+#: forward.module:540;787
+msgid "!name has sent you a message from !site"
+msgstr ""
+
+#: forward.module:540;546
+msgid "(Your Name)"
+msgstr "(Votre Nom)"
+
+#: forward.module:545
+msgid "Message Body"
+msgstr "Corps du Message"
+
+#: forward.module:546;759
+msgid "!name thought you would like to see the !site web site."
+msgstr "!name a pensé que vous voudriez voir le site Web de !site."
+
+#: forward.module:552
+msgid "Your Personal Message"
+msgstr "Votre Message Personnel"
+
+#: forward.module:574
+msgid "Send Message"
+msgstr "Envoyez le Message"
+
+#: forward.module:634
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr ""
+
+#: forward.module:637
+msgid "Your Email address is invalid."
+msgstr ""
+
+#: forward.module:640
+msgid "You must enter your name."
+msgstr "Vous devez saisir votre nom."
+
+#: forward.module:643
+msgid "You did not enter any recipients."
+msgstr ""
+
+#: forward.module:648
+msgid "One of your Recipient addresses is invalid:"
+msgstr ""
+
+#: forward.module:660
+msgid "You must enter a message."
+msgstr "Vous devez entrer un message."
+
+#: forward.module:674
+msgid "Recent blog posts"
+msgstr "Derniers billets"
+
+#: forward.module:679
+msgid "Who's new"
+msgstr "Nouveaux membres"
+
+#: forward.module:684
+msgid "Recent comments"
+msgstr "Commentaires récents"
+
+#: forward.module:773 forward.theme:44
+msgid "by %author"
+msgstr ""
+
+#: forward.module:775 forward.theme:46;83
+msgid "Click here to read more on our site"
+msgstr ""
+
+#: forward.module:816
+msgid "Thank you for your help in spreading the word about !site. We appreciate your help."
+msgstr ""
+
+#: forward.module:896;899
+msgid "comment"
+msgstr "commentaire"
+
+#: forward.module:899;1175
+msgid "page"
+msgstr ""
+
+#: forward.module:923;1193
+msgid "Forward this page to a friend"
+msgstr ""
+
+#: forward.module:957;966
+msgid "Show forwarding link/form"
+msgstr ""
+
+#: forward.module:960;969
+msgid "Displays the form/link to allow visitors to forward the page to a friend. Further configuration is available on the !settings."
+msgstr ""
+
+#: forward.module:960;969
+msgid "settings page"
+msgstr "page des paramétres"
+
+#: forward.module:979
+msgid "emails sent to"
+msgstr ""
+
+#: forward.module:979
+msgid "recipients"
+msgstr ""
+
+#: forward.module:987;1021
+msgid "Title"
+msgstr "Titre"
+
+#: forward.module:988;1022;1057
+msgid "Path"
+msgstr "Chemin"
+
+#: forward.module:989;1023
+msgid "Forwards"
+msgstr ""
+
+#: forward.module:990;1024
+msgid "Clickthroughs"
+msgstr ""
+
+#: forward.module:1011;1045;1085
+msgid "No one has used Forward yet."
+msgstr ""
+
+#: forward.module:1055
+msgid "Time"
+msgstr "Date"
+
+#: forward.module:1056
+msgid "Type"
+msgstr "Type"
+
+#: forward.module:1058
+msgid "User ID"
+msgstr "ID utilisateur"
+
+#: forward.module:1059
+msgid "Hostname"
+msgstr "Nom d'hôte"
+
+#: forward.module:1089
+msgid "Forward Tracking"
+msgstr ""
+
+#: forward.module:1099;1159
+msgid "Most Emailed"
+msgstr ""
+
+#: forward.module:1108
+msgid "Most Emailed of All Time"
+msgstr ""
+
+#: forward.module:1109;1164
+msgid "Most Recently Emailed"
+msgstr ""
+
+#: forward.module:1113;1212
+msgid "Block Type"
+msgstr ""
+
+#: forward.module:1116;1215
+msgid "Choose the block type"
+msgstr ""
+
+#: forward.module:1122
+msgid "Display form in block"
+msgstr ""
+
+#: forward.module:1125
+msgid "Choose whether to display the full form in the block or just an email this page link."
+msgstr ""
+
+#: forward.module:28
+msgid "access forward"
+msgstr ""
+
+#: forward.module:28
+msgid "access epostcard"
+msgstr ""
+
+#: forward.module:28
+msgid "override email address"
+msgstr ""
+
+#: forward.module:28
+msgid "administer forward"
+msgstr ""
+
+#: forward.module:28
+msgid "override flood control"
+msgstr ""
+
+#: forward.module:44
+msgid "Track forwarded posts"
+msgstr ""
+
+#: forward.module:45
+msgid "Forward tracking"
+msgstr ""
+
+#: forward.module:58
+msgid "Track email clickthrus"
+msgstr ""
+
+#: forward.info:0
+msgid "Forward this page module"
+msgstr ""

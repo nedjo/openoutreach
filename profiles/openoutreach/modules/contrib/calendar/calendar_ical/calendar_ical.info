@@ -1,0 +1,24 @@
+; $Id: calendar_ical.info,v 1.6 2011/01/16 16:27:50 karens Exp $
+name = Calendar iCal
+description = Adds ical functionality to Calendar views.
+dependencies[] = views
+dependencies[] = date_api
+dependencies[] = date_views
+dependencies[] = calendar
+package = Date/Time
+core = 7.x
+files[] = calendar-view-ical.tpl.php
+files[] = calendar_ical.install
+files[] = calendar_ical.module
+files[] = calendar_ical.views.inc
+files[] = calendar_ical_admin.inc
+files[] = calendar_plugin_display_ical.inc
+files[] = calendar_plugin_style_ical.inc
+files[] = theme.inc
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "calendar"
+datestamp = "1295532253"
+

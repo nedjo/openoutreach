@@ -1,0 +1,46 @@
+<?php
+// $Id: calendar_ical.install,v 1.5 2010/02/28 15:02:48 karens Exp $
+
+/**
+ * @file
+ * Install, update and uninstall functions for the calendar_ical module.
+ *
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function calendar_ical_install() {
+  db_update('system')
+    ->fields(array(
+      'weight' => 1
+    ))
+    ->condition('name',  'calendar_ical')
+    ->execute();
+}
+
+/**
+ * Make sure handlers for disabled Calendar iCal module don't get saved in the view.
+ */
+function calendar_ical_uninstall() {
+  $displays = array(
+    'ical',
+    );
+  db_query("DELETE FROM {views_display} WHERE display_plugin IN ('" . implode("','", $displays) . "')");
+  db_query("DELETE FROM {cache_views}");
+}
+
+function calendar_ical_enable() {
+  db_query("DELETE FROM {cache_views}");
+}
+
+/**
+ * Make sure handlers for disabled Calendar iCal module don't get saved in the view.
+ */
+function calendar_ical_disable() {
+  db_query("DELETE FROM {cache_views}");
+}
+
+function calendar_ical_update_last_removed() {
+  return 6000;
+}

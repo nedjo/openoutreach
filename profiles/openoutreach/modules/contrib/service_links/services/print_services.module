@@ -1,0 +1,36 @@
+<?php
+// $Id: print_services.module,v 1.1.4.4 2011/02/07 18:37:55 thecrow Exp $
+
+/**
+ * @file
+ * Add the support for Print module,
+ * this work only if alias are enabled in print module.
+ */
+
+/**
+ * Implementation of hook_service_links().
+ */
+function print_services_service_links() {
+  $links = array();
+
+  $links['print'] = array(
+    'name' => 'Print HTML',
+    'link' => url('print', array('absolute' => TRUE)) . '/<query>',
+    'description' => t('Printable version'),
+    //'icon' => drupal_get_path('module', 'print') . '/icons/print_icon.gif',
+  );
+  $links['printpdf'] = array(
+    'name' => 'Print Pdf',
+    'link' => url('printpdf', array('absolute' => TRUE)) . '/<query>',
+    'description' => t('PDF version'),
+    //'icon' => drupal_get_path('module', 'print') . '/icons/pdf_icon.gif',
+  );
+  $links['printmail'] = array(
+    'name' => 'Print Mail',
+    'link' => url('printmail', array('absolute' => TRUE)) . '/<query>',
+    'description' => t('Send to a friend'),
+    //'icon' => drupal_get_path('module', 'print') . '/icons/mail_icon.gif',
+  );
+
+  return $links;
+}

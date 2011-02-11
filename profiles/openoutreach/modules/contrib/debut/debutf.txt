@@ -1,0 +1,324 @@
+$Id: debutf.txt,v 1.6 2010/09/30 22:59:35 nedjo Exp $
+
+Debut Feature Specification (debutf 1.0-draft)
+----------------------------------------------
+Extending the kitf feature specification, this document provides a set of
+requirements for Drupal features to provide suitable baseline functionality
+suitable to various distributions and individual site installs and at the same
+time integrate effectively into a cohesive feature set. Debut features should
+together provide an integrated set of functionality that covers the basic needs
+of most Drupal websites and distributions.
+
+This document is based on the Drupal 6.x versions of Drupal core, contributed
+modules and themes.
+
+
+1. Introduction
+---------------
+The kitf feature specification provides important guidelines and requirements
+to ensure interoperability among Drupal features.
+
+Building on kitf, Debut features are based on the following precepts:
+* Debut features should provide the basic functionality that most sites or
+distributions will need.
+* Any advanced or specialized functionality should be provided in separate
+features that require more basic features.
+* Website feature discoverability and ease of use for both admins and end users
+should be an overriding goal.
+* Every main task should have only one primary admin interface.
+* Common protocols and solutions should be used to ensure consistency and ease
+of use.
+
+### Uniqueness and compatibility
+
+Wherever possible, each Debut feature should cover a unique area of
+functionality. For example, there should be only a single Debut feature that
+provides general blog functionality. Exceptions can be made where the
+underlying framework used is radically different and there is no common base to
+build on. For example, a debut_search feature could provide search enhancements
+based on core Drupal search while a debut_searchlight feature provided search
+through Searchlight.
+
+### Available on the Drupal infrastructure
+
+To ensure visibility, all Debut features should be hosted on the Drupal
+infrastructure.
+
+### Declaring compliance
+
+Features compliant with this specification may declare themselves as such in
+their module `.info` file using the `debutf` key and the version of this
+document to which they comply. Example:
+
+    debutf = "1.0-draft"
+
+### Features framework
+
+A feature should meet its needs through Features-aware solutions wherever
+possible. Where multiple options exist, a primary selection criterion should be
+how fully they embrace the Features framework.
+
+- Context: Where context or contextual layout is required, the Context module
+should be used.
+- Boxes: Where custom blocks are required, the Boxes module must be used.
+- Strongarm: Where variables are set, the Strongarm module should be used.
+- Spaces: Where individual items (user spaces, pieces of content) require
+contextual customization, the Spaces module should be used.
+
+One of the most challenging tasks for novice site admins is controlling layout
+of individual sections or pages. The Panels module is a highly advanced and
+powerful solution for this purpose, but using Panels in combination with Context
+is demanding and error-prone. No suitable standards have been developed yet for 
+the use of Panels in Debut features. For these reasons, a feature should not
+require Panels and should instead rely on Context wherever possible. Any use of
+Panels should include a patch on this specification proposing standards for use
+of Panels in a consistent way.
+
+### Integrator modules
+
+To help produce uniformity among the various Debut features, the following
+helper modules should be relied upon, but not required. E.g., where appropriate,
+paths variables should be set so that, if Pathauto is present, content types
+defined by a feature will get appropriate paths.
+- Pathauto
+
+In addition to these integrator modules:
+
+- Rules should be used and not the core Trigger module for any configurable
+actions.
+
+2. Namespaces
+-------------
+
+### 2.1 Code namespace
+
+A Debut feature must include the debut namespace.
+- Example: `debut_blog`.
+
+
+### 2.2 Project namespace
+
+A Debut project must include the debut namespace.
+- Example: `debut_blog`.
+
+
+3. User roles and permissions
+-----------------------------
+
+### 3.1 Required user roles
+
+The `administrator` role defined in kitf should be used for site administration
+tasks, such as installing and configuring modules, content types, and blocks.
+The administrator role is defined by debut_admin and so should not be defined
+by any other Debut feature.
+
+In addition to the three roles defined in kitf, features should use the
+following two roles as appropriate.
+
+- `contributor` is a Drupal user who contributes content, e.g., a staff member
+at an organization or company.
+- `editor` is a Drupal user responsible for editing and administrating content,
+taxonomies, and comments.
+
+No additional roles may be provided by a feature.
+
+These roles are provided by the Debut feature and so will be present if Debut
+is installed. However, to avoid unwanted roles, Debut features should not
+require the Debut feature.
+
+
+### 3.2 Permissions
+
+The editor role should not be expected to have `administer nodes` permissions.
+
+For each content type introduced, roles should be assigned as follows:
+
+- `contributor`: `create [type] content`, `delete own [type] content`, `edit
+own [type] content`
+- `editor`: `create [type] content`, `delete all [type] content`, `edit all
+[type] content`
+
+where [type] is the machine name of the content type being introduced by the
+feature.
+
+
+4. Variables
+------------
+A feature should include a settings form for any variables important to it.
+Doing so will facilitate Spaces integration.
+
+
+5. Paths and breadcrumbs
+-----------------------
+
+### 5.1 Primary path and nesting
+
+Where features provide content or nested pages, these should wherever feasible
+be available at paths nested below the feature's primary path.
+
+Without creating a dependency on Pathauto, a feature that defines a content
+type should register a pathauto pattern variable that nests content of that type
+below the feature's primary page.
+
+Example: a blog feature would use Strongarm to set pathauto_node_audio_pattern
+to 'blog/[title-raw]'.
+
+
+### 5.2 Menu location and breadcrumbs
+
+Menu location and breadcrumbs for pages created by the feature should match the
+nesting used for paths.
+
+Context should be used to set breadcrumbs. For example, an article feature
+including an article content type and an article landing page at 'article'
+should set a context breadcrumb reaction on article node pages pointing to
+the 'article' menu item.
+
+Currently context includes a menu class reaction but doesn't set the menu
+trail.
+
+See http://drupal.org/node/835090 for a potential menu trail context reaction.
+
+
+6. Block visibility and theme regions
+-------------------------------------
+
+### 6.1 Block visibility
+
+The Context module should be used wherever feasible for block placement and
+visibility. 
+
+### 6.2 Theme regions
+
+In addition to the the regions specified in kitf, only the following may be
+used.
+
+- `content_left`: A left column in the main page content region.
+- `content_right`: A right column in the main page content region.
+
+--------------------------------------------
+left | content                       | right
+     |                               |
+     |                               |
+     |-------------------------------|
+     | content_left  | content_right |
+     |               |               |
+     |               |               |
+     |               |               |
+
+
+7. Dependencies
+---------------
+A feature may not depend on any feature that is not fully compliant with this
+specification.
+
+### Versions
+
+Wherever feasible, features should use the recommended stable release versions
+of contributed modules and themes.
+
+Exceptions:
+* If Context is used, version 6.3.x must be used.
+* Features using Views should be tested with and compatible with Views 3,
+though they need not require it.
+* If jQuery Update is used, the 6.x-2.x branch should be used.
+* If Captcha is used, the 6.x.2.x-dev release should be used until 
+http://drupal.org/node/704110 reaches stable.
+
+### Libraries
+
+Any external libraries used by a feature should be installed in a libraries
+directory if possible.
+
+### Patches
+
+Patches should be avoided wherever possible. Ideally, patches should be used
+only up to and including beta releases, to include functionality expected
+to reach stable releases by the time the feature is out of beta.
+
+Where possible, patches should be replaced with workarounds in a feature's
+.module file that use Drupal APIs to achieve the same ends. These workarounds
+should include documentation identifying the patch that they relate to so
+they can be removed if/when that patch is accepted.
+
+### Drush make file
+
+A feature should include a sample Drush make file including all the feature's
+dependencies (modules, external libraries, etc.) that would typically be
+installed with the feature.
+
+To avoid being automatically processed by Drush Make, make files should end
+with a .example extension.
+
+For example, a debut_wysiwyg feature might include debut_wysiwyg.make.example
+including the wysiwyg project and a WYSIWYG library like tinymce or ckeditor.
+
+To ensure that any modules or libraries declared in one feature don't duplicate
+those in another, the following path convention must be used:
+
+- contrib: used for all code in Drupal's version control
+- external: used for modules, themes, etc. hosted externally, e.g., modules at http://code.developmentseed.org
+
+Examples:
+
+; A drupal.org hosted project.
+projects[jquery_ui][subdir] = contrib
+; An externally hosted project.
+projects[seed][subdir] = external
+projects[seed][location] = http://code.developmentseed.org/fserver
+; A library required by a contrib module.
+libraries[jquery_ui][download][type] = "get"
+libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/
+jquery-ui-1.7.3.zip"
+libraries[jquery_ui][directory_name] = "jquery.ui"
+libraries[jquery_ui][destination] = "modules/contrib/jquery_ui"
+
+
+8. Content types
+----------------
+
+Where a feature defines a content type, the following guidelines should be
+followed:
+
+### Image fields
+
+* If images are used with the content type, the feature should depend on the
+Debut Image feature and use its imagecache presets wherever possible.
+
+
+9. Views
+--------
+
+For consistency, the following conventions should be used for veiws included in
+features.
+
+* Naming: if the view is primarily for presenting a single content type, it
+should be named for the machine name of that content type.
+* At a minimum, views of a content type should include a page, block, and feed 
+display, with the feed display attached to both the page and block. The page
+display should have a path matching the content type's machine name and the feed
+should have the same path with an .rss extension.
+
+
+10. Contexts
+-----------
+
+Where appropriate, features that define a content type should include a context
+that displays related content on node pages of that content type. For example,
+an event feature might display a calendar block and an upcoming events block
+when event content is being viewed.
+
+For consistency, unless there are extenuating reasons, such contextual blocks
+should be placed in the right region.
+
+11. Help
+--------
+
+A feature should include contextual help provided through the Advanced Help
+module covering all major components of the feature. For example, a debut_audio
+feature including an audio content type with an embedded audio field, a view, and
+a context might include help on all the following:
+* The content type.
+* How to embed an audio file.
+* For each enabled embedded audio provider, specific instructions on posting
+audio.

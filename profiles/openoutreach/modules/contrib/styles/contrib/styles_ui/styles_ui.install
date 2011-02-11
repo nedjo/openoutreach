@@ -1,0 +1,45 @@
+<?php
+// $Id: styles_ui.install,v 1.1.2.4 2010/10/26 15:55:26 aaron Exp $
+
+/**
+ * @file styles/contrib/styles_ui/styles_ui.install
+ * Install, update and uninstall functions for the Styles module.
+ */
+
+/**
+ * Implement hook_install().
+ */
+function styles_ui_install() {
+  return array();
+}
+
+/**
+ * Implement hook_uninstall().
+ */
+function styles_ui_uninstall() {
+  return array();
+}
+
+/**
+ * Rebuild styles.
+ */
+function styles_ui_update_7200() {
+  cache_clear_all('styles_', 'cache', TRUE);
+  return array();
+}
+
+/**
+ * Change themes.
+ */
+function styles_ui_update_7201() {
+  drupal_theme_rebuild();
+  return array();
+}
+
+/**
+ * Change menu.
+ */
+function styles_ui_update_7203() {
+  menu_rebuild();
+  return array();
+}

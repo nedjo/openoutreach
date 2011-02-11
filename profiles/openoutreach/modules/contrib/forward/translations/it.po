@@ -1,0 +1,442 @@
+# translation of it.po to italiano
+# augusto fagioli <augusto@fagioli.biz>, 2006.
+msgid ""
+msgstr ""
+"Project-Id-Version: it\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2006-12-13 19:49+0100\n"
+"Last-Translator: augusto fagioli <augusto@fagioli.biz>\n"
+"Language-Team: italiano <it@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms:  nplurals=2; plural=n != 1;\n"
+"X-Generator: KBabel 1.11.2\n"
+
+#: forward.module:29
+msgid "Enables users to forward pages to friends."
+msgstr "Abilita gli utenti a inoltrare via mail una pagina agli amici"
+
+#: forward.module:40
+msgid "forward this page"
+msgstr "Inoltra questa pagina"
+
+#: forward.module:48
+msgid "Send an e-Postcard"
+msgstr "Invia una e-Postcard"
+
+#: forward.module:56
+msgid "forward tracking"
+msgstr "Traking del forward"
+
+#: forward.module:80
+msgid "Administrative Options"
+msgstr "Opzioni amministrazione"
+
+#: forward.module:86
+msgid "Use Node Type in Link"
+msgstr "Usa il tipo di node nel link"
+
+#: forward.module:89
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Se selezionato, .il link legge  &quot;email this <em>nodetype</em>&quot;;, altrimenti legge soltanto &quot;email this page&quot;"
+
+#: forward.module:93
+msgid "Show link on main page"
+msgstr "Mostra il link nella pagina principale"
+
+#: forward.module:96
+msgid "If checked, the link will appear on your home page"
+msgstr "Se selezionato, il link appare nella home page"
+
+#: forward.module:100
+msgid "Form Type"
+msgstr "Tipo di Form"
+
+#: forward.module:103
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Seleziona link per inviare  il link questa pagina o form per usare un modulo espandibile di inoltro"
+
+#: forward.module:107
+msgid "Flood Control Limit"
+msgstr "Limite del Controllo Flood"
+
+#: forward.module:110
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Quanti inoltri un utente puo' inviare ogni ora? Questo blocco elimita lo spamming"
+
+#: forward.module:114
+msgid "Flood Control Error"
+msgstr "Errore del Controllo Flood"
+
+#: forward.module:115
+#: ;453
+msgid "You can't send more than %number messages per hour. Please try again later."
+msgstr ""
+"E' stato raggiunto  il limite massimo di inoltri. Prova pi tardi per inviarne altri. "
+"<br>Grazie "
+"<br>Continua comunque la navigazione sul nostro sito."
+
+#: forward.module:118
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Questo testo appare quando un utente supera il limite di inoltri (Controllo Flood).  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+
+#: forward.module:124
+msgid "Page Text Values"
+msgstr "Page Text Values"
+
+#: forward.module:130
+msgid "Forward Instructions"
+msgstr "Istruzioni di inoltro"
+
+#: forward.module:131
+#: ;264
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Grazie per l'interesse nel nostro sito"
+
+#: forward.module:131
+#: ;264
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "NOTA: richiediamo il tuo indirizzo email soltanto per presentare al tuo amico la email con la pagina da presentare, e percio' non canceller' la mail che riceve da noi come spam. Gli indirizzi di posta elettronica qui inseriti non vengono conservati dal sistema"
+
+#: forward.module:134
+msgid "This message will be displayed above the form."
+msgstr "Questo messaggio viene mostrato sopra il form."
+
+#: forward.module:138
+msgid "Thank You Message"
+msgstr "Grazie per il tuo messaggio"
+
+#: forward.module:139
+#: ;583
+msgid "Thank you for your help in spreading the word about"
+msgstr "Grazie per aver segnalato ad un tua amico le pagine di "
+
+#: forward.module:139
+#: ;583
+msgid "We appreciate your help."
+msgstr "Apprezziamo il tuo interesse per il nostro sito"
+
+#: forward.module:142
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Questo messaggio viene esposto alla conferma dell'invio della mail"
+
+#: forward.module:148
+msgid "Forward Form Default Values"
+msgstr "Valori di default dell'invio"
+
+#: forward.module:154
+msgid "From Address"
+msgstr "Indirizzo DA"
+
+#: forward.module:158
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "L'indirizzo da cui inviare. Dove essere un account email attivo"
+
+#: forward.module:162
+msgid "Header Image for Email"
+msgstr "Immagine di intestaazione della mail"
+
+#: forward.module:166
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Inserisci l'URL della immagine come logo in alto delle pagine inviate"
+
+#: forward.module:171
+msgid "Forward Message Subject"
+msgstr "Oggetto del messaggio "
+
+#: forward.module:172
+msgid "%name has forwarded a page to you from %site"
+msgstr "Il tuo amico %name ti segnala questa pagina dal sito  %site"
+
+#: forward.module:175
+msgid "Email subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "Oggetto Email.. Il mittente appare al posto di  %name. nell'oggetto.Il nome del sito viene inserito al posto di %site."
+
+#: forward.module:179
+msgid "Forward Message Body"
+msgstr "Testo del Messaggio"
+
+#: forward.module:180
+msgid "%name thought you would like to see this page from the %site web site."
+msgstr "%name ha pensato che ti possa interessare questa pagina del sito %site."
+
+#: forward.module:183
+msgid "Email message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Testo del mesaggio email. Il mittente appare al posto di  %name.Il nome del sito inserito al posto di  %site. Il mittente puo' aggiungere il proprio testo dopo questo messaggio"
+
+#: forward.module:187
+msgid "e-Postcard Message Subject"
+msgstr "oggetto del messaggio e-Postcard"
+
+#: forward.module:188
+msgid "%name has sent you an e-postcard from %site"
+msgstr "%name ti ha inviato una e-postcard da  %site"
+
+#: forward.module:191
+msgid "Postcard subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "Postcard subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+
+#: forward.module:195
+msgid "e-Postcard Message Body"
+msgstr "e-Postcard Message Body"
+
+#: forward.module:196
+msgid "%name has sent you an e-postcard from the %site web site.  Please take a moment to visit our web site."
+msgstr "%name has sent you an e-postcard from the %site web site.  Please take a moment to visit our web site."
+
+#: forward.module:199
+msgid "Postcard message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Postcard message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+
+#: forward.module:203
+msgid "Oranization Ad"
+msgstr "Organization Ad"
+
+#: forward.module:207
+msgid "This message will be just above the footer message in the email."
+msgstr "Questo messaggio appare sopra il messaggio a fine Email di inoltro."
+
+#: forward.module:211
+msgid "Footer Message"
+msgstr "Messaggio a fine Email di inoltro"
+
+#: forward.module:215
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Questo messaggio viene accodato come messaggio a fine Email di inoltro."
+
+#: forward.module:218
+msgid "Latest Blog Articles"
+msgstr "Ultimi Blog"
+
+#: forward.module:219
+msgid "Latest Users"
+msgstr "Ultimi utenti"
+
+#: forward.module:220
+msgid "Latest Comments"
+msgstr "ultimi commenti"
+
+#: forward.module:221
+#: ;528
+msgid "Most Popular Content"
+msgstr "Contenuti piu' popolari"
+
+#: forward.module:222
+msgid "None"
+msgstr "Nessuno"
+
+#: forward.module:226
+msgid "Dynamic Block"
+msgstr "Block dinamici"
+
+#: forward.module:229
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Scegli il blocco dinamico da inviare insieme alla mail di inoltro"
+
+#: forward.module:276
+msgid "Message to Send"
+msgstr "messaggio da inviare"
+
+#: forward.module:281
+#: ;374
+msgid "Your Email"
+msgstr "La tua email"
+
+#: forward.module:291
+#: ;384
+msgid "Your Name"
+msgstr "Il tuo nome"
+
+#: forward.module:301
+#: ;394
+msgid "Send To"
+msgstr "Invia a "
+
+#: forward.module:305
+#: ;398
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "Puoi inviare il messaggio a diversi tuoi amici. Usa la virgola per separare un indirizzo email dall'altro"
+
+#: forward.module:312
+msgid "Page Being Sent"
+msgstr "Pagina da inviare"
+
+#: forward.module:318
+#: ;404
+msgid "Message Subject"
+msgstr "Testo"
+
+#: forward.module:319
+#: ;325;405;411
+msgid "(Your Name)"
+msgstr "(Il tuo nome)"
+
+#: forward.module:324
+#: ;410
+msgid "Message Body"
+msgstr "Messaggio"
+
+#: forward.module:330
+#: ;416
+msgid "Your Personal Message"
+msgstr "Il tuo messaggio personale"
+
+#: forward.module:348
+#: ;434
+msgid "Send Message"
+msgstr "Invia messaggio"
+
+#: forward.module:367
+#: ;614;622;626
+msgid "Forward this page to a friend"
+msgstr "Inoltra questa pagina ad un amico"
+
+#: forward.module:480
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+
+#: forward.module:483
+msgid "Your Email address is invalid."
+msgstr "Inserisci il tuo indirizzo email (verifica di aver digitato correttamente)"
+
+#: forward.module:486
+msgid "You must enter your name."
+msgstr "Inserisci il tuo nome"
+
+#: forward.module:489
+msgid "You did not enter any recipients."
+msgstr "Inserisci un destinatario"
+
+#: forward.module:494
+msgid "One of your Recipient addresses is invalid:"
+msgstr "Gli indirizzi email di uno o piu' destinatari non sono formalmente corretti:"
+
+#: forward.module:499
+msgid "You must enter a message."
+msgstr "Inserisci un messaggio"
+
+#: forward.module:513
+msgid "Recent blog posts"
+msgstr "Blogs recenti"
+
+#: forward.module:518
+msgid "Who's new"
+msgstr "Chi e' nuovo?"
+
+#: forward.module:523
+msgid "Recent comments"
+msgstr "Commenti recenti"
+
+#: forward.module:605
+msgid "email this page"
+msgstr "invia questa pagina ad un amico"
+
+#: forward.module:614
+#: ;622;626
+msgid "email this %type"
+msgstr "Segnala ad un amico"
+
+#: forward.module:637
+msgid "Time"
+msgstr "Data"
+
+#: forward.module:638
+msgid "Type"
+msgstr "Tipo"
+
+#: forward.module:639
+msgid "Path"
+msgstr "Percorso"
+
+#: forward.module:640
+msgid "Title"
+msgstr "Titolo"
+
+#: forward.module:657
+msgid "emails sent to"
+msgstr "email inviate a "
+
+#: forward.module:657
+msgid "recipients"
+msgstr "destinatari"
+
+#: forward.module:661
+msgid "No one has used Forward yet."
+msgstr "Nessuno ha usato l'inoltro"
+
+#: forward.module:664
+msgid "Forward Tracking"
+msgstr "Tracking dell'inoltro"
+
+#: forward.module:674
+#: ;714
+msgid "Most Emailed"
+msgstr "I piu' inoltrati"
+
+#: forward.module:678
+msgid "Most Emailed Today"
+msgstr "I piu' inoltrati di oggi"
+
+#: forward.module:679
+msgid "Most Emailed This Week"
+msgstr "I piu' inoltrati della settimana"
+
+#: forward.module:680
+msgid "Most Emailed of All Time"
+msgstr "I piu' inotrati"
+
+#: forward.module:681
+#: ;719
+msgid "Most Recently Emailed"
+msgstr "Inoltri recenti"
+
+#: forward.module:685
+msgid "Block Type"
+msgstr "Tipo di block"
+
+#: forward.module:688
+msgid "Choose the block type"
+msgstr "Scegli il tipo di block"
+
+#: forward.module:703
+msgid "Today's Most Emailed"
+msgstr "I piu' inotrati di oggi"
+
+#: forward.module:709
+msgid "This Week's Most Emailed"
+msgstr "Il piu' inoltrato della settimana"
+
+#: forward.module:776
+msgid "Forward module installed tables successfully."
+msgstr "Le tabelle del modulo forward sono state installate correttamente"
+
+#: forward.module:779
+msgid "The installation of forward module was unsuccessful."
+msgstr "Errore nella installazione del modulo forward"
+
+#: forward.module:24
+msgid "access forward"
+msgstr "accedi inoltro"
+
+#: forward.module:24
+msgid "administer forward"
+msgstr "amministra inoltro"
+
+#: forward.module:0
+msgid "forward"
+msgstr "inoltra"
+
+#: forward.theme:45
+#: ;102
+msgid "Message from Sender"
+msgstr "Messaggio dal mittente"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Click qui per maggiori info sul nostro sito"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Click qui per vedere il nostro sito"
+

@@ -1,0 +1,456 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: forward module version 5.x-1.9\n"
+"POT-Creation-Date: 2006-06-01 09:40+0100\n"
+"PO-Revision-Date: 2008-01-03 09:09+0100\n"
+"Last-Translator: Erik Stielstra <sutharsan a t  drupal dot org>\n"
+"Language-Team: Joep Bär <info@promes.nl>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: Dutch\n"
+"X-Poedit-Country: NETHERLANDS\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: forward.info:0
+msgid "Forward this page module"
+msgstr "Forward deze pagina module"
+
+#: forward.install:28
+msgid "Forward module installed tables successfully."
+msgstr "Forward-module heeft de tabellen met succes geïnstalleerd."
+
+#: forward.install:31
+msgid "Table installation for the Forward module was unsuccessful. The tables may need to be installed by hand. See forward.install file for a list of the installation queries."
+msgstr "De tabellen van de Forward-module zijn niet goed geïnstalleerd. De tabellen moeten met de hand worden geïnstalleerd. Kijk in het forward.install bestand voor de lijst met installatie-queries."
+
+#: forward.module:35;211
+msgid "Send an e-Postcard"
+msgstr "Stuur een e-Briefkaart"
+
+#: forward.module:44
+msgid "forward tracking"
+msgstr "Verzonden e-mail's en opvolging bekijken"
+
+#: forward.module:51
+msgid "Configure settings for forward module."
+msgstr "Configureer de instellingen van de Forward-module."
+
+#: forward.module:52
+msgid "Forward"
+msgstr "Forward"
+
+#: forward.module:63;187
+msgid "Forward this page"
+msgstr "E-mail deze pagina"
+
+#: forward.module:73
+msgid "Track email clickthrus"
+msgstr "Bekijk opgevolgde e-mails"
+
+#: forward.module:95
+msgid "Administrative Options"
+msgstr "Administratieve opties"
+
+#: forward.module:101
+msgid "Use Node Type in Link"
+msgstr "Gebruik node-type in link"
+
+#: forward.module:104
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Als aangevinkt ziet de link er als volgt uit: &quot;e-mail deze <em>nodetype</em>&quot;, anders: &quot;e-mail deze pagina&quot;."
+
+#: forward.module:108
+msgid "Show Forward on teasers"
+msgstr "Toon Forward op verkorte versies"
+
+#: forward.module:111
+msgid "If checked, the link/form will appear on teasers in lists of nodes"
+msgstr "Als aangevinkt verschijnt de link of het formulier op verkorte versies in lijsten van nodes"
+
+#: forward.module:115
+msgid "Form Type"
+msgstr "Formulier-type"
+
+#: forward.module:118
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Selecteer om een \"stuur deze pagina door\" link op de pagina te zetten of een formulier met een inklapbaar verzendformulier."
+
+#: forward.module:122
+msgid "Flood Control Limit"
+msgstr "Maximum aantal e-mails"
+
+#: forward.module:125
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Hoeveel maal per uur kan een gebruiker dit formulier gebruiken? Dit helpt om te voorkomen dat de Forward-module voor SPAM wordt gebruikt."
+
+#: forward.module:129
+msgid "Flood Control Error"
+msgstr "Foutmelding bij maximum aantal e-mails"
+
+#: forward.module:130
+#: forward.module:133
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Deze tekst verschijnt als een gebruiker het maximum aantal e-mails per uur overschrijd. Het maximum aantal verschijnt in plaats van %number in de melding aan de gebruiker"
+
+#: forward.module:139
+msgid "Page Text Values"
+msgstr "Pagina teksten"
+
+#: forward.module:145
+msgid "Forward Instructions"
+msgstr "Verzend instructies"
+
+#: forward.module:146
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Dank u voor het bekendmaken van informatie van de website:"
+
+#: forward.module:146
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "Attentie: wij gebruiken uw e-mail adres alleen als afzender voor deze e-mail. Omdat de geadresseerde u kent, kan deze ervan uitgaan dat dat deze e-mail geen spam is.<br />Wij verzamelen geen e-mail adressen!"
+
+#: forward.module:149
+msgid "This message will be displayed above the form."
+msgstr "Deze boodschap wordt boven het formulier getoond."
+
+#: forward.module:153
+msgid "Thank You Message"
+msgstr "Dankbericht"
+
+#: forward.module:154;533
+msgid "Thank you for your help in spreading the word about"
+msgstr "Wij danken u voor het sturen van informatie naar derden over"
+
+#: forward.module:154;533
+msgid "We appreciate your help."
+msgstr "Wij zijn u hiervoor erkentelijk."
+
+#: forward.module:157
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Dit bericht wordt getoond na het met succes verzenden van het formulier."
+
+#: forward.module:163
+msgid "Forward Form Default Values"
+msgstr "Standaardwaarden Verzend formulier"
+
+#: forward.module:169
+msgid "From Address"
+msgstr "Afzender"
+
+#: forward.module:173
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "Het e-mailadres van de afzender. Dit moet een geldig adres zijn."
+
+#: forward.module:177
+msgid "Header Image for Email"
+msgstr "Afbeelding voor de kop van de e-mail"
+
+#: forward.module:181
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Geef de URL van het plaatje dat bovenaan de e-mail verschijnt."
+
+#: forward.module:186
+msgid "Forward Page Title"
+msgstr "Forward Pagina Titel"
+
+#: forward.module:190;214
+msgid "Title to display above the Forward page form"
+msgstr "Titel boven het Forward-pagina formulier"
+
+#: forward.module:194
+msgid "Forward Message Subject"
+msgstr "Onderwerp van de e-mail"
+
+#: forward.module:195
+msgid "!name has forwarded a page to you from !site"
+msgstr "!name stuurt u een pagina van de website van !site"
+
+#: forward.module:198
+msgid "Email subject line.  The sender\'s name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr "E-mail onderwerpregel. De naam van de afzender verschijnt in plaats van !name in het onderwerp. De websitenaam zal op de plaats van !site worden toegevoegd."
+
+#: forward.module:202;350
+msgid "Forward Message Body"
+msgstr "E-mail Inhoud"
+
+#: forward.module:203
+msgid "!name thought you would like to see this page from the !site web site."
+msgstr "!name denkt dat u geinteresseerd bent in deze pagina van de website: !site."
+
+#: forward.module:206
+msgid "Email message body.  The sender\'s name will appear in place of !name in the message body.  The web site name will be inserted in place of !site  The sender will be able to add their own message after this."
+msgstr "Inhoud van de e-mail. !name wordt vervangen door de naam van de afzender. De naam van de website komt bij !site ingevuld. De eigen boodschap van de afzender komt hierna."
+
+#: forward.module:210
+msgid "Forward e-Postcard Title"
+msgstr "E-briefkaart Titel"
+
+#: forward.module:218
+msgid "e-Postcard Message Subject"
+msgstr "E-briefkaart Onderwerp"
+
+#: forward.module:219
+msgid "!name has sent you an e-postcard from !site"
+msgstr "!name stuurt u een e-briefkaart van !site"
+
+#: forward.module:222
+msgid "Postcard subject line.  The sender\'s name will appear in place of !name in the subject.  The web site name will be inserted in place of !site"
+msgstr "Onderwerp regel van de e-briefkaart. De naam van de afzender komt op de plaats van !name. De naam van de website bij !site."
+
+#: forward.module:226
+msgid "e-Postcard Message Body"
+msgstr "E-briefkaart Inhoud"
+
+#: forward.module:227
+msgid "!name has sent you an e-postcard from the !site web site.  Please take a moment to visit our web site."
+msgstr "!name heeft u een e-briefkaart van de website: !site gestuurt. Neem s.v.p. even tijd om onze website te bezoeken."
+
+#: forward.module:230
+msgid "Postcard message body.  The sender\'s name will appear in place of !name in the message body.  The web site name will be inserted in place of !site  The sender will be able to add their own message after this."
+msgstr "Inhoud van de e-briefkaart. !name wordt vervangen door de naam van de afzender en de naam van de website komt bij !site. De eigen boodschap van de afzender komt hierna."
+
+#: forward.module:234
+msgid "Oranization Ad"
+msgstr "Advertentie van de organisatie"
+
+#: forward.module:238
+msgid "This message will be just above the footer message in the email."
+msgstr "Deze advertentie verschijnt net boven de voettekst van deze e-mail."
+
+#: forward.module:242
+msgid "Footer Message"
+msgstr "Voettekst"
+
+#: forward.module:246
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Dit bericht komt net boven de voettekst van de e-mail."
+
+#: forward.module:249
+msgid "Latest Blog Articles"
+msgstr "Laatste Blog Artikelen"
+
+#: forward.module:250
+msgid "Latest Users"
+msgstr "Laatste Gebruikers"
+
+#: forward.module:251
+msgid "Latest Comments"
+msgstr "Laatste Commentaar"
+
+#: forward.module:252;474
+msgid "Most Popular Content"
+msgstr "Meest Populaire Inhoud"
+
+#: forward.module:253
+msgid "None"
+msgstr "Geen"
+
+#: forward.module:257
+msgid "Dynamic Block"
+msgstr "Dynamisch blok"
+
+#: forward.module:260
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Kies welk dynamisch blok meegezonden moet worden met deze e-mail."
+
+#: forward.module:299;567
+msgid "Forward this page to a friend"
+msgstr "E-mail deze pagina naar een vriend."
+
+#: forward.module:307
+msgid "Your Email"
+msgstr "Uw e-mail adres"
+
+#: forward.module:317
+msgid "Your Name"
+msgstr "Uw naam"
+
+#: forward.module:327
+msgid "Send To"
+msgstr "Stuur naar"
+
+#: forward.module:331
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "U kunt hier meerdere e-mailadressen opgeven. Zet ieder e-mailadres op een aparte regel of achter elkaar, gescheiden door een komma."
+
+#: forward.module:338
+msgid "You are going to email the following"
+msgstr "Het volgende wordt gemaild"
+
+#: forward.module:344
+msgid "Message Subject"
+msgstr "E-mail Onderwerp"
+
+#: forward.module:345;510
+msgid "!name has sent you a message from !site"
+msgstr "!name heeft u een bericht gezonden van website: !site"
+
+#: forward.module:351;500
+msgid "!name thought you would like to see the !site web site."
+msgstr "!name denkt dat u interesse heeft in website: !site"
+
+#: forward.module:351
+msgid "(Your Name)"
+msgstr "(Uw naam)"
+
+#: forward.module:356
+msgid "Your Personal Message"
+msgstr "Uw Persoonlijke Boodschap"
+
+#: forward.module:374
+msgid "Send Message"
+msgstr "Stuur e-mail"
+
+#: forward.module:400
+msgid "You can\'t send more than %number messages per hour. Please try again later."
+msgstr "U kunt maximaal %number berichten per uur verzenden. Probeer het later nogmaals."
+
+#: forward.module:427
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Poging om e-mail-headers in te voegen. Zet geen einde-regel tekens in het afzenderadres!"
+
+#: forward.module:430
+msgid "Your Email address is invalid."
+msgstr "Uw e-mailadres is ongeldig."
+
+#: forward.module:433
+msgid "You must enter your name."
+msgstr "U moet uw naam opgeven."
+
+#: forward.module:436
+msgid "You did not enter any recipients."
+msgstr "U heeft geen e-mailadres(sen) van de ontvanger(s) ingevoerd."
+
+#: forward.module:441
+msgid "One of your Recipient addresses is invalid:"
+msgstr "Een van de e-mailadressen van de ontvangers is ongeldig:"
+
+#: forward.module:499
+msgid "You must enter a message."
+msgstr "U moet een bericht invoeren."
+
+#: forward.module:459
+msgid "Recent blog posts"
+msgstr "Recente blogs"
+
+#: forward.module:464
+msgid "Who's new"
+msgstr "Wie is nieuw"
+
+#: forward.module:469
+msgid "Recent comments"
+msgstr "Recent commentaar"
+
+#: forward.module:549
+msgid "Email this page"
+msgstr "E-mail deze pagina"
+
+#: forward.module:557
+msgid "comment"
+msgstr "reactie"
+
+#: forward.module:561
+msgid "page"
+msgstr "pagina"
+
+#: forward.module:565
+msgid "Email this !type"
+msgstr "E-mail deze !type"
+
+#: forward.module:578;587
+msgid "Show forwarding link/form"
+msgstr "Forward-link of -formulier weergeven"
+
+#: forward.module:578;590
+msgid "Displays the form/link to allow visitors to forward the page to a friend. Further configuration is available on the !settings."
+msgstr "Toont formulier of link om bezoekers een pagina naar een vriend te mailen. Meer configuratie is beschikbaar op !settings."
+
+#: forward.module:590
+msgid "settings page"
+msgstr "instellingenpagina"
+
+#: forward.module:600
+msgid "Time"
+msgstr "Datum"
+
+#: forward.module:601
+msgid "Type"
+msgstr "Type"
+
+#: forward.module:602
+msgid "Path"
+msgstr "Pad"
+
+#: forward.module:603
+msgid "Title"
+msgstr "Titel"
+
+#: forward.module:621
+msgid "emails sent to"
+msgstr "E-mails verzonden naar"
+
+#: forward.module:621
+msgid "recipients"
+msgstr "ontvangers"
+
+#: forward.module:625
+msgid "No one has used Forward yet."
+msgstr "Nog niemand heeft een e-mail verzonden."
+
+#: forward.module:628
+msgid "Forward Tracking"
+msgstr "Verzonden e-mails"
+
+#: forward.module:638;677
+msgid "Most Emailed"
+msgstr "Meest frequent gemaild"
+
+#: forward.module:642
+msgid "Most Emailed Today"
+msgstr "Vandaag meest gemaild"
+
+#: forward.module:643
+msgid "Most Emailed This Week"
+msgstr "Deze week meest gemaild"
+
+#: forward.module:644
+msgid "Most Emailed of All Time"
+msgstr "Altijd meest gemaild"
+
+#: forward.module:645;682
+msgid "Most Recently Emailed"
+msgstr "Laatst gemaild"
+
+#: forward.module:649
+msgid "Block Type"
+msgstr "Bloktype"
+
+#: forward.module:652
+msgid "Choose the block type"
+msgstr "Kies het type blok"
+
+#: forward.module:666
+msgid "Today's Most Emailed"
+msgstr "Vandaag meest gemaild"
+
+#: forward.module:672
+msgid "This Week's Most Emailed"
+msgstr "Deze week meest gemaild"
+
+#: forward.theme:45;102
+msgid "Message from Sender"
+msgstr "Bericht van de afzender"
+
+#: forward.theme:50
+msgid "by %author"
+msgstr "door %author"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Klik hier om verder te lezen op onze website"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Klik hier om onze website te bezoeken"
+

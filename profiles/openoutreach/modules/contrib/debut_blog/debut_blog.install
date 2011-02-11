@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut_blog. Includes creation of tags vocabulary.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function debut_blog_install() {
+  _debut_blog_ensure_vocabulary_tags();
+}
+
+/**
+ * Make sure the 'tags' vocabulary exists.
+ *
+ * Cribbed from media_gallery.install.
+ */
+function _debut_blog_ensure_vocabulary_tags() {
+  // Make sure the 'tags' vocabulary exists.
+  $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
+  if (!$vocabulary) {
+    $description = st('Use tags to group articles on similar topics into categories.');
+    $help = st('Enter a comma-separated list of words to describe your content.');
+    $vocabulary = (object) array(
+      'name' => 'Tags',
+      'description' => $description,
+      'machine_name' => 'tags',
+      'help' => $help,
+    );
+    taxonomy_vocabulary_save($vocabulary);
+  }
+}

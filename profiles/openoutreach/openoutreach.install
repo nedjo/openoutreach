@@ -1,0 +1,181 @@
+<?php
+// $Id: openoutreach.install,v 1.6 2011/02/11 17:48:55 nedjo Exp $
+
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ */
+function openoutreach_install() {
+  // Enable some standard blocks.
+  $default_theme = variable_get('theme_default', 'bartik');
+  $admin_theme = 'seven';
+  $values = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'sidebar_second',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+    ),
+  );
+  $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'pages', 'cache'));
+  foreach ($values as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+
+  // Enable user picture support and set the default to a square thumbnail option.
+  variable_set('user_pictures', '1');
+  variable_set('user_picture_dimensions', '1024x1024');
+  variable_set('user_picture_file_size', '800');
+  variable_set('user_picture_style', 'thumbnail');
+
+  // Allow visitor account creation with administrative approval.
+  variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
+
+  // Enable default permissions for system roles.
+  user_role_grant_permissions(DRUPAL_ANONYMOUS_RID, array('access content', 'access comments'));
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access content', 'access comments', 'post comments', 'skip comment approval'));
+
+  // Create a default role for site administrators, with all available permissions assigned.
+  $admin_role = new stdClass();
+  $admin_role->name = 'administrator';
+  $admin_role->weight = 2;
+  user_role_save($admin_role);
+  user_role_grant_permissions($admin_role->rid, array_keys(module_invoke_all('permission')));
+
+  // Create a Home link in the main menu.
+  $item = array(
+    'link_title' => st('Home'),
+    'link_path' => '<front>',
+    'menu_name' => 'main-menu',
+    'weight' => -10,
+  );
+  menu_link_save($item);
+
+  // Update the menu router information.
+  menu_rebuild();
+
+  // Enable the admin theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', 'seven')
+    ->execute();
+  variable_set('admin_theme', 'seven');
+  variable_set('node_admin_theme', '1');
+
+  // Modules we want to enable but not require.
+  $modules = array(
+    // Core.
+    'contextual',
+    'overlay',
+    'shortcut',
+    'toolbar',
+    // Contrib.
+    'context_ui',
+    'views_ui',
+    // Temporary fix, see http://drupal.org/node/1058860
+    'date_popup',
+  );
+
+  $operations = array();
+  foreach ($modules as $module) {
+    $info = drupal_parse_info_file(drupal_get_path('module', $module) . "/$module.info");
+    $operations[] = array('_install_module_batch', array($module, $info['name']));
+  }
+
+  $batch = array(
+    'title' => st('Enable optional modules'),
+    'init_message' => st('Enabling modules...'),
+    'progress_message' => st('Enabling @current out of @total modules.'),
+    'operations' => $operations,
+    'error_message' => st('Module enabling encountered an error.'),
+    'file' => drupal_get_path('module', 'mytest') . '/mytest.install',
+  );
+
+  batch_set($batch);
+}
+
+/**
+ * Batch callback wrapper for _install_module_batch().
+ */
+function _openoutreach_module_batch($module, $module_name, &$context) {
+  require_once DRUPAL_ROOT . '/includes/install.core.inc';
+  _install_module_batch($module, $module_name, $context);
+}
+

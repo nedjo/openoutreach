@@ -1,0 +1,15 @@
+; $Id: styles_ui.info,v 1.1.2.1 2010/01/07 22:53:26 aaron Exp $
+
+name = Styles UI
+description = Allows administration of the Styles modules.
+package = Styles
+core = 7.x
+files[] = styles_ui.admin.inc
+dependencies[] = styles
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-2.0-alpha5"
+core = "7.x"
+project = "styles"
+datestamp = "1295391391"
+

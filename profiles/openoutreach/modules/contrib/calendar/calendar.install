@@ -1,0 +1,79 @@
+<?php
+/**
+ * @file
+ * Install, update and uninstall functions for the calendar module.
+ *
+ */
+
+// $Id: calendar.install,v 1.24 2011/01/16 16:27:50 karens Exp $
+
+/**
+ * Implementation of hook_enable().
+ * Reset the calendar caches.
+ */
+function calendar_enable() {
+}
+
+/**
+ * Implementation of hook_disable().
+ * Empty the calendar caches.
+ */
+function calendar_disable() {
+  db_delete('cache_views')
+    ->execute();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ * Remove all traces of calendars.
+ */
+function calendar_uninstall() {
+  $ret = array();
+  variable_del('calendar_default_view_options');
+  $displays = array(
+    'calendar',
+    'calendar_attachment',
+    'calendar_year',
+    'calendar_day',
+    'calendar_month',
+    'calendar_week',
+    'calendar_block',
+    'calendar_block_view',
+    'calendar_ical',
+  );
+  $result = db_query("SELECT DISTINCT vid FROM {views_display} WHERE display_plugin IN ('" . implode("','", $displays) . "')");
+  foreach ($result as $row) {
+    db_delete('views_view')
+      ->condition('vid', $row->vid)
+      ->execute();
+    db_delete('views_display')
+      ->condition('vid', $row->vid)
+      ->execute();
+  }
+  db_delete('cache_views')
+    ->execute();
+  return $ret;
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function calendar_install() {
+  $ret = array();
+  module_enable(array('date_api'));
+  // Make sure this module loads after date_api.
+  db_update('system')
+    ->fields(array(
+      'weight' => 1
+    ))
+    ->condition('name',  'calendar')
+    ->execute();
+  db_delete('cache_views')
+    ->execute();
+
+  return $ret;
+}
+
+function calendar_update_last_removed() {
+  return 6002;
+}

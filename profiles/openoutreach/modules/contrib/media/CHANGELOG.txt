@@ -1,0 +1,114 @@
+// $Id: CHANGELOG.txt,v 1.5 2010/04/07 06:29:34 JacobSingh Exp $
+
+CHANGELOG for Media module.
+===========================
+
+by aaron: Comment out pager from media library browser.
+by aaron: Fix fatal error when a file doesn't exist in markup.
+by aaron: Add ->override['browser'] so thumbs may be themed specially.
+by aaron: Clean up browser variables.
+#692618 by aaron: Tie in pager to query & theme.
+#692618 by aaron: Continue adding pager support.
+by aaron: Clean up json output for AJAX call.
+#613782 by aaron: Add an empty message when there are no media.
+#692618 by aaron: Begin framework to allow library paging.
+#697106 by aaron: Allow modules to define & alter default streams & conditions.
+#697106 by aaron: Send default conditions & streams to browser library.
+#697106 by aaron: Filter fid's on conditions when filtering on stream.
+#697106 by aaron: Begin support for stream filter to media_browser_list().
+#694520 by aaron: check for !isset($default) in media_variable_get().
+#694520 by aaron: Remove all media namespace variables on uninstall.
+#694520 by aaron: Add media_variable_del().
+#694520 by aaron: Remove use of &drupal_static() for the variable defaults.
+#694520 by aaron: Allow media_variable_default() to return all variables.
+#694520 by aaron: Use &drupal_static() for the variable defaults.
+#694520 by aaron: Document the variable namespace registry.
+#692786 by aaron: Prefill description in browser file selector.
+#692592 by aaron: Add AJAX preview for media from url.
+#692592 by aaron: Add media-add_from_url.js.
+#692592 by aaron: Begin preview for from url form.
+#692592 by aaron: Allow stream wrappers to validate & parse url's.
+#692592 by aaron: Add hook_media_parse.
+by aaron: Rename the Media module.
+by aaron: Remove the media_emfield module.
+by aaron: Add a wysiwyg flag to filter for youtube & the like.
+by aaron: Add cache_media_xml table to schema.
+by aaron: Add media_retrieve_xml().
+by aaron: Allow for WYSIWYG attribute overrides.
+by aaron: t('Format') in media_format_form().
+by aaron: Change _parse_url in MediaReadOnlyStreamWrapper to explode on ://.
+#671744 by aaron: Fix redirect after uploading new media from content admin.
+#671744 by aaron: Fix error when uploading new media from media content admin.
+#673998 by aaron: Fix typo (s/view/video).
+#673998 by aaron: Move media type defs to hook_enable.
+#678588 by aaron: Fix undefined index error on node view.
+by aaron: Use the currently undocumented #attached property to load js & css.
+by aaron: Defer to the Styles module to route formatting for the 'file'.
+by aaron: Fix formatter build modes.
+by aaron: Prefix formatters with 'media_'.
+by aaron: Change default formatter to 'preview'.
+by aaron: hook_field_formatter is now hook_field_formatter_view.
+by aaron: Add blank settings/instance_settings to hook_field_info.
+by aaron: Change hook_field_widget to hook_field_widget_form.
+by JacobSingh: Begin work on new browser concept.
+by aaron: Toggle 'match type' value on media type administrative form.
+by aaron: Display administrative options only if we're handling the callback.
+by aaron: Add administrative options for match type.
+by aaron: Allow administrator to edit existing bundles.
+by aaron: Filter media type bundles by stream.
+by aaron: Fix various errors.
+by aaron: Begin work on formatters.
+by aaron: Add medium admin style.
+by aaron: Add preview.
+by aaron: Hyphens to underscores in #element.
+by aaron: Check for existance of data in media_get_fields().
+by aaron: Grab proper fields in _media_content_fields().
+by aaron: Implement hook_field_schema().
+by aaron: Fix error on content type admin page.
+by aaron: Begin menu callback for admin/structure/media/.
+by aaron: Fix Warning: include_once(): Failed opening 'media_settings.inc' for
+  inclusion.
+by JacobSingh: Implement of hook_wysiwyg_plugin().
+by JacobSingh: Remove hook_permission implementation.
+by JacobSingh: Display content type admin overview page: admin/structure/media
+by JacobSingh: Tie in MediaEntityController to media_add_files_submit.
+by JacobSingh: Add menu callback for media_page_edit.
+by JacobSingh: MediaEntityController.php.
+by JacobSingh: Add media.fields.inc.
+by aaron: Add hacks so that Media: YouTube can work.
+by aaron: Attach subtab behaviors.
+by aaron: Temporarily hardcode load media youtube js in browser.
+by aaron: Integrate browser w/ optional Styles module.
+by aaron: Add get_parameters to remote stream wrapper.
+by aaron: Allow saving existing streams.
+by aaron: Implement ->url_stat() for filesize().
+by aaron: Save remote streams.
+by aaron: Get MediaReadOnlyStreamWrapper in line with Drupal stream wrappers.
+by aaron: Add MediaReadOnlyStreamWrapper.
+by aaron: Add media_browser_thumbnails form element.
+by aaron: theme_media_browser_thumbnail_radios.
+by aaron: Coder review of concatenated spaces.
+by aaron: Parameters to hook_form_alter have changed.
+by aaron: Wrap js with (function($) {})(jQuery); for library compatibility.
+by aaron: Add settings to each js behavior.
+by aaron: Convert js behavior selection to once().
+by aaron: Add attach methods to js behaviors.
+by aaron: Attach css & js to form using #attached element.
+by aaron: Convert class #attributes to arrays.
+by aaron: Fix php notices for $registration['callbacks']['resource'].
+by aaron: Update parameters to theme('image') call for d7.
+by aaron: Update parameters to theme('item_list') calls for d7.
+by aaron: Set static cache in media_get_fields() and fix notices for isset.
+by aaron: In media_get_registered_modules() fix notices for isset.
+by aaron: In media_active_fields_for_node_type() grab field info for d7.
+by aaron: Use file_get_field_list() to get a listing of node type's filefields.
+by aaron: $type is an object.
+by aaron: Move menu settings to media config.
+by aaron: Begin to fix content type settings page.
+by jmstacey: Drupal 7 compatability.
+  * Update .info files.
+  * Added necessary files to new registry.
+  * Removed 'file' keys from hook_menu().
+  * Global media settings page fixed.
+by jmstacey: Code styling cleanup.
+by jmstacey: Untested rough sync up with D6 branch.

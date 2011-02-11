@@ -1,0 +1,478 @@
+# translation of forward-5.x-1.9.po to russian
+# $Id: ru.po,v 1.1 2009/06/12 15:59:13 seanr Exp $
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  forward.module,v 1.30.2.28 2007/10/13 17:41:39 seanr
+#  forward.info,v 1.1 2007/01/17 22:14:12 seanr
+#  forward.theme,v 1.5 2007/01/17 22:14:12 seanr
+#
+# Vlad Savitsky <vs@solti.com.ua>, 2007.
+# Vlad Savitsky <vlad_savitsky@mail.ru>, 2007.
+msgid ""
+msgstr ""
+"Project-Id-Version: forward-5.x-1.9\n"
+"POT-Creation-Date: 2007-11-01 17:15+0200\n"
+"PO-Revision-Date: 2007-12-24 23:07+0200\n"
+"Last-Translator: Vlad Savitsky <vlad_savitsky@mail.ru>\n"
+"Language-Team: russian <ru@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms:  nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: KBabel 1.11.4\n"
+"X-Poedit-Language: Russian\n"
+"X-Poedit-Country: RUSSIA\n"
+
+#: forward.module:35;218
+msgid "Send an e-Postcard"
+msgstr "Отправить электронную открытку"
+
+#: forward.module:44
+msgid "Forward tracking"
+msgstr "Слежение за пересылкой"
+
+#: forward.module:51
+msgid "Configure settings for forward module."
+msgstr "Настроить модуль пересылки."
+
+#: forward.module:52 forward.info:0
+msgid "Forward"
+msgstr "Пересылка"
+
+#: forward.module:63;194
+msgid "Forward this page"
+msgstr "Переслать эту страницу"
+
+#: forward.module:72;81
+msgid "Track email clickthrus"
+msgstr ""
+
+#: forward.module:102
+msgid "Administrative Options"
+msgstr "Административные параметры"
+
+#: forward.module:108
+msgid "Use Node Type in Link"
+msgstr "Использовать тип документа в ссылке"
+
+#: forward.module:111
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Если выбрано, то ссылка будет выглядеть так: &quot;отправть <em>тип документа</em>&quot;; если нет, то просто: &quot;отправить эту страницу&quot;"
+
+#: forward.module:115
+msgid "Show Forward on teasers"
+msgstr "Показывать \"Переслать\" в аннотациях"
+
+#: forward.module:118
+msgid "If checked, the link/form will appear on teasers in lists of nodes"
+msgstr "Если выбрано, ссылка/форма будет показана в аннотации в списках документов."
+
+#: forward.module:122
+msgid "Form Type"
+msgstr "Тип формы"
+
+#: forward.module:125
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Выберите ссылку, чтобы пересылать эту страницу или форму, чтобы воспользоваться раскрывающейся формой пересылки."
+
+#: forward.module:129
+msgid "Flood Control Limit"
+msgstr "Контроль флуда: предел"
+
+#: forward.module:132
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Сколько раз пользователь может использовать форму в течении одного часа. Это предотвратит использование модуля пересылки для спама."
+
+#: forward.module:136
+msgid "Flood Control Error"
+msgstr "Контроль флуда: ошибка"
+
+#: forward.module:137
+msgid "You can't send more than !number messages per hour. Please try again later."
+msgstr "Вы не можете посылать более !number сообщений/час. Попробуйте позже."
+
+#: forward.module:140
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Этот текст появится, если пользователь превышает ограничение флуда. Значение предела флуда будет показано вместо %number в сообщении, которое увидят пользователи"
+
+#: forward.module:146
+msgid "Page Text Values"
+msgstr ""
+
+#: forward.module:152
+msgid "Forward Instructions"
+msgstr "Инструкции по пересылке"
+
+#: forward.module:153
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Благодарим вас, что замолвили слово за"
+
+#: forward.module:153
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "ВНИМАНИЕ: Мы только запрашиваем ваш адрес электронной почты, потому что тот, кому вы рекомендуете страницу, должен знать, что вы хотите показать ему эту страницу. Мы НЕ высылаем рекламные письма. Также мы не собираем адреса электронной почты."
+
+#: forward.module:156
+msgid "This message will be displayed above the form."
+msgstr "Это сообщение будет показано выше формы."
+
+#: forward.module:160
+msgid "Thank You Message"
+msgstr "Благодарственное сообщение"
+
+#: forward.module:161;539
+msgid "Thank you for your help in spreading the word about"
+msgstr "Благодарим вас, что замолвили слово за"
+
+#: forward.module:161;539
+msgid "We appreciate your help."
+msgstr "Мы ценим вашу помощь."
+
+#: forward.module:164
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Это сообщение будет показано после того, как пользователь успешно подтвердит форму."
+
+#: forward.module:170
+msgid "Forward Form Default Values"
+msgstr "Значения по умолчанию формы пересылки"
+
+#: forward.module:176
+msgid "From Address"
+msgstr "Адрес отправителя"
+
+#: forward.module:180
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "Адрес, с которого будет послано письмо. Это должен быть рабочий ящик."
+
+#: forward.module:184
+msgid "Header Image for Email"
+msgstr "Изображение в заголовке письма"
+
+#: forward.module:188
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Введите URL изображения, которое будет использовано как логотип в верней части отправляемых страниц."
+
+#: forward.module:193
+msgid "Forward Page Title"
+msgstr "Заголовок страницы пересылки"
+
+#: forward.module:197;221
+msgid "Title to display above the Forward page form"
+msgstr "Заголовок, который будет показан над формой на странице пересылки"
+
+#: forward.module:201
+msgid "Forward Message Subject"
+msgstr "Тема сообщения"
+
+#: forward.module:202
+msgid "!name has forwarded a page to you from !site"
+msgstr "!name переслал вам страницу с !site"
+
+#: forward.module:205
+msgid "Email subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr "Строка темы письма. Имя отправителя будет показано вместо !name в теме. Название сайта - вместо !site."
+
+#: forward.module:209
+msgid "Forward Message Body"
+msgstr "Текст сообщения"
+
+#: forward.module:210
+msgid "!name thought you would like to see this page from the !site web site."
+msgstr "!name посчитал, что вам стоит увидеть эту страницу с сайта !site."
+
+#: forward.module:213
+msgid "Email message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this."
+msgstr "Текст сообщения электронной почты. Имя отправителя будет показано вместо !name в тексте сообщения. Название сайта - вместо !site. Отправитель сможет добавить своё сообщение после этого."
+
+#: forward.module:217
+msgid "Forward e-Postcard Title"
+msgstr "Заголовок электронной открытки"
+
+#: forward.module:225
+msgid "e-Postcard Message Subject"
+msgstr "Тема сообщения электронной открытки"
+
+#: forward.module:226
+msgid "!name has sent you an e-postcard from !site"
+msgstr "!name отправил вам электронную открытку с сайта !site"
+
+#: forward.module:229
+msgid "Postcard subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr "Строка темы открытки. Имя отправителя будет показано вместо !name в теме. Название сайта - вместо !site."
+
+#: forward.module:233
+msgid "e-Postcard Message Body"
+msgstr "Текст сообщения электронной открытки"
+
+#: forward.module:234
+msgid "!name has sent you an e-postcard from the !site web site.  Please take a moment to visit our web site."
+msgstr "!name отправил вам электронную открытку с сайта !site. Пожалуйста, найдите момент, чтобы взглянуть на неё."
+
+#: forward.module:237
+msgid "Postcard message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this."
+msgstr "Текст сообщения открытки. Имя отправителя будет показано вместо !name в тексте сообщения. Название сайта - вместо !site. Отправитель сможет добавить своё сообщение после этого."
+
+#: forward.module:241
+msgid "Oranization Ad"
+msgstr "Организационный совет"
+
+#: forward.module:245
+msgid "This message will be just above the footer message in the email."
+msgstr "Это сообщение будет над нижним колонтитулом в письме."
+
+#: forward.module:249
+msgid "Footer Message"
+msgstr "Текст нижнего колонтитула"
+
+#: forward.module:253
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Это сообщение будет добавлено, как нижний колонтитул, к письму."
+
+#: forward.module:256
+msgid "Latest Blog Articles"
+msgstr "Последние статьи в блогах"
+
+#: forward.module:257
+msgid "Latest Users"
+msgstr "Последние пользователи"
+
+#: forward.module:258
+msgid "Latest Comments"
+msgstr "Последние комментарии"
+
+#: forward.module:259;480
+msgid "Most Popular Content"
+msgstr "Самые популярные статьи"
+
+#: forward.module:260
+msgid "None"
+msgstr "Нет"
+
+#: forward.module:264
+msgid "Dynamic Block"
+msgstr "Динамический блок"
+
+#: forward.module:267
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Выберите динамический блок, для отправки вместе с этими письмами"
+
+#: forward.module:306;573
+msgid "Forward this page to a friend"
+msgstr "Переслать эту страницу другу"
+
+#: forward.module:314
+msgid "Your Email"
+msgstr "Ваш адрес электронной почты"
+
+#: forward.module:324
+msgid "Your Name"
+msgstr "Ваше имя"
+
+#: forward.module:334
+msgid "Send To"
+msgstr "Получатель"
+
+#: forward.module:338
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "Введите каждый адрес с новой строки или разделяйте их запятыми."
+
+#: forward.module:345
+msgid "You are going to email the following"
+msgstr "Вы собираетесь переслать следующее"
+
+#: forward.module:351
+msgid "Message Subject"
+msgstr "Тема сообщения"
+
+#: forward.module:352;358
+msgid "(Your Name)"
+msgstr "(Ваше имя)"
+
+#: forward.module:357
+msgid "Message Body"
+msgstr "Текст сообщения"
+
+#: forward.module:363
+msgid "Your Personal Message"
+msgstr "Ваше личное сообщение"
+
+#: forward.module:381
+msgid "Send Message"
+msgstr "Отправить сообщение"
+
+#: forward.module:407
+msgid "You can't send more than %number messages per hour. Please try again later."
+msgstr "Вы не можете отправлять более чем %number сообщений/час. Пожалуйста, попробуйте позже."
+
+#: forward.module:433
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Обнаружена попытка инъекции заголовка. Не вводите символ перевода строки в поля формы!"
+
+#: forward.module:436
+msgid "Your Email address is invalid."
+msgstr "Ваш адрес электронной почты неправильный."
+
+#: forward.module:439
+msgid "You must enter your name."
+msgstr "Вам нужно ввести ваше имя."
+
+#: forward.module:442
+msgid "You did not enter any recipients."
+msgstr "Вы не указали ни одного получателя."
+
+#: forward.module:447
+msgid "One of your Recipient addresses is invalid:"
+msgstr "Один из ваших получателей имеет неправильный адрес электронной почты:"
+
+#: forward.module:452
+msgid "You must enter a message."
+msgstr "Вам нужно ввести сообщение."
+
+#: forward.module:465
+msgid "Recent blog posts"
+msgstr "Свежие статьи в блогах"
+
+#: forward.module:470
+msgid "Who's new"
+msgstr "Новенькие"
+
+#: forward.module:475
+msgid "Recent comments"
+msgstr "Свежие комментарии"
+
+#: forward.module:555
+msgid "Email this page"
+msgstr "Переслать эту страницу"
+
+#: forward.module:563
+msgid "comment"
+msgstr "комментарий"
+
+#: forward.module:567
+msgid "page"
+msgstr "страница"
+
+#: forward.module:571
+msgid "Email this !type"
+msgstr "Переслать !type"
+
+#: forward.module:584;593
+msgid "Show forwarding link/form"
+msgstr "Показать ссылку/форму пересылки"
+
+#: forward.module:587;596
+msgid "Displays the form/link to allow visitors to forward the page to a friend. Further configuration is available on the !settings."
+msgstr "Показывает форму/ссылку, позволяющую посетителям пересылать страницу друзьям. Дальнейшая настройка возможна на странице !settings."
+
+#: forward.module:587;596
+msgid "settings page"
+msgstr "страница настроек"
+
+#: forward.module:606
+msgid "Time"
+msgstr "Время"
+
+#: forward.module:607
+msgid "Type"
+msgstr "Тип"
+
+#: forward.module:608
+msgid "Path"
+msgstr "Путь"
+
+#: forward.module:609
+msgid "Title"
+msgstr "Заголовок"
+
+#: forward.module:627
+msgid "emails sent to"
+msgstr "писем были отправлены к"
+
+#: forward.module:627
+msgid "recipients"
+msgstr "получателям"
+
+#: forward.module:631
+msgid "No one has used Forward yet."
+msgstr "Никто не использовал пересылку ещё."
+
+#: forward.module:634
+msgid "Forward Tracking"
+msgstr "Слежение за пересылкой"
+
+#: forward.module:644;683
+msgid "Most Emailed"
+msgstr "Больше всех пересылают"
+
+#: forward.module:648
+msgid "Most Emailed Today"
+msgstr "Сегодня больше всех пересылают"
+
+#: forward.module:649
+msgid "Most Emailed This Week"
+msgstr "На этой неделе больше всех пересылают"
+
+#: forward.module:650
+msgid "Most Emailed of All Time"
+msgstr "За всё время больше всех пересылают"
+
+#: forward.module:651;688
+msgid "Most Recently Emailed"
+msgstr "Недавно пересылали"
+
+#: forward.module:655
+msgid "Block Type"
+msgstr "Тип блока"
+
+#: forward.module:658
+msgid "Choose the block type"
+msgstr "Выберите тип блока"
+
+#: forward.module:672
+msgid "Today's Most Emailed"
+msgstr "Пересылали сегодня "
+
+#: forward.module:678
+msgid "This Week's Most Emailed"
+msgstr "Пересылали на этой неделе"
+
+#: forward.module:24
+msgid "access forward"
+msgstr "доступ к пересылке"
+
+#: forward.module:24
+msgid "administer forward"
+msgstr "управлять пересылкой"
+
+#: forward.module:0 forward.theme:0
+msgid "forward"
+msgstr "пересылка"
+
+#: forward.theme:45;102
+msgid "Message from Sender"
+msgstr "Сообщение отправителя"
+
+#: forward.theme:50
+msgid "by %author"
+msgstr "%author"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Прочитайте больше на нашем сайте"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Посетите наш сайт"
+
+#: forward.install:28
+msgid "Forward module installed tables successfully."
+msgstr "Модуль \"Пересылка\" установил таблицы успешно."
+
+#: forward.install:31
+msgid "Table installation for the Forward module was unsuccessful. The tables may need to be installed by hand. See forward.install file for a list of the installation queries."
+msgstr "Установка таблиц для модуля пересылки прошла неудачно. Таблицы могут быть установлены вручную. Обратитесь к файлу forward.install, чтобы получить список установочных запросов."
+
+#: forward.info:0
+msgid "Forward this page module"
+msgstr "Модуль для пересылки этой страницы"
+

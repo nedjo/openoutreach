@@ -1,0 +1,16 @@
+<?php
+
+include_once('debut_blog.features.inc');
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the blog view page.
+ */
+function debut_blog_menu_alter(&$items) {
+  if (isset($items['node/add/blog'])) {
+    $items['blog/add'] = $items['node/add/blog'];
+    $items['blog/add']['title'] = 'Add a new blog post';
+    $items['blog/add']['type'] = MENU_LOCAL_ACTION;
+  }
+}

@@ -1,0 +1,237 @@
+<?php
+// $Id: service_links_displays.module,v 1.1.2.2 2010/11/23 09:44:22 thecrow Exp $
+
+/**
+ * @file
+ * Provide a field for Node Displays (Display Suite).
+ */
+
+/**
+ * Implementation of hook_theme().
+ */
+function service_links_displays_theme() {
+  return array(
+    'sld_group_fisheye' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_group_text' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_group_image' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_group_image_and_text' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_single_text' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_single_image' => array(
+      'variables' => array('fields' => NULL),
+    ),
+    'sld_single_image_and_text' => array(
+      'variables' => array('fields' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_ds_fields().
+ */
+function service_links_displays_ds_fields($type_name, $build_mode, $extra) {
+  $fields = array(
+    'service_links_displays_group' => array(
+      'title' => t('Service Links Group'),
+      'type' => DS_FIELD_TYPE_THEME,
+      'status' => DS_FIELD_STATUS_STATIC,
+      'properties' => array(
+        'formatters' => array(
+          'sld_group_text' => t('Text'),
+          'sld_group_image' => t('Image'),
+          'sld_group_image_and_text' => t('Image and text'),
+          'sld_group_fisheye' => t('FishEye'),
+        ),
+      ),
+    ),
+  );
+
+  $services = array_filter(variable_get('service_links_displays', array()));
+  if (!empty($services)) {
+    $services = service_links_get_links($services);
+    foreach ($services as $service_id => $service) {
+      $fields['service_links_displays_'. $service_id] = array(
+        'title' => t('Service Links Field %name', array('%name' => $service['name'])),
+        'type' => DS_FIELD_TYPE_THEME,
+        'status' => DS_FIELD_STATUS_STATIC,
+        'properties' => array(
+          'formatters' => array(
+            'sld_single_text' => t('Text'),
+            'sld_single_image' => t('Image'),
+            'sld_single_image_and_text' => t('Image and text'),
+          ),
+        ),
+      );
+    }
+  }
+
+  return array('nd' => $fields);
+}
+
+/**
+ * Apply the Text format to a single Service.
+ */
+function theme_sld_single_text($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    $service_id = str_replace('service_links_displays_', '', $fields['key']);
+    $items = service_links_render_some($service_id, $fields['object'], FALSE, SERVICE_LINKS_STYLE_TEXT);
+    if (!empty($items)) {
+      return implode($items);
+    }
+  }
+}
+
+/**
+ * Apply the Image format to a single Service.
+ */
+function theme_sld_single_image($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    $service_id = str_replace('service_links_displays_', '', $fields['key']);
+    $items = service_links_render_some($service_id, $fields['object'], FALSE, SERVICE_LINKS_STYLE_IMAGE);
+    if (!empty($items)) {
+      return implode($items);
+    }
+  }
+}
+
+/**
+ * Apply the Image and Text format to a single Service.
+ */
+function theme_sld_single_image_and_text($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    $service_id = str_replace('service_links_displays_', '', $fields['key']);
+    $items = service_links_render_some($service_id, $fields['object'], FALSE, SERVICE_LINKS_STYLE_IMAGE_AND_TEXT);
+    if (!empty($items)) {
+      return implode($items);
+    }
+  }
+}
+
+/**
+ * Apply the FishEye format to the field Service Links Group.
+ */
+function theme_sld_group_fisheye($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    return theme('service_links_fisheye_format', service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_FISHEYE));
+  }
+}
+
+/**
+ * Apply the Text format to the field Service Links Group.
+ */
+function theme_sld_group_text($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    return theme('service_links_block_format', array(
+      'items' => service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_TEXT),
+      'style' => SERVICE_LINKS_STYLE_IMAGE,
+    ));
+  }
+}
+
+/**
+ * Apply the Image format to the field Service Links Group.
+ */
+function theme_sld_group_image($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    return theme('service_links_block_format', array(
+      'items' => service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_IMAGE),
+      'style' => SERVICE_LINKS_STYLE_IMAGE,
+    ));
+  }
+}
+
+/**
+ * Apply the Image and Text format to the field Service Links Group.
+ */
+function theme_sld_group_image_and_text($variables) {
+  $fields = $variables['fields'];
+
+  if (service_links_show($fields['object']) && user_access('access service links')) {
+    return theme('service_links_block_format', array(
+      'items' => service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_IMAGE_AND_TEXT),
+      'style' => SERVICE_LINKS_STYLE_IMAGE,
+    ));
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function service_links_displays_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id == 'service_links_admin_services') {
+    $settings['displays'] = variable_get('service_links_displays', array());
+    $settings['weight'] = variable_get('service_links_weight', NULL);
+
+    $form['service_links']['service_links_displays'] = array('#tree' => TRUE);
+    $services = array_filter(array_keys($form['service_links']['service_links_weight']), _sld_only_keys);
+
+    foreach ($services as $service_id) {
+      $weight = isset($settings['weight'][$service_id]) ? $settings['weight'][$service_id] : 0;
+      $form['service_links']['service_links_displays'][$service_id] = array(
+        '#weight' => $weight,
+        '#type' => 'checkbox',
+        '#return_value' => 1,
+        '#default_value' => isset($settings['displays'][$service_id]) ? $settings['displays'][$service_id] : 0,
+        '#attributes' => array(),
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_sl_servicestable_alter().
+ */
+function service_links_displays_sl_servicestable_alter(&$table, $form) {
+  $table['header'][] = t('Displays');
+
+  if (empty($table['rows'])) {
+    return;
+  }
+
+  $num_row = 0;
+  $col_num = count($table['rows'][0]['data']);
+  foreach (element_children($form['service_links_displays']) as $service_id) {
+    $service = $form['service_links_displays'][$service_id];
+
+    $service['displays'] = array(
+      '#type' => 'checkbox',
+      '#checked' => $service['#default_value'],
+      '#id' => $service['#id'],
+      '#name' => $service['#name'],
+      '#attributes' => $service['#attributes'],
+    );
+    $col =  drupal_render($service['displays']);
+
+    $table['rows'][$num_row]['data'][$col_num] = $col;
+      
+    $num_row++;
+  } 
+}
+
+/**
+ * Filter the id from other fields.
+ */
+function _sld_only_keys($item) {
+  return preg_match('/^#/', $item) ? FALSE : TRUE;
+}

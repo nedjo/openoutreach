@@ -1,0 +1,440 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Drupal 4.7 - Forward module - Greek\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2006-06-03 19:38+0200\n"
+"Last-Translator: Cog <cog@cogville.com>\n"
+"Language-Team: Project Cogville <cog@cogville.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2;plural=(n!=1);\n"
+"X-Poedit-Language: Greek\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: t\n"
+"X-Poedit-Basepath: H:\\CVS\\Drupal_4.7_contrib\\contributions\\modules\\forward\n"
+
+#: forward.module:29
+msgid "Enables users to forward pages to friends."
+msgstr "Επιτρέπει στους χρήστες να προωθούν σελίδες σε φίλους τους."
+
+#: forward.module:40
+msgid "forward this page"
+msgstr "προωθήστε αυτή τη σελίδα"
+
+#: forward.module:48
+msgid "Send an e-Postcard"
+msgstr "Στείλτε μια κάρτα με e-mail"
+
+#: forward.module:56
+msgid "forward tracking"
+msgstr "προωθήσεις"
+
+#: forward.module:80
+msgid "Administrative Options"
+msgstr "Επιλογές διαχείρισης"
+
+#: forward.module:86
+msgid "Use Node Type in Link"
+msgstr "Να χρησιμοποιείται ο τύπος του κόμβου στην παραπομπή"
+
+#: forward.module:89
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Αν το επιλέξετε, η παραπομπή θα λέει  &quot;στείλτε το <em>τύπος κόμβου</em>&quot;, αλλιώς θα λέει απλώς &quot;στείλτε το με e-mail&quot; (πιο κατάλληλο για την Ελληνική γλώσσα)."
+
+#: forward.module:93
+msgid "Show link on main page"
+msgstr "Η παραπομπή να εμφανίζεται στην κεντρική σελίδα"
+
+#: forward.module:96
+msgid "If checked, the link will appear on your home page"
+msgstr "Αν το επιλέξετε, η παραπομπή θα εμφανίζεται στην αρχική σελίδα του ιστοτόπου σας."
+
+#: forward.module:100
+msgid "Form Type"
+msgstr "Τύπος φόρμας"
+
+#: forward.module:103
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Επιλέξτε \"παραπομπή\" για να εμφανίζεται μια παραπομπή \"'στείλτε το με e-mail\", ή \"φόρμα\" για να χρησιμοποιείται πτυσσόμενη φόρμα για την προώθηαη."
+
+#: forward.module:107
+msgid "Flood Control Limit"
+msgstr "Όριο του ελέγχου υπερβολών"
+
+#: forward.module:110
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Πόσες φορές μπορεί να χρησιμοποιήσει ένας χρήστης τη φόρμα μέσα σε περίοδο μίας ώρας. Αυτό βοηθά στην αποτροπή της χρήσης της μονάδας forward για αποστολή καταχρηστικών μηνυμάτων (spam)."
+
+#: forward.module:114
+msgid "Flood Control Error"
+msgstr "Σφάλμα του ελέγχου καταχρήσεων"
+
+#: forward.module:115
+#: ;453
+msgid "You can't send more than %number messages per hour. Please try again later."
+msgstr "Δεν επιτρέπεται να στέλνετε περισσότερα από %number μηνύματα ανά ώρα. Ξαναδοκιμάστε αργότερα."
+
+#: forward.module:118
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Το κείμενο αυτό εμφανίζεται αν ο χρήστης ξεπεράσει το όριο του ελέγχου υπερβολών. Η τιμή που έχει δοθεί στις ρυθμίσεις του ελέγχου υπερβολών θα εμφανίζεται στη θέση του %number στο μήνυμα που παρουσιάζεται στο χρήστη."
+
+#: forward.module:124
+msgid "Page Text Values"
+msgstr "Ρυθμίσεις για το κείμενο της σελίδας"
+
+#: forward.module:130
+msgid "Forward Instructions"
+msgstr "Οδηγίες προώθησης"
+
+#: forward.module:131
+#: ;264
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Ευχαριστούμε για το ενδιαφέρον σας να διαδώσετε τα νέα μας. -"
+
+#: forward.module:131
+#: ;264
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "ΣΗΜΕΙΩΣΗ: Ο μόνος λόγος που ζητάμε τη διεύθυνση e-mail σας είναι για να γνωρίζει το πρόσωπο που συνιστάτε τη σελίδα ότι εσείς κρίνατε ότι πρέπει να τη δει, και ότι το μήνυμα δεν είναι καταχρηστική διαφήμιση. Δεν κρατάμε αυτές τις διευθύνσεις e-mail."
+
+#: forward.module:134
+msgid "This message will be displayed above the form."
+msgstr "Το μήνυμα αυτό θα εμφανίζεται πάνω από τη φόρμα."
+
+#: forward.module:138
+msgid "Thank You Message"
+msgstr "Ευχαριστήριο μήνυμα"
+
+#: forward.module:139
+#: ;583
+msgid "Thank you for your help in spreading the word about"
+msgstr "Ευχαριστούμε που βοηθήσατε να διαδοθούν τα νέα μας. -"
+
+#: forward.module:139
+#: ;583
+msgid "We appreciate your help."
+msgstr "Ευχαριστούμε για τη βοήθειά σας."
+
+#: forward.module:142
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Το μήνυμα αυτό θα εμφανίζεται αφού ο χρήστης υποβάλει με επιτυχία τη φόρμα."
+
+#: forward.module:148
+msgid "Forward Form Default Values"
+msgstr "Προεπιλεγμένες ρυθμίσεις για τη φόρμα προώθησης"
+
+#: forward.module:154
+msgid "From Address"
+msgstr "Διεύθυνση αποστολέα"
+
+#: forward.module:158
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "Η διεύθυνση του αποστολέα. Πρέπει να είναι μια έγκυρη διεύθυνση e-mail."
+
+#: forward.module:162
+msgid "Header Image for Email"
+msgstr "Εικόνα κεφαλίδας του e-mail"
+
+#: forward.module:166
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Ορίστε τη διεύθυνση URL της εικόνας που θα τοποθετείται ως λογότυπο στην κορυφή των σελίδων που προωθούνται."
+
+#: forward.module:171
+msgid "Forward Message Subject"
+msgstr "Θέμα μηνύματος προώθησης"
+
+#: forward.module:172
+msgid "%name has forwarded a page to you from %site"
+msgstr "Ο/Η %name σάς προώθησε μια σελίδα από τον ιστότοπο %site"
+
+#: forward.module:175
+msgid "Email subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "Η γραμμή θέματος του e-mail. Το όνομα του αποστολέα θα εμφανίζεται στο θέμα στη θέση του %name. Το όνομα του ιστοτόπου θα εισάγεται στη θέση του %site."
+
+#: forward.module:179
+msgid "Forward Message Body"
+msgstr "Περιεχόμενο μηνύματος προώθησης"
+
+#: forward.module:180
+msgid "%name thought you would like to see this page from the %site web site."
+msgstr "Ο/Η %name πιστεύει ότι θα σας ενδιέφερε να δείτε αυτή τη σελίδα από τον ιστότοπο %site."
+
+#: forward.module:183
+msgid "Email message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Το περιεχόμενο του μηνύματος e-mail. Το όνομα του αποστολέα θα εμφανίζεται στο περιεχόμενο του μηνύματος στη θέση του %name. Το όνομα του ιστοτόπου θα εισάγεται στη θέση του %site. Ο αποστολέας θα μπορεί να προσθέσει το δικό του μήνυμα μετά από αυτό."
+
+#: forward.module:187
+msgid "e-Postcard Message Subject"
+msgstr "Θέμα μηνύματος e-mail κάρτας"
+
+#: forward.module:188
+msgid "%name has sent you an e-postcard from %site"
+msgstr "Ο/Η %name σάς έστειλε μια κάρτα με e-mail από τον ιστότοπο %site"
+
+#: forward.module:191
+msgid "Postcard subject line.  The sender's name will appear in place of %name in the subject.  The web site name will be inserted in place of %site"
+msgstr "Γραμμή θέματος e-mail κάρτας. Το όνομα του αποστολέα θα εμφανίζεται στο θέμα στη θέση του %name. Το όνομα του ιστοτόπου θα εισάγεται στη θέση του %site."
+
+#: forward.module:195
+msgid "e-Postcard Message Body"
+msgstr "Περιεχόμενο μηνύματος e-mail κάρτας"
+
+#: forward.module:196
+msgid "%name has sent you an e-postcard from the %site web site.  Please take a moment to visit our web site."
+msgstr "Ο/Η %name σάς έστειλε μια κάρτα με e-mail από τον ιστότοπό %site. Αφιερώστε λίγα λεπτά για να επισκεφθείτε τον ιστότοπό μας."
+
+#: forward.module:199
+msgid "Postcard message body.  The sender's name will appear in place of %name in the message body.  The web site name will be inserted in place of %site  The sender will be able to add their own message after this."
+msgstr "Περιεχόμενο e-mail κάρτας. Το όνομα του αποστολέα θα εμφανίζεται στο περιεχόμενο του μηνύματος στη θέση του %name. Το όνομα του ιστοτόπου θα εισάγεται στη θέση του %site. Ο αποστολέας θα μπορεί να προσθέσει το δικό του μήνυμα μετά από αυτό."
+
+#: forward.module:203
+msgid "Oranization Ad"
+msgstr "Διαφημιστικό μήνυμα"
+
+#: forward.module:207
+msgid "This message will be just above the footer message in the email."
+msgstr "Το μήνυμα αυτό θα εμφανίζεται ακριβώς πάνω από το μήνυμα του υποσέλιδου στο e-mail."
+
+#: forward.module:211
+msgid "Footer Message"
+msgstr "Μήνυμα υποσέλιδου"
+
+#: forward.module:215
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Το μήνυμα αυτό θα προσαρτάται στο τέλος του e-mail ως μήνυμα υποσέλιδου."
+
+#: forward.module:218
+msgid "Latest Blog Articles"
+msgstr "Τελευταία δημοσιεύματα ιστολογίου"
+
+#: forward.module:219
+msgid "Latest Users"
+msgstr "Τελευταίοι χρήστες"
+
+#: forward.module:220
+msgid "Latest Comments"
+msgstr "Τελευταία σχόλια"
+
+#: forward.module:221
+#: ;528
+msgid "Most Popular Content"
+msgstr "Τα πιο δημοφιλή"
+
+#: forward.module:222
+msgid "None"
+msgstr "Τίποτα"
+
+#: forward.module:226
+msgid "Dynamic Block"
+msgstr "Δυναμικό μπλοκ"
+
+#: forward.module:229
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Διαλέξτε το δυναμικό μπλοκ που θα στέλνεται με αυτά τα e-mail."
+
+#: forward.module:276
+msgid "Message to Send"
+msgstr "Το μήνυμα που θα στείλετε"
+
+#: forward.module:281
+#: ;374
+msgid "Your Email"
+msgstr "Το e-mail σας"
+
+#: forward.module:291
+#: ;384
+msgid "Your Name"
+msgstr "Το όνομά σας"
+
+#: forward.module:301
+#: ;394
+msgid "Send To"
+msgstr "Να σταλεί στους"
+
+#: forward.module:305
+#: ;398
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "Για να δώσετε πολλές διευθύνσεις, τοποθετήστε τις σε ξεχωριστές γραμμές ή διαχωρίστε τις με κόμματα"
+
+#: forward.module:312
+msgid "Page Being Sent"
+msgstr "Η σελίδα που στέλνετε"
+
+#: forward.module:318
+#: ;404
+msgid "Message Subject"
+msgstr "Θέμα του μηνύματος"
+
+#: forward.module:319
+#: ;325;405;411
+msgid "(Your Name)"
+msgstr "(το όνομά σας)"
+
+#: forward.module:324
+#: ;410
+msgid "Message Body"
+msgstr "Περιεχόμενο του μηνύματος"
+
+#: forward.module:330
+#: ;416
+msgid "Your Personal Message"
+msgstr "Το προσωπικό σας μήνυμα"
+
+#: forward.module:348
+#: ;434
+msgid "Send Message"
+msgstr "Αποστολή μηνύματος"
+
+#: forward.module:367
+#: ;614;622;626
+msgid "Forward this page to a friend"
+msgstr "Προωθήστε αυτή τη σελίδα σε ένα φίλο"
+
+#: forward.module:480
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Το σύστημα ανίχνευσε απόπειρα έγχυσης σε κεφαλίδα (header injection). Μην εισάγετε χαρακτήρες αλλαγής γραμμής στο πεδίο του αποστολέα!"
+
+#: forward.module:483
+msgid "Your Email address is invalid."
+msgstr "Η διεύθυνση e-mail σας δεν είναι έγκυρη."
+
+#: forward.module:486
+msgid "You must enter your name."
+msgstr "Πρέπει να δώσετε το όνομά σας."
+
+#: forward.module:489
+msgid "You did not enter any recipients."
+msgstr "Δεν ορίσατε κανέναν παραλήπτη."
+
+#: forward.module:494
+msgid "One of your Recipient addresses is invalid:"
+msgstr "Μϊα από τις διευθύνσεις παραληπτών δεν είναι έγκυρη:"
+
+#: forward.module:499
+msgid "You must enter a message."
+msgstr "Πρέπει να δώσετε ένα μήνυμα."
+
+#: forward.module:513
+msgid "Recent blog posts"
+msgstr "Τελευταία ιστολογήματα"
+
+#: forward.module:518
+msgid "Who's new"
+msgstr "Ποιοι γράφτηκαν τελευταία"
+
+#: forward.module:523
+msgid "Recent comments"
+msgstr "Πρόσφατα σχόλια"
+
+#: forward.module:605
+msgid "email this page"
+msgstr "στείλτε το με e-mail"
+
+#: forward.module:614
+#: ;622;626
+msgid "email this %type"
+msgstr "στείλτε το με e-mail"
+
+#: forward.module:637
+msgid "Time"
+msgstr "Χρόνος"
+
+#: forward.module:638
+msgid "Type"
+msgstr "Τύπος"
+
+#: forward.module:639
+msgid "Path"
+msgstr "Διαδρομή"
+
+#: forward.module:640
+msgid "Title"
+msgstr "Τίτλος"
+
+#: forward.module:657
+msgid "emails sent to"
+msgstr "e-mail σταλθηκαν σε"
+
+#: forward.module:657
+msgid "recipients"
+msgstr "παραλήπτες"
+
+#: forward.module:661
+msgid "No one has used Forward yet."
+msgstr "Κανένας δεν έχει χρησιμοποιήσει ακόμα την προώθηση."
+
+#: forward.module:664
+msgid "Forward Tracking"
+msgstr "Παρακολούθηση προωθήσεων"
+
+#: forward.module:674
+#: ;714
+msgid "Most Emailed"
+msgstr "Στάλθηκαν περισσότερο"
+
+#: forward.module:678
+msgid "Most Emailed Today"
+msgstr "Στάλθηκαν περισσότερο σήμερα"
+
+#: forward.module:679
+msgid "Most Emailed This Week"
+msgstr "Στάλθηκαν περισσότερο αυτή την εβδομάδα"
+
+#: forward.module:680
+msgid "Most Emailed of All Time"
+msgstr "Στάλθηκαν περισσότερο, από πάντα"
+
+#: forward.module:681
+#: ;719
+msgid "Most Recently Emailed"
+msgstr "Στάλθηκαν πιο πρόσφατα"
+
+#: forward.module:685
+msgid "Block Type"
+msgstr "Τύπος μπλοκ"
+
+#: forward.module:688
+msgid "Choose the block type"
+msgstr "Διαλέξτε τον τύπο του μπλοκ"
+
+#: forward.module:703
+msgid "Today's Most Emailed"
+msgstr "Σημερινά που στάλθηκαν περισσότερο"
+
+#: forward.module:709
+msgid "This Week's Most Emailed"
+msgstr "Αυτής της εβδομάδας που στάλθηκαν περισσότερο"
+
+#: forward.module:776
+msgid "Forward module installed tables successfully."
+msgstr "Η μονάδα forward εγκατέστησε τους πίνακές της με επιτυχία."
+
+#: forward.module:779
+msgid "The installation of forward module was unsuccessful."
+msgstr "Η εγκατάσταση της μονάδας forward απέτυχε."
+
+#: forward.module:24
+msgid "access forward"
+msgstr "πρόσβαση σε προώθηση"
+
+#: forward.module:24
+msgid "administer forward"
+msgstr "διαχείριση προώθησης"
+
+#: forward.module:0
+msgid "forward"
+msgstr "προώθηση"
+
+#: forward.theme:45
+#: ;102
+msgid "Message from Sender"
+msgstr "Μήνυμα από τον αποστολέα"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Πατήστε εδώ για να διαβάσετε τη συνέχεια στον ιστότοπό μας"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Πατήστε εδώ για να επισκεφθείτε τον ιστότοπό μας"
+

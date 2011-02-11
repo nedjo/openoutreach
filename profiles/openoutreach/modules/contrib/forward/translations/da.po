@@ -1,0 +1,470 @@
+# Danish translation of Drupal (forward.module)
+# Copyright 2007 Morten Wulff <wulff@ratatosk.net>
+msgid ""
+msgstr ""
+"Project-Id-Version: Danish translation of Drupal (forward.module) $Id: da.po,v 1.2 2009/06/12 15:59:13 seanr Exp $\n"
+"POT-Creation-Date: 2007-09-11 16:07+0200\n"
+"PO-Revision-Date: 2007-09-12 08:30+0100\n"
+"Last-Translator: Morten Wulff <wulff@ratatosk.net>\n"
+"Language-Team: Danish <l10n@drupaldanmark.dk>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-Language: Danish\n"
+"X-Poedit-Country: DENMARK\n"
+
+#: forward.module:35;211
+msgid "Send an e-Postcard"
+msgstr "Send et e-postkort"
+
+#: forward.module:44
+msgid "Forward tracking"
+msgstr "Følg vidersendelser"
+
+#: forward.module:51
+msgid "Configure settings for forward module."
+msgstr "Konfigurer indstillinger for forward-modulet."
+
+#: forward.module:52
+#: forward.info:0
+msgid "Forward"
+msgstr "Videresend"
+
+#: forward.module:63;187
+msgid "Forward this page"
+msgstr "Videresend denne side"
+
+#: forward.module:73
+msgid "Track email clickthrus"
+msgstr "Følge e-mail-klik"
+
+#: forward.module:95
+msgid "Administrative Options"
+msgstr "Administration"
+
+#: forward.module:101
+msgid "Use Node Type in Link"
+msgstr "Brug indholdstype i link"
+
+#: forward.module:104
+msgid "If checked, the link will read &quot;email this <em>nodetype</em>&quot;; if not, it will just read &quot;email this page&quot;"
+msgstr "Marker for at bruge linkteksten &quot;e-mail denne <em>indholdstype</em>&quot;; ellers bruges &quot;e-mail denne side&quot;."
+
+#: forward.module:108
+msgid "Show Forward on teasers"
+msgstr "Vis videresend på smagsprøver"
+
+#: forward.module:111
+msgid "If checked, the link/form will appear on teasers in lists of nodes"
+msgstr "Vis link/formular i smagsprøver på indholdslister"
+
+#: forward.module:115
+msgid "Form Type"
+msgstr "Formulartype"
+
+#: forward.module:118
+msgid "Select link for a forward this page link or form to use a collapsible forwarding form."
+msgstr "Vælg om du vil bruge et link eller en formular til at videresende sider."
+
+#: forward.module:122
+msgid "Flood Control Limit"
+msgstr "Begræns brug"
+
+#: forward.module:125
+msgid "How many times a user can use the form in a one hour period. This will help prevent the forward module from being used for spamming."
+msgstr "Angiv hvor mange gange en bruger kan videresende sider pr. time. Det kan hjælpe til at forhindre at forward-modulet bliver brugt til at spamme med."
+
+#: forward.module:129
+msgid "Flood Control Error"
+msgstr "Fejlmeddelelse"
+
+#: forward.module:130
+msgid "You can't send more than !number messages per hour. Please try again later."
+msgstr "Du kan højst videresende !number sider pr. time. Prøv igen senere."
+
+#: forward.module:133
+msgid "This text appears if a user exceeds the flood control limit.  The value of the flood control limit setting will appear in place of %number in the message presented to users"
+msgstr "Teksten der vises, når en brugere overskrider den fastsatte grænse for hvor ofte sider kan videresendes. Værdien af 'Begræns brug' kan indsættes i meddelelsen med !number."
+
+#: forward.module:139
+msgid "Page Text Values"
+msgstr "Tekst på side"
+
+#: forward.module:145
+msgid "Forward Instructions"
+msgstr "Instruktioner"
+
+#: forward.module:146
+msgid "Thank you for your interest in spreading the word on"
+msgstr "Tak for din interesse i at sprede budskabet om"
+
+#: forward.module:146
+msgid "NOTE: We only request your email address so that the person you are recommending the page to knows that you wanted them to see it, and that it is not junk mail. We do not capture any email address."
+msgstr "Bemærk: Vi beder kun om din e-mail-adresse for at personen du videresender siden til ved at der ikke er talem om uønsket mail. Din e-mail-adresse bliver ikke gemt."
+
+#: forward.module:149
+msgid "This message will be displayed above the form."
+msgstr "Meddelelsen vises over formularen."
+
+#: forward.module:153
+msgid "Thank You Message"
+msgstr "Takkemeddelelse"
+
+#: forward.module:154;533
+msgid "Thank you for your help in spreading the word about"
+msgstr "Tak for din hjælp til at sprede budskabet om"
+
+#: forward.module:154;533
+msgid "We appreciate your help."
+msgstr "Vi påskønner din hjælp"
+
+#: forward.module:157
+msgid "This message will be displayed after the user successfully submits the form."
+msgstr "Meddelelsen vises når brugeren har indsendt formularen."
+
+#: forward.module:163
+msgid "Forward Form Default Values"
+msgstr "Standarværdier for formular"
+
+#: forward.module:169
+msgid "From Address"
+msgstr "Fra-adresse"
+
+#: forward.module:173
+msgid "The address to send from.  Should be a functioning email address."
+msgstr "Send fra denne adresse. Skal være en aktiv e-mail-adresse."
+
+#: forward.module:177
+msgid "Header Image for Email"
+msgstr "Billede til hovede af e-mail"
+
+#: forward.module:181
+msgid "Enter the URL of the image to as a logo at the top of forwarded pages."
+msgstr "Indtast URLen for det billede, der bruges som logo i toppen af videresendte sider."
+
+#: forward.module:186
+msgid "Forward Page Title"
+msgstr "Titel"
+
+#: forward.module:190;214
+msgid "Title to display above the Forward page form"
+msgstr "Vises over vidersend-formularen"
+
+#: forward.module:194
+msgid "Forward Message Subject"
+msgstr "E-mail emnelinje"
+
+#: forward.module:195
+msgid "!name has forwarded a page to you from !site"
+msgstr "!name har videresendt en side til dig fra !site"
+
+#: forward.module:198
+msgid "Email subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr "Afsenderens navn indsættes med !name. Sitets navn indsættes med !site."
+
+#: forward.module:202
+msgid "Forward Message Body"
+msgstr "Brødtekst"
+
+#: forward.module:203
+msgid "!name thought you would like to see this page from the !site web site."
+msgstr "!name mener du vil være interesseret i denne side fra !site."
+
+#: forward.module:206
+msgid "Email message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this."
+msgstr "Afsenderens navn indsættes med !name. Sitets navn indsættes med !site. Afsenderen kan tilføje deres egen tekst efter denne meddelelse."
+
+#: forward.module:210
+msgid "Forward e-Postcard Title"
+msgstr "E-postkort titel"
+
+#: forward.module:218
+msgid "e-Postcard Message Subject"
+msgstr "E-postkort emnelinje"
+
+#: forward.module:219
+msgid "!name has sent you an e-postcard from !site"
+msgstr "!name har sendt dig et e-postkort fra !site"
+
+#: forward.module:222
+msgid "Postcard subject line.  The sender's name will appear in place of !name in the subject.  The web site name will be inserted in place of !site."
+msgstr "Afsenderens navn indsættes med !name. Sitets navn indsættes med !site."
+
+#: forward.module:226
+msgid "e-Postcard Message Body"
+msgstr "E-postkort brødtekst"
+
+#: forward.module:227
+msgid "!name has sent you an e-postcard from the !site web site.  Please take a moment to visit our web site."
+msgstr "!name har sendt dig et e-postkort fra !site. Brug venligst et øjeblik på at besøge vores site."
+
+#: forward.module:230
+msgid "Postcard message body.  The sender's name will appear in place of !name in the message body.  The web site name will be inserted in place of !site.  The sender will be able to add their own message after this."
+msgstr "Afsenderens navn indsættes med !name. Sitets navn indsættes med !site. Afsenderen kan tilføje deres egen tekst efter denne meddelelse."
+
+#: forward.module:234
+msgid "Oranization Ad"
+msgstr "Reklame for organisation"
+
+#: forward.module:238
+msgid "This message will be just above the footer message in the email."
+msgstr "Denne meddelelse vises over sidefoden i e-mailen."
+
+#: forward.module:242
+msgid "Footer Message"
+msgstr "Sidefod"
+
+#: forward.module:246
+msgid "This message will be postpended as a footer message to the email."
+msgstr "Denne meddelelse vises nederst i e-mailen."
+
+#: forward.module:249
+msgid "Latest Blog Articles"
+msgstr "Seneste blogindlæg"
+
+#: forward.module:250
+msgid "Latest Users"
+msgstr "Seneste brugere"
+
+#: forward.module:251
+msgid "Latest Comments"
+msgstr "Seneste kommentarer"
+
+#: forward.module:252;474
+msgid "Most Popular Content"
+msgstr "Mest populære indhold"
+
+#: forward.module:253
+msgid "None"
+msgstr "Ingen"
+
+#: forward.module:257
+msgid "Dynamic Block"
+msgstr "Dynamisk blok"
+
+#: forward.module:260
+msgid "Choose the dynamic block to send with these emails"
+msgstr "Vælg den dynamiske blok, der skal sendes med disse e-mails"
+
+#: forward.module:299;567
+msgid "Forward this page to a friend"
+msgstr "Send siden til en ven"
+
+#: forward.module:307
+msgid "Your Email"
+msgstr "Din e-mail-adresse"
+
+#: forward.module:317
+msgid "Your Name"
+msgstr "Dit navn"
+
+#: forward.module:327
+msgid "Send To"
+msgstr "Send til"
+
+#: forward.module:331
+msgid "Enter multiple addresses on separate lines or separate them with commas."
+msgstr "Indtast flere adresser på separate linjer eller adskil dem med kommaer."
+
+#: forward.module:338
+msgid "You are going to email the following"
+msgstr "Din e-mail sendes til"
+
+#: forward.module:344
+msgid "Message Subject"
+msgstr "Emne"
+
+#: forward.module:345;351
+msgid "(Your Name)"
+msgstr "(Dit navn)"
+
+#: forward.module:350
+msgid "Message Body"
+msgstr "Besked"
+
+#: forward.module:356
+msgid "Your Personal Message"
+msgstr "Din personlige besked"
+
+#: forward.module:374
+msgid "Send Message"
+msgstr "Send besked"
+
+#: forward.module:400
+msgid "You can't send more than %number messages per hour. Please try again later."
+msgstr "Du kan højst sende %number beskeder pr. time. Prøv igen senere."
+
+#: forward.module:427
+msgid "Header injection attempt detected.  Do not enter line feed characters into the from field!"
+msgstr "Forsøg på header-injektion opdaget. Du skal ikke indtaste linjeskift i fra-feltet!"
+
+#: forward.module:430
+msgid "Your Email address is invalid."
+msgstr "Din e-mail adresse er ugyldig."
+
+#: forward.module:433
+msgid "You must enter your name."
+msgstr "Du skal indtaste dit navn."
+
+#: forward.module:436
+msgid "You did not enter any recipients."
+msgstr "Du har ikke indtastet nogen modtagere."
+
+#: forward.module:441
+msgid "One of your Recipient addresses is invalid:"
+msgstr "En af modtageradresserne er udgyldig:"
+
+#: forward.module:446
+msgid "You must enter a message."
+msgstr "Du skal indtaste en besked."
+
+#: forward.module:459
+msgid "Recent blog posts"
+msgstr "Seneste blogindlæg"
+
+#: forward.module:464
+msgid "Who's new"
+msgstr "Hvem er ny"
+
+#: forward.module:469
+msgid "Recent comments"
+msgstr "Seneste kommentarer"
+
+#: forward.module:549
+msgid "Email this page"
+msgstr "E-mail denne side"
+
+#: forward.module:557
+msgid "comment"
+msgstr "kommentar"
+
+#: forward.module:561
+msgid "page"
+msgstr "side"
+
+#: forward.module:565
+msgid "Email this !type"
+msgstr "E-mail denne !type"
+
+#: forward.module:578;587
+msgid "Show forwarding link/form"
+msgstr "Hvis videresend link/formular"
+
+#: forward.module:581;590
+msgid "Displays the form/link to allow visitors to forward the page to a friend. Further configuration is available on the !settings."
+msgstr "Vis link/formular, der lader besøgende videresende siden til en ven. Yderligere indstillinger er tilgængelige på !settings."
+
+#: forward.module:581;590
+msgid "settings page"
+msgstr "indstillingssiden"
+
+#: forward.module:600
+msgid "Time"
+msgstr "Tid"
+
+#: forward.module:601
+msgid "Type"
+msgstr "Type"
+
+#: forward.module:602
+msgid "Path"
+msgstr "Sti"
+
+#: forward.module:603
+msgid "Title"
+msgstr "Titel"
+
+#: forward.module:621
+msgid "emails sent to"
+msgstr "e-mails sendt til"
+
+#: forward.module:621
+msgid "recipients"
+msgstr "modtagere"
+
+#: forward.module:625
+msgid "No one has used Forward yet."
+msgstr "Ingen har brugt videresendelse endnu."
+
+#: forward.module:628
+msgid "Forward Tracking"
+msgstr "Følg videresendelse"
+
+#: forward.module:638;669
+msgid "Most Emailed"
+msgstr "Mest sendte"
+
+#: forward.module:642
+msgid "Most Emailed Today"
+msgstr "Mest sendte i dag"
+
+#: forward.module:643
+msgid "Most Emailed This Week"
+msgstr "Mest sendte denne uge"
+
+#: forward.module:644
+msgid "Most Emailed of All Time"
+msgstr "Mest sendte total"
+
+#: forward.module:645;674
+msgid "Most Recently Emailed"
+msgstr "Seneste sendte"
+
+#: forward.module:658
+msgid "Today's Most Emailed"
+msgstr "Meste sendte i dag"
+
+#: forward.module:664
+msgid "This Week's Most Emailed"
+msgstr "Mest sendte denne uge"
+
+#: forward.module:686
+msgid "Block Type"
+msgstr "Bloktype"
+
+#: forward.module:689
+msgid "Choose the block type"
+msgstr "Vælg bloktype"
+
+#: forward.module:24
+msgid "access forward"
+msgstr "tilgå forward"
+
+#: forward.module:24
+msgid "administer forward"
+msgstr "administrer forward"
+
+#: forward.module:0
+#: forward.theme:0
+msgid "forward"
+msgstr "vidersend"
+
+#: forward.theme:45;102
+msgid "Message from Sender"
+msgstr "Besked fra afsender"
+
+#: forward.theme:50
+msgid "by %author"
+msgstr "af %author"
+
+#: forward.theme:54
+msgid "Click here to read more on our site"
+msgstr "Klik her for at læse mere om vores site"
+
+#: forward.theme:105
+msgid "Click here to visit our site"
+msgstr "Klik her for at besøge vores site"
+
+#: forward.install:28
+msgid "Forward module installed tables successfully."
+msgstr "Forward-modul: Tabeller installeret."
+
+#: forward.install:31
+msgid "Table installation for the Forward module was unsuccessful. The tables may need to be installed by hand. See forward.install file for a list of the installation queries."
+msgstr "Kunne ikke installere tabeller for Forward-modulet. Tabellen skal muligvis installeres manuelt. Se forward.install for en liste af databaseforespørgsler."
+
+#: forward.info:0
+msgid "Forward this page module"
+msgstr "Forward denne side modul"
+

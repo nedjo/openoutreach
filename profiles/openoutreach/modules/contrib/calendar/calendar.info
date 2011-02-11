@@ -1,0 +1,36 @@
+; $Id: calendar.info,v 1.17 2011/01/16 16:27:50 karens Exp $
+name = Calendar
+description = Views plugin to display views containing dates as Calendars.
+dependencies[] = views
+dependencies[] = date_api
+dependencies[] = date_views
+package = Date/Time
+core = 7.x
+
+files[] = calendar.install
+files[] = calendar.module
+files[] = includes/calendar.inc
+files[] = includes/calendar.views.inc
+files[] = includes/calendar.views_default.inc
+files[] = includes/calendar_plugin_display_attachment.inc
+files[] = includes/calendar_plugin_display_block.inc
+files[] = includes/calendar_plugin_display_page.inc
+files[] = includes/calendar_plugin_style.inc
+files[] = includes/calendar_view_plugin_style.inc
+files[] = theme/calendar-datebox.tpl.php
+files[] = theme/calendar-day-node.tpl.php
+files[] = theme/calendar-day.tpl.php
+files[] = theme/calendar-main.tpl.php
+files[] = theme/calendar-month-multiple-node.tpl.php
+files[] = theme/calendar-month-node.tpl.php
+files[] = theme/calendar-month.tpl.php
+files[] = theme/calendar-week-multiple-node.tpl.php
+files[] = theme/calendar-week-node.tpl.php
+files[] = theme/calendar-week.tpl.php
+files[] = theme/calendar-year.tpl.php
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "calendar"
+datestamp = "1295532253"
+

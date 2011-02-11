@@ -1,0 +1,32 @@
+; $Id: calendar_multiday.info,v 1.5 2011/01/03 12:28:28 karens Exp $
+name = Calendar Multiday
+description = "Use the calendar multiday display as an alternative to the standard display. (BETA version)"
+dependencies[] = calendar
+dependencies[] = views
+core = 7.x
+package = Date/Time
+
+files[] = calendar_multiday.install
+files[] = calendar_multiday.module
+files[] = includes/calendar.inc
+files[] = theme/calendar-datebox.tpl.php
+files[] = theme/calendar-day-node.tpl.php
+files[] = theme/calendar-day.tpl.php
+files[] = theme/calendar-main.tpl.php
+files[] = theme/calendar-month-multiple-node.tpl.php
+files[] = theme/calendar-month-node.tpl.php
+files[] = theme/calendar-month.tpl.php
+files[] = theme/calendar-week-multiple-node.tpl.php
+files[] = theme/calendar-week-node.tpl.php
+files[] = theme/calendar-week.tpl.php
+files[] = theme/calendar-year.tpl.php
+files[] = theme/calendar-day-overlap.tpl.php
+files[] = theme/calendar-week-overlap.tpl.php
+files[] = theme/calendar-month-col.tpl.php
+files[] = theme/calendar-month-row.tpl.php
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "calendar"
+datestamp = "1295532253"
+

@@ -1,4 +1,3 @@
-// $Id: favorite_services.js,v 1.1.2.4.2.1 2010/10/10 09:02:22 thecrow Exp $
 (function ($) {
   $(document).ready(function(){
     // work only for FF, IE, Opera, Chrome
@@ -20,8 +19,7 @@
       } else if (window.sidebar || window.external.AddFavourite) {
         $("a.service-links-favorite").click(function(event){
           event.preventDefault();
-          var url = unescape($(this).attr('href').replace(/\+/g, ' '));
-          var url = url.replace(/^[^\?]*\?/g, '');
+          var url = unescape($(this).attr('href').replace(/\+/g, ' ')).replace(/^[^\?]*\?q=/g, '');
           var title = url.replace(/^[^#]*#/g, '');
           url = url.replace(/#.*$/g, '');
 

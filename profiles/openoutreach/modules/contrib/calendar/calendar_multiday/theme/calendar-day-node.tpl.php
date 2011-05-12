@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-day-node.tpl.php,v 1.5 2010/12/31 23:30:50 karens Exp $
 /**
  * @file
  * Template to display a view item as a calendar day node.

@@ -1,4 +1,3 @@
-// $Id: context_reaction_block.js,v 1.1.2.23.2.3 2010/09/23 06:37:56 yhahn Exp $
 (function($){
 Drupal.behaviors.contextReactionBlock = {attach: function(context) {
   $('form.context-editor:not(.context-block-processed)')
@@ -55,7 +54,8 @@ DrupalContextBlockForm = function(blockForm) {
       var blocks = [];
       $('tr', $(this)).each(function() {
         var bid = $(this).attr('id');
-        blocks.push(bid);
+        var weight = $(this).find('select').val();
+        blocks.push({'bid' : bid, 'weight' : weight});
       });
       Drupal.contextBlockForm.state[region] = blocks;
     });
@@ -76,6 +76,11 @@ DrupalContextBlockForm = function(blockForm) {
       }
     });
   };
+
+  // make sure we update the state right before submits, this takes care of an
+  // apparent race condition between saving the state and the weights getting set
+  // by tabledrag
+  $('#ctools-export-ui-edit-item-form').submit(function() { Drupal.contextBlockForm.setState(); });
 
   // Tabledrag
   // Add additional handlers to update our blocks.
@@ -100,13 +105,27 @@ DrupalContextBlockForm = function(blockForm) {
           // create new block markup
           var block = document.createElement('tr');
           var text = $(this).parents('div.form-item').eq(0).hide().children('label').text();
+          var select = '<div class="form-item form-type-select"><select class="tabledrag-hide form-select">';
+          var i;
+          for (i = -10; i < 10; ++i) {
+            select += '<option>' + i + '</option>';
+          }
+          select += '</select></div>';
           $(block).attr('id', $(this).attr('value')).addClass('draggable');
-          $(block).html("<td>"+ text + "<input class='block-weight' /></td><td><a href='' class='remove'>X</a></td>");
+          $(block).html("<td>"+ text + "</td><td>" + select + "</td><td><a href='' class='remove'>X</a></td>");
 
           // add block item to region
           var base = "context-blockform-region-"+ region;
           Drupal.tableDrag[base].makeDraggable(block);
           $('table#'+base).append(block);
+          if ($.cookie('Drupal.tableDrag.showWeight') == 1) {
+            $('table#'+base).find('.tabledrag-hide').css('display', '');
+            $('table#'+base).find('.tabledrag-handle').css('display', 'none');
+          }
+          else {
+            $('table#'+base).find('.tabledrag-hide').css('display', 'none');
+            $('table#'+base).find('.tabledrag-handle').css('display', '');
+          }
           Drupal.attachBehaviors($('table#'+base));
 
           Drupal.contextBlockForm.setState();

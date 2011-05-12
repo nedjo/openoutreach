@@ -1,5 +1,4 @@
 <?php
-// $Id: fields_rsi_prevention.inc,v 1.3 2010/10/21 21:29:31 JacobSingh Exp $
 
 /**
  * Decorates an entity to provide getters/setters.

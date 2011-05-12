@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.inc,v 1.3 2011/01/18 00:37:34 karens Exp $
 
 /**
  * @file
@@ -34,7 +33,7 @@ function theme_date_select($vars) {
   $class = 'container-inline-date';
   // Add #date_float to allow date parts to float together on the same line. 
   if (empty($element['#date_float'])) {
-    $class .= ' .date-clear-block';
+    $class .= ' date-clear-block';
   }
   if (isset($element['#children'])) {
     $output = $element['#children'];

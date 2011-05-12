@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_wysiwyg.features.filter.inc
+ */
 
 /**
  * Implementation of hook_filter_default_formats().

@@ -1,5 +1,4 @@
 <?php
-// $Id: captcha.module,v 1.121 2010/12/30 00:29:15 soxofaan Exp $
 
 /**
  * @file
@@ -185,6 +184,9 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 
   module_load_include('inc', 'captcha');
 
+  // Add Javascript for general CAPTCHA functionality.
+  drupal_add_js(drupal_get_path('module', 'captcha') . '/captcha.js');
+
   // Prevent caching of the page with CAPTCHA elements.
   // This needs to be done even if the CAPTCHA will be ommitted later:
   // other untrusted users should not get a cached page when
@@ -206,6 +208,8 @@ function captcha_element_process($element, &$form_state, $complete_form) {
   else {
     // Generate a new CAPTCHA session if we could not reuse one from a posted form.
     $captcha_sid = _captcha_generate_captcha_session($this_form_id, CAPTCHA_STATUS_UNSOLVED);
+    // Set $posted_form_id during the first rendering of the form.
+    $posted_form_id = $this_form_id;
   }
 
   // Store CAPTCHA session ID as hidden field.
@@ -739,7 +743,6 @@ function captcha_captcha($op, $captcha_type = '') {
           '#size' => 4,
           '#maxlength' => 2,
           '#required' => TRUE,
-          '#attributes' => array('autocomplete' => 'off'),
         );
         return $result;
       }

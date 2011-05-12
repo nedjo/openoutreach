@@ -1,5 +1,4 @@
 <?php
-// $Id: ruleset.inc,v 1.2 2010/10/11 22:18:23 sdboyer Exp $
 
 /**
  * @file
@@ -76,9 +75,13 @@ function ctools_ruleset_ctools_access_get_children($plugin, $parent) {
  * Settings form for the 'by ruleset' access plugin
  */
 function ctools_ruleset_ctools_access_settings(&$form, &$form_state, $conf) {
-  $form['markup'] = array(
-    '#value' => '<div class="description">' . check_plain($form_state['plugin']['ruleset']->admin_description) . '</div>',
-  );
+  if (!empty($form_state['plugin']['ruleset']->admin_description)) {
+    $form['markup'] = array(
+      '#markup' => '<div class="description">' . check_plain($form_state['plugin']['ruleset']->admin_description) . '</div>',
+    );
+  }
+
+  return $form;
 }
 
 /**
@@ -96,6 +99,11 @@ function ctools_ruleset_ctools_access_check($conf, $context, $plugin) {
  * Provide a summary description based upon the checked roles.
  */
 function ctools_ruleset_ctools_access_summary($conf, $context, $plugin) {
-  return check_plain($plugin['ruleset']->admin_description);
+  if (!empty($form_state['plugin']['ruleset']->admin_description)) {
+    return check_plain($plugin['ruleset']->admin_description);
+  }
+  else {
+    return check_plain($plugin['ruleset']->admin_title);
+  }
 }
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-main.tpl.php,v 1.8 2010/12/21 13:41:24 karens Exp $
 /**
  * @file
  * Template to display calendar navigation and links.

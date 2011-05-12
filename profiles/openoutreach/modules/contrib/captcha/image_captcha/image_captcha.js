@@ -1,5 +1,3 @@
-// $Id: image_captcha.js,v 1.3 2010/11/20 00:42:32 soxofaan Exp $
-
 (function($) {
 
   Drupal.behaviors.captchaAdmin = {

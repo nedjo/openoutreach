@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.wrapper.inc,v 1.1.2.8 2011/02/04 15:49:43 fago Exp $
 
 /**
  * @file
@@ -68,7 +67,7 @@ abstract class EntityMetadataWrapper {
    *     strips HTML tags and decodes HTML entities. Defaults to FALSE.
    */
   public function value(array $options = array()) {
-    if (!$this->dataAvailable()) {
+    if (!$this->dataAvailable() && isset($this->info['parent'])) {
       throw new EntityMetadataWrapperException('Missing data values.');
     }
     if (!isset($this->data) && isset($this->info['name'])) {
@@ -129,7 +128,7 @@ abstract class EntityMetadataWrapper {
    * Returns whether $value is a valid value to set.
    */
   public function validate($value) {
-    if (!entity_property_verify_data_type($value, $this->type)) {
+    if (isset($value) && !entity_property_verify_data_type($value, $this->type)) {
       return FALSE;
     }
     return !isset($this->info['validation callback']) || call_user_func($this->info['validation callback'], $value, $this->info);
@@ -150,17 +149,41 @@ abstract class EntityMetadataWrapper {
   }
 
   /**
-   * Returns the options list specifying possible key value pairs for the
-   * property, if defined.
+   * Returns the options list specifying possible values for the property, if
+   * defined.
+   *
+   * @param $op
+   *   (optional) One of 'edit' or 'view'. In case the list of possible values
+   *   a user could set for a property differs from the list of values a
+   *   property could have, $op determines which options should be returned.
+   *   Defaults to 'edit'.
+   *   E.g. all possible roles a user could have include the anonymous and the
+   *   authenticated user roles, while those roles cannot be added to a user
+   *   account. So their options would be included for 'view', but for 'edit'
+   *   not.
    *
    * @return
    *   An array as used by hook_options_list() or FALSE.
    */
-  public function optionsList() {
+  public function optionsList($op = 'edit') {
     if (isset($this->info['options list']) && is_callable($this->info['options list']) && isset($this->info['name'])) {
-      return call_user_func($this->info['options list'], $this->info['name'], $this->info);
+      return call_user_func($this->info['options list'], $this->info['name'], $this->info, $op);
     }
     return FALSE;
+  }
+
+  /**
+   * Returns the label for the currently set property value if there is one
+   * available, i.e. if an options list has been specified.
+   */
+  public function label() {
+    if ($options = $this->optionsList('view')) {
+      $options = entity_property_options_flatten($options);
+      $value = $this->value();
+      if (is_scalar($value) && isset($options[$value])) {
+        return $options[$value];
+      }
+    }
   }
 
   /**
@@ -577,7 +600,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
     elseif (is_object($data)) {
       // We got the entity object passed.
       $this->data = $data;
-      list($id, $vid, $this->bundle) = entity_extract_ids($this->type, $data);
+      $id = entity_id($this->type, $data);
       $this->id = isset($id) ? $id : FALSE;
     }
   }
@@ -622,9 +645,11 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
 
   /**
    * Returns the identifier of the wrapped entity.
+   *
+   * @see entity_id()
    */
   public function getIdentifier() {
-    return $this->dataAvailable() && $this->value() ? $this->id : NULL;
+    return $this->dataAvailable() ? $this->value(array('identifier' => TRUE)) : NULL;
   }
 
   /**
@@ -639,10 +664,17 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
 
   /**
    * Overridden.
+   *
+   * @param $options
+   *   An array of options. Known keys:
+   *   - identifier: If set to TRUE, the entity identifier is returned.
    */
   public function value(array $options = array()) {
     $this->setEntity(parent::value());
-    if (!$this->data && !empty($this->id)) {
+    if (!empty($options['identifier'])) {
+      return $this->id;
+    }
+    elseif (!$this->data && !empty($this->id)) {
       // Lazy load the entity if necessary.
       $return = entity_load($this->type, array($this->id));
       $this->data = reset($return);
@@ -725,7 +757,7 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
    * @return EntityDrupalWrapper
    */
   public function delete() {
-    if ($this->dataAvailable()) {
+    if ($this->dataAvailable() && $this->value()) {
       $return = entity_delete($this->type, $this->id);
       if ($return === FALSE) {
         throw new EntityMetadataWrapperException("There is no information about how to delete entities of type " . check_plain($this->type) . '.');
@@ -751,6 +783,15 @@ class EntityDrupalWrapper extends EntityStructureWrapper {
    */
   public function entityKey($name) {
     return isset($this->entityInfo['entity keys'][$name]) ? $this->entityInfo['entity keys'][$name] : FALSE;
+  }
+
+  /**
+   * Returns the entity label.
+   *
+   * @see entity_label()
+   */
+  public function label() {
+    return entity_label($this->type, $this->value());
   }
 
   /**
@@ -844,8 +885,8 @@ class EntityListWrapper extends EntityMetadataWrapper implements IteratorAggrega
   /**
    * @param $options
    *   An array of options. Known keys:
-   *   identifier: If set to TRUE for a list of entities, it won't be returned
-   *   as list of fully loaded entity objects, but as a list of entity ids.
+   *   - identifier: If set to TRUE for a list of entities, it won't be returned
+   *     as list of fully loaded entity objects, but as a list of entity ids.
    */
   public function value(array $options = array()) {
     // For lists of entities fetch full entity objects before returning.
@@ -911,7 +952,30 @@ class EntityListWrapper extends EntityMetadataWrapper implements IteratorAggrega
    * list items.
    */
   public function validate($value) {
-    return entity_property_verify_data_type($value, $this->type);
+    return !isset($value) || entity_property_verify_data_type($value, $this->type);
+  }
+
+  /**
+   * Returns the label for the list of set values if available.
+   */
+  public function label() {
+    if ($options = $this->optionsList('view')) {
+      $options = entity_property_options_flatten($options);
+      $labels = array_intersect_key($options, array_flip(parent::value()));
+    }
+    else {
+      // Get each label on its own, e.g. to support getting labels of a list
+      // of entities.
+      $labels = array();
+      foreach ($this as $key => $property) {
+        $label = $property->label();
+        if (!$label) {
+          return NULL;
+        }
+        $labels[] = $label;
+      }
+    }
+    return isset($labels) ? implode(', ', $labels) : NULL;
   }
 }
 

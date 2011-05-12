@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.property.inc,v 1.1.2.9 2011/02/08 15:39:12 fago Exp $
 
 /**
  * @file
@@ -94,8 +93,14 @@ function entity_get_all_property_info($entity_type = NULL) {
  */
 function entity_property_query($entity_type, $property, $value, $limit = 30) {
   $properties = entity_get_all_property_info($entity_type);
-  if (isset($properties[$property]['query callback'])) {
-    return $properties[$property]['query callback']($entity_type, $property, $value, $limit);
+  $info = $properties[$property] + array('type' => 'text', 'query callback' => isset($properties[$property]['schema field']) ? 'entity_metadata_table_query' : FALSE);
+
+  // Make sure an entity or a list of entities are passed on as identifiers.
+  $wrapper = entity_metadata_wrapper($info['type'], $value);
+  $value = $wrapper->value(array('identifier' => TRUE));
+
+  if (!empty($info['query callback'])) {
+    return $info['query callback']($entity_type, $property, $value, $limit);
   }
 }
 
@@ -289,6 +294,13 @@ function entity_property_verbatim_get($data, array $options, $name) {
 }
 
 /**
+ * Date values are converted from ISO strings to timestamp, if needed.
+ */
+function entity_property_verbatim_date_get($data, array $options, $name) {
+  return is_numeric($data[$name]) ? $data[$name] : strtotime($data[$name], time());
+}
+
+/**
  * Sets the property to the given value. May be used as 'setter callback'.
  */
 function entity_property_verbatim_set(&$data, $name, $value) {
@@ -346,6 +358,25 @@ function entity_property_validate_integer_non_negative($value) {
  */
 function entity_property_create_array($property_name, $context) {
   return array();
+}
+
+/**
+ * Flattens the given options in single dimensional array.
+ * We don't depend on options module, so we cannot use options_array_flatten().
+ *
+ * @see options_array_flatten()
+ */
+function entity_property_options_flatten($options) {
+  $result = array();
+  foreach ($options as $key => $value) {
+    if (is_array($value)) {
+      $result += $value;
+    }
+    else {
+      $result[$key] = $value;
+    }
+  }
+  return $result;
 }
 
 /**

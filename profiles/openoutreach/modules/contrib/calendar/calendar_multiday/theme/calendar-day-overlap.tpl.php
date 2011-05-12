@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-day-overlap.tpl.php,v 1.4 2011/01/03 13:17:48 karens Exp $
 /**
  * @file
  * Template to display a view as a calendar day, grouped by time with overlapping items

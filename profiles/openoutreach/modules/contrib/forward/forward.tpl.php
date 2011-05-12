@@ -1,5 +1,4 @@
 <?php
-/* $Id: forward.tpl.php,v 1.5 2010/08/19 18:27:06 seanr Exp $ */
 
 /**
  * This template should only contain the contents of the body

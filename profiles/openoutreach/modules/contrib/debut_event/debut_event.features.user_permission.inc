@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_event.features.user_permission.inc
+ */
 
 /**
  * Implementation of hook_user_default_permissions().

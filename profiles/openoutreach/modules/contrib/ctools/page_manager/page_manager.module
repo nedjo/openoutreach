@@ -1,5 +1,4 @@
 <?php
-// $Id: page_manager.module,v 1.26 2010/11/03 00:08:04 merlinofchaos Exp $
 
 /**
  * @file
@@ -96,6 +95,7 @@ function page_manager_menu() {
   $base = array(
     'access arguments' => array('use page manager'),
     'file' => 'page_manager.admin.inc',
+    'theme callback' => 'ajax_base_page_theme',
   );
 
   $items['admin/structure/pages'] = array(
@@ -115,13 +115,13 @@ function page_manager_menu() {
     'title' => 'Edit',
     'page callback' => 'page_manager_edit_page',
     'page arguments' => array(4),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   ) + $base;
 
   $items['admin/structure/pages/%ctools_js/operation/%page_manager_cache'] = array(
     'page callback' => 'page_manager_edit_page_operation',
     'page arguments' => array(3, 5),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   ) + $base;
 
   $items['admin/structure/pages/%ctools_js/enable/%page_manager_cache'] = array(
@@ -155,6 +155,32 @@ function page_manager_menu() {
     }
   }
 
+  return $items;
+}
+
+function page_manager_admin_paths() {
+  $items = array();
+  ctools_include('page', 'page_manager', 'plugins/tasks');
+  $pages = page_manager_page_load_all();
+  foreach ($pages as $page) {
+    // Make sure the page we're on is set to be an administrative path and that
+    // it is not set to be a frontpage path.
+    if ((isset($page->conf['admin_paths']) && $page->conf['admin_paths']) && (!isset($page->make_frontpage) || !$page->make_frontpage)) {
+      $path_parts = explode('/', $page->path);
+      foreach ($path_parts as $key => $part) {
+        if (strpos($part, '%') !== FALSE || strpos($part, '!') !== FALSE) {
+          $path_parts[$key] = '*';
+        }
+      }
+      $path = implode('/', $path_parts);
+      if ($page->menu['type'] == 'default tab') {
+        array_pop($path_parts);
+        $parent_path = implode('/', $path_parts);
+        $items[$parent_path] = TRUE;
+      }
+      $items[$path] = TRUE;
+    }
+  }
   return $items;
 }
 

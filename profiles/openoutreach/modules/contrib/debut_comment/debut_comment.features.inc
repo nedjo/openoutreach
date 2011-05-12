@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_comment.features.inc
+ */
 
 /**
  * Implementation of hook_ctools_plugin_api().
@@ -8,10 +12,12 @@ function debut_comment_ctools_plugin_api() {
   if ($module == "captcha" && $api == "captcha") {
     return array("version" => 1);
   }
-  elseif ($module == "context" && $api == "context") {
+  list($module, $api) = func_get_args();
+  if ($module == "context" && $api == "context") {
     return array("version" => 3);
   }
-  elseif ($module == "strongarm" && $api == "strongarm") {
+  list($module, $api) = func_get_args();
+  if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => 1);
   }
 }

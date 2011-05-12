@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_event.features.field.inc
+ */
 
 /**
  * Implementation of hook_field_default_fields().
@@ -13,7 +17,7 @@ function debut_event_field_default_fields() {
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(
-        '0' => 'node',
+        0 => 'node',
       ),
       'field_name' => 'body',
       'foreign keys' => array(
@@ -26,7 +30,7 @@ function debut_event_field_default_fields() {
       ),
       'indexes' => array(
         'format' => array(
-          '0' => 'format',
+          0 => 'format',
         ),
       ),
       'module' => 'text',
@@ -182,7 +186,7 @@ function debut_event_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'fid' => array(
-          '0' => 'fid',
+          0 => 'fid',
         ),
       ),
       'module' => 'media',
@@ -250,7 +254,7 @@ function debut_event_field_default_fields() {
       'foreign keys' => array(),
       'indexes' => array(
         'fid' => array(
-          '0' => 'fid',
+          0 => 'fid',
         ),
       ),
       'module' => 'media',
@@ -324,13 +328,13 @@ function debut_event_field_default_fields() {
       ),
       'indexes' => array(
         'tid' => array(
-          '0' => 'tid',
+          0 => 'tid',
         ),
       ),
       'module' => 'taxonomy',
       'settings' => array(
         'allowed_values' => array(
-          '0' => array(
+          0 => array(
             'parent' => 0,
             'vocabulary' => 'tags',
           ),
@@ -377,6 +381,15 @@ function debut_event_field_default_fields() {
       ),
     ),
   );
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Date');
+  t('Description');
+  t('Enter a comma-separated list of words to describe your content.');
+  t('Image');
+  t('Media');
+  t('Tags');
 
   return $fields;
 }

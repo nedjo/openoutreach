@@ -1,5 +1,4 @@
 <?php
-// $Id: media_gallery.admin.inc,v 1.2 2010/10/21 16:26:44 JacobSingh Exp $
 
 /**
  * The Galleries settings page will just return the term edit form for the "all galleries" tid.

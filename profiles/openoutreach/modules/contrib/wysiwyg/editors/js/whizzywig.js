@@ -1,4 +1,3 @@
-// $Id: whizzywig.js,v 1.9 2010/10/18 19:53:12 sun Exp $
 
 var wysiwygWhizzywig = { currentField: null, fields: {} };
 var buttonPath = null;

@@ -1,12 +1,15 @@
 <?php
+/**
+ * @file
+ * debut_section.views_default.inc
+ */
 
 /**
  * Implementation of hook_views_default_views().
  */
 function debut_section_views_default_views() {
-  $views = array();
+  $export = array();
 
-  // Exported view: section_children
   $view = new view;
   $view->name = 'section_children';
   $view->description = 'A list of sub-pages of the current page. ';
@@ -34,10 +37,10 @@ function debut_section_views_default_views() {
   $handler->display->display_options['relationships']['nid']['table'] = 'book_parent';
   $handler->display->display_options['relationships']['nid']['field'] = 'nid';
   $handler->display->display_options['relationships']['nid']['required'] = 1;
-  /* Field: Fields: field_image */
+  /* Field: Content: Image */
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
   $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_field_image';
-  $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['field'] = 'field_image';
   $handler->display->display_options['fields']['entity_id']['label'] = '';
   $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 0;
@@ -53,7 +56,7 @@ function debut_section_views_default_views() {
   $handler->display->display_options['fields']['entity_id']['empty_zero'] = 0;
   $handler->display->display_options['fields']['entity_id']['click_sort_column'] = 'fid';
   $handler->display->display_options['fields']['entity_id']['type'] = 'media_preview';
-  /* Field: Node: Title */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
@@ -75,24 +78,24 @@ function debut_section_views_default_views() {
   $handler->display->display_options['sorts']['weight']['id'] = 'weight';
   $handler->display->display_options['sorts']['weight']['table'] = 'book_menu_links';
   $handler->display->display_options['sorts']['weight']['field'] = 'weight';
-  /* Sort criterion: Node: Title */
+  /* Sort criterion: Content: Title */
   $handler->display->display_options['sorts']['title']['id'] = 'title';
   $handler->display->display_options['sorts']['title']['table'] = 'node';
   $handler->display->display_options['sorts']['title']['field'] = 'title';
-  /* Argument: Node: Nid */
+  /* Contextual filter: Content: Nid */
   $handler->display->display_options['arguments']['nid']['id'] = 'nid';
   $handler->display->display_options['arguments']['nid']['table'] = 'node';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
   $handler->display->display_options['arguments']['nid']['relationship'] = 'nid';
   $handler->display->display_options['arguments']['nid']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['nid']['style_plugin'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'php';
   $handler->display->display_options['arguments']['nid']['default_argument_options']['code'] = 'if (arg(0) == \'node\' && is_numeric(arg(1))) {
   return arg(1);
 }';
+  $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['nid']['not'] = 0;
-  /* Filter: Node: Published */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
@@ -107,15 +110,14 @@ function debut_section_views_default_views() {
     t('more'),
     t('Apply'),
     t('Reset'),
-    t('Sort By'),
+    t('Sort by'),
     t('Asc'),
     t('Desc'),
     t('Book parent'),
     t('All'),
     t('Section children block'),
   );
+  $export['section_children'] = $view;
 
-  $views[$view->name] = $view;
-
-  return $views;
+  return $export;
 }

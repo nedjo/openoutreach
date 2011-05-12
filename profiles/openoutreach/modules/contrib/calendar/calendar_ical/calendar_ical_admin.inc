@@ -1,6 +1,5 @@
 <?php
 
-// $Id: calendar_ical_admin.inc,v 1.6 2010/03/01 00:39:39 karens Exp $
 
 /**
  * @file

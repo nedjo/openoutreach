@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-month-node.tpl.php,v 1.5 2011/01/01 23:57:24 karens Exp $
 /**
  * @file
  * Template to display a view item as a calendar month node.

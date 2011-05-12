@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.1.4.3.2.1 2010/12/09 22:30:15 yhahn Exp $
 
 Context UI
 ----------
@@ -9,7 +8,7 @@ are built and can be turned off on most production sites.
 
 Requirements
 ------------
-- Context, Context UI modules enabled (`admin/build/modules`)
+- Context, Context UI modules enabled (`admin/modules`)
 - [jQuery UI 1.x][1] and [Admin 2.x][2] to use the inline context editor.
   Optional.
 

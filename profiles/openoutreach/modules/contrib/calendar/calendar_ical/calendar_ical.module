@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar_ical.module,v 1.6 2010/08/22 02:23:48 karens Exp $
 
 /**
  * Implementation of hook_views_api().

@@ -1,5 +1,4 @@
 <?php
-// $Id: media-gallery-media-item-thumbnail.tpl.php,v 1.2 2010/10/21 16:26:44 JacobSingh Exp $
 
 /**
  * @file

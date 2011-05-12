@@ -1,12 +1,11 @@
 <?php
-// $Id: views_handler_area.inc,v 1.1.4.3 2010/12/17 21:42:19 merlinofchaos Exp $
 /**
  * @file
  * Views area handlers.
  */
 
 /**
- * @defgroup views_area_handlers Views' relationship handlers
+ * @defgroup views_area_handlers Views' area handlers
  * @{
  * Handlers to tell Views what can display in header, footer
  * and empty text in a view.
@@ -86,7 +85,7 @@ class views_handler_area_broken extends views_handler_area {
   }
 
   function ensure_my_table() { /* No table to ensure! */ }
-  function query() { /* No query to run */ }
+  function query($group_by = FALSE) { /* No query to run */ }
   function render($empty = FALSE) { return ''; }
   function options_form(&$form, &$form_state) {
     $form['markup'] = array(

@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api_sql.inc,v 1.2 2011/01/18 00:37:34 karens Exp $
 
 /**
  * @file
@@ -17,7 +16,7 @@
  *  @return - correct sql string for database type
  */
 function date_sql_concat($array) {
-  switch (date_db_type()) {
+  switch ( db_driver()) {
     case ('mysql'):
     case ('mysqli'):
       return "CONCAT(" . implode(",", $array) . ")";
@@ -33,7 +32,7 @@ function date_sql_concat($array) {
  * @return SQL statement to return the first non-NULL value in the list.
  */
 function date_sql_coalesce($array) {
-  switch (date_db_type()) {
+  switch ( db_driver()) {
     case ('mysql'):
     case ('mysqli'):
     case ('pgsql'):
@@ -62,7 +61,7 @@ function date_sql_pad($str, $size = 2, $pad = '0', $side = 'l') {
  * A class to manipulate date SQL.
  */
 class date_sql_handler {
-  var $db_type = 'mysql';
+  var $db_type = NULL;
   var $date_type = DATE_DATETIME;
   var $db_timezone = 'UTC'; // A string timezone name.
   var $local_timezone = NULL; // A string timezone name.
@@ -70,30 +69,20 @@ class date_sql_handler {
   var $local_timezone_field = NULL; // Use if the local timezone is stored in a field.
   var $offset_field = NULL; // Use if the offset is stored in a field.
 
-  function construct($date_type = DATE_DATETIME, $local_timezone = NULL) {
-    $this->db_type = $this->get_db_type();
+  function __construct($date_type = DATE_DATETIME, $local_timezone = NULL, $offset = '+00:00') {
+    $this->db_type = db_driver();
     $this->date_type = $date_type;
     $this->db_timezone = 'UTC';
     $this->local_timezone = isset($local_timezone) ? $local_timezone : date_default_timezone();
-    if (isset($this->definition['content_field_name'])) {
-      $field_name = $this->content_field_name;
-      $field = field_info_field($field_name);
-      $this->date_handler->date_type = $field['type'];
-    }
-    date_api_set_db_timezone();
+    $this->set_db_timezone($offset);
   }
-
-  function get_db_type() {
-    return $GLOBALS['databases']['default']['default']['driver'];
-  }
-
+  
   /**
    * See if the db has timezone name support.
    */
   function db_tz_support($reset = FALSE) {
     $has_support = variable_get('date_db_tz_support', -1);
     if ($has_support == -1 || $reset) {
-      date_api_set_db_timezone();
       $has_support = FALSE;
       switch ($this->db_type) {
         case 'mysql':
@@ -133,13 +122,19 @@ class date_sql_handler {
    */
   function set_db_timezone($offset = '+00:00') {
     static $already_set = FALSE;
-    $type = $this->get_db_type();
+    $type =  db_driver();
     if (!$already_set) {
-      if (($type == 'mysqli' || $type == 'mysql')) {
-        db_query("SET @@session.time_zone = '$offset'");
-      }
-      elseif ($type == 'pgsql') {
-        db_query("SET TIME ZONE INTERVAL '$offset' HOUR TO MINUTE");
+      switch ($type) {
+        case 'mysql':
+        case 'mysqli':
+          db_query("SET @@session.time_zone = '$offset'");
+          break;
+        case 'pgsql':
+          db_query("SET TIME ZONE INTERVAL '$offset' HOUR TO MINUTE");
+          break;
+        case 'sqlsvr':
+          db_query('TimeZone.setDefault(TimeZone.getTimeZone("GMT"))');
+          break;
       }
       $already_set = TRUE;
     }
@@ -202,6 +197,28 @@ class date_sql_handler {
           case DATE_DATETIME:
             break;
         }
+      case 'sqlite':
+        switch ($this->date_type) {
+          case DATE_UNIX:
+            $field = "datetime($field, 'unixepoch')";
+            break;
+          case DATE_ISO:
+          case DATE_DATETIME:
+            $field = "datetime($field)";
+            break;
+        }
+        break;
+      case 'sqlsrv':
+        switch ($this->date_type) {
+          case DATE_UNIX:
+            $field = "DATEDIFF(s, '19700101 00:00:00:000', $field)";
+            break;
+          case DATE_ISO:
+          case DATE_DATETIME:
+            $field = "CAST($field as smalldatetime)";
+            break;
+        }
+        break;
       break;
     }
     // Adjust the resulting value to the right timezone/offset.
@@ -219,6 +236,10 @@ class date_sql_handler {
           return "ADDTIME($field, SEC_TO_TIME($offset))";
         case 'pgsql':
           return "($field + INTERVAL '$offset SECONDS')";;
+        case 'sqlite':
+          return "datetime($field, '$offset seconds')";
+        case 'sqlsrv':
+          return "DATEADD(second, $offset, $field)";
       }
     }
     return $field;
@@ -257,6 +278,14 @@ class date_sql_handler {
           case 'SUB':
             return "($field - INTERVAL '$count $granularity')";
         }
+      case 'sqlite':
+        $granularity .= 'S';
+        switch ($direction) {
+          case 'ADD':
+            return "datetime($field, '+$count $granularity')";
+          case 'SUB':
+            return "datetime($field, '-$count $granularity')";
+        }
      }
      return $field;
   }  
@@ -277,9 +306,8 @@ class date_sql_handler {
   function sql_tz($field, $offset = NULL) {
     // If the timezones are values they need to be quoted, but
     // if they are field names they do not.
-    $db_zone   = $this->db_timezone_field ? $this->db_timezone_field : "'{$this->db_timezone}'";
-    $localzone = $this->local_timezone_field ? $this->local_timezone_field : "'{$this->local_timezone}'"; 
-
+    $db_zone   = !empty($this->db_timezone_field) ? $this->db_timezone_field : "'{$this->db_timezone}'";
+    $localzone = !empty($this->local_timezone_field) ? $this->local_timezone_field : "'{$this->local_timezone}'"; 
     // If a fixed offset is required, use it.
     if ($offset !== NULL) {
       return $this->sql_offset($field, $offset);
@@ -290,7 +318,7 @@ class date_sql_handler {
     }
     // If the db has no timezone support, adjust by the offset,
     // could be either a field name or a value.
-    elseif (!$this->db_tz_support()) {
+    elseif (!$this->db_tz_support() || empty($localzone)) {
       if (!empty($this->offset_field)) {
         return $this->sql_offset($field, $this->offset_field);
       }
@@ -323,33 +351,97 @@ class date_sql_handler {
    *   An appropriate SQL string for the db type and field type.
    */
   function sql_format($format, $field) {
-    switch ($this->db_type) {
-      case 'mysql':
-      case 'mysqli':
+      switch ($this->db_type) {
+        case 'mysql':
+        case 'mysqli':
         $replace = array(
-          'Y' => '%Y', 'y' => '%y',
-          'm' => '%m', 'n' => '%c',
-          'd' => '%d', 'j' => '%e',
+          'Y' => '%Y',
+          'y' => '%y',
+          'M' => '%b',
+          'm' => '%m',
+          'n' => '%c',
+          'F' => '%M',
+          'D' => '%a',
+          'd' => '%d',
+          'l' => '%W',
+          'j' => '%e',
+          'W' => '%v',
           'H' => '%H',
+          'h' => '%h',
           'i' => '%i',
           's' => '%s',
+          'A' => '%p',
           '\WW' => 'W%U',
           );
         $format = strtr($format, $replace);
         return "DATE_FORMAT($field, '$format')";
       case 'pgsql':
         $replace = array(
-          'Y' => 'YYYY', 'y' => 'Y',
-          'm' => 'MM', 'n' => 'M',
-          'd' => 'DD', 'j' => 'D',
+          'Y' => 'YYYY',
+          'y' => 'YY',
+          'M' => 'Mon',
+          'm' => 'MM',
+          'n' => 'MM', // no format for Numeric representation of a month, without leading zeros
+          'F' => 'Month',
+          'D' => 'Dy',
+          'd' => 'DD',
+          'l' => 'Day',
+          'j' => 'DD', // no format for Day of the month without leading zeros
+          'W' => 'WW',
           'H' => 'HH24',
+          'h' => 'HH12',
           'i' => 'MI',
           's' => 'SS',
+          'A' => 'AM',
           '\T' => '"T"',
           //'\W' => // TODO, what should this be?
           );
         $format = strtr($format, $replace);
         return "TO_CHAR($field, '$format')";
+      case 'sqlite':
+        $replace = array(
+          'Y' => '%Y', // 4 digit year number
+          'y' => '%Y', // no format for 2 digit year number
+          'M' => '%m', // no format for 3 letter month name
+          'm' => '%m', // month number with leading zeros
+          'n' => '%m', // no format for month number without leading zeros
+          'F' => '%m', // no format for full month name
+          'D' => '%d', // no format for 3 letter day name
+          'd' => '%d', // day of month number with leading zeros
+          'l' => '%d', // no format for full day name
+          'j' => '%d', // no format for day of month number without leading zeros
+          'W' => '%W', // ISO week number
+          'H' => '%H', // 24 hour hour with leading zeros
+          'h' => '%H', // no format for 12 hour hour with leading zeros
+          'i' => '%M', // minutes with leading zeros
+          's' => '%S', // seconds with leading zeros
+          'A' => '', // no format for  AM/PM
+          '\WW' => '', // Week number
+          );
+        $format = strtr($format, $replace);
+        return "strftime('$format', $field)";
+      case 'sqlsvr':
+        $replace = array(
+          'Y' => 'yyyy', // 4 digit year number
+          'y' => 'yy', // 2 digit year number
+          'M' => 'm', // no format for 3 letter month name
+          'm' => 'mm', // month number with leading zeros
+          'n' => 'm', // month number without leading zeros
+          'F' => 'm', // no format for full month name
+          'D' => 'd', // no format for 3 letter day name
+          'd' => 'dd', // day of month number with leading zeros
+          'l' => 'd', // no format for full day name
+          'j' => 'd', // day of month number without leading zeros
+          'W' => 'wk', // ISO week number
+          'H' => 'hh', // 24 hour hour with leading zeros
+          'h' => 'hh', // no format for 12 hour hour with leading zeros
+          'i' => 'mi', // minutes with leading zeros
+          's' => 'ss', // seconds with leading zeros
+          'A' => '', // no format for  AM/PM
+          '\WW' => '', // Week number
+          );
+        $format = strtr($format, $replace);
+        return "DATEPART($format, $field)";
     }
   }
 
@@ -735,7 +827,8 @@ class date_sql_handler {
     foreach ($fromto as $arg) {
       $parts = array();
       if ($arg == '@') {
-        $parts['date'] = date_array(date_now());
+        $date = date_now();
+        $parts['date'] = $date->toArray();
       }
       elseif (preg_match('/(\d{4})?-?(W)?(\d{1,2})?-?(\d{1,2})?[T\s]?(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?/', $arg, $matches)) {
         $date = array();

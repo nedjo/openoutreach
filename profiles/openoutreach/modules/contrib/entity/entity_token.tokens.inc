@@ -1,5 +1,4 @@
 <?php
-// $Id: entity_token.tokens.inc,v 1.1.2.2 2011/01/26 11:46:00 fago Exp $
 
 /**
  * @file

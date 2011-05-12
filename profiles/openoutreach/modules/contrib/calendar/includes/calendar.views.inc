@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar.views.inc,v 1.14 2011/01/18 01:27:43 karens Exp $
 /**
  *  Implementation of hook_views_query()
  *  

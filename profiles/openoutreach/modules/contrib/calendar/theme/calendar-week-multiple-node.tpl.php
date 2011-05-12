@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-week-multiple-node.tpl.php,v 1.7 2010/12/21 13:41:24 karens Exp $
 /**
  * @file
  * Template to display a summary of the days items as a calendar week node.

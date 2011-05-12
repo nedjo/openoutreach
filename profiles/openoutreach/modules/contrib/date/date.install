@@ -1,5 +1,4 @@
 <?php
-// $Id: date.install,v 1.25 2011/01/18 00:37:34 karens Exp $
 /**
  * @file
  * Installation code for CCK date module.
@@ -20,6 +19,8 @@ function date_field_schema($field) {
         'type' => 'datetime',
         'mysql_type' => 'DATETIME',
         'pgsql_type' => 'timestamp without time zone', 
+        'sqlite_type' => 'VARCHAR', 
+        'sqlsrv_type' => 'smalldatetime',
         'not null' => FALSE, 
         'sortable' => TRUE, 
         'views' => TRUE,

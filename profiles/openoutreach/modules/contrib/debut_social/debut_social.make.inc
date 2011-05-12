@@ -1,4 +1,3 @@
-; $Id: debut_social.make.inc,v 1.6 2011/02/11 00:48:17 nedjo Exp $
 
 ; Drupal version
 core = 7.x
@@ -8,22 +7,23 @@ api = 2
 projects[advanced_help][subdir] = contrib
 projects[advanced_help][version] = 1.0-beta1
 projects[captcha][subdir] = contrib
-projects[captcha][version] = 1.0-alpha2
-projects[captcha][patch][] = http://drupal.org/files/issues/825088-19-captcha_ctools_export.patch
+projects[captcha][version] = 1.0-alpha3
+projects[captcha][patch][http://drupal.org/files/issues/825088-19-captcha_ctools_export.patch] = http://drupal.org/files/issues/825088-19-captcha_ctools_export.patch
 projects[context][subdir] = contrib
-projects[context][version] = 3.0-alpha3
+projects[context][version] = 3.0-beta1
 projects[ctools][subdir] = contrib
-projects[ctools][version] = 1.0-alpha2
+projects[ctools][version] = 1.x-dev
 projects[debut][subdir] = contrib
-projects[debut][version] = 1.x-beta1
+projects[debut][version] = 1.0-beta2
 projects[debut_social][subdir] = contrib
-projects[debut_social][version] = 1.x-beta1
+projects[debut_social][version] = 1.0-beta2
 projects[features][subdir] = contrib
-projects[features][version] = 1.x-dev 
+projects[features][version] = 1.0-beta2
+projects[features][patch][http://drupal.org/files/issues/features_views_fix-drush-make-1097560-53.patch] = http://drupal.org/files/issues/features_views_fix-drush-make-1097560-53.patch
 projects[follow][subdir] = contrib
 projects[follow][version] = 1.x-dev
 projects[forward][subdir] = contrib
-projects[forward][version] = 1.0-alpha3
+projects[forward][version] = 1.0-rc3
 projects[service_links][subdir] = contrib
 projects[service_links][version] = 2.x-dev
 projects[strongarm][subdir] = contrib

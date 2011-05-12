@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools.api.php,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -80,6 +79,42 @@ function hook_ctools_plugin_directory($owner, $plugin_type) {
     return "plugins/$plugin_type";
   }
   // Finally, if nothing matches, it's safe to return nothing at all (or NULL).
+}
+
+/**
+ * Alter a plugin before it has been processed.
+ *
+ * This hook is useful for altering flags or other information that will be
+ * used or possibly overriden by the process hook if defined.
+ *
+ * @param $plugin
+ *   An associative array defining a plugin.
+ * @param $info
+ *   An associative array of plugin type info.
+ */
+function hook_ctools_plugin_pre_alter(&$plugin, &$info) {
+  // Override a function defined by the plugin.
+  if ($info['type'] == 'my_type') {
+    $plugin['my_flag'] = 'new_value';
+  }
+}
+
+/**
+ * Alter a plugin after it has been processed.
+ *
+ * This hook is useful for overriding the final values for a plugin after it
+ * has been processed.
+ *
+ * @param $plugin
+ *   An associative array defining a plugin.
+ * @param $info
+ *   An associative array of plugin type info.
+ */
+function hook_ctools_plugin_post_alter(&$plugin, &$info) {
+  // Override a function defined by the plugin.
+  if ($info['type'] == 'my_type') {
+    $plugin['my_function'] = 'new_function';
+  }
 }
 
 /**

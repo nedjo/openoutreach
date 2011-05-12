@@ -1,6 +1,4 @@
 <?php
-// $Id: date_views.views_default.inc,v 1.3 2011/01/18 00:37:35 karens Exp $
-
 /**
  * @file
  * Default views for Date API.

@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api_ical.inc,v 1.2 2011/01/18 00:37:34 karens Exp $ */
 /**
  * @file
  * Parse iCal data.

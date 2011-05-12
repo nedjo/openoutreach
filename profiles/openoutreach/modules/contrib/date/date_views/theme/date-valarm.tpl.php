@@ -1,5 +1,5 @@
 <?php
-// $Id: date-valarm.tpl.php,v 1.1 2011/01/16 16:14:01 karens Exp $
+// $Id$
 /**
  * $alarm
  *   An array with the following information about each alarm:

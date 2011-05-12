@@ -1,12 +1,15 @@
 <?php
+/**
+ * @file
+ * debut_article.views_default.inc
+ */
 
 /**
  * Implementation of hook_views_default_views().
  */
 function debut_article_views_default_views() {
-  $views = array();
+  $export = array();
 
-  // Exported view: article
   $view = new view;
   $view->name = 'article';
   $view->description = 'A list of articles';
@@ -32,7 +35,7 @@ function debut_article_views_default_views() {
   $handler->display->display_options['pager']['options']['expose']['items_per_page_options_all'] = 0;
   $handler->display->display_options['style_plugin'] = 'default';
   $handler->display->display_options['row_plugin'] = 'fields';
-  /* Field: Node: Title */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
@@ -50,25 +53,25 @@ function debut_article_views_default_views() {
   $handler->display->display_options['fields']['title']['hide_empty'] = 0;
   $handler->display->display_options['fields']['title']['empty_zero'] = 0;
   $handler->display->display_options['fields']['title']['link_to_node'] = 1;
-  /* Sort criterion: Node: Post date */
+  /* Sort criterion: Content: Post date */
   $handler->display->display_options['sorts']['created']['id'] = 'created';
   $handler->display->display_options['sorts']['created']['table'] = 'node';
   $handler->display->display_options['sorts']['created']['field'] = 'created';
   $handler->display->display_options['sorts']['created']['order'] = 'DESC';
-  /* Argument: Node: Nid */
+  /* Contextual filter: Content: Nid */
   $handler->display->display_options['arguments']['nid']['id'] = 'nid';
   $handler->display->display_options['arguments']['nid']['table'] = 'node';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
-  $handler->display->display_options['arguments']['nid']['style_plugin'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['nid']['not'] = 0;
-  /* Filter: Node: Published */
+  /* Filter criterion: Content: Published */
   $handler->display->display_options['filters']['status']['id'] = 'status';
   $handler->display->display_options['filters']['status']['table'] = 'node';
   $handler->display->display_options['filters']['status']['field'] = 'status';
   $handler->display->display_options['filters']['status']['value'] = '1';
-  /* Filter: Node: Type */
+  /* Filter criterion: Content: Type */
   $handler->display->display_options['filters']['type']['id'] = 'type';
   $handler->display->display_options['filters']['type']['table'] = 'node';
   $handler->display->display_options['filters']['type']['field'] = 'type';
@@ -93,10 +96,10 @@ function debut_article_views_default_views() {
   $handler->display->display_options['row_plugin'] = 'fields';
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Fields: field_image */
+  /* Field: Content: Image */
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
   $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_field_image';
-  $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['field'] = 'field_image';
   $handler->display->display_options['fields']['entity_id']['label'] = '';
   $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 0;
@@ -112,7 +115,7 @@ function debut_article_views_default_views() {
   $handler->display->display_options['fields']['entity_id']['empty_zero'] = 0;
   $handler->display->display_options['fields']['entity_id']['click_sort_column'] = 'fid';
   $handler->display->display_options['fields']['entity_id']['type'] = 'media_preview';
-  /* Field: Node: Title */
+  /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
   $handler->display->display_options['fields']['title']['field'] = 'title';
@@ -159,12 +162,12 @@ function debut_article_views_default_views() {
   $handler->display->display_options['pager']['options']['items_per_page'] = '5';
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Argument: User: Uid */
+  /* Contextual filter: User: Uid */
   $handler->display->display_options['arguments']['uid']['id'] = 'uid';
   $handler->display->display_options['arguments']['uid']['table'] = 'users';
   $handler->display->display_options['arguments']['uid']['field'] = 'uid';
-  $handler->display->display_options['arguments']['uid']['style_plugin'] = 'default_summary';
   $handler->display->display_options['arguments']['uid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['uid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['block_description'] = 'Recent articles by author';
 
   /* Display: Feed */
@@ -175,12 +178,12 @@ function debut_article_views_default_views() {
   $handler->display->display_options['style_plugin'] = 'rss';
   $handler->display->display_options['row_plugin'] = 'node_rss';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Argument: Node: Nid */
+  /* Contextual filter: Content: Nid */
   $handler->display->display_options['arguments']['nid']['id'] = 'nid';
   $handler->display->display_options['arguments']['nid']['table'] = 'node';
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
-  $handler->display->display_options['arguments']['nid']['style_plugin'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['nid']['not'] = 0;
   $handler->display->display_options['path'] = 'article/feed';
@@ -196,7 +199,7 @@ function debut_article_views_default_views() {
     t('View all articles'),
     t('Apply'),
     t('Reset'),
-    t('Sort By'),
+    t('Sort by'),
     t('Asc'),
     t('Desc'),
     t('Items per page'),
@@ -212,8 +215,7 @@ function debut_article_views_default_views() {
     t('Recent articles by author'),
     t('Feed'),
   );
+  $export['article'] = $view;
 
-  $views[$view->name] = $view;
-
-  return $views;
+  return $export;
 }

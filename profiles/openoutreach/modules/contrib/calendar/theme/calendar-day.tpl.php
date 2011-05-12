@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-day.tpl.php,v 1.13 2010/12/21 13:41:24 karens Exp $
 /**
  * @file
  * Template to display a view as a calendar day, grouped by time

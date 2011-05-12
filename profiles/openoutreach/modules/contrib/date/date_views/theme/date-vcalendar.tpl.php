@@ -1,5 +1,5 @@
 <?php
-// $Id: date-vcalendar.tpl.php,v 1.1 2011/01/16 16:14:01 karens Exp $
+// $Id$
 /**
  * $calname
  *   The name of the calendar.

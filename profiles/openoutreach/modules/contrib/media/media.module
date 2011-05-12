@@ -1,5 +1,4 @@
 <?php
-// $Id: media.module,v 1.68 2011/01/14 03:25:09 effulgentsia Exp $
 
 /**
  * @file
@@ -18,13 +17,13 @@
 require_once ( dirname(__FILE__) . '/includes/media.variables.inc');
 
 // Creating media types, entity definition
-require_once ( dirname(__FILE__) . '/media.types.inc');
+require_once ( dirname(__FILE__) . '/includes/media.types.inc');
 
 // Code relating to using media as a field
-require_once ( dirname(__FILE__) . '/media.fields.inc');
+require_once ( dirname(__FILE__) . '/includes/media.fields.inc');
 
  // Functions for working with [[inline tags]] and wysiwyg editors
-require_once ( dirname(__FILE__) . '/media.filter.inc');
+require_once ( dirname(__FILE__) . '/includes/media.filter.inc');
 
 /* ***************************************** */
 /* Hook Implementations                      */
@@ -59,14 +58,33 @@ function media_help($path,$arg) {
  */
 function media_menu() {
   // For managing different types of media and the fields associated with them.
+  $items['admin/config/media/browser'] = array(
+    'title' => 'Media browser settings',
+    'description' => 'Configure the behavior and display of the media browser.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_admin_config_browser'),
+    'access arguments' => array('administer media'),
+    'file' => 'includes/media.admin.inc',
+  );
+  // For managing different types of media and the fields associated with them.
+  $items['admin/config/media/rebuild_types'] = array(
+    'title' => 'Rebuild type information for media',
+    'description' => 'In case there are files in file_managed w/o a type, this function rebuilds them',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_admin_rebuild_types_form'),
+    'access arguments' => array('administer media'),
+    'file' => 'includes/media.admin.inc',
+  );
+  // For managing different types of media and the fields associated with them.
   $items['admin/config/media/types'] = array(
     'title' => 'Media Types',
     'description' => 'Manage files used on your site.',
     'page callback' => 'media_admin_type_list',
     'access arguments' => array('administer media'),
-    'file' => 'media.admin.inc',
+    'file' => 'includes/media.admin.inc',
   );
 
+  // Settings used for determining the type of media a file is.
   $items['admin/config/media/types/manage/%media_type'] = array(
     'title' => 'Manage media',
     'title callback' => 'media_type_page_title',
@@ -75,7 +93,7 @@ function media_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_admin_type_manage_form', 5),
     'access arguments' => array('administer media'),
-    'file' => 'media.admin.inc',
+    'file' => 'includes/media.admin.inc',
   );
 
   $items['admin/config/media/types/manage/%media_type/settings'] = array(
@@ -84,10 +102,7 @@ function media_menu() {
     'weight' => -1,
   );
 
-  /**
-   * Administrative screens for managing media
-   * @var unknown_type
-   */
+  // Administrative screens for managing media.
   $items['admin/content/media'] = array(
     'title' => 'Media',
     'description' => 'Manage files used on your site.',
@@ -95,15 +110,16 @@ function media_menu() {
     'page arguments' => array('media_admin'),
     'access arguments' => array('administer media'),
     'type' => MENU_LOCAL_TASK,
-    'file' => 'media.admin.inc',
+    'file' => 'includes/media.admin.inc',
   );
 
+  // Used to import files from a local filesystem into Drupal.
   $items['admin/content/media/import'] = array(
     'title' => 'Import media',
     'description' => 'Import files into your media library.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_import'),
-    'file' => 'media.admin.inc',
+    'file' => 'includes/media.admin.inc',
     'access arguments' => array('import media'),
     'type' => MENU_LOCAL_ACTION,
   );
@@ -115,16 +131,17 @@ function media_menu() {
     'access callback' => 'media_access',
     'access arguments' => array('view'),
     'type' => MENU_CALLBACK,
-    'file' => 'media.browser.inc',
+    'file' => 'includes/media.browser.inc',
     'theme callback' => 'media_dialog_get_theme_name',
   );
 
+  // A testbed to try out the media browser with different launch commands.
   $items['media/browser/testbed'] = array(
     'title' => 'Media Browser test',
     'description' => 'Make it easier to test media browser',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_browser_testbed'),
-    'file' => 'media.browser.inc',
+    'file' => 'includes/media.browser.inc',
     'access arguments' => array('administer media'),
     'type' => MENU_CALLBACK,
   );
@@ -141,7 +158,7 @@ function media_menu() {
     'access callback' => 'media_access',
     'access arguments' => array('view'),
     'type' => MENU_CALLBACK,
-    'file' => 'media.browser.inc',
+    'file' => 'includes/media.browser.inc',
   );
 
   $items['media/browser/library'] = array(
@@ -151,7 +168,7 @@ function media_menu() {
     'access callback' => 'media_access',
     'access arguments' => array('view'),
     'type' => MENU_CALLBACK,
-    'file' => 'media.browser.inc',
+    'file' => 'includes/media.browser.inc',
   );
 
   $items['media/%media/format-form'] = array(
@@ -161,7 +178,7 @@ function media_menu() {
     'page arguments' => array('media_format_form', 1),
     'access arguments' => array('administer media'),
     'weight' => 0,
-    'file' => 'media.filter.inc',
+    'file' => 'includes/media.filter.inc',
     'theme callback' => 'media_dialog_get_theme_name',
   );
 
@@ -170,7 +187,7 @@ function media_menu() {
     'page arguments' => array(1),
     'access callback' => 'media_access',
     'access arguments' => array('view'),
-    'file' => 'media.pages.inc',
+    'file' => 'includes/media.pages.inc',
   );
 
   $items['media/%media/view'] = array(
@@ -188,7 +205,7 @@ function media_menu() {
     'weight' => 0,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'file' => 'media.pages.inc',
+    'file' => 'includes/media.pages.inc',
      // Use the same setting as node module
     'theme callback' => '_node_custom_theme',
   );
@@ -200,7 +217,7 @@ function media_menu() {
     'access callback' => 'media_access',
     'access arguments' => array('edit'),
     'weight' => 0,
-    'file' => 'media.pages.inc',
+    'file' => 'includes/media.pages.inc',
      // Use the same setting as node module
     'theme callback' => '_node_custom_theme',
   );
@@ -214,24 +231,20 @@ function media_menu() {
     'weight' => 1,
     'type' => MENU_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
-    'file' => 'media.pages.inc',
+    'file' => 'includes/media.pages.inc',
      // Use the same setting as node module
     'theme callback' => '_node_custom_theme',
   );
 
   $items['admin/content/media/browser'] = $items['media/browser'];
   $items['admin/content/media/browser']['type'] = MENU_LOCAL_ACTION;
-
-  /**
-   * End-user CRUD screens
-   * @var unknown_type
-   */
+  
   $items['media/js'] = array(
     'page callback' => 'media_preview_ajax',
     'access callback' => 'media_access',
     'access arguments' => array('view'),
     'type' => MENU_CALLBACK,
-    'file' => 'media.pages.inc',
+    'file' => 'includes/media.pages.inc',
   );
 
   return $items;
@@ -288,48 +301,48 @@ function media_theme() {
     // A link for a file w/ an icon to the media/$fid page.
     'media_link' => array(
       'variables' => array('file' => NULL),
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     // A preview of the uploaded file.
     'media_thumbnail' => array(
       'render element' => 'element',
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     // Administrative thumbnail previews.
     'media_admin_thumbnail' => array(
       'variables' => array('file' => array(), 'style_name' => 'thumbnail'),
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     // Administrative thumbnail previews.
     'media_admin_thumbnail_operations' => array(
       'variables' => array('file' => NULL),
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     // Tabs in the media browser.
     'media_browser_tabs' => array(
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     // Dialog page.
     'media_dialog_page' => array(
       'render element' => 'page',
-      'template' => 'theme/media-dialog-page',
-      'file' => 'media.theme.inc',
+      'template' => 'templates/media-dialog-page',
+      'file' => 'includes/media.theme.inc',
     ),
 
     //
     'media_element' => array(
       'render element' => 'element',
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
 
     'media_formatter_large_icon' => array(
       'variables' => array('file' => NULL),
-      'file' => 'media.theme.inc',
+      'file' => 'includes/media.theme.inc',
     ),
   );
 }
@@ -423,6 +436,15 @@ function media_styles_style_flush($style) {
  * in the URL.
  */
 function media_page_alter(&$page) {
+  // Show a nagging message when the media installation needs to be completed.
+  if (user_access('administer media') && media_variable_get('show_file_type_rebuild_nag')
+    // Prevent form submissions from creating duplicate messages.
+    && ($_SERVER['REQUEST_METHOD'] == 'GET')
+    // Show on all the admin pages, except the batch and the rebuild form.
+    && path_is_admin(current_path()) && (arg(0) != 'batch') && (current_path() != 'admin/config/media/rebuild_types')) {
+    drupal_set_message(t('Media module install is not complete. <a href="@type_rebuild_link">Finish the install</a>.', array('@type_rebuild_link' => url('admin/config/media/rebuild_types'))), 'warning', FALSE);
+  }
+
   if (isset($_GET['render']) && $_GET['render'] == 'media-popup') {
     $page['#theme'] = 'media_dialog_page';
     // temporary fix while awaiting fix for 914786
@@ -460,7 +482,7 @@ function media_media_display_types() {
     'icon' => $path . '/images/display-list.png',
     'icon_active' => $path . '/images/display-list-active.png',
     'callback' => 'media_admin_list',
-    'file' => drupal_get_path('module', 'media') . '/media.admin.inc',
+    'file' => drupal_get_path('module', 'media') . '/includes/media.admin.inc',
   );
 
   $display_types['thumbnails'] = array(
@@ -469,7 +491,7 @@ function media_media_display_types() {
     'icon' => $path . '/images/display-thumbnails.png',
     'icon_active' => $path . '/images/display-thumbnails-active.png',
     'callback' => 'media_admin_thumbnails',
-    'file' => drupal_get_path('module', 'media') . '/media.admin.inc',
+    'file' => drupal_get_path('module', 'media') . '/includes/media.admin.inc',
   );
 
   return $display_types;
@@ -731,9 +753,9 @@ function media_library() {
   $libraries['media_base'] = array(
     'title' => 'Media base',
     'js' => array(
-      $path . '/javascript/media.core.js' => array('group' => JS_LIBRARY, 'weight' => - 5),
-      $path . '/javascript/util/json2.js' => array('group' => JS_LIBRARY),
-      $path . '/javascript/util/ba-debug.min.js' => array('group' => JS_LIBRARY),
+      $path . '/js/media.core.js' => array('group' => JS_LIBRARY, 'weight' => - 5),
+      $path . '/js/util/json2.js' => array('group' => JS_LIBRARY),
+      $path . '/js/util/ba-debug.min.js' => array('group' => JS_LIBRARY),
     ),
     'css' => array(
       $path . '/css/media.css',
@@ -747,7 +769,7 @@ function media_library() {
   $libraries['media_browser'] = array(
     'title' => 'Media Browser popup libraries',
     'js' => array(
-      $path . '/javascript/media.popups.js' => array('group' => JS_DEFAULT),
+      $path . '/js/media.popups.js' => array('group' => JS_DEFAULT),
     ),
     'dependencies' => array(
       array('media', 'media_base'),
@@ -763,7 +785,7 @@ function media_library() {
   $libraries['media_browser_page'] = array(
     'title' => 'Media browser',
     'js' => array(
-      $path . '/javascript/media-browser.js'  => array('group' => JS_DEFAULT),
+      $path . '/js/media.browser.js'  => array('group' => JS_DEFAULT),
     ),
     'css' => array(
       $path . '/css/media.browser.css' => array('group' => CSS_DEFAULT),
@@ -791,8 +813,7 @@ function media_library() {
  * @return string
  */
 function media_dialog_get_theme_name() {
-  // Set to empty to get the default theme.
-  return media_variable_get('dialog_get_theme_name');
+  return media_variable_get('dialog_theme', variable_get('admin_theme'));
 }
 
 /**
@@ -810,7 +831,7 @@ function media_dialog_get_theme_name() {
  *    A fully populated object, or FALSE on an error.
  */
 function media_retrieve_xml($url, $display_errors = FALSE, $refresh = FALSE) {
-  module_load_include('inc', 'media', 'media.xml');
+  module_load_include('inc', 'media', 'includes/media.xml');
   return _media_retrieve_xml($url, $display_errors, $refresh);
 }
 
@@ -967,17 +988,12 @@ function media_save_attached_file($file) {
       media_filter_invalidate_caches($media->fid);
     }
   }
-
-
-
   return $media;
 }
 
 
 /**
  * Implements hook_element_info().
- *
- * Media field... Not sure if this is going to work :)
  */
 function media_element_info() {
   $types = array();
@@ -985,10 +1001,11 @@ function media_element_info() {
     '#input' => TRUE,
     '#process' => array('media_element_process'),
     //'#value_callback' => 'media_element_value',
-    //'#element_validate' => array('file_managed_file_validate'),
+    '#element_validate' => array('media_element_validate'),
     '#theme_wrappers' => array('container'),
     '#progress_indicator' => 'throbber',
     '#extended' => FALSE,
+    '#required' => FALSE,
     '#media_options' => array(
       'global' => array(
         'types' => array(), // Example: array('image', 'audio');
@@ -1018,6 +1035,7 @@ function media_element_process(&$element, &$form_state, $form) {
     '#title' => $element['#title'],
     '#markup' => '',
     '#description' => $element['#description'],
+    '#required' => $element['#required'],
   );
 
   //@TODO: This should be loaded from the JS in case of a failed form submission.
@@ -1030,7 +1048,7 @@ function media_element_process(&$element, &$form_state, $form) {
     '#type' => 'item',
     '#markup' => $markup,
     '#prefix' => '<div class="preview launcher">',
-    '#suffix' => '</div><a class="launcher" href="#">' . t(media_variable_get('field_select_media_text')) . '</a><a class="remove" href="#">' . t(media_variable_get('field_remove_media_text')) . '</a>',
+    '#suffix' => '</div><a class="button launcher" href="#">' . t(media_variable_get('field_select_media_text')) . '</a><a class="button remove" href="#">' . t(media_variable_get('field_remove_media_text')) . '</a>',
   );
 
   /**
@@ -1071,7 +1089,7 @@ function media_element_process(&$element, &$form_state, $form) {
   );
 
   // Media browser attach code.
-  $element['#attached']['js'][] = drupal_get_path('module', 'media') . '/javascript/media.js';
+  $element['#attached']['js'][] = drupal_get_path('module', 'media') . '/js/media.js';
 
   $settings = array();
   $setting['media']['elements'][$element['#id']] = $element['#media_options'];
@@ -1084,11 +1102,32 @@ function media_element_process(&$element, &$form_state, $form) {
   // hmm... Might need to think about this.
   // All settings would likely apply to all media in a multi-value, but what about passing the existing fid?
 
-  module_load_include('inc', 'media', 'media.browser');
-  media_include_browser_js();
+  module_load_include('inc', 'media', 'includes/media.browser');
+  media_attach_browser_js($element);
 
   return $element;
   // @todo: make this work for file and image fields
+}
+
+/**
+ * Validate media form elements. The file type is validated during the upload process, but this is
+ * necessary in order to respect the #required property.
+ */
+function media_element_validate(&$element, &$form_state) {
+  if ($element['#required']) {
+    $field_name = $element['#field_name'];
+    $lang = $element['#language'];
+
+    $has_value = FALSE;
+    foreach ($form_state['values'][$field_name][$lang] as $value) {
+      if ($value['fid']) {
+        $has_value = TRUE;
+      }
+    }
+    if (!$has_value) {
+      form_error($element, t('%element_title is required.', array('%element_title' => $element['#title'])));
+    }
+  }
 }
 
 /**
@@ -1106,10 +1145,16 @@ function media_element_process(&$element, &$form_state, $form) {
 function media_filter_info() {
   $filters['media_filter'] = array(
     'title' => t('Converts Media tags to Markup'),
-    'description' => t('This filter will convert [[{type:media... ]] tags into markup'),
+    'description' => t('This filter will convert [[{type:media... ]] tags into markup.'),
     'process callback' => 'media_filter',
     'tips callback' => 'media_filter_tips', // @TODO not implemented
   );
+
+  // If the WYSIWYG module is enabled, add additional help.
+  if (module_exists('wysiwyg')) {
+    $filters['media_filter']['description'] .= ' ' . t('This must be enabled for the WYSIWYG integration to work correctly with this text filter.');
+  }
+
   return $filters;
 }
 

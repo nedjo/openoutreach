@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.10 2011/01/06 06:52:19 thehunmonkgroup Exp $
 
 *******************************************************
     README.txt for logintoboggan.module for Drupal

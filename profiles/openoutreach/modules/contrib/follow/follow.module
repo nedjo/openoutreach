@@ -1,5 +1,4 @@
 <?php
-// $Id: follow.module,v 1.13 2010/11/16 13:48:25 q0rban Exp $
 
 /**
  * @file
@@ -119,6 +118,20 @@ function follow_theme() {
   );
 
   return $items;
+}
+
+/**
+ * Implementation of hook_preprocess_page().
+ */
+function follow_preprocess_page(&$variables) {
+  // Expose the site follow links as a variable to the page template.
+  if ($links = follow_links_load()) {
+    $args = array(
+      'links' => $links,
+      'networks' => follow_networks_load(),
+    );
+    $variables['follow_site'] = theme('follow_links', $args);
+  }
 }
 
 /**
@@ -695,13 +708,15 @@ function follow_link_delete($lid) {
 /**
  * Loads all follow networks
  *
+ * @param $uid
+ *   The uid of the user. uid 0 pulls the site follow links.
  * @param $reset
  *   Boolean.  If TRUE, flushes the follow networks cache.
  *
  * @return
  *   An array of network names, keys are machine names, values are visible titles.
  */
-function follow_networks_load($uid, $reset = FALSE) {
+function follow_networks_load($uid = 0, $reset = FALSE) {
   static $networks = array();
 
   // Clear cache if $reset is TRUE;

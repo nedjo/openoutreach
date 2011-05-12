@@ -1,9 +1,8 @@
 <?php
-// $Id: general_services.module,v 1.1.2.14.2.7 2010/11/23 09:44:22 thecrow Exp $
 
 /**
  * @file
- * Services most used and supported from the start by Service Links module
+ * Services most used and supported from the start by Service Links module.
  */
 
 /**
@@ -52,11 +51,6 @@ function general_services_service_links() {
     'name' => 'SlashDot',
     'link' => 'http://slashdot.org/bookmark.pl?url=<encoded-url>&title=<encoded-title>',
     'description' => t('Bookmark this post on SlashDot'),
-  );
-  $links['magnoliacom'] = array(
-    'name' => 'Magnoliacom',
-    'link' => 'http://ma.gnolia.com/bookmarklet/add?url=<encoded-url>&title=<encoded-title>',
-    'description' => t('Submit this post on ma.gnolia.com.'),
   );
   $links['newsvine'] = array(
     'name' => 'Newsvine',
@@ -146,8 +140,13 @@ function general_services_service_links() {
   );
   $links['newskicks'] = array(
     'name' => 'Newskicks',
-    'link' => 'http://newskicks.com/node/add/storylink?edit[url]=<encoded-url>&edit[title]=<encoded-title>;',
+    'link' => 'http://newskicks.com/submit.php?url=<encoded-url>',
     'description' => t('Kicks this post on NewsKicks.'),
+  );
+  $links['diigo'] = array(
+    'name' => 'Diigo',
+    'description' => t('Post on Diigo'),
+    'link' => 'http://www.diigo.com/post?url=<encoded-url>&title=<encoded-title>&desc=<encoded-teaser>',
   );
 
   return $links;

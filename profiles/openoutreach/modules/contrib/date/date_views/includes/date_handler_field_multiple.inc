@@ -1,6 +1,4 @@
 <?php
-// $Id: date_handler_field_multiple.inc,v 1.2 2011/01/18 00:37:35 karens Exp $
-
 /**
  * @file
  * An extended subclass for field handling that adds multiple field grouping.

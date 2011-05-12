@@ -1,5 +1,4 @@
 <?php
-// $Id: date_tools.wizard.inc,v 1.18 2011/01/18 00:37:34 karens Exp $
 
 function date_tools_wizard_form() {
 
@@ -104,11 +103,13 @@ function date_tools_wizard_form() {
     '#title' => t('Create a calendar for this date field'),
     '#access' => module_exists('calendar'),
     ); 
+  $current_theme = variable_get('theme_default', 'garland');
+  $options = array('' => t('None')) + system_region_list($current_theme);
   $form['blocks'] = array(
     '#type' => 'select',
-    '#options' => array(0 => t('No'), 1 => t('Yes')),
+    '#options' => $options,
     '#default_value' => 0,
-    '#title' => t('Add calendar blocks to the current theme'),
+    '#title' => t('Add calendar blocks to a region'),
     '#access' => module_exists('calendar'),
     );  
 
@@ -266,7 +267,7 @@ function date_tools_wizard_build($form_values) {
   if (!empty($calendar) && module_exists('calendar')) {
     $view_name = date_tools_wizard_create_calendar($name, $bundle, $field, $instance);
     if (!empty($blocks)) {
-      date_tools_wizard_create_blocks($bundle);  
+      date_tools_wizard_create_blocks($bundle, $blocks);  
     }
   }
 
@@ -416,12 +417,12 @@ function date_tools_wizard_create_calendar($name, $bundle, $date_field, $date_in
   ctools_object_cache_clear('view', 'calendar_' . $bundle);  
 
   // Force Views to empty its cache and find the new view.
-  views_discover_default_views();
+  views_get_all_views(TRUE);
 
   return 'calendar_' . $bundle;
 }
 
-function date_tools_wizard_create_blocks($bundle) {
+function date_tools_wizard_create_blocks($bundle, $region) {
   // Add calendar blocks to the default theme.
   $current_theme = variable_get('theme_default', 'garland');
 
@@ -430,10 +431,12 @@ function date_tools_wizard_create_blocks($bundle) {
   $block->theme = $current_theme;
   $block->status = 1;
   $block->weight = -1;
-  $block->region = 'left';
+  $block->region = $region;
   $block->title = '';
   $block->module = 'calendar';
   $block->delta = 0;
+  $block->pages = '';
+  $block->status = 1;
   date_tools_wizard_add_block($block);
 
   // Mini calendar block. 
@@ -452,13 +455,14 @@ function date_tools_wizard_create_blocks($bundle) {
  * Add a block.
  */
 function date_tools_wizard_add_block($block) {
-  $bid = db_query("SELECT bid FROM {blocks} WHERE module='%s' AND delta='%s' AND theme='%s'", $block->module, $block->delta, $block->theme)->fetchField();
+  // Need 'pages'.
+  $bid = db_query("SELECT bid FROM {block} WHERE module=:module AND delta=:delta AND theme=:theme", array(':module' => $block->module, ':delta' => $block->delta, ':theme' => $block->theme))->fetchField();
   if (empty($bid)) {
     $block->bid = NULL;
-    drupal_write_record('blocks', $block);
+    drupal_write_record('block', $block);
   }
   else {
     $block->bid = $bid;
-    drupal_write_record('blocks', $block, array('bid'));
+    drupal_write_record('block', $block, array('bid'));
   }
 }

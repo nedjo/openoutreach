@@ -1,6 +1,5 @@
 /* @override http://dev7/sites/all/modules/media/css/media.css?L */
 
-/* $Id: media.css,v 1.24 2011/01/15 00:39:27 effulgentsia Exp $ */
 
 /**
  * @file
@@ -78,24 +77,7 @@
   display:none;
 }
 
-.media-widget a.launcher,
-.media-widget a.remove {
-  -moz-border-radius: 20px 20px 20px 20px;
-  background: url("../images/buttons.png") repeat-x scroll 0 0 transparent;
-  border-color: #E4E4E4 #D2D2D2 #B4B4B4;
-  border-style: solid;
-  border-width: 1px;
-  color: #5A5A5A;
-  cursor: pointer;
-  font-family: "Lucida Grande",Verdana,sans-serif;
-  font-size: 1.1em;
-  font-weight: normal;
-  margin-bottom: 1em;
-  padding: 4px 17px;
-  text-align: center;
-}
-
-.media-widget a.remove {
+.media-widget a.button + a.button {
   margin-left: 15px;
   display: none;
 }

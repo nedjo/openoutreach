@@ -16,7 +16,21 @@ function debut_event_menu_alter(&$items) {
 }
 
 /**
- * Implementations of hook_date_format_types().
+ * Implements hook_admin_paths().
+ *
+ * Declare event/add as an admin path to trigger e.g. admin theme and overlay.
+ */
+function debut_event_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'event/add' => TRUE,
+    );
+    return $paths;
+  }
+}
+
+/**
+ * Implements hook_date_format_types().
  */
 function debut_event_date_format_types() {
   return array(
@@ -26,7 +40,7 @@ function debut_event_date_format_types() {
 }
 
 /**
- * Implementation of hook_date_formats().
+ * Implements hook_date_formats().
  */
 function debut_event_date_formats() {
   $condensed = array(

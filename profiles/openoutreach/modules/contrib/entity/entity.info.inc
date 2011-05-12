@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.info.inc,v 1.1.2.2 2011/01/17 11:56:45 fago Exp $
 
 /**
  * @file
@@ -131,7 +130,7 @@ function entity_metadata_convert_schema($table) {
       $properties[$name] = array(
         'type' => $type,
         'label' => drupal_ucfirst($name),
-        'query callback' => 'entity_metadata_table_query',
+        'schema field' => $name,
         // As we cannot know about any setter access, leave out the setter
         // callback. For getting usually no further access callback is needed.
       );

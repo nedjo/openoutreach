@@ -1,15 +1,15 @@
-; $Id: general_services.info,v 1.1.2.4.2.2 2010/10/14 08:36:01 thecrow Exp $
 name = General Services
-description = Provide the Services: Blinklist, Box, del.icio.us, Digg, Facebook, Furl, Google Bookmark, Google Buzz, Icerocket, Identi.ca, Linkedin, Magnolia, Mister Wong, Mixx, MySpace, Newsvine, Newskicks, Phing this, Propeller, Reddit, StumbleUpon, Technorati, Technorati favorite, Twitter, Yahoo Bookmark, Yahoo Buzz
+description = Provide the Services: Blinklist, Box, del.icio.us, Digg, Diigo, Facebook, Furl, Google Bookmark, Google Buzz, Icerocket, Identi.ca, Linkedin, Mister Wong, Mixx, MySpace, Newsvine, Newskicks, Phing this, Propeller, Reddit, StumbleUpon, Technorati, Technorati favorite, Twitter, Yahoo Bookmark, Yahoo Buzz
 core = 7.x
 package = Service Links
 dependencies[] = service_links
 
 version = VERSION
 files[] = general_services.module
-; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+
+; Information added by drupal.org packaging script on 2011-04-04
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "service_links"
-datestamp = "1297125270"
+datestamp = "1301919206"
 

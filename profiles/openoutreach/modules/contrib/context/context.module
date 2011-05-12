@@ -1,5 +1,4 @@
 <?php
-// $Id: context.module,v 1.6.2.6.2.6.2.25.2.4 2010/09/16 22:51:52 yhahn Exp $
 
 require('context.core.inc');
 
@@ -506,4 +505,16 @@ function _context_registry($key = NULL, $reset = FALSE) {
     return isset($registry[$key]) ? $registry[$key] : array();
   }
   return $registry;
+}
+
+/**
+ * hook_block_view_alter - if the context editor block is on this page,
+ * ensure that all blocks have some content so that empty blocks are
+ * not dropped
+ */
+function context_block_view_alter(&$data, $block) {
+  $context_ui_editor_present = &drupal_static('context_ui_editor_present', FALSE);
+  if ($context_ui_editor_present && empty($data['content'])) {
+    $data['content']['#markup'] = "<div class='context-block-empty'>". t('This block appears empty when displayed on this page.') . "</div>";
+  }
 }

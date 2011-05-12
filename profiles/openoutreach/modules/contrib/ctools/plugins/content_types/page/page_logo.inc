@@ -1,5 +1,4 @@
 <?php
-// $Id: page_logo.inc,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * @file
@@ -27,8 +26,9 @@ $plugin = array(
  */
 function ctools_page_logo_content_type_render($subtype, $conf, $panel_args) {
   $logo = theme_get_setting('logo');
+  $block = new stdClass();
+
   if (!empty($logo)) {
-    $block = new stdClass();
     $image = '<img src="' . $logo . '" alt="' . t('Home') . '" />';
     $block->content = l($image, '', array('html' => TRUE, 'attributes' => array('rel' => 'home', 'id' => 'logo', 'title' => t('Home'))));
   }

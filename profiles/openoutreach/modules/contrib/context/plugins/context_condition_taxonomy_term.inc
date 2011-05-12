@@ -1,5 +1,4 @@
 <?php
-// $Id: context_condition_taxonomy_term.inc,v 1.1.2.1 2010/09/21 00:54:22 yhahn Exp $
 
 /**
  * Expose term views/term forms by vocabulary as a context condition.

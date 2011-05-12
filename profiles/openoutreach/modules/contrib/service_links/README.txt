@@ -126,4 +126,3 @@ Themeable functions that could be useful to overwrite:
 
 Last updated:
 ------------
-$Id: README.txt,v 1.11.4.5.2.2 2010/10/22 09:36:18 thecrow Exp $

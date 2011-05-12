@@ -1,5 +1,4 @@
 <?php
-// $Id: date_admin.inc,v 1.6 2011/01/18 11:23:44 karens Exp $
 /**
  * @file
  * Date administration code.
@@ -161,41 +160,44 @@ function _date_field_instance_settings_form($field, $instance) {
   $widget = $instance['widget'];
   $settings = $instance['settings'];
   $widget_settings = $instance['widget']['settings'];
+  $description = t("The relative value to use. This should be something that describes a time by reference to the current day using strtotime, like '+90 days' (90 days from the day the field is created) or '+1 Saturday' (the next Saturday). See !strtotime for more details.", array('!strtotime' => l(t('strtotime'), 'http://www.php.net/manual/en/function.strtotime.php')));
 
   $form['default_value'] = array(
-    '#type' => 'select', '#title' => t('Default value'),
+    '#type' => 'select', 
+    '#title' => t('Default value'),
     '#default_value' => $settings['default_value'],
     '#options' => array('blank' => t('Blank'), 'now' => t('Now'), 'strtotime' => t('Relative')),
-    '#description' => t("A default value to use for this field. If you select 'Relative', add details below."),
     '#weight' => 1,
     );
-  if (!empty($field['settings']['todate'])) {
-    $form['default_value2'] = array(
-      '#type' => 'select', '#title' => t('Default value for To date'),
-      '#default_value' => $settings['default_value2'],
-      '#options' => array('same' => t('Same as From date'), 'blank' => t('Blank'), 'now' => t('Now'), 'strtotime' => t('Relative')),
-      '#description' => t("A default value to use for this field. If you select 'Relative', add details below."),
-      '#weight' => 2,
-      );
-  }
-  $form['default'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Customize Default Value'),
-    '#description' => '<p>' . t("The custom value for a Relative default should be something that describes a time by reference to the current day using strtotime, like '+90 days' (90 days from the day the field is created) or '+1 Saturday' (the next Saturday). See !strtotime for more details.", array('!strtotime' => l(t('strtotime'), 'http://www.php.net/manual/en/function.strtotime.php'))) . '</p>',
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#weight' => 3,
-    );
-  $form['default']['default_value_code'] = array(
-    '#type' => 'textfield', '#title' => t('Custom default value'),
+  $form['default_value_code'] = array(
+    '#type' => 'textfield', 
+    '#title' => t('Relative default value'),
+    '#description' => $description,
     '#default_value' => $settings['default_value_code'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name="instance[settings][default_value]"]' => array('value' => 'strtotime'))
+      ),
+    '#weight' => 1.1,
     );
-  if (!empty($field['settings']['todate'])) {
-    $form['default']['default_value_code2'] = array(
-      '#type' => 'textfield', '#title' => t('Custom default value for To date'),
-      '#default_value' => $settings['default_value_code2'],
-      );
-  }
+  $form['default_value2'] = array(
+    '#type' => !empty($field['settings']['todate']) ? 'select' : 'hidden', 
+    '#title' => t('Default value for To date'),
+    '#default_value' => $settings['default_value2'],
+    '#options' => array('same' => t('Same as From date'), 'blank' => t('Blank'), 'now' => t('Now'), 'strtotime' => t('Relative')),
+    '#weight' => 2,
+    );
+  $form['default_value_code2'] = array(
+    '#type' => !empty($field['settings']['todate']) ? 'textfield' : 'hidden', 
+    '#title' => t('Relative default value for To date'),
+    '#description' => $description,
+    '#default_value' => $settings['default_value_code2'],
+    '#states' => array(
+      'visible' => array(
+        ':input[name="instance[settings][default_value2]"]' => array('value' => 'strtotime'))
+      ),
+    '#weight' => 2.1,
+    );
 
   $format_types = array();  
   foreach (_system_date_format_types_build() as $name => $info) {
@@ -224,11 +226,7 @@ function _date_field_instance_settings_form($field, $instance) {
 
 function date_field_instance_settings_form_validate(&$form, &$form_state) {
 
-  // The instance settings are in the wrong place in the form because of #tree on the top level.
   $settings = $form_state['values']['instance']['settings'];
-  $settings = array_merge($settings, $settings['default']);
-  unset($settings['default']);
-  form_set_value(array('#parents' => array('instance', 'settings')), $settings, $form_state);
 
   if ($settings['default_value'] == 'strtotime') {
     $is_strtotime = @strtotime($settings['default_value_code']);
@@ -276,22 +274,16 @@ function _date_field_widget_settings_form($field, $instance) {
 
   // Only a limited set of formats is available for the Date Popup module
   if ($widget['type'] != 'date_popup') {
-    $form['format'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Customize Input Format'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#weight' => 5,
-    );
-    $form['format']['input_format_custom'] = array(
+    $form['input_format_custom'] = array(
       '#type' => 'textfield',  
       '#title' => t('Custom input format'),
       '#default_value' => $settings['input_format_custom'],
-      '#description' => t("The custom format, if provided, will override the input format selected above. The custom format, if provided, will override the selected display or input options. Define a php date format string like 'm-d-Y H:i' (see <a href=\"@link\">http://php.net/date</a> for more details).", array('@link' => 'http://php.net/date')),
+      '#description' => t("The custom format, if provided, will override the input format selected above. Define a php date format string like 'm-d-Y H:i' (see <a href=\"@link\">http://php.net/date</a> for more details).", array('@link' => 'http://php.net/date')),
+      '#weight' => 5,
     );
   }
   else {
-    $form['format']['input_format_custom'] = array(
+    $form['input_format_custom'] = array(
       '#type' => 'hidden',
       '#value' => '',
       );
@@ -372,8 +364,8 @@ function _date_field_widget_settings_form($field, $instance) {
 function date_field_widget_settings_form_validate(&$form, &$form_state) {
   // The widget settings are in the wrong place in the form because of #tree on the top level.
   $settings = $form_state['values']['instance']['widget']['settings'];
-  $settings = array_merge($settings, $settings['format'], $settings['advanced']);
-  unset($settings['format'], $settings['advanced']);
+  $settings = array_merge($settings, $settings['advanced']);
+  unset($settings['advanced']);
   form_set_value(array('#parents' => array('instance', 'widget', 'settings')), $settings, $form_state);
 
   $widget = $form_state['values']['instance']['widget'];

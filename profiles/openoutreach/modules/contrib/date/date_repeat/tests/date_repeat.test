@@ -1,5 +1,4 @@
 <?php
-// $Id: date_repeat.test,v 1.2 2011/01/18 00:37:34 karens Exp $
 /**
  * Test Date Repeat calculations.
  */

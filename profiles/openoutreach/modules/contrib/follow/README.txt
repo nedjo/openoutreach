@@ -15,6 +15,30 @@ links, edit all user follow links, or administer follow.  Go to
 admin/build/blocks to enable the blocks. User follow links can be edited at
 user/%/follow, whereas sitewide follow links are at admin/build/follow
 
+TWEAKAGE
+********************************************************************************
+Often you'll want to tweak the way the Follow links are displayed. The display
+of the icons and text is all controlled with CSS, so overriding in your own
+custom theme is simple. Here are a few examples:
+
+To remove the text and only display icons:
+
+    a.follow-link {
+      width: 24px;
+      height: 25px;
+      text-indent: -9999px;
+    }
+
+To remove all text and have icons sit next to each other:
+
+    a.follow-link {
+      width: 24px;
+      height: 25px;
+      text-indent: -9999px;
+      float: left;
+      margin: 0 8px 8px 0;
+    }
+
 RECOMMENDED ADD ON
 ********************************************************************************
 It is recommended to enable a module such as external [1] that will pop open

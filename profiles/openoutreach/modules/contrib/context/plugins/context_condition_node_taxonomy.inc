@@ -1,5 +1,4 @@
 <?php
-// $Id: context_condition_node_taxonomy.inc,v 1.1.2.3 2010/08/03 03:25:23 yhahn Exp $
 
 /**
  * Expose node taxonomy terms as a context condition.
@@ -24,23 +23,48 @@ class context_condition_node_taxonomy extends context_condition_node {
     $form['#type'] = 'select';
     $form['#size'] = 12;
     $form['#multiple'] = TRUE;
-    $form['#options'] = taxonomy_form_all();
+    $vocabularies = taxonomy_get_vocabularies();
+    $options = array();
+    foreach ($vocabularies as $vid => $vocabulary) {
+      $tree = taxonomy_get_tree($vid);
+      if ($tree && (count($tree) > 0)) {
+        $options[$vocabulary->name] = array();
+        foreach ($tree as $term) {
+          $options[$vocabulary->name][$term->tid] = str_repeat('-', $term->depth) . $term->name;
+        }   
+      }   
+    }
+    $form['#options'] = $options;
     return $form;
   }
 
   function execute($node, $op) {
-    if ($this->condition_used() && !empty($node->taxonomy)) {
-      foreach ($node->taxonomy as $term) {
-        foreach ($this->get_contexts($term->tid) as $context) {
-          // Check the node form option.
-          if ($op === 'form') {
-            $options = $this->fetch_from_context($context, 'options');
-            if (!empty($options['node_form'])) {
-              $this->condition_met($context, $term->tid);
+    // build a list of each taxonomy reference field belonging to the bundle for the current node
+    $fields = field_info_fields();
+    $instance_fields = field_info_instances('node', $node->type);
+    $check_fields = array();
+    foreach ($instance_fields as $key => $field_info) {
+      if ($fields[$key]['type'] == 'taxonomy_term_reference') {
+        $check_fields[] = $key;
+      }
+    }
+
+    if ($this->condition_used() && !empty($check_fields)) {
+      foreach ($check_fields as $field) {
+        if (isset($node->{$field}[$node->language])) {
+          foreach ($node->{$field}[$node->language] as $term) {
+            foreach ($this->get_contexts($term['tid']) as $context) {
+              // Check the node form option.
+              if ($op === 'form') {
+                $options = $this->fetch_from_context($context, 'options');
+                if (!empty($options['node_form'])) {
+                  $this->condition_met($context, $term['tid']);
+                }
+              }
+              else {
+                $this->condition_met($context, $term['tid']);
+              }
             }
-          }
-          else {
-            $this->condition_met($context, $term->tid);
           }
         }
       }

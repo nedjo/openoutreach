@@ -1,5 +1,4 @@
 <?php
-// $Id: context_reaction_block.inc,v 1.1.2.35.2.10 2010/12/09 22:24:25 yhahn Exp $
 
 /**
  * Expose blocks as context reactions.
@@ -71,7 +70,7 @@ class context_reaction_block extends context_reaction {
             '#weight' => $block->weight,
             '#type' => 'markup',
             '#tree' => TRUE,
-            'weight' => array('#type' => 'weight', '#delta' => $weight_delta, '#default_value' => 0),
+            'weight' => array('#type' => 'weight', '#delta' => $weight_delta, '#default_value' => $block->weight),
           );
         }
       }
@@ -94,14 +93,14 @@ class context_reaction_block extends context_reaction {
       $edited = array();
     }
 
-    foreach ($edited as $region => $bids) {
-      foreach ($bids as $position => $bid) {
-        if (isset($block_info[$bid])) {
-          $blocks[$bid] = array(
-            'module' => $block_info[$bid]->module,
-            'delta' => $block_info[$bid]->delta,
+    foreach ($edited as $region => $block_data) {
+      foreach ($block_data as $position => $data) {
+        if (isset($block_info[$data->bid])) {
+          $blocks[$data->bid] = array(
+            'module' => $block_info[$data->bid]->module,
+            'delta' => $block_info[$data->bid]->delta,
             'region' => $region,
-            'weight' => $position,
+            'weight' => $data->weight,
           );
         }
       }
@@ -327,14 +326,16 @@ class context_reaction_block extends context_reaction {
         if (!empty($options['blocks'])) {
           foreach ($options['blocks'] as $block) {
             $block = (object) $block;
-            $block->title = NULL;
             $block->context = $context->name;
             $block->bid = "{$block->module}-{$block->delta}";
+            $block->title = isset($info[$block->bid]->title) ? $info[$block->bid]->title : NULL;
             $block->cache = isset($info[$block->bid]->cache) ? $info[$block->bid]->cache : DRUPAL_NO_CACHE;
             $context_blocks[$block->region][$block->bid] = $block;
           }
         }
       }
+      
+      $this->is_editable_check($context_blocks);
       foreach ($context_blocks as $r => $blocks) {
         $context_blocks[$r] = _block_render_blocks($blocks);
 
@@ -352,6 +353,30 @@ class context_reaction_block extends context_reaction {
     return isset($context_blocks[$region]) ? $context_blocks[$region] : array();
   }
 
+  /**
+   * Determine if there is an active context editor block, and set a flag.  We will set a flag so 
+   * that we can make sure that blocks with empty content have some default content.  This is
+   * needed so the save of the context inline editor does not remove the blocks with no content.
+   */
+  function is_editable_check($context_blocks) {
+    $context_ui_editor_present = &drupal_static('context_ui_editor_present', FALSE);
+    foreach ($context_blocks as $r => $blocks) {
+      if (isset($blocks['context_ui-editor'])) {
+        $block = $blocks['context_ui-editor'];
+        // see if the editor is actually enabled, lifted from _block_render_blocks
+        if (!count(module_implements('node_grants')) && ($_SERVER['REQUEST_METHOD'] == 'GET' || $_SERVER['REQUEST_METHOD'] == 'HEAD') && ($cid = _block_get_cache_id($block)) && ($cache = cache_get($cid, 'cache_block'))) {
+          $array = $cache->data;
+        }
+        else {
+          $array = module_invoke($block->module, 'block_view', $block->delta);
+          drupal_alter(array('block_view', "block_view_{$block->module}_{$block->delta}"), $array, $block);
+        }
+        $context_ui_editor_present = !empty($array['content']);
+        break;
+      }
+    }
+  }
+  
   /**
    * Generate the safe weight range for a block being added to a region such that
    * there are enough potential unique weights to support all blocks.
@@ -421,14 +446,14 @@ class context_reaction_block extends context_reaction {
       if (module_exists('block')) {
         $theme_key = variable_get('theme_default', 'garland');
         $result = db_select('block')
-          ->fields('block', array('module','weight','delta','region'))
+          ->fields('block', array('module','weight','delta','region', 'title'))
           ->condition('theme', $theme_key)
-          ->condition('status', 1)
           ->execute();
         foreach ($result as $row) {
           if (isset($block_info["{$row->module}-{$row->delta}"])) {
             $block_info["{$row->module}-{$row->delta}"]->weight = $row->weight;
             $block_info["{$row->module}-{$row->delta}"]->region = $row->region;
+            $block_info["{$row->module}-{$row->delta}"]->title = $row->title;
           }
         }
       }
@@ -460,7 +485,7 @@ class context_reaction_block extends context_reaction {
             $context_block = $block_info["{$block['module']}-{$block['delta']}"];
             $context_block->weight = $block['weight'];
             $context_block->region = $block['region'];
-            $context_block->context = $context->name;
+            $context_block->context = !empty($context->name) ? $context->name : 'tempname';
             $blocks[$context_block->bid] = $context_block;
           }
         }
@@ -538,10 +563,8 @@ class context_reaction_block extends context_reaction {
   function render_ajax($param) {
     // Besure the page isn't a 404 or 403.
     $headers = drupal_get_http_header();
-    foreach (explode($headers) as $header) {
-      if ($header == "HTTP/1.1 404 Not Found" || $header == "HTTP/1.1 403 Forbidden") {
-        return;
-      }
+    if (array_key_exists('status', $headers) && ($headers['status'] == "404 Not Found" || $headers['status'] == "403 Forbidden")) {
+      return;
     }
     // Set the header right away. This will inform any players in the stack
     // that we are in the middle of responding to an AJAX request.
@@ -556,16 +579,19 @@ class context_reaction_block extends context_reaction {
       if (isset($info[$bid])) {
         module_load_include('module', 'block', 'block');
         $block = $info[$bid];
-        $block->context = $context;
+        $block->title = isset($block->title) ? $block->title : '';
+        $block->context = $context;        
         $block->region = '';
-        $block = array_shift(_block_render_blocks(array($block)));
+        $rendered_blocks = _block_render_blocks(array($block)); // For E_STRICT warning
+        $block = array_shift($rendered_blocks);
         if (empty($block->content['#markup'])) {
           $block->content['#markup'] = "<div class='context-block-empty'>". t('This block appears empty when displayed on this page.') ."</div>";
         }
         $block = $this->editable_block($block);
+        $renderable_block = _block_get_renderable_array(array($block)); // For E_STRICT warning
         echo drupal_json_encode(array(
           'status' => 1,
-          'block' => drupal_render(_block_get_renderable_array(array($block))),
+          'block' => drupal_render($renderable_block),
         ));
         drupal_exit();
       }

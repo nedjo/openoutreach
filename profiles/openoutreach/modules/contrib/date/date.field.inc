@@ -1,5 +1,4 @@
 <?php
-// $Id: date.field.inc,v 1.3 2011/01/18 11:35:16 karens Exp $
 /**
  * @file
  * Field hooks to implement a date field.
@@ -419,7 +418,7 @@ function date_field_settings_form($field, $instance, $has_data) {
  * $field_value['widget_type'] is available to
  * see what widget type was originally used.
  */
-function date_content_migrate_field_alter(&$field_value) {
+function date_content_migrate_field_alter(&$field_value, $instance_value) {
 
   switch ($field_value['module']) {
     case 'date':
@@ -439,11 +438,9 @@ function date_content_migrate_field_alter(&$field_value) {
  * situations not handled by basic conversion, as when
  * formatter or widget names or settings are changed.
  */
-function date_content_migrate_instance_alter(&$instance_value) {
-  switch ($instance_value['module']) {
+function date_content_migrate_instance_alter(&$instance_value, $field_value) {
+  switch ($instance_value['widget']['module']) {
     case 'date':
-
-      $field_value = content_migrate_get_field_values($instance_value['field_name']);
 
       // Some settings have been moved from field to instance.
       $default_format = $field_value['settings']['default_format'];

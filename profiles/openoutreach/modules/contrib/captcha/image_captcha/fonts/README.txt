@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.5 2009/09/23 21:23:00 soxofaan Exp $
 
 It possible to put your own fonts for the Image CAPTCHA in this folder.
 However, this is not the recommended way, as they can get lost easily during

@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-mini.tpl.php,v 1.3 2010/12/30 15:38:02 karens Exp $
 /**
  * @file
  * Template to display a view as a mini calendar month.

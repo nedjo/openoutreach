@@ -1,6 +1,10 @@
 <?php
-// $Id: MediaEntityController.php,v 1.2 2010/04/07 06:29:34 JacobSingh Exp $
-
+/**
+ *  DO NOT EDIT THIS. IT WILL BE REMOVED IN THE NEXT RELEASE.
+ *   This file is only here so that the class autoloader doesn't barf.
+ *
+ * It has been moved to includes
+ */
 /**
  * Extends DrupalEntityControllerInterface.
  *

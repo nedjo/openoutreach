@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-week.tpl.php,v 1.4 2010/12/30 18:08:55 karens Exp $
 /**
  * @file
  * Template to display a view as a calendar week.

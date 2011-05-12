@@ -1,4 +1,3 @@
-// $Id: whizzywig-60.js,v 1.1 2010/10/18 19:37:44 sun Exp $
 
 var buttonPath = null;
 

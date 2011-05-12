@@ -1,5 +1,4 @@
 <?php
-// $Id: field.info.inc,v 1.1.2.5 2011/02/04 14:57:23 fago Exp $
 
 /**
  * @file

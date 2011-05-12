@@ -18,9 +18,15 @@ function entity_views_data() {
     }
     if ($info['views controller class']) {
       $controller = new $info['views controller class']($type);
-      $data += $controller->views_data();
+      // Relationship data may return views data for already existing tables,
+      // so merge results on the second level.
+      foreach ($controller->views_data() as $table => $table_data) {
+        $data += array($table => array());
+        $data[$table] = array_merge($data[$table], $table_data);
+      }
     }
   }
+
   return $data;
 }
 
@@ -31,12 +37,12 @@ function entity_views_data() {
  * based upon the schema information of its base table and the provided entity
  * property information.
  * For that it is possible to map a property name to its schema/views field
- * name by adding a 'views field' key with the name of the field as value to the
- * property info.
+ * name by adding a 'schema field' key with the name of the field as value to
+ * the property info.
  */
 class EntityDefaultViewsController {
 
-  protected $type, $info;
+  protected $type, $info, $relationships;
 
   public function __construct($type) {
     $this->type = $type;
@@ -48,6 +54,8 @@ class EntityDefaultViewsController {
    */
   public function views_data() {
     $data = array();
+    $this->relationships = array();
+
     if (!empty($this->info['base table'])) {
       $table = $this->info['base table'];
       // Define the base group of this table. Fields that don't
@@ -61,6 +69,9 @@ class EntityDefaultViewsController {
         'help' => '',
       );
       $data[$table] += $this->schema_fields();
+
+      // Add in any reverse-relationships which have been determined.
+      $data += $this->relationships;
     }
     return $data;
   }
@@ -75,9 +86,11 @@ class EntityDefaultViewsController {
     $data = array();
 
     foreach ($properties['properties'] as $name => $property_info) {
-      $views_field_name = isset($property_info['views field']) ? $property_info['views field'] : $name;
+      // For backward compatibility, also read from 'views field'.
+      $views_field_name = isset($property_info['schema field']) ? $property_info['schema field'] : (isset($property_info['views field']) ? $property_info['views field'] : $name);
+
       if (isset($schema['fields'][$views_field_name])) {
-        if ($views_info = $this->map_from_schema_info($name, $schema['fields'][$views_field_name], $property_info)) {
+        if ($views_info = $this->map_from_schema_info($views_field_name, $schema['fields'][$views_field_name], $property_info)) {
           $data[$name] = $views_info + array(
             'title' => $property_info['label'],
             'help' => $property_info['description'],
@@ -92,12 +105,28 @@ class EntityDefaultViewsController {
    * Comes up with views information based on the given schema and property
    * info.
    */
-  protected function map_from_schema_info($name, $schema_field_info, $property_info) {
+  protected function map_from_schema_info($views_field_name, $schema_field_info, $property_info) {
     $type = isset($property_info['type']) ? $property_info['type'] : 'text';
-    $views_field_name = isset($property_info['views field']) ? $property_info['views field'] : $name;
 
     // Add in relationships to related entities.
     if (($info = entity_get_info($type)) && !empty($info['base table'])) {
+
+      // Prepare reversed relationship data.
+      $label_lowercase = drupal_strtolower($this->info['label'][0]) . drupal_substr($this->info['label'], 1);
+      $property_label_lowercase = drupal_strtolower($property_info['label'][0]) . drupal_substr($property_info['label'], 1);
+
+      $this->relationships[$info['base table']][$this->info['base table']] = array(
+        'title' => $this->info['label'],
+        'help' => t("Associated @label via the @label's @property.", array('@label' => $label_lowercase, '@property' => $property_label_lowercase)),
+        'relationship' => array(
+          'label' => $this->info['label'],
+          'handler' => 'views_handler_relationship',
+          'base' => $this->info['base table'],
+          'base field' => $views_field_name,
+          'relationship field' => isset($info['entity keys']['name']) ? $info['entity keys']['name'] : $info['entity keys']['id'],
+        ),
+      );
+
       return array(
         'relationship' => array(
           'label' => drupal_ucfirst($info['label']),

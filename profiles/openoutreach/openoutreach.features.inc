@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * openoutreach.features.inc
+ */
 
 /**
  * Implementation of hook_ctools_plugin_api().

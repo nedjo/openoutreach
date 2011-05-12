@@ -1,5 +1,4 @@
 <?php
-// $Id: date.module,v 1.83 2011/01/18 00:37:34 karens Exp $
 
 /**
  * @file
@@ -292,11 +291,8 @@ function date_formatter_process($formatter, $entity_type, $entity, $field, $inst
     else {
       // create a date object with a gmt timezone from the database value
       $value = $item[$processed];
-      // @TODO Figure out how to replace date_fuzzy_datetime() function.
-      if ($field['type'] == DATE_ISO) {
-        //$value = str_replace(' ', 'T', date_fuzzy_datetime($value));
-      }
-      $date = new DateObject($value, $timezone_db);
+      $db_format = date_type_format($field['type']);
+      $date = new DateObject($value, $timezone_db, $db_format);
       $date->limitGranularity($field['settings']['granularity']);
 
       $dates[$processed] = array();
@@ -344,6 +340,7 @@ function date_formatter_process($formatter, $entity_type, $entity, $field, $inst
   if ($format != 'format_interval') {
     $all_day1 = theme('date_all_day', array(
       'field' => $field,
+      'instance' => $instance,
       'which' => 'date1',
       'date1' => $date1,
       'date2' => $date2,
@@ -352,6 +349,7 @@ function date_formatter_process($formatter, $entity_type, $entity, $field, $inst
       'entity' => $entity));
     $all_day2 = theme('date_all_day', array(
       'field' => $field,
+      'instance' => $instance,
       'which' => 'date2',
       'date1' => $date1,
       'date2' => $date2,
@@ -402,17 +400,16 @@ function date_help($path, $arg) {
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_form_FORM_ID_alter().
+ *
  * Make sure date information gets updated.
  */
-function date_form_alter(&$form, &$form_state, $form_id) {
-  if ($form_id == 'field_ui_field_edit_form') {
-    $field = $form['field'];
-    $instance = $form['instance'];
-    // If adding a repeat, override the Content module's handling of the multiple values option.
-    if (module_exists('date_repeat') && date_is_repeat_field($field, $instance)) {
-      $form['field']['cardinality'] = array('#type' => 'hidden', '#value' => FIELD_CARDINALITY_UNLIMITED);
-    }
+function date_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  $field = $form['field'];
+  $instance = $form['instance'];
+  // If adding a repeat, override the Content module's handling of the multiple values option.
+  if (module_exists('date_repeat') && date_is_repeat_field($field, $instance)) {
+    $form['field']['cardinality'] = array('#type' => 'hidden', '#value' => FIELD_CARDINALITY_UNLIMITED);
   }
 }
 
@@ -529,8 +526,7 @@ function date_prepare_entity($formatter, $entity_type, $entity, $field, $instanc
    $db_info = date_api_database_info($field);
 
    // Create a DateAPI SQL handler class for this field type.
-   $handler = new date_sql_handler();
-   $handler->construct($field['type']);
+   $handler = new date_sql_handler($field['type']);
 
    // If this date field stores a timezone in the DB, tell the handler about it.
    if ($field['settings']['tz_handling'] == 'date') {
@@ -640,7 +636,7 @@ function date_field_all_day($field, $instance, $date1, $date2 = NULL) {
     return FALSE;
   }
   elseif (!date_has_time($field['settings']['granularity'])) {
-    return FALSE;
+    return TRUE;
   }
   if (empty($date2)) {
     $date2 = $date1;
@@ -648,7 +644,7 @@ function date_field_all_day($field, $instance, $date1, $date2 = NULL) {
 
   $granularity = $field['settings']['granularity'];
   $granularity = array_pop($granularity);
-  $increment = isset($instance['widget']['increment']) ? $instance['widget']['increment'] : 1;
-  return date_is_all_day(date_format($date1, DATE_FORMAT_DATETIME), date_format($date1, DATE_FORMAT_DATETIME), $granularity, $increment);
+  $increment = isset($instance['widget']['settings']['increment']) ? $instance['widget']['settings']['increment'] : 1;
+  return date_is_all_day(date_format($date1, DATE_FORMAT_DATETIME), date_format($date2, DATE_FORMAT_DATETIME), $granularity, $increment);
 
 }

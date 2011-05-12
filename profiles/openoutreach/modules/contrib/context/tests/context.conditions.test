@@ -1,5 +1,4 @@
 <?php
-// $Id: context.conditions.test,v 1.1.2.7.2.8 2010/12/09 22:26:23 yhahn Exp $
 
 class ContextConditionUserTest extends DrupalWebTestCase {
   protected $profile = 'testing';
@@ -123,7 +122,8 @@ class ContextConditionUserPageTest extends DrupalWebTestCase {
 }
 
 class ContextConditionNodeTaxonomyTest extends DrupalWebTestCase {
-  protected $profile = 'testing';
+  // We want the default taxonomy and content types created
+  protected $profile = 'standard';
 
   public static function getInfo() {
     return array(
@@ -135,31 +135,23 @@ class ContextConditionNodeTaxonomyTest extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('context', 'ctools', 'taxonomy');
-    $admin_user = $this->drupalCreateUser(array('administer site configuration', 'create page content'));
+    $admin_user = $this->drupalCreateUser(array('administer site configuration', 'create article content'));
     $this->drupalLogin($admin_user);
 
-    // Create test vocab.
-    $this->vocab = array(
-      'name' => 'Test',
-      'description' => 'Test vocab.',
-      'multiple' => 0,
-      'tags' => 0,
-      'nodes' => array('page' => TRUE),
-    );
-    taxonomy_save_vocabulary($this->vocab);
-
     // Create test terms.
+    $this->vocab = taxonomy_vocabulary_machine_name_load('tags');
+
     $this->terms = array();
-    $this->terms['apples'] = array('name' => 'apples', 'vid' => $this->vocab['vid']);
-    $this->terms['oranges'] = array('name' => 'oranges', 'vid' => $this->vocab['vid']);
-    taxonomy_save_term($this->terms['apples']);
-    taxonomy_save_term($this->terms['oranges']);
+    $this->terms['apples'] = (object)array('name' => 'apples', 'vid' => $this->vocab->vid);
+    $this->terms['oranges'] = (object)array('name' => 'oranges', 'vid' => $this->vocab->vid);
+    taxonomy_term_save($this->terms['apples']);
+    taxonomy_term_save($this->terms['oranges']);
 
     // Create test context.
     ctools_include('export');
     $this->context = ctools_export_new_object('context');
     $this->context->name = 'testcontext';
-    $this->context->conditions = array('node_taxonomy' => array('values' => array($this->terms['apples']['tid'])));
+    $this->context->conditions = array('node_taxonomy' => array('values' => array($this->terms['apples']->tid)));
     $this->context->reactions = array('debug' => array('debug' => TRUE));
     $saved = context_save($this->context);
     $this->assertTrue($saved, "Context 'testcontext' saved.");
@@ -168,18 +160,29 @@ class ContextConditionNodeTaxonomyTest extends DrupalWebTestCase {
   function tearDown() {
     parent::tearDown();
     context_delete($this->context);
-    taxonomy_del_vocabulary($this->vocab['vid']);
-    taxonomy_del_term($this->terms['apples']['tid']);
-    taxonomy_del_term($this->terms['oranges']['tid']);
+    taxonomy_term_delete($this->terms['apples']->tid);
+    taxonomy_term_delete($this->terms['oranges']->tid);
   }
 
   function test() {
     // Apples does trigger the context.
-    $this->drupalPost('node/add/page', array('title' => 'Apples', "taxonomy[{$this->vocab['vid']}]" => $this->terms['apples']['tid']), 'Save');
+    $edit = array(
+      'title' => 'Apples', 
+      'field_tags[und]' => $this->terms['apples']->name
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->drupalGet('node/' . $node->nid);
     $this->assertText('Active context: testcontext');
 
     // Oranges does not trigger the context.
-    $this->drupalPost('node/add/page', array('title' => 'Oranges', "taxonomy[{$this->vocab['vid']}]" => $this->terms['oranges']['tid']), 'Save');
+    $edit = array(
+      'title' => 'Oranges', 
+      'field_tags[und]' => $this->terms['oranges']->name
+    );
+    $this->drupalPost('node/add/article', $edit, t('Save'));
+    $node = $this->drupalGetNodeByTitle($edit['title']);
+    $this->drupalGet('node/' . $node->nid);
     $this->assertNoText('Active context: testcontext');
   }
 }
@@ -419,7 +422,7 @@ class ContextConditionMenuTest extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('context', 'ctools', 'blog');
+    parent::setUp('context', 'ctools', 'blog', 'menu');
     $admin_user = $this->drupalCreateUser(array('administer site configuration', 'administer nodes', 'create blog content'));
     $this->drupalLogin($admin_user);
   }

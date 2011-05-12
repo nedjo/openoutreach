@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.api.php,v 1.1.2.8 2011/02/04 14:57:23 fago Exp $
 
 /**
  * @file
@@ -102,7 +101,7 @@
  *   any views integration. Else it defaults to FALSE, which disables this
  *   feature. See EntityDefaultViewsController.
  * - access callback: (optional) Specify a callback that returns access
- *   permissions for the operations 'create', 'updated', 'delete' and 'view'.
+ *   permissions for the operations 'create', 'update', 'delete' and 'view'.
  *   The callback gets optionally the entity and the user account to check for
  *   passed. See entity_access() for more details on the arguments and
  *   entity_metadata_no_hook_node_access() for an example.
@@ -149,7 +148,7 @@ function entity_crud_hook_entity_info() {
  *
  * Additional keys are:
  * - access callback: (optional) Specify a callback that returns access
- *   permissions for the operations 'create', 'updated', 'delete' and 'view'.
+ *   permissions for the operations 'create', 'update', 'delete' and 'view'.
  *   The callback gets optionally the entity and the user account to check for
  *   passed. See entity_access() for more details on the arguments and
  *   entity_metadata_no_hook_node_access() for an example.
@@ -250,17 +249,24 @@ function entity_metadata_hook_entity_info() {
  *       callback which can be used to retrieve the raw, unprocessed value.
  *     - bundle: If the property is an entity, you may specify the bundle of the
  *       retrieved entity. Optional.
- *     - 'options list': Optionally, a callback that returns a list of key value
- *       pairs for the property. The callback has to return an array as
+ *     - 'options list': Optionally, a callback that returns a list of possible
+ *       values for the property. The callback has to return an array as
  *       used by hook_options_list().
+ *       Note that it is possible to return a different set of options depending
+ *       whether they are used in read or in write context. See
+ *       EntityMetadataWrapper::optionsList() for more details on that.
  *     - 'access callback': An optional access callback to allow for checking
  *       'view' and 'edit' access for the described property. If no callback
  *       is specified, a 'setter permission' may be specified instead.
  *     - 'setter permission': Optionally a permission, that describes whether
  *       a user has permission to set ('edit') this property. This permission
  *       should only be taken into account, if no 'access callback' is given.
+ *     - 'schema field': (optional) In case the property is directly based upon
+ *       a field specified in the entity's hook_schema(), the name of the field.
  *     - 'query callback: Optionally a callback for querying for entities
- *       having the given property value. See entity_metadata_entity_query().
+ *       having the given property value. See entity_property_query().
+ *       In case a 'schema field' has been specified, it is not necessary to
+ *       specify a callback as it will default to 'entity_metadata_table_query'.
  *     - required: Optionally, this may be set to TRUE, if this property is
  *       required for the creation of a new instance of its entity. See
  *       entity_property_values_create_entity().

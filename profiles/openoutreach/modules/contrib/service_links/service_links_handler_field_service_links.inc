@@ -1,5 +1,4 @@
 <?php
-// $Id: service_links_handler_field_service_links.inc,v 1.1.2.2.2.1 2010/10/10 09:02:22 thecrow Exp $
 
 /**
  * @file

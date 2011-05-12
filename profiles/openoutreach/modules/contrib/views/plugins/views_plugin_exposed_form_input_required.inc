@@ -1,14 +1,9 @@
 <?php
-// $Id: views_plugin_exposed_form_input_required.inc,v 1.2.2.8 2010/11/16 01:09:28 merlinofchaos Exp $
 
 /**
  * Exposed form plugin that provides basic exposed form
  */
 class views_plugin_exposed_form_input_required extends views_plugin_exposed_form {
-
-  function summary_title() {
-    return t('Input required');
-  }
 
   function option_definition() {
     $options = parent::option_definition();
@@ -27,11 +22,13 @@ class views_plugin_exposed_form_input_required extends views_plugin_exposed_form
       '#description' => t('Text to display instead of results until the user selects and applies an exposed filter.'),
       '#default_value' => $this->options['text_input_required'],
       '#format' => $this->options['text_input_required_format'],
+      '#wysiwyg' => FALSE,
     );
   }
 
   function options_submit(&$form, &$form_state) {
-    $form_state['values']['exposed_form_options']['text_input_required_format'] = $form_state['values']['options']['text_input_required']['format'];
+    $form_state['values']['exposed_form_options']['text_input_required_format'] = $form_state['values']['exposed_form_options']['text_input_required']['format'];
+    $form_state['values']['exposed_form_options']['text_input_required'] = $form_state['values']['exposed_form_options']['text_input_required']['value'];
     parent::options_submit($form, $form_state);
   }
 

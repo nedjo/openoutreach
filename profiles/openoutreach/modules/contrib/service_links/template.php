@@ -1,5 +1,4 @@
 <?php
-// $Id: template.php,v 1.3.4.5.2.2 2010/10/14 08:36:01 thecrow Exp $
 
 /**
  * @file

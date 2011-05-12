@@ -14,3 +14,18 @@ function debut_blog_menu_alter(&$items) {
     $items['blog/add']['type'] = MENU_LOCAL_ACTION;
   }
 }
+
+/**
+ * Implements hook_admin_paths().
+ *
+ * Declare blog/add as an admin path to trigger e.g. admin theme and overlay.
+ */
+function debut_blog_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'blog/add' => TRUE,
+    );
+    return $paths;
+  }
+}
+

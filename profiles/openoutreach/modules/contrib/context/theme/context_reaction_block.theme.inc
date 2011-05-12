@@ -1,5 +1,4 @@
 <?php
-// $Id: context_reaction_block.theme.inc,v 1.1.2.13.2.4 2010/09/16 21:01:30 yhahn Exp $
 
 /**
  * Block form.
@@ -38,14 +37,14 @@ function theme_context_block_regions_form($vars) {
       'id' => "context-blockform-region-{$region}",
       'class' => array("context-blockform-region"),
     );
-    drupal_add_tabledrag($attr['id'], 'order', 'sibling', 'block-weight', NULL, NULL, FALSE);
+    drupal_add_tabledrag($attr['id'], 'order', 'sibling', 'tabledrag-hide', NULL, NULL, FALSE);
     $rows = array();
     foreach (element_children($form[$region]) as $id) {
-      $form[$region][$id]['weight']['#attributes'] = array('class' => array('block-weight'));
+      $form[$region][$id]['weight']['#attributes'] = array('class' => array('tabledrag-hide'));
       $label = $form[$region][$id]['#value'];
       $remove = l('X', $_GET['q'], array('fragment' => 'remove', 'attributes' => array('class' => array('remove'))));
       $rows[] = array(
-        'data' => array($label . drupal_render($form[$region][$id]['weight']), $remove),
+        'data' => array($label, drupal_render($form[$region][$id]['weight']), $remove),
         'class' => array('draggable'),
         'id' => $id,
       );

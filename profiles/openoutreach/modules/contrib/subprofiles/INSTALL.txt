@@ -1,0 +1,27 @@
+Drush support
+-------------
+
+To use Drush support, you must move the subprofiles.drush.inc file that comes
+with subprofiles to a location accessible to Drush.
+
+Here is an adapted excerpt relevant section from the Drush help:
+
+You can put this file in a number of places:
+
+- In a .drush folder in your HOME folder. Note, that you have to make the
+  .drush folder yourself (so you end up with ~/.drush/subprofiles.drush.inc).
+- In a folder specified with the include option.
+- In /path/to/drush/commands (not a Smart Thing, but it would work).
+
+When subprofiles.drush.inc is accessible to Drush, you can install or
+reinstall an installation profile with the following command.
+
+`drush subprofiles-site-install [profile_name] [subprofile_name]`
+
+The --features option can be used to specify exactly which of a subprofile's
+features should be enabled.
+
+For example, to install the minimal subprofile of the openoutreach profile with
+only the debut and debut_article features enabled:
+
+`drush subprofiles-site-install openoutreach minimal --features=debut,debut_article`

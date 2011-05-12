@@ -22,4 +22,17 @@ function debut_article_menu_alter(&$items) {
   }
 }
 
+/**
+ * Implements hook_admin_paths().
+ *
+ * Declare article/add as an admin path to trigger e.g. admin theme and overlay.
+ */
+function debut_article_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'article/add' => TRUE,
+    );
+    return $paths;
+  }
+}
 

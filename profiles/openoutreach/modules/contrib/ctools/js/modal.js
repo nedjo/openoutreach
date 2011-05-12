@@ -1,4 +1,3 @@
-// $Id: modal.js,v 1.27 2010/12/31 22:27:02 merlinofchaos Exp $
 /**
  * @file
  *
@@ -245,10 +244,6 @@
       $('#modal-content form:not(.ctools-use-modal-processed)', context)
         .addClass('ctools-use-modal-processed')
         .each(function() {
-          $('input[type=submit], button', this).click(function() {
-            this.form.clk = this;
-          });
-
           var element_settings = {};
 
           element_settings.url = $(this).attr('action');
@@ -258,6 +253,12 @@
 
           Drupal.ajax[base] = new Drupal.ajax(base, this, element_settings);
           Drupal.ajax[base].form = $(this);
+
+          $('input[type=submit], button', this).click(function() {
+            Drupal.ajax[base].element = this;
+            this.form.clk = this;
+          });
+
         });
     }
   };
@@ -383,6 +384,14 @@
       } else { //IE
         event = window.event;
         target = event.srcElement;
+      }
+
+      var parents = $(target).parents().get();
+      for (var i in $(target).parents().get()) {
+        var position = $(parents[i]).css('position');
+        if (position == 'absolute' || position == 'fixed') {
+          return true;
+        }
       }
       if( $(target).filter('*:visible').parents('#modalContent').size()) {
         // allow the event only if target is a visible child node of #modalContent

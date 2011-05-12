@@ -1,5 +1,4 @@
 <?php
-// $Id: aggregator.views.inc,v 1.3.4.7 2010/11/16 00:01:25 merlinofchaos Exp $
 /**
  * @file
  * Provide views data and handlers for aggregator.module
@@ -309,7 +308,7 @@ function aggregator_views_data() {
   // feed last updated
   $data['aggregator_feed']['modified'] = array(
     'title' => t('Last modified'), // The item it appears as on the UI,
-    'help' => t('The date of the most recent new content onf the feed.'),
+    'help' => t('The date of the most recent new content on the feed.'),
      // Information for displaying a title as a field
     'field' => array(
       'handler' => 'views_handler_field_date',

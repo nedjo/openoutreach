@@ -1,5 +1,4 @@
 <?php
-// $Id: image_captcha.admin.inc,v 1.33 2010/11/20 00:19:22 soxofaan Exp $
 
 /**
  * @file

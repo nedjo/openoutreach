@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools.module,v 1.40 2011/01/05 20:06:57 merlinofchaos Exp $
 
 /**
  * @file
@@ -10,7 +9,7 @@
  * must be implemented in the module file.
  */
 
-define('CTOOLS_API_VERSION', '2.0-alpha1');
+define('CTOOLS_API_VERSION', '2.0.1');
 
 /**
  * Test the CTools API version.
@@ -112,8 +111,19 @@ function ctools_include($file, $module = 'ctools', $dir = 'includes') {
 
   if (!isset($used[$module][$dir][$file])) {
     require_once DRUPAL_ROOT . '/' . drupal_get_path('module', $module) . "$dir$file.inc";
-    $used[$module][$dir][$file] = true;
+    $used[$module][$dir][$file] = TRUE;
   }
+}
+
+/**
+ * Include .inc files in a form context.
+ *
+ * This is a variant of ctools_include that will save information in the
+ * the form_state so that cached forms will properly include things.
+ */
+function ctools_form_include(&$form_state, $file, $module = 'ctools', $dir = 'includes') {
+  $dir = '/' . ($dir ? $dir . '/' : '');
+  form_load_include($form_state, 'inc', $module, $dir . $file);
 }
 
 /**
@@ -148,6 +158,28 @@ function ctools_image_path($image, $module = 'ctools', $dir = 'images') {
  */
 function ctools_add_css($file, $module = 'ctools', $dir = 'css') {
   drupal_add_css(drupal_get_path('module', $module) . "/$dir/$file.css");
+}
+
+/**
+ * Format a css file name for use with $form['#attached']['css'].
+ *
+ * This helper function is used by ctools but can also be used in other
+ * modules in the same way as explained in the comments of ctools_include.
+ *
+ * @code
+ *   $form['#attached']['css'] = array(ctools_attach_css('collapsible-div'));
+ *   $form['#attached']['css'][ctools_attach_css('collapsible-div')] = array('preprocess' => FALSE);
+ * @endcode
+ *
+ * @param $file
+ *   The base file name to be included.
+ * @param $module
+ *   Optional module containing the include.
+ * @param $dir
+ *   Optional subdirectory containing the include file.
+ */
+function ctools_attach_css($file, $module = 'ctools', $dir = 'css') {
+  return drupal_get_path('module', $module) . "/$dir/$file.css";
 }
 
 /**
@@ -193,15 +225,12 @@ function ctools_attach_js($file, $module = 'ctools', $dir = 'js') {
  *
  * @return
  *   An array of role names keyed by role ID.
+ *
+ * @deprecated
+ *    user_roles() should be used instead.
  */
 function ctools_get_roles() {
-  static $roles = NULL;
-  if (!isset($roles)) {
-    $roles = user_roles(TRUE);
-    unset($roles[DRUPAL_AUTHENTICATED_RID]);
-  }
-
-  return $roles;
+  return user_roles();
 }
 
 /*
@@ -338,8 +367,8 @@ function ctools_init() {
  * Shutdown handler used during ajax operations to help catch fatal errors.
  */
 function ctools_shutdown_handler() {
-  if (function_exists('error_get_last') AND ($error = error_get_last())){
-    switch($error['type']){
+  if (function_exists('error_get_last') AND ($error = error_get_last())) {
+    switch ($error['type']) {
       case E_ERROR:
       case E_CORE_ERROR:
       case E_COMPILE_ERROR:
@@ -370,7 +399,7 @@ function ctools_shutdown_handler() {
 function ctools_theme() {
   ctools_include('utility');
   $items = array();
-  _ctools_passthrough($items, 'theme');
+  ctools_passthrough('ctools', 'theme', $items);
   return $items;
 }
 
@@ -380,7 +409,7 @@ function ctools_theme() {
 function ctools_menu() {
   ctools_include('utility');
   $items = array();
-  _ctools_passthrough($items, 'menu');
+  ctools_passthrough('ctools', 'menu', $items);
   return $items;
 }
 
@@ -389,7 +418,8 @@ function ctools_menu() {
  */
 function ctools_cron() {
   ctools_include('utility');
-  _ctools_passthrough($items, 'cron');
+  $items = array();
+  ctools_passthrough('ctools', 'cron', $items);
 }
 
 /**
@@ -400,7 +430,7 @@ function ctools_flush_caches() {
   // in an inconsistent fashion and it does not necessarily mean to *flush*
   // caches when running from cron. Instead it's just getting a list of cache
   // tables and may not do any flushing.
-  if (variable_get('cron_semaphore', FALSE)) {
+  if (!empty($GLOBALS['locks']['cron'])) {
     return;
   }
 
@@ -409,15 +439,12 @@ function ctools_flush_caches() {
 }
 
 /**
- * Provide a search form with a different id so that form_alters will miss it
- * and thus not get advanced search settings.
+ * Implements hook_element_info_alter().
+ *
  */
-function ctools_forms() {
-  $forms['ctools_search_form']= array(
-    'callback' => 'search_form',
-  );
-
-  return $forms;
+function ctools_element_info_alter(&$type) {
+  ctools_include('dependent');
+  ctools_dependent_element_info_alter($type);
 }
 
 /**
@@ -467,7 +494,7 @@ function ctools_ctools_plugin_type() {
   ctools_include('utility');
   $items = array();
   // Add all the plugins that have their own declaration space elsewhere.
-  _ctools_passthrough($items, 'plugin-type');
+  ctools_passthrough('ctools', 'plugin-type', $items);
 
   return $items;
 }
@@ -480,11 +507,11 @@ function ctools_ctools_plugin_type() {
  * templates based upon input when the panel was configured.
  */
 function ctools_preprocess_node(&$vars) {
-  // The 'panel_identifier' attribute of the node is added when the pane is
+  // The 'ctools_template_identifier' attribute of the node is added when the pane is
   // rendered.
-  if (!empty($vars['node']->panel_identifier)) {
-    $vars['panel_identifier'] = check_plain($vars['node']->panel_identifier);
-    $vars['template_files'][] = 'node-panel-' . check_plain($vars['node']->panel_identifier);
+  if (!empty($vars['node']->ctools_template_identifier)) {
+    $vars['ctools_template_identifier'] = check_plain($vars['node']->ctools_template_identifier);
+    $vars['theme_hook_suggestions'][] = 'node__panel__' . check_plain($vars['node']->ctools_template_identifier);
   }
 }
 
@@ -618,11 +645,10 @@ function ctools_export_ui_load($item_name, $plugin_name) {
   if (!$return) {
     ctools_include('export-ui');
     $plugin = ctools_get_export_ui($plugin_name);
+    $handler = ctools_export_ui_get_handler($plugin);
 
-    if ($plugin) {
-      // Get the load callback.
-      $item = ctools_export_crud_load($plugin['schema'], $item_name);
-      return empty($item) ? FALSE : $item;
+    if ($handler) {
+      return $handler->load_item($item_name);
     }
   }
 
@@ -734,10 +760,59 @@ function ctools_block_list_alter(&$blocks) {
     foreach ($blocks as $block_id => $block) {
       // @todo -- possibly we can set configuration for this so that users can
       // specify which blocks will not get rendered.
-      if (substr_compare($block->region, 'sidebar', 0)) {
+      if (substr_compare($block->region, 'sidebar', 0) >= 0) {
         unset($blocks[$block_id]);
       }
     }
   }
 }
 
+/**
+ * Implement hook_modules_enabled to clear static caches for detecting new plugins
+ */
+function ctools_modules_enabled($modules) {
+  ctools_include('plugins');
+  ctools_get_plugins_reset();
+}
+
+/**
+ * Menu theme callback.
+ *
+ * This simply ensures that Panels ajax calls are rendered in the same
+ * theme as the original page to prevent .css file confusion.
+ *
+ * To use this, set this as the theme callback on AJAX related menu
+ * items. Since the ajax page state won't be sent during ajax requests,
+ * it should be safe to use even if ajax isn't invoked.
+ */
+function ctools_ajax_theme_callback() {
+  if (!empty($_POST['ajax_page_state']['theme'])) {
+    return $_POST['ajax_page_state']['theme'];
+  }
+}
+
+function ctools_ctools_entity_context_alter(&$plugin, &$entity, $plugin_id) {
+  ctools_include('context');
+  switch ($plugin_id) {
+    case 'entity_id:taxonomy_term':
+      $plugin['no ui'] = TRUE;
+      break;
+    case 'entity:user':
+      $plugin = ctools_get_context('user');
+      unset($plugin['no ui']);
+      unset($plugin['no required context ui']);
+      break;
+  }
+
+  // Apply restrictions on taxonomy term reverse relationships whose
+  // restrictions are in the settings on the field.
+  if (!empty($plugin['parent']) &&
+      $plugin['parent'] == 'entity_from_field' &&
+      !empty($plugin['reverse']) &&
+      $plugin['to entity'] == 'taxonomy_term') {
+    $field = field_info_field($plugin['field name']);
+    if (isset($field['settings']['allowed_values'][0]['vocabulary'])) {
+      $plugin['required context']->restrictions = array('vocabulary' => array($field['settings']['allowed_values'][0]['vocabulary']));
+    }
+  }
+}

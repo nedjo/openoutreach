@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api.install,v 1.1 2011/01/15 11:49:32 karens Exp $
 
 /**
  * @file
@@ -73,4 +72,46 @@ function date_api_uninstall() {
 
 function date_api_update_last_removed() {
   return 6005;
+}
+
+/**
+ * Move old date format data to new date format tables.
+ */
+function date_api_update_7000() {
+  if (db_table_exists('date_format_types')) {
+    $query = db_select('date_format_types', 'old');
+    $query->addField('old', 'type');
+    $query->addField('old', 'title');
+    $query->addField('old', 'locked');
+    $query->condition('locked', 0); 
+    db_insert('date_format_type')
+      ->from($query)
+      ->execute();
+    db_drop_table('date_format_types');
+  }
+
+  if (db_table_exists('d6_date_formats')) {
+    $query = db_select('d6_date_formats', 'old');
+    $query->addField('old', 'format');
+    $query->addField('old', 'type');
+    $query->addField('old', 'locked');
+    $query->condition('type', 'custom'); 
+    db_insert('date_formats')
+      ->from($query)
+      ->execute();
+    db_drop_table('d6_date_formats');
+  }
+
+  if (db_table_exists('d6_date_format_locale')) {
+    $query = db_select('d6_date_format_locale', 'old');
+    $query->addField('old', 'format');
+    $query->addField('old', 'type');
+    $query->addField('old', 'language');
+    $query->condition('type', 'custom'); 
+    db_insert('date_format_locale')
+      ->from($query)
+      ->execute();
+    db_drop_table('d6_date_format_locale');
+  }
+
 }

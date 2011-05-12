@@ -1,5 +1,4 @@
 <?php
-// $Id: theme.inc,v 1.11 2011/01/18 00:37:21 karens Exp $
 
 /**
  * @file
@@ -16,7 +15,6 @@ function template_preprocess_calendar_view_ical(&$vars) {
   $view     = &$vars['view'];
   $options  = &$vars['options'];
   $items    = &$vars['items'];
-
   $style    = &$view->style_plugin;
 
   // Figure out which display which has a path we're using for this feed. If there isn't
@@ -31,8 +29,10 @@ function template_preprocess_calendar_view_ical(&$vars) {
   // Keep devel module from appending queries to ical export.
   $GLOBALS['devel_shutdown'] = FALSE;
 
-  drupal_add_http_header('Content-Type', 'text/calendar; charset=utf-8');
-  drupal_add_http_header('Content-Disposition', 'attachment; filename="calendar.ics";');
+  if (empty($vars['view']->live_preview)) {
+    drupal_add_http_header('Content-Type', 'text/calendar; charset=utf-8');
+    drupal_add_http_header('Content-Disposition', 'attachment; filename="calendar.ics";');
+  }
 
   module_load_include('inc', 'date_api', 'date_api_ical');
   module_load_include('inc', 'date_views', 'theme/theme');
@@ -56,7 +56,7 @@ function template_preprocess_calendar_view_ical(&$vars) {
   }
   foreach ($items as $node) {
     // We cannot process an event that is missing the summary info.
-    if (empty($node->$summary_field)) {
+    if (empty($node->rendered[$summary_field])) {
       continue;
     }
     // Allow modules to affect item fields
@@ -65,19 +65,20 @@ function template_preprocess_calendar_view_ical(&$vars) {
     unset($node->view);
     $rrule_field = str_replace(array('_value2', '_value'), '_rrule', $node->datefield);
     $event = array();
-    $event['summary'] = strip_tags($node->$summary_field);
+    $event['summary'] = strip_tags($node->rendered[$summary_field]);
     $event['start'] = $node->calendar_start_date;
     $event['end'] = $node->calendar_end_date;
-    $event['description'] = !empty($description_field) && !empty($node->$description_field) ? $node->$description_field : '';
-    $event['location'] = !empty($location_field) && !empty($node->$location_field) ? $node->$location_field : '';
-    $event['url'] = !empty($node->url) ? $node->url : (is_numeric($node->nid) ? url("node/$node->nid", array('absolute' => TRUE)) : $node->nid);
+    $event['description'] = !empty($description_field) && !empty($node->rendered[$description_field]) ? $node->rendered[$description_field] : '';
+    $event['location'] = !empty($location_field) && !empty($node->rendered[$location_field]) ? $node->rendered[$location_field] : '';
+    // TODO Figure out the right way to provide a link to an item that might not be a node.
+    //$event['url'] = !empty($node->url) ? $node->url : (is_numeric($node->nid) ? url("node/$node->nid", array('absolute' => TRUE)) : $node->nid);
     $event['uid'] = !empty($node->date_id) ? $node->date_id : $event['url'];
-    $event['rrule'] = !empty($rrule_field) && !empty($node->$rrule_field) ? $node->$rrule_field : '';
+    $event['rrule'] = !empty($rrule_field) && !empty($node->rendered[$rrule_field]) ? $node->rendered[$rrule_field] : '';
     $events[$event['uid']] = $event;
 
     /* force UTC timezone */
-    $event['start']->setTimeZone(new DateTimeZone("UTC"));
-    $event['end']->setTimeZone(new DateTimeZone("UTC"));
+    //$event['start']->setTimeZone(new DateTimeZone("UTC"));
+    //$event['end']->setTimeZone(new DateTimeZone("UTC"));
   }
 
   $headertitle = filter_xss_admin($view->get_title());

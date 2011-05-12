@@ -1,5 +1,4 @@
 <?php
-// $Id: image_captcha.user.inc,v 1.28 2010/11/29 00:12:19 soxofaan Exp $
 
 /**
  * @file
@@ -13,6 +12,11 @@
  * Menu callback function that generates the CAPTCHA image.
  */
 function image_captcha_image($captcha_sid=NULL) {
+  // If output buffering is on: discard current content and disable further buffering
+  if (ob_get_level()) {
+    ob_end_clean();
+  }
+  
   if (!$captcha_sid) {
     exit();
   }

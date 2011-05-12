@@ -1,4 +1,3 @@
-; $Id: forward.info,v 1.3 2010/08/19 18:27:06 seanr Exp $
 name = Forward 
 description = Forward this page module
 core = 7.x
@@ -7,10 +6,10 @@ files[] = forward.module
 files[] = forward.tpl.php
 files[] = forward.views.inc
 files[] = forward.views_default.inc
-
-; Information added by drupal.org packaging script on 2010-09-15
-version = "7.x-1.0-alpha3"
+configure = admin/config/user-interface/forward
+; Information added by drupal.org packaging script on 2011-04-30
+version = "7.x-1.0-rc3"
 core = "7.x"
 project = "forward"
-datestamp = "1284561047"
+datestamp = "1304123258"
 

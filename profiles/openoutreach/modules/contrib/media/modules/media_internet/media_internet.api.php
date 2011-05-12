@@ -1,5 +1,4 @@
 <?php
-// $Id: media_internet.api.php,v 1.2 2010/09/03 21:51:13 JacobSingh Exp $
 
 /**
  * Implementors return an multidim array, keyed by a class name

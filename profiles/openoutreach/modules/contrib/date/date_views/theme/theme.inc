@@ -1,5 +1,5 @@
 <?php
-// $Id: theme.inc,v 1.2 2011/01/18 00:37:35 karens Exp $
+// $Id$
 
 /**
  * @file
@@ -14,8 +14,8 @@ function template_preprocess_date_navigation(&$vars) {
   $next_args = $view->args;
   $prev_args = $view->args;
   $pos = $view->date_info->date_arg_pos;
-  $min_date = is_object($view->date_info->min_date) ? $view->date_info->min_date : date_now();
-  $max_date = is_object($view->date_info->max_date) ? $view->date_info->max_date : date_now();
+  $min_date = $view->date_info->min_date;
+  $max_date = $view->date_info->max_date;
 
   if (empty($view->date_info->hide_nav)) {
     $prev_date = clone($min_date);
@@ -52,10 +52,10 @@ function template_preprocess_date_navigation(&$vars) {
 
   // Check whether navigation links would point to 
   // a date outside the allowed range.
-  if (!empty($next_date) && !empty($vars['next_url']) && date_format($next_date, 'Y') > $view->date_info->max_allowed_year) {
+  if (!empty($next_date) && !empty($vars['next_url']) && date_format($next_date, 'Y') > $view->date_info->limit[1]) {
     $vars['next_url'] = '';    
   }
-  if (!empty($prev_date) && !empty($vars['prev_url']) && date_format($prev_date, 'Y') < $view->date_info->min_allowed_year) {
+  if (!empty($prev_date) && !empty($vars['prev_url']) && date_format($prev_date, 'Y') < $view->date_info->limit[0]) {
     $vars['prev_url'] = '';    
   }
 
@@ -190,7 +190,7 @@ function template_preprocess_date_vcalendar(&$vars) {
   // Format the event results as iCal expects.
   $events_in = $vars['events'];
   $events = array();
-  $rows = $vars['rows'];
+  $rows = (array) $vars['rows'];
   foreach ($events_in as $uid => $event) {
     $row = array_shift($rows);
     // Omit any items with empty dates.
@@ -203,7 +203,7 @@ function template_preprocess_date_vcalendar(&$vars) {
       else {
         $events[$uid]['timezone'] = '';
       }
-      $date_format = ($row->calendar_all_day == TRUE) ? DATE_FORMAT_ICAL_DATE : DATE_FORMAT_ICAL;
+      $date_format = (!empty($row->calendar_all_day) && $row->calendar_all_day == TRUE) ? DATE_FORMAT_ICAL_DATE : DATE_FORMAT_ICAL;
       $events[$uid]['start'] = date_format($event['start'], $date_format);
       if ($event['start'] && $event['end']) {
         $events[$uid]['end'] = date_format($event['end'], $date_format);

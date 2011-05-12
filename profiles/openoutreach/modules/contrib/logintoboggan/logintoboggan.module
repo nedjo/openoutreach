@@ -1,5 +1,4 @@
 <?php
-// $Id: logintoboggan.module,v 1.205 2011/01/20 10:07:57 thehunmonkgroup Exp $
 
 /**
  * @file
@@ -386,6 +385,15 @@ function logintoboggan_form_alter(&$form, &$form_state, $form_id) {
           );
         }
       }
+      break;
+    case 'user_admin_settings':
+      // Disable the checkbox at the Account settings page which controls
+      // whether e-mail verification is required upon registration or not.
+      // The LoginToboggan module implements e-mail verification functionality
+      // differently than core, and will control wether e-mail verification is
+      // required or not.
+      $form['registration_cancellation']['user_email_verification']['#disabled'] = true;
+      $form['registration_cancellation']['user_email_verification']['#description'] = t('This setting has been locked by the LoginToboggan module. You can change this setting by modifying the <strong>Set password</strong> checkbox at <a href="!link">LoginToboggan settings page</a>.', array('!link' => url('admin/config/system/logintoboggan')));
       break;
   }
 }
@@ -952,7 +960,7 @@ function _logintoboggan_process_validation($account) {
   if (!variable_get('user_email_verification', TRUE)) {
     $edit = array();
     $account->logintoboggan_email_validated = TRUE;
-    user_save($account, $edit);
+    user_module_invoke('update', $edit, $account);
   }
 }
 

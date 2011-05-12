@@ -1,5 +1,4 @@
 <?php
-// $Id: date.test,v 1.8 2011/01/18 00:37:35 karens Exp $
 class DateUITestCase extends DrupalWebTestCase {
   protected $privileged_user;
 

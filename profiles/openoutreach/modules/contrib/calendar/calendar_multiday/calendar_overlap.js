@@ -1,4 +1,3 @@
-// $Id: calendar_overlap.js,v 1.5 2011/01/18 00:37:21 karens Exp $
 /*
  *  Create the splitter, set the viewport size, and set the position of the scrollbar to the first item.
  */

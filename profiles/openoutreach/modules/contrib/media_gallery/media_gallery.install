@@ -127,6 +127,13 @@ function media_gallery_requirements() {
     if (!$field) {
       continue;
     }
+    // Between Media Gallery beta2 and beta3, field definitions were changed
+    // from list_number to list_float, to keep up with Drupal core changes.
+    // list_update_7001() handles the updating of existing fields, but
+    // update.php checks all requirements prior to running any update function.
+    if ($field['type'] == 'list_number' && $field_definition['type'] == 'list_float') {
+      continue;
+    }
     if ($field['type'] != $field_definition['type']) {
       $requirements['existing_field_' . $field_name] = array(
         'description' => $t("%field_name already exists and is not of type %type. Installation cannot continue. Please remove this field or change its type.", array('%field_name' => $field_name, '%type' => $field_definition['type'])),

@@ -1,5 +1,3 @@
-// $Id: README.txt,v 1.22 2010/07/05 21:40:11 soxofaan Exp $
-
 Readme file for the CAPTCHA module for Drupal
 ---------------------------------------------
 

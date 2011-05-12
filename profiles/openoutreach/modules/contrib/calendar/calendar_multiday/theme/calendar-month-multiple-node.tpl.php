@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-month-multiple-node.tpl.php,v 1.3 2010/12/30 15:38:02 karens Exp $
 /**
  * @file
  * Template to display a summary of the days items as a calendar month node.

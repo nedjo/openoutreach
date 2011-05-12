@@ -1,4 +1,3 @@
-// $Id: README.txt,v 1.1 2009/09/19 12:51:20 soxofaan Exp $
 
 This directory contains a subset (Regular and Bold) of the Tuffy typeface
 created by Thatcher Ulrich (http://tulrich.com/fonts) and released in the

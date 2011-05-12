@@ -1,5 +1,4 @@
 <?php
-// $Id: context.reactions.test,v 1.1.2.3.2.5 2010/12/09 22:26:23 yhahn Exp $
 
 class ContextReactionBlockTest extends DrupalWebTestCase {
   protected $profile = 'testing';
@@ -13,9 +12,10 @@ class ContextReactionBlockTest extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('context', 'ctools');
+    parent::setUp('context', 'ctools', 'block');
     $admin_user = $this->drupalCreateUser(array(
-      'administer site configuration'
+      'administer site configuration',
+      'administer blocks'
     ));
     $this->drupalLogin($admin_user);
   }
@@ -43,12 +43,35 @@ class ContextReactionBlockTest extends DrupalWebTestCase {
     $this->drupalGet('node');
     $this->assertText('Who\'s online');
 
+    // Test title override of code provided block
+    $edit = array('title' => 'Context Online Block');
+    $this->drupalPost('admin/structure/block/manage/user/online/configure', $edit, t('Save block'));
+    $this->drupalGet('node');
+    $this->assertText('Context Online Block');
+
+    // Test title of custom block
+    $edit = array(
+      'info' => 'Context Custom Block Info',
+      'title' => 'Context Custom Block Title',
+      'body[value]' => $this->randomName(32),
+    );
+    $this->drupalPost('admin/structure/block/add', $edit, t('Save block'));
+    $bid = db_query("SELECT bid FROM {block_custom} WHERE info = :info", array(':info' => $edit['info']))->fetchField();
+
+    $context->reactions['block']['blocks']["block-{$bid}"] = array(
+      'module' => 'block',
+      'delta' => $bid,
+      'region' => 'sidebar_first',
+      'weight' => 2,      
+    );
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    $this->drupalGet('node');
+    $this->assertText('Context Custom Block Title');
+
     // Cleanup
     context_delete($context);
-
-    // @TODO:
-    // - Implement & test title overrides (if we plan to support them).
-    // - Implement & test core + context block visibility conditions
   }
 }
 
@@ -69,11 +92,11 @@ class ContextReactionBlockAjaxTest extends DrupalWebTestCase {
 
   function test() {
     $this->drupalGet('node', array(
-      'query' => array('context_block' => 'user-3,testcontext')
+      'query' => array('context_block' => 'user-online,testcontext')
     ));
 
-    $this->assertText('"status": 1');
-    $this->assertText("Who\'s online");
+    $this->assertText('"status":1');
+    $this->assertText("Who's online");
   }
 }
 
@@ -108,7 +131,7 @@ class ContextReactionMenuTest extends DrupalWebTestCase {
     $saved = context_save($context);
     $this->assertTrue($saved, "Context 'testcontext' saved.");
 
-    $this->drupalPost('admin/structure/menu/settings', array('menu_main_links_source' => 'management'), 'Save configuration');
+    $this->drupalPost('admin/structure/menu/settings', array('menu_main_links_source' => 'navigation'), 'Save configuration');
     theme_enable(array('bartik'));
     variable_set('theme_default', 'bartik');
     $this->refreshVariables();
@@ -158,9 +181,47 @@ class ContextReactionBreadcrumbTest extends DrupalWebTestCase {
     $this->refreshVariables();
 
     $output = $this->drupalGet('node');
-    $this->assertText('Home » Administer » Structure');
+    $this->assertText('Home » Administration » Structure');
     $output = $this->drupalGet('user');
-    $this->assertNoText('Home » Administer » Structure');
+    $this->assertNoText('Home » Administration » Structure');
+
+    // Cleanup
+    context_delete($context);
+  }
+}
+
+class ContextReactionThemeHtmlTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: theme html',
+      'description' => 'Test theme html reaction.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+    $admin_user = $this->drupalCreateUser(array(
+      'access administration pages',
+      'administer nodes',
+      'administer site configuration'
+    ));
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    ctools_include('export');
+    $context = ctools_export_new_object('context');
+    $context->name = 'testcontext';
+    $context->conditions = array('sitewide' => array('values' => array(1)));
+    $context->reactions = array('theme_html' => array('class' => 'context-test-class'));
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    $output = $this->drupalGet('node');
+    $this->assertRaw('context-test-class');
 
     // Cleanup
     context_delete($context);

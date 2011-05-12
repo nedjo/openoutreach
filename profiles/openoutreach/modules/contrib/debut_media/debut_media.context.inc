@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_media.context.inc
+ */
 
 /**
  * Implementation of hook_context_default_contexts().

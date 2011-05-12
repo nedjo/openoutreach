@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut.features.user_role.inc
+ */
 
 /**
  * Implementation of hook_user_default_roles().

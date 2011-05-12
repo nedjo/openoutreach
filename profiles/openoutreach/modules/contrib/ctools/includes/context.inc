@@ -1,5 +1,4 @@
 <?php
-// $Id: context.inc,v 1.44 2011/01/05 20:34:46 merlinofchaos Exp $
 
 /**
  * @file
@@ -162,11 +161,18 @@ class ctools_context_required {
       $contexts = array($contexts);
     }
 
-    // Due to a bug, some contexts got recorded with an id of 0. This will
-    // convert them to the correct ID allowing for some earlier panels
-    // to continue to work.
-    if (!empty($context) && $context[strlen($context) - 1] === '0') {
-      $context[strlen($context) - 1] = 1;
+    // If we had requested a $context but that $context doesn't exist
+    // in our context list, there is a good chance that what happened
+    // is our context IDs changed. See if there's another context
+    // that satisfies our requirements.
+    if (!empty($context) && !isset($contexts[$context])) {
+      $choices = $this->filter($contexts);
+
+      // If we got a hit, take the first one that matches.
+      if ($choices) {
+        $keys = array_keys($choices);
+        $context = reset($keys);
+      }
     }
 
     if (empty($context) || empty($contexts[$context])) {
@@ -478,9 +484,11 @@ function ctools_context_get_all_converters() {
   $contexts = ctools_get_contexts();
   $converters = array();
   foreach ($contexts as $name => $context) {
-    $context_converters = _ctools_context_get_converters($name . '.', $name);
-    if ($context_converters) {
-      $converters[$context['title']] = $context_converters;
+    if (empty($context['no required context ui'])) {
+      $context_converters = _ctools_context_get_converters($name . '.', $name);
+      if ($context_converters) {
+        $converters[$context['title']] = $context_converters;
+      }
     }
   }
 
@@ -524,6 +532,10 @@ function ctools_context_select($contexts, $required, $context) {
   if (is_array($required)) {
     $result = array();
     foreach ($required as $id => $r) {
+      if (empty($required[$id])) {
+        continue;
+      }
+
       if (($result[] = _ctools_context_select($contexts, $r, $context[$id])) === FALSE) {
         return FALSE;
       }
@@ -922,7 +934,7 @@ function ctools_context_get_relevant_relationships($contexts) {
   // Go through each relationship
   foreach ($relationships as $rid => $relationship) {
     // For each relationship, see if there is a context that satisfies it.
-    if (ctools_context_filter($contexts, $relationship['required context'])) {
+    if (empty($relationship['no ui']) && ctools_context_filter($contexts, $relationship['required context'])) {
       $relevant[$rid] = $relationship['title'];
     }
   }
@@ -1105,7 +1117,7 @@ function ctools_context_match_required_contexts($required, $contexts) {
   }
 
   foreach ($required as $r) {
-    $context = drupal_clone(array_shift($contexts));
+    $context = clone(array_shift($contexts));
     $context->identifier = $r['identifier'];
     $context->page_title = isset($r['title']) ? $r['title'] : '';
     $context->keyword    = $r['keyword'];
@@ -1251,7 +1263,7 @@ function ctools_context_replace_placeholders($contexts, $arguments) {
  * Provide a form array for getting data to replace placeholder contexts
  * with real data.
  */
-function ctools_context_replace_form($form, $contexts) {
+function ctools_context_replace_form(&$form, $contexts) {
   foreach ($contexts as $cid => $context) {
     if (empty($context->empty)) {
       continue;

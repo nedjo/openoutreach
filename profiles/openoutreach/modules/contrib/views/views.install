@@ -1,5 +1,4 @@
 <?php
-// $Id: views.install,v 1.50.4.12 2011/01/01 23:51:28 dereine Exp $
 /**
  * @file views.install
  * Contains install and update functions for Views.
@@ -89,6 +88,32 @@ function views_schema($caller_function = FALSE) {
 function views_schema_6000() {
   $schema['views_view'] = array(
     'description' => 'Stores the general data for a view.',
+    'export' => array(
+      'identifier' => 'view',
+      'bulk export' => TRUE,
+      'primary key' => 'vid',
+      'default hook' => 'views_default_views',
+      'admin_title' => 'human_name',
+      'admin_description' => 'description',
+      'api' => array(
+        'owner' => 'views',
+        'api' => 'views_default',
+        'minimum_version' => '2',
+        'current_version' => '3.0',
+      ),
+      'object' => 'view',
+      // the callback to load the displays
+      'subrecords callback' => 'views_load_display_records',
+      // the variable that holds enabled/disabled status
+      'status' => 'views_defaults',
+      // CRUD callbacks
+      'create callback' => 'views_new_view',
+      'save callback' => 'views_save_view',
+      'delete callback' => 'views_delete_view',
+      'export callback' => 'views_export_view',
+      'cache defaults' => TRUE,
+      'default cache bin' => 'cache_views',
+    ),
     'fields' => array(
       'vid' => array(
         'type' => 'serial',
@@ -500,7 +525,7 @@ function views_update_6012() {
     ->condition('module', 'views')
     ->condition('delta', db_like('-exp-') . '%', 'LIKE')
     ->fields(array('cache' => DRUPAL_NO_CACHE));
-  
+
   return $ret;
 }
 
@@ -549,14 +574,63 @@ function views_schema_6014() {
  */
 function views_update_6014() {
   $ret = array();
-  $new_field = array(
-    'type' => 'int',
-    'default' => 0,
-    'description' => 'Stores the drupal core version of the view.',
-  );
-
-  db_add_field('views_view', 'core', $new_field);
+  // Check because D6 installs may already have added this.
+  if (!db_field_exists('views_view', 'core')) {
+    $new_field = array(
+      'type' => 'int',
+      'default' => 0,
+      'description' => 'Stores the drupal core version of the view.',
+    );
+    db_add_field('views_view', 'core', $new_field);
+  }
 
   return $ret;
 }
 
+/**
+ * Rename some system variables.
+ */
+function views_update_7000() {
+  // Views now lets users turn off query details on live preview.
+  $query_on_top = variable_get('views_ui_query_on_top');
+  if (isset($query_on_top)) {
+    variable_set('views_ui_show_sql_query', TRUE);
+    if ($query_on_top) {
+      variable_set('views_ui_show_sql_query_where', 'above');
+    }
+    else {
+      variable_set('views_ui_show_sql_query_where', 'below');
+    }
+    variable_del('views_ui_query_on_top');
+  }
+
+  // Rename the views_hide_help_message variable from negative to positive.
+  $hide_help = variable_get('views_hide_help_message');
+  if (isset($hide_help)) {
+    variable_set('views_ui_show_advanced_help_warning', !$hide_help);
+    variable_del('views_hide_help_message');
+  }
+
+  // Rename the unused views_no_hover_links variable.
+  variable_del('views_no_hover_links');
+}
+
+/**
+ * Fix missing items from Views administrative breadcrumb
+ */
+function views_update_7001() {
+  $depth = db_select('menu_links')
+    ->fields('menu_links', array('depth'))
+    ->condition('link_path', 'admin/structure/views/view/%')
+    ->execute()
+    ->fetchField();
+
+  if ($depth == 3) {
+    db_delete('menu_links')
+      ->condition('link_path', 'admin/structure/views/%', 'LIKE')
+      ->execute();
+    cache_clear_all(NULL, 'cache_menu');
+    menu_rebuild();
+  }
+
+}

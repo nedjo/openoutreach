@@ -1,0 +1,3 @@
+name = Subprofiles
+description = Provide multiple variations of a single installation profile.
+core = 7.x

@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar_plugin_display_attachment.inc,v 1.18 2011/01/18 00:37:21 karens Exp $
 
 /**
  * @file
@@ -68,7 +67,7 @@ class calendar_plugin_display_attachment extends views_plugin_display_attachment
       if ($argument['id'] == 'date_argument') {
         $pos = $i;
         $default_granularity = $argument['granularity'];
-        $wildcard = $argument['wildcard'];
+        $wildcard = $argument['exception']['value'];
         $argument = !empty($this->view->args) && !empty($this->view->args[$pos]) ? $this->view->args[$pos] : '';
         break;
       }

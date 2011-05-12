@@ -1,5 +1,4 @@
 <?php
-// $Id: service_links.admin.inc,v 1.1.2.15.2.8 2011/02/07 18:37:55 thecrow Exp $
 
 /**
  * @file
@@ -180,19 +179,31 @@ function service_links_admin_settings() {
     '#title' => t("Don't show links if the actual user is the author of the node"),
     '#default_value' => variable_get('service_links_hide_for_author', 0),
   );
-  $form['how_to_show_the_links']['service_links_label_in_node'] = array(
+  $form['how_to_show_the_links']['in_node'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Service Links in nodes'),
+  );
+  $form['how_to_show_the_links']['in_node']['service_links_label_in_node'] = array(
     '#type' => 'textfield',
-    '#title' => t('Label for service links in nodes'),
+    '#title' => t('Print the label'),
     '#default_value' => variable_get('service_links_label_in_node', t('Bookmark/Search this post with')),
     '#size' => '40',
+  );
+  $form['how_to_show_the_links']['in_node']['service_links_weight_in_node'] = array(
+    '#type' => 'weight',
+    '#delta' => 10,
+    '#title' => t('Assign a weight'),
+    '#default_value' => variable_get('service_links_weight_in_node', 10),
+    '#description' => t('The weight help to place the Service Links section above or below the other elements.'),
   );
 
   $form['how_to_show_the_links']['icons'] = array(
     '#type' => 'fieldset',
+    '#title' => t('Service Links icons'),
   );
   $form['how_to_show_the_links']['icons']['service_links_path_icons'] = array(
     '#type' => 'textfield',
-    '#title' => t("Icon's folder"),
+    '#title' => t('Standard folder'),
     '#description' => t('If you have alternative icons enter here the relative path from your index.php without trailing slash (i.e. %path1 or %path2)', array('%path1' => 'files/newicons', '%path2' => 'sites/all/files/newicons')),
     '#default_value' => service_links_expand_path(NULL, 'icons'),
     '#size' => 40,
@@ -200,7 +211,7 @@ function service_links_admin_settings() {
   $form['how_to_show_the_links']['icons']['service_links_check_icons'] = array(
     '#type' => 'checkbox',
     '#title' => t('Use the default icons if missing'),
-    '#description' => t('Check every icon under the selected path and if not available, consider the default path %path', array('%path' => service_links_expand_path(NULL, 'preset'))),
+    '#description' => t('Check every icon in the standard folder and if not available, consider the default path %path', array('%path' => service_links_expand_path(NULL, 'preset'))),
     '#default_value' => variable_get('service_links_check_icons', FALSE),
   );
 
@@ -237,7 +248,7 @@ function service_links_admin_settings() {
   );
   $form['extra_options']['title']['service_links_override_title_text'] = array(
     '#type' => 'textfield',
-    '#description' => t("Enter the text that override the title: use @title for referrer the original title, either the various tokens offered by <a href='@url'>Token</a> if it's enabled and the related option actived.", array('@url' => 'http://www.drupal.org/project/token', '@title' => '<title>')),
+    '#description' => t("Enter the text that override the title: use @title for referrer the original title, either the various tokens offered by <a href='@url'>Token</a> if it's enabled and the related option active.", array('@url' => 'http://www.drupal.org/project/token', '@title' => '<title>')),
     '#default_value' => variable_get('service_links_override_title_text', '<title>'),
     '#size' => 40,
   );

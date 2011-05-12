@@ -1,5 +1,4 @@
 <?php
-// $Id: captcha.install,v 1.22 2010/12/30 23:59:07 soxofaan Exp $
 
 /**
  * @file
@@ -31,6 +30,7 @@ function captcha_schema() {
         'type' => 'varchar',
         'length' => 128,
         'not null' => TRUE,
+        'default' => '',
       ),
       'module' => array(
         'description' => 'The module that provides the challenge.',

@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-week-overlap.tpl.php,v 1.6 2011/01/05 04:50:09 developerx Exp $ 
 /**
  * @file
  * Template to display a view as a calendar week with overlapping items
@@ -67,19 +66,27 @@
         <span class="calendar-hour"><?php print t('All day', array(), array('context' => 'datetime'))?></span>
       </td>
       <?php endif; ?>
-      <?php for($j = 0; $j < 6; $j++): ?>
+      <?php for($j = 0; $j < 7; $j++): ?>
         <?php $cell = (empty($all_day[$j][$i])) ? NULL : $all_day[$j][$i]; ?>
         <?php if($cell != NULL && $cell['filled'] && $cell['wday'] == $j): ?>
-          <?php for($k = $colpos; $k < $cell['wday']; $k++) : ?>
-          <td class="calendar-agenda-items multi-day no-entry"><div class="inner">&nbsp;</div></td>
-          <?php endfor;?>
-          <?php $colpos = $cell['wday'] + $cell['colspan']; ?>
+          <?php for($colpos; $colpos < $cell['wday']; $colpos++) : ?>
           <?php 
             $colclass = "calendar-agenda-items multi-day";
-            if ($colpos == 1) {
+            if ($colpos == 0) {
               $colclass .= " first";
             }
-            if ($colpos == 7) {
+            if ($colpos == 6) {
+              $colclass .= " last";
+            }
+          ?>
+          <td class="<?php print $colclass?>"><div class="inner">&nbsp;</div></td>
+          <?php endfor;?>
+          <?php 
+            $colclass = "calendar-agenda-items multi-day";
+            if ($colpos == 0) {
+              $colclass .= " first";
+            }
+            if ($colpos == 6) {
               $colclass .= " last";
             }
           ?>
@@ -88,20 +95,22 @@
             <?php print $cell['entry']?>
             </div>
           </td>
+          <?php $colpos += $cell['colspan']; ?>
         <?php endif; ?>
       <?php endfor; ?>  
-      <?php for($j = $colpos; $j < 7; $j++) : ?>
+      <?php while($colpos < 7) : ?>
       <?php 
         $colclass = "calendar-agenda-items multi-day no-entry";
-        if ($j == 0) {
+        if ($colpos == 0) {
           $colclass .= " first";
         }
-        if ($j == 6) {
+        if ($colpos == 6) {
           $colclass .= " last";
         }
       ?>
       <td class="<?php print $colclass?>"><div class="inner">&nbsp;</div></td>
-      <?php endfor;?>
+      <?php $colpos++; ?>
+      <?php endwhile;?>
     </tr>
     <?php endfor; ?>
     <?php if ($multiday_rows == 0) :?>
@@ -109,7 +118,7 @@
       <td class="<?php print $agenda_hour_class ?>">
         <span class="calendar-hour"><?php print t('All day', array(), array('context' => 'datetime'))?></span>
       </td>
-      <?php for($j = 0; $j < 6; $j++): ?>
+      <?php for($j = 0; $j < 7; $j++): ?>
       <?php 
         $colclass = "calendar-agenda-items multi-day no-entry";
         if ($j == 0) {
@@ -127,7 +136,7 @@
       <td class="<?php print $agenda_hour_class ?>">
         <span class="calendar-hour">&nbsp;</span>
       </td>
-      <?php for($j = 0; $j < 6; $j++): ?>
+      <?php for($j = 0; $j < 7; $j++): ?>
       <?php 
         $colclass = "calendar-agenda-items multi-day no-entry";
         if ($j == 0) {

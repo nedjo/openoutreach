@@ -1,5 +1,4 @@
 <?php
-// $Id: http_response.inc,v 1.2 2010/10/11 22:18:24 sdboyer Exp $
 
 /**
  * @file
@@ -16,7 +15,7 @@ $plugin = array(
 
   // Administrative fields.
   'title' => t('HTTP response code'),
-  'admin summary' =>'page_manager_http_response_admin_summary',
+  'admin summary' => 'page_manager_http_response_admin_summary',
   'admin title' => 'page_manager_http_response_title',
   'operations' => array(
     'settings' => array(
@@ -215,7 +214,7 @@ function page_manager_http_response_title($handler, $task, $subtask) {
 /**
  * General settings for the panel
  */
-function page_manager_http_response_edit_settings(&$form, &$form_state) {
+function page_manager_http_response_edit_settings($form, &$form_state) {
   $conf = $form_state['handler']->conf;
   $form['title'] = array(
     '#type' => 'textfield',
@@ -236,7 +235,6 @@ function page_manager_http_response_edit_settings(&$form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Redirect destination'),
     '#default_value' => $conf['destination'],
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-code' => array(301)),
     '#description' => t('Enter the path to redirect to. You may use keyword substitutions from contexts. You can use external urls (http://www.example.com/foo) or internal urls (node/1).'),
   );
@@ -244,7 +242,7 @@ function page_manager_http_response_edit_settings(&$form, &$form_state) {
   return $form;
 }
 
-function page_manager_http_response_edit_settings_submit(&$form, &$form_state) {
+function page_manager_http_response_edit_settings_submit($form, &$form_state) {
   $form_state['handler']->conf['title'] = $form_state['values']['title'];
   $form_state['handler']->conf['code'] = $form_state['values']['code'];
   $form_state['handler']->conf['destination'] = $form_state['values']['destination'];

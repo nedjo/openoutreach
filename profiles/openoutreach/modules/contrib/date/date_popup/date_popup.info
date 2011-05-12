@@ -11,9 +11,9 @@ files[] = date_popup.js
 files[] = themes/calendar.css
 files[] = themes/datepicker.css
 files[] = themes/timeentry.css
-; Information added by drupal.org packaging script on January 1, 1970 - 00:00
-version = "7.x-1.0-alpha2"
+; Information added by drupal.org packaging script on 2011-05-01
+version = "7.x-2.x-dev"
 core = "7.x"
 project = "date"
-datestamp = "1295529406"
+datestamp = "1304208437"
 

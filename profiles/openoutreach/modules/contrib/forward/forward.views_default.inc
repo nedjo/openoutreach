@@ -1,5 +1,4 @@
 <?php
-// $Id: forward.views_default.inc,v 1.3 2010/08/19 18:27:06 seanr Exp $
 
 /**
  * Implements hook_views_default_views().

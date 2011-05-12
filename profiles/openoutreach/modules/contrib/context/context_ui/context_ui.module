@@ -1,5 +1,4 @@
 <?php
-// $Id: context_ui.module,v 1.13.2.48.2.1.2.19.2.9 2010/12/09 22:30:15 yhahn Exp $
 
 /**
  * Implementation of hook_ctools_plugin_directory().

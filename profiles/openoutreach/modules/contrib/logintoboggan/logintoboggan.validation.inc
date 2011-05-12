@@ -1,5 +1,4 @@
 <?php
-// $Id: logintoboggan.validation.inc,v 1.2 2011/01/05 21:09:26 thehunmonkgroup Exp $
 
 /**
  * @file
@@ -13,18 +12,18 @@
 function logintoboggan_validate_email($account, $timestamp, $hashed_pass, $action = 'login') {
   global $user;
 
+  // Test here for a valid pre-auth -- if the pre-auth is set to the auth user, we
+  // handle things a bit differently.
+  $validating_id = logintoboggan_validating_id();
+  $pre_auth = !variable_get('user_email_verification', TRUE) && $validating_id != DRUPAL_AUTHENTICATED_RID;
+
   // No time out for first time login.
   // This conditional checks that:
   // - the user is still in the pre-auth role or didn't set
   //   their own password.
   // - the hashed password is correct.
-  if (((variable_get('user_email_verification', TRUE) && empty($account->login)) || array_key_exists(logintoboggan_validating_id(), $account->roles)) && $hashed_pass == logintoboggan_eml_rehash($account->pass, $timestamp, $account->mail)) {
+  if (((variable_get('user_email_verification', TRUE) && empty($account->login)) || ($pre_auth && array_key_exists($validating_id, $account->roles))) && $hashed_pass == logintoboggan_eml_rehash($account->pass, $timestamp, $account->mail)) {
     watchdog('user', 'E-mail validation URL used for %name with timestamp @timestamp.', array('%name' => $account->name, '@timestamp' => $timestamp));
-
-    // Test here for a valid pre-auth -- if the pre-auth is set to the auth user, we
-    // handle things a bit differently.
-    $validating_id = logintoboggan_validating_id();
-    $pre_auth = !variable_get('user_email_verification', TRUE) && $validating_id != DRUPAL_AUTHENTICATED_RID;
 
     _logintoboggan_process_validation($account);
 

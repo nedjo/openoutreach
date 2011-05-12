@@ -1,5 +1,4 @@
 <?php
-// $Id: context.plugins.inc,v 1.1.2.8.2.3 2010/09/21 00:54:22 yhahn Exp $
 
 /**
  * Context registry.
@@ -37,12 +36,14 @@ function _context_context_registry() {
       'description' => t('Set this context when viewing a user page.'),
       'plugin' => 'context_condition_user_page',
     ),
-    'menu' => array(
+  );
+  if (module_exists('menu')) {
+    $registry['conditions']['menu'] = array(
       'title' => t('Menu'),
       'description' => t('Set this context when any of the selected menu items belong to the current active menu trail.'),
       'plugin' => 'context_condition_menu',
-    ),
-  );
+    );
+  }
   if (module_exists('views')) {
     $registry['conditions']['views'] = array(
       'title' => t('Views'),
@@ -70,13 +71,11 @@ function _context_context_registry() {
     );
   }
   if (module_exists('taxonomy')) {
-    /*
     $registry['conditions']['node_taxonomy'] = array(
       'title' => t('Taxonomy'),
       'description' => t('Set this context when viewing a node with the selected taxonomy terms.'),
       'plugin' => 'context_condition_node_taxonomy',
     );
-    */
     $registry['conditions']['taxonomy_term'] = array(
       'title' => t('Taxonomy term'),
       'description' => t('Set this context when viewing a taxonomy term page.'),
@@ -94,15 +93,15 @@ function _context_context_registry() {
       'description' => t('Set the breadcrumb trail to the selected menu item.'),
       'plugin' => 'context_reaction_breadcrumb',
     ),
-    'menu' => array(
-      'title' => t('Menu'),
-      'description' => t('Control menu active class using context.'),
-      'plugin' => 'context_reaction_menu',
-    ),
     'theme' => array(
-      'title' => t('Theme'),
-      'description' => t('Control theme variables using context.'),
+      'title' => t('Theme Page'),
+      'description' => t('Control page theme variables using context.'),
       'plugin' => 'context_reaction_theme',
+    ),
+    'theme_html' => array(
+      'title' => t('Theme HTML'),
+      'description' => t('Control HTML theme variables using context.'),
+      'plugin' => 'context_reaction_theme_html',
     ),
     'debug' => array(
       'title' => t('Debug'),
@@ -110,6 +109,13 @@ function _context_context_registry() {
       'plugin' => 'context_reaction_debug',
     ),
   );
+  if (module_exists('menu')) {
+    $registry['reactions']['menu'] = array(
+      'title' => t('Menu'),
+      'description' => t('Control menu active class using context.'),
+      'plugin' => 'context_reaction_menu',
+    );
+  }
   if (module_exists('css_injector')) {
     $registry['reactions']['css_injector'] = array(
       'title' => t('CSS Injector'),
@@ -193,7 +199,6 @@ function _context_context_plugins() {
     ),
   );
   if (module_exists('taxonomy')) {
-    /*
     $plugins['context_condition_node_taxonomy'] = array(
       'handler' => array(
         'path' => drupal_get_path('module', 'context') .'/plugins',
@@ -202,7 +207,6 @@ function _context_context_plugins() {
         'parent' => 'context_condition_node',
       ),
     );
-    */
     $plugins['context_condition_taxonomy_term'] = array(
       'handler' => array(
         'path' => drupal_get_path('module', 'context') .'/plugins',
@@ -291,6 +295,14 @@ function _context_context_plugins() {
       'file' => 'context_reaction_theme.inc',
       'class' => 'context_reaction_theme',
       'parent' => 'context_reaction',
+    ),
+  );
+  $plugins['context_reaction_theme_html'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'file' => 'context_reaction_theme_html.inc',
+      'class' => 'context_reaction_theme_html',
+      'parent' => 'context_reaction_theme',
     ),
   );
   $plugins['context_reaction_debug'] = array(

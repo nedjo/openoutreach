@@ -1,12 +1,15 @@
 <?php
+/**
+ * @file
+ * debut_media.views_default.inc
+ */
 
 /**
  * Implementation of hook_views_default_views().
  */
 function debut_media_views_default_views() {
-  $views = array();
+  $export = array();
 
-  // Exported view: media
   $view = new view;
   $view->name = 'media';
   $view->description = '';
@@ -49,10 +52,10 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['fid']['hide_empty'] = 0;
   $handler->display->display_options['fields']['fid']['empty_zero'] = 0;
   $handler->display->display_options['fields']['fid']['link_to_file'] = 0;
-  /* Field: Fields: file */
+  /* Field: Media: File */
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
   $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_file';
-  $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['field'] = 'file';
   $handler->display->display_options['fields']['entity_id']['label'] = '';
   $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 1;
@@ -81,7 +84,7 @@ function debut_media_views_default_views() {
   /* Display: Page: Media */
   $handler = $view->new_display('page', 'Page: Media', 'page_1');
   $handler->display->display_options['defaults']['title'] = FALSE;
-  $handler->display->display_options['title'] = 'Media';
+  $handler->display->display_options['title'] = 'Multimedia';
   $handler->display->display_options['defaults']['style_plugin'] = FALSE;
   $handler->display->display_options['style_plugin'] = 'grid';
   $handler->display->display_options['style_options']['columns'] = '3';
@@ -107,7 +110,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['row_plugin'] = 'fields';
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter: File: Mime type */
+  /* Filter criterion: File: Mime type */
   $handler->display->display_options['filters']['filemime']['id'] = 'filemime';
   $handler->display->display_options['filters']['filemime']['table'] = 'file_managed';
   $handler->display->display_options['filters']['filemime']['field'] = 'filemime';
@@ -130,7 +133,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['row_plugin'] = 'fields';
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['filters'] = FALSE;
-  /* Filter: File: Mime type */
+  /* Filter criterion: File: Mime type */
   $handler->display->display_options['filters']['filemime']['id'] = 'filemime';
   $handler->display->display_options['filters']['filemime']['table'] = 'file_managed';
   $handler->display->display_options['filters']['filemime']['field'] = 'filemime';
@@ -143,10 +146,10 @@ function debut_media_views_default_views() {
   /* Display: Page: Single item */
   $handler = $view->new_display('page', 'Page: Single item', 'page_4');
   $handler->display->display_options['defaults']['fields'] = FALSE;
-  /* Field: Fields: file */
+  /* Field: Media: File */
   $handler->display->display_options['fields']['entity_id']['id'] = 'entity_id';
   $handler->display->display_options['fields']['entity_id']['table'] = 'field_data_file';
-  $handler->display->display_options['fields']['entity_id']['field'] = 'entity_id';
+  $handler->display->display_options['fields']['entity_id']['field'] = 'file';
   $handler->display->display_options['fields']['entity_id']['label'] = '';
   $handler->display->display_options['fields']['entity_id']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['entity_id']['alter']['make_link'] = 0;
@@ -163,13 +166,13 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['entity_id']['click_sort_column'] = 'fid';
   $handler->display->display_options['fields']['entity_id']['type'] = 'styles_file_large';
   $handler->display->display_options['defaults']['arguments'] = FALSE;
-  /* Argument: Fields: file (file) - fid */
+  /* Contextual filter: Fields: File (file) - fid */
   $handler->display->display_options['arguments']['file_fid']['id'] = 'file_fid';
   $handler->display->display_options['arguments']['file_fid']['table'] = 'field_data_file';
   $handler->display->display_options['arguments']['file_fid']['field'] = 'file_fid';
   $handler->display->display_options['arguments']['file_fid']['default_action'] = 'empty';
-  $handler->display->display_options['arguments']['file_fid']['style_plugin'] = 'default_summary';
   $handler->display->display_options['arguments']['file_fid']['default_argument_type'] = 'fixed';
+  $handler->display->display_options['arguments']['file_fid']['summary']['format'] = 'default_summary';
   $handler->display->display_options['arguments']['file_fid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['file_fid']['not'] = 0;
   $handler->display->display_options['path'] = 'media/%';
@@ -177,7 +180,7 @@ function debut_media_views_default_views() {
     t('Defaults'),
     t('Apply'),
     t('Reset'),
-    t('Sort By'),
+    t('Sort by'),
     t('Asc'),
     t('Desc'),
     t('Items per page'),
@@ -186,7 +189,7 @@ function debut_media_views_default_views() {
     t('File ID'),
     t('media/[fid]'),
     t('Page: Media'),
-    t('Media'),
+    t('Multimedia'),
     t('more'),
     t('Page: Images'),
     t('Images'),
@@ -195,8 +198,7 @@ function debut_media_views_default_views() {
     t('Page: Single item'),
     t('All'),
   );
+  $export['media'] = $view;
 
-  $views[$view->name] = $view;
-
-  return $views;
+  return $export;
 }

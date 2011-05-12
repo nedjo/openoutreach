@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_comment.strongarm.inc
+ */
 
 /**
  * Implementation of hook_strongarm().

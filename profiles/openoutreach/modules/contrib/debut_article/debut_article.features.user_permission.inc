@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_article.features.user_permission.inc
+ */
 
 /**
  * Implementation of hook_user_default_permissions().
@@ -10,44 +14,49 @@ function debut_article_user_default_permissions() {
   $permissions['create article content'] = array(
     'name' => 'create article content',
     'roles' => array(
-      '0' => 'administrator',
-      '1' => 'contributor',
-      '2' => 'editor',
+      0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
     ),
+    'module' => 'node',
   );
 
   // Exported permission: delete any article content
   $permissions['delete any article content'] = array(
     'name' => 'delete any article content',
     'roles' => array(
-      '0' => 'administrator',
-      '1' => 'editor',
+      0 => 'administrator',
+      1 => 'editor',
     ),
+    'module' => 'node',
   );
 
   // Exported permission: delete own article content
   $permissions['delete own article content'] = array(
     'name' => 'delete own article content',
     'roles' => array(
-      '0' => 'contributor',
+      0 => 'contributor',
     ),
+    'module' => 'node',
   );
 
   // Exported permission: edit any article content
   $permissions['edit any article content'] = array(
     'name' => 'edit any article content',
     'roles' => array(
-      '0' => 'administrator',
-      '1' => 'editor',
+      0 => 'administrator',
+      1 => 'editor',
     ),
+    'module' => 'node',
   );
 
   // Exported permission: edit own article content
   $permissions['edit own article content'] = array(
     'name' => 'edit own article content',
     'roles' => array(
-      '0' => 'contributor',
+      0 => 'contributor',
     ),
+    'module' => 'node',
   );
 
   return $permissions;

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_event.strongarm.inc
+ */
 
 /**
  * Implementation of hook_strongarm().

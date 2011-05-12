@@ -91,6 +91,10 @@
   width: 14%;
 }
 
+.calendar-calendar .week-view #multi-day-container table td.calendar-agenda-hour {
+	border-right : 1px solid #CCCCCC;
+}
+
 .calendar-calendar .week-view #single-day-container,
 .calendar-calendar .day-view #single-day-container {
   border-top : 1px solid #CCCCCC;
@@ -103,6 +107,16 @@
   border-top : 0px;
   border-bottom : 0px;
   width: 14%;
+}
+
+.calendar-calendar .week-view td.first,
+.calendar-calendar .day-view td.first {
+   border-left : 0px;
+}
+
+.calendar-calendar .week-view td.first,
+.calendar-calendar .day-view td.first {
+   border-left : 0px;
 }
 
 .calendar-calendar .week-view td.last,
@@ -145,7 +159,6 @@
 .calendar-calendar .day-view .full div.calendar-agenda-hour,
 .calendar-calendar .week-view .full div.calendar-agenda-items,
 .calendar-calendar .day-view .full div.calendar-agenda-items  {
-  width : 100%;
   height : 47px;
   border-top : 1px solid #cccccc;
 }

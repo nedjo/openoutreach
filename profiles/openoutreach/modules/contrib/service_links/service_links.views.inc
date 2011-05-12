@@ -1,5 +1,4 @@
 <?php
-// $Id: service_links.views.inc,v 1.1.2.1.2.1 2010/10/10 09:02:22 thecrow Exp $
 
 /**
  * @file

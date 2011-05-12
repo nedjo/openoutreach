@@ -1,5 +1,4 @@
 <?php
-// $Id: custom.inc,v 1.17 2011/01/05 22:57:26 merlinofchaos Exp $
 
 /**
  * @file
@@ -225,7 +224,7 @@ function ctools_custom_content_type_admin_info($subtype, $conf) {
     if (!filter_access($filter)) {
       return NULL;
     }
-    $block->content = '<pre>'. check_plain($settings['body']) .'</pre>';
+    $block->content = '<pre>' . check_plain($settings['body']) . '</pre>';
   }
   else {
     // We also need to filter through XSS admin because <script> tags can
@@ -243,7 +242,7 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
   $form_state['settings'] = $settings;
 
   if ($settings['custom_type'] == 'fixed') {
-    return; // no form for this case.
+    return $form; // no form for this case.
   }
 
   $form['admin_title'] = array(
@@ -259,7 +258,7 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#title' => t('Title'),
   );
 
-    $form['body'] = array(
+  $form['body'] = array(
     '#type' => 'text_format',
     '#title' => t('Body'),
     '#default_value' => $settings['body'],
@@ -270,9 +269,11 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     // Set extended description if both CCK and Token modules are enabled, notifying of unlisted keywords
     if (module_exists('content') && module_exists('token')) {
       $description = t('If checked, context keywords will be substituted in this content. Note that CCK fields may be used as keywords using patterns like <em>%node:field_name-formatted</em>.');
-    } elseif (!module_exists('token')) {
+    }
+    elseif (!module_exists('token')) {
       $description = t('If checked, context keywords will be substituted in this content. More keywords will be available if you install the Token module, see http://drupal.org/project/token.');
-    } else {
+    }
+    else {
       $description = t('If checked, context keywords will be substituted in this content.');
     }
 
@@ -303,7 +304,7 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
   }
 
   if (!user_access('administer custom content') || !module_exists('ctools_custom_content')) {
-    return;
+    return $form;
   }
 
   // Make the other form items dependent upon it.
@@ -320,7 +321,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Machine name'),
     '#description' => t('The machine readable name of this content. It must be unique, and it must contain only alphanumeric characters and underscores. Once created, you will not be able to change this value!'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
 
@@ -328,7 +328,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Category'),
     '#description' => t('What category this content should appear in. If left blank the category will be "Miscellaneous".'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
 
@@ -336,7 +335,6 @@ function ctools_custom_content_type_edit_form($form, &$form_state) {
     '#type' => 'textarea',
     '#title' => t('Administrative description'),
     '#description' => t('A description of what this content is, does or is for, for administrative use.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('edit-reusable' => array(1)),
   );
   return $form;

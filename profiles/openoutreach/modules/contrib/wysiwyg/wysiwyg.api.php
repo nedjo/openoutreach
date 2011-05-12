@@ -1,5 +1,4 @@
 <?php
-// $Id: wysiwyg.api.php,v 1.8 2011/01/23 01:58:34 sun Exp $
 
 /**
  * @file

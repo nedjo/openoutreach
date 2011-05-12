@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.module,v 1.1.2.6 2011/01/19 17:39:51 fago Exp $
 
 /**
  * @file
@@ -703,9 +702,16 @@ function template_preprocess_entity(&$variables) {
   $variables['classes_array'][] = drupal_html_class('entity-' . $entity_type);
   $variables['classes_array'][] = drupal_html_class($entity_type . '-' . $bundle);
 
+  // Add RDF type and about URI.
+  if (module_exists('rdf')) {
+    $variables['attributes_array']['about'] = empty($uri['path']) ? NULL: url($uri['path']);
+    $variables['attributes_array']['typeof'] = empty($entity->rdf_mapping['rdftype']) ? NULL : $entity->rdf_mapping['rdftype'];
+  }
+
   // Add suggestions.
   $variables['theme_hook_suggestions'][] = $entity_type;
   $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle;
+  $variables['theme_hook_suggestions'][] = $entity_type . '__' . $bundle . '__' . $variables['view_mode'];
   if ($id = entity_id($entity_type, $entity)) {
     $variables['theme_hook_suggestions'][] = $entity_type . '__' . $id;
   }
@@ -954,7 +960,7 @@ function entity_entity_info_alter(&$entity_info) {
     $entity_info['comment']['creation callback'] = 'entity_metadata_create_comment';
     $entity_info['comment']['save callback'] = 'comment_save';
     $entity_info['comment']['deletion callback'] = 'comment_delete';
-    $entity_info['comment']['view callback'] = 'entity_metadata_view_single';
+    $entity_info['comment']['view callback'] = 'entity_metadata_view_comment';
   }
   if (module_exists('taxonomy')) {
     $entity_info['taxonomy_term']['access callback'] = 'entity_metadata_taxonomy_access';

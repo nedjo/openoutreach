@@ -1,5 +1,4 @@
 <?php
-// $Id: context_reaction_debug.inc,v 1.1.2.3.2.2 2010/12/09 22:34:26 yhahn Exp $
 
 /**
  * Output context debug information.

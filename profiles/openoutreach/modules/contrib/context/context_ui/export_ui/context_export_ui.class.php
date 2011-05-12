@@ -1,5 +1,4 @@
 <?php
-// $Id: context_export_ui.class.php,v 1.1.2.5.2.1 2010/09/14 17:41:20 jmiccolis Exp $
 
 /**
  * CTools export UI extending class. Slightly customized for Context.
@@ -86,8 +85,17 @@ class context_export_ui extends ctools_export_ui {
  * @param $form_state
  *   Form state array
  */
-function context_ui_form(&$form, &$form_state) {
+function context_ui_form(&$form, &$form_state) {  
+  $conditions = array_keys(context_conditions());
+  sort($conditions);
+  $reactions = array_keys(context_reactions());
+  sort($reactions);
+    
   $context = $form_state['item'];
+  if (!empty($form_state['input'])) {
+    $context = _context_ui_rebuild_from_input($context, $form_state['input'], $conditions, $reactions);
+  }
+  
   $form['#base'] = 'context_ui_form';
   $form['#theme'] = 'context_ui_form';
 
@@ -143,8 +151,6 @@ function context_ui_form(&$form, &$form_state) {
     ),
     'plugins' => array('#tree' => TRUE),
   );
-  $conditions = array_keys(context_conditions());
-  sort($conditions);
   foreach ($conditions as $condition) {
     if ($plugin = context_get_plugin('condition', $condition)) {
       $form['conditions']['plugins'][$condition] = array(
@@ -175,8 +181,6 @@ function context_ui_form(&$form, &$form_state) {
     ),
     'plugins' => array('#tree' => TRUE),
   );
-  $reactions = array_keys(context_reactions());
-  sort($reactions);
   foreach ($reactions as $reaction) {
     if ($plugin = context_get_plugin('reaction', $reaction)) {
       $form['reactions']['plugins'][$reaction] = $plugin->options_form($context) + array(
@@ -189,17 +193,58 @@ function context_ui_form(&$form, &$form_state) {
 }
 
 /**
+ * Handle the complex job of rebuilding a Context from submission data in the case of a validation error.
+ *
+ * @param $context
+ *   The context object to modify.
+ * @param $input
+ *   A form submission values
+ * @param $conditions
+ *   The full list of condition plugins
+ * @param $reactions
+ *   The full list of reaction plugins
+ *
+ * @return
+ *   A context object
+ */
+function _context_ui_rebuild_from_input($context, $input, $conditions, $reactions) {
+  $condition_defaults = array();  
+  foreach ($conditions as $condition) {
+    if ($plugin = context_get_plugin('condition', $condition)) {
+      $condition_defaults[$condition] = array(
+        'values' => $plugin->condition_form($context),
+        'options' => $plugin->options_form($context),
+      );
+    }
+  }
+  $input['conditions']['plugins'] = array_merge($condition_defaults, $input['conditions']['plugins']);
+  
+  $reaction_defaults = array();
+  foreach ($reactions as $reaction) {
+    if ($plugin = context_get_plugin('reaction', $reaction)) {
+      $reaction_defaults[$reaction] = $plugin->options_form($context);
+    }
+  }
+  $input['reactions']['plugins'] = array_merge($reaction_defaults, $input['reactions']['plugins']);
+
+  return context_ui_form_process($context, $input, FALSE);
+}
+
+/**
  * Modifies a context object from submitted form values.
  *
  * @param $context
  *   The context object to modify.
  * @param $form
  *   A form array with submitted values
+ * @param $submit
+ *   A flag indicating if we are building a context on submit. If on
+ *   submit, it will clear out conditions/reactions that are empty.
  *
  * @return
  *   A context object
  */
-function context_ui_form_process($context, $form) {
+function context_ui_form_process($context, $form, $submit = TRUE) {
   $context->name = isset($form['name']) ? $form['name'] : NULL;
   $context->description = isset($form['description']) ? $form['description'] : NULL;
   $context->tag = isset($form['tag']) ? $form['tag'] : NULL;
@@ -216,7 +261,7 @@ function context_ui_form_process($context, $form) {
         if (isset($values['options'])) {
           $context->conditions[$condition]['options'] = $plugin->options_form_submit($values['options']);
         }
-        if (context_empty($context->conditions[$condition]['values'])) {
+        if ($submit && context_empty($context->conditions[$condition]['values'])) {
           unset($context->conditions[$condition]);
         }
       }
@@ -229,7 +274,7 @@ function context_ui_form_process($context, $form) {
         if (isset($values)) {
           $context->reactions[$reaction] = $plugin->options_form_submit($values);
         }
-        if (context_empty($context->reactions[$reaction])) {
+        if ($submit && context_empty($context->reactions[$reaction])) {
           unset($context->reactions[$reaction]);
         }
       }

@@ -1,4 +1,3 @@
-// $Id: date_popup.js,v 1.5 2010/11/20 12:03:10 karens Exp $
 
 /**
  * Attaches the calendar behavior to all required fields

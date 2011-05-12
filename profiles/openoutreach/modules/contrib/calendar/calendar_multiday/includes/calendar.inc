@@ -1,5 +1,4 @@
 <?php
-//$Id: calendar.inc,v 1.10 2011/01/18 00:37:21 karens Exp $
 /**
  * @file
  * Calendar building functions for the Calendar module.
@@ -87,7 +86,7 @@ function calendar_build_month(&$curday, $view, $items) {
     $today = date_format(date_now(date_default_timezone()), DATE_FORMAT_DATE);
     $month = date_format($curday, 'n');
     $week = date_week($curday_date);
-    $first_day = variable_get('date_first_day', 0);
+    $first_day = variable_get('date_first_day', 1);
     $week_rows = calendar_build_week($curday, $view, $items, TRUE);
     $multiday_buckets = $week_rows['multiday_buckets'];
     $singleday_buckets = $week_rows['singleday_buckets'];
@@ -325,7 +324,7 @@ function calendar_build_mini_week(&$curday, $view, $items, $check_month = FALSE)
   $today = date_format(date_now(date_default_timezone()), DATE_FORMAT_DATE);
   $month = date_format($curday, 'n');
   $week = date_week($curday_date);
-  $first_day = variable_get('date_first_day', 0);
+  $first_day = variable_get('date_first_day', 1);
 
   // move backwards to the first day of the week
   $day_wday = date_format($curday, 'w');
@@ -389,7 +388,7 @@ function calendar_build_week(&$curday, $view, $items, $check_month = FALSE) {
   $curday_date = date_format($curday, DATE_FORMAT_DATE);
   $weekdays = calendar_untranslated_days($items, $view);
   $month = date_format($curday, 'n');
-  $first_day = variable_get('date_first_day', 0);
+  $first_day = variable_get('date_first_day', 1);
 
   // Set up buckets
   $total_rows = 0;
@@ -445,7 +444,11 @@ function calendar_build_week_day($curday, $view, $items, $wday, &$multiday_bucke
         foreach ($day as $time => $hour) {
           foreach ($hour as $key => $item) {
             $total_cnt++;
-            $types[$item->type] = $item;
+            // @TODO $node->type may or may not exist any more, or be relevant.
+            // Dig into the theme code to either remove it or get it working differently.
+            if (isset($item->type)) {
+              $types[$item->type] = $item;
+            }
           }
         }
       }
@@ -610,7 +613,9 @@ function calendar_build_day($curday, $view, $items) {
       foreach ($day as $time => $hour) {
         foreach ($hour as $key => $item) {
           $count++;
-          $types[$item->type] = $item;
+          if (isset($item->type)) {
+            $types[$item->type] = $item;
+          }
           if (!$view->date_info->mini && ($max_events == CALENDAR_SHOW_ALL || $count <= $max_events || ($count > 0 && $max_events == CALENDAR_HIDE_ALL))) {
             // Theme the item here unless this is a 'Day' or 'Week' view.
             // Day and week views need to do more processing before rendering

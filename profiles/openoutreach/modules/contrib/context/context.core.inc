@@ -1,5 +1,4 @@
 <?php
-// $Id: context.core.inc,v 1.1.2.3.2.20.2.29.2.11 2010/12/09 22:31:26 yhahn Exp $
 
 /**
  * Implementation of hook_help().
@@ -241,6 +240,10 @@ function context_page_build(&$page) {
   if ($plugin = context_get_plugin('reaction', 'block')) {
     $plugin->execute($page);
   }
+
+  // See block_page_build. Clear static cache b/c in overlay form submissions
+  // hook_page_build can get called more than once per page load.
+  drupal_static_reset('context_reaction_block_list');
 }
 
 /**
@@ -330,4 +333,13 @@ function context_preprocess_page(&$vars) {
     $vars['context_links'] = '';
   }
   */
+}
+
+/**
+ * Implementation of hook_preprocess_html().
+ */
+function context_preprocess_html(&$vars) {
+  if ($plugin = context_get_plugin('reaction', 'theme_html')) {
+    $plugin->execute($vars);
+  }
 }

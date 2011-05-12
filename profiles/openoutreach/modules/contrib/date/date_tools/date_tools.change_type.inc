@@ -1,5 +1,4 @@
 <?php
-// $Id: date_tools.change_type.inc,v 1.5 2011/01/18 00:37:34 karens Exp $
 
 /**
  * A form to change the type of date used in date fields.
@@ -104,7 +103,6 @@ function date_tools_change_type_form_submit($form, &$form_state) {
 
   require_once('./'. drupal_get_path('module', 'date_api') .'/date_api_sql.inc');
   $date_handler = new date_sql_handler();
-  $date_handler->construct();
   $date_handler->granularity = $field['granularity'];  
   $date_handler->date_type = $old_type;
 

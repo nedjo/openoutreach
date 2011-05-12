@@ -1,5 +1,4 @@
 <?php
-// $Id: context_condition_menu.inc,v 1.1.2.5.2.2 2010/09/14 20:42:58 yhahn Exp $
 
 /**
  * Expose menu items as a context condition.

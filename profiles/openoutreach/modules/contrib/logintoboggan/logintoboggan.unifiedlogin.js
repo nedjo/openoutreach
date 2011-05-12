@@ -1,4 +1,3 @@
-/* $Id: logintoboggan.unifiedlogin.js,v 1.1 2011/01/06 06:52:19 thehunmonkgroup Exp $ */
 
 (function ($) {
 

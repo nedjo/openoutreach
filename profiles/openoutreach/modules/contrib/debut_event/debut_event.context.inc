@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_event.context.inc
+ */
 
 /**
  * Implementation of hook_context_default_contexts().
@@ -25,17 +29,11 @@ function debut_event_context_default_contexts() {
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
-        'views-event_calendar-calendar_block_1' => array(
-          'module' => 'views',
-          'delta' => 'event_calendar-calendar_block_1',
-          'region' => 'sidebar_second',
-          'weight' => 0,
-        ),
         'views-event_calendar-block_1' => array(
           'module' => 'views',
           'delta' => 'event_calendar-block_1',
           'region' => 'sidebar_second',
-          'weight' => 1,
+          'weight' => '-10',
         ),
       ),
     ),

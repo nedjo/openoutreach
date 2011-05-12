@@ -1,4 +1,3 @@
-// $Id: context_ui.js,v 1.3.2.5.2.2.2.3.2.1 2010/09/14 19:20:32 jmiccolis Exp $
 (function($) {
 
 /**

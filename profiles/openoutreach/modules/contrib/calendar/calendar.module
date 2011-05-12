@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar.module,v 1.152 2011/01/20 14:00:50 karens Exp $
 define('CALENDAR_SHOW_ALL', 0);
 define('CALENDAR_HIDE_ALL', -1);
 
@@ -208,8 +207,12 @@ function calendar_node_stripe($view, &$node, $query_name, $delta, $stripe = NULL
   if (empty($colors)) {
     return;
   }
+  if (empty($node->raw->node_type)) {
+    return;
+  }
 
   $type_names = node_type_get_names();
+  $type = '';
   $type = $node->raw->node_type;
   if (!(isset($node->stripe))) {
     $node->stripe = array();
@@ -354,7 +357,8 @@ function calendar_og_groups($view) {
  * @return unknown
  */
 function calendar_date_select($view) {
-  return '<div class="calendar-date-select">' . drupal_render(drupal_get_form('calendar_date_select_form', $view)) . '</div>';
+  $output = drupal_get_form('calendar_date_select_form', $view);
+  return '<div class="calendar-date-select">' . drupal_render($output) . '</div>';
 }
 
 /**
@@ -417,7 +421,7 @@ function calendar_get_node_link($node, $default = NULL) {
   if (isset($node->url)) {
     return url($node->url, array('absolute' => TRUE));
   }
-  elseif (empty($node->remote) && is_numeric($node->nid)) {
+  elseif (empty($node->remote) && !empty($node->nid) && is_numeric($node->nid)) {
     return url("node/$node->nid", array('absolute' => TRUE));
   }
   elseif (!empty($default)) {
@@ -567,7 +571,7 @@ function calendar_build_nodes(&$view, &$items) {
   if (empty($view->date_info->min_date) || empty($view->date_info->max_date)) {
     return $items;
   }
-
+ 
   // Midnights are determined based on the same timezone as the View uses
   $display_timezone = date_timezone_get($view->date_info->min_date);
   $display_timezone_name = timezone_name_get($display_timezone);
@@ -587,19 +591,22 @@ function calendar_build_nodes(&$view, &$items) {
   $datefields = array();
   $fields = date_views_fields();
 
-  if (!empty($view->filter['date_filter'])) {
-    $date_filter = $view->filter['date_filter'];
-    foreach ($view->filter['date_filter']->options['date_fields'] as $name) {
-      $datefields[] = $fields['name'][$name]['query_name'];
+  foreach ($view->filter as $id => $handler) {
+    if (date_views_handler_is_date($handler, 'filter')) {
+      $date_filter = $handler;
+      foreach ($handler->options['date_fields'] as $name) {
+        $datefields[] = $fields['name'][$name]['query_name'];
+      }
     }
   }
-  if (!empty($view->argument['date_argument'])) {
-    $date_filter = $view->argument['date_argument'];
-    foreach ($view->argument['date_argument']->options['date_fields'] as $name) {
-      $datefields[] = $fields['name'][$name]['query_name'];
+  foreach ($view->argument as $id => $handler) {
+    if (date_views_handler_is_date($handler, 'argument')) {
+      $date_filter = $handler;
+      foreach ($handler->options['date_fields'] as $name) {
+        $datefields[] = $fields['name'][$name]['query_name'];
+      }
     }
   }
-
   $view_fields = date_views_views_fetch_fields('node', 'field');
   $field_names = (array) array_keys($fields['name']);
   $nodes = array();
@@ -671,8 +678,9 @@ function calendar_build_nodes(&$view, &$items) {
           continue;
         }
       }
-
+      
       if (!in_array($id, $processed) && isset($item->calendar_fields->$alias)) {
+        
         // Create from and to date values for each item, adjusted to
         // the correct timezone.
         $values[0] = $item->calendar_fields->$fromto[0];
@@ -719,7 +727,7 @@ function calendar_build_nodes(&$view, &$items) {
         // Now $values contain start and end date of a node,
         // expressed as strings in the display (local) timezone.
         // $values_utc does the same in UTC timezone.
-
+      
         // Get calendar min and max day (not time) as strings in the
         // $display_timezone. Cache in $min_zone_string and $max_zone_string,
         // since many items or fields typically use the samee timezone.
@@ -741,10 +749,10 @@ function calendar_build_nodes(&$view, &$items) {
           // Make $start and $end (derived from $node) use the timezone $to_zone, just as $values[..] do
           date_timezone_set($next, timezone_open($to_zone));
         }
-        if (empty($to)) {
+        if (empty($to) || $now > $to) {
           $to = $now;
         }
-
+        if ($now )
         // $now and $next are midnight (in display timezone) on the first day where node will occur.
         // $to is midnight on the last day where node will occur.
         // All three were limited by the min-max date range of the view.
@@ -824,16 +832,17 @@ function calendar_build_nodes(&$view, &$items) {
           $node->calendar_start = date_format($node->calendar_start_date, DATE_FORMAT_DATETIME);
           $node->calendar_end = date_format($node->calendar_end_date, DATE_FORMAT_DATETIME);
 
+          // @TODO We can't assume we have information about an entity type.
+          // Probably need to make the increment a field setting so we can access it.
+          $granularity = 'second';
+          $increment = 1;
           if (substr($real_field, 0, 6) == 'field_') {
             $cck_field = field_info_field($real_field);
-            $instance = field_info_instance($view->base_table, $real_field, $node->type);
+            //$instance = field_info_instance($view->base_table, $real_field, $node->type);
             $granularity = $cck_field['settings']['granularity'];
-            $increment = $instance['widget']['settings']['increment'];
+            //$increment = $instance['widget']['settings']['increment'];
           }
-          else {
-            $granularity = 'second';
-            $increment = 1;
-          }
+
           $node->calendar_all_day = date_is_all_day($node->calendar_start, $node->calendar_end, $granularity, $increment);
 
           // Change string timezones into 
@@ -863,6 +872,70 @@ function calendar_build_nodes(&$view, &$items) {
       }
     }
   } 
-
   return $nodes;
+}
+
+/**
+ * Basic adjustments to make to the view, used by theme preprocessors.
+ * Needs to be in a central location because the preview does not call the navigation theme.
+ */
+function calendar_basics(&$vars) {
+
+  // Make sure we only run through this function one time.
+  if (!empty($view->date_info->calendar_basics_processed)) {
+    return;
+  }
+
+  $view     = $vars['view'];
+  $result   = (array) $view->result;
+  $options  = $view->style_plugin->options;
+  $handler  = $view->style_plugin;
+  
+  $vars['display_type'] = $view->date_info->granularity;
+  $vars['min_date_formatted'] = !empty($view->date_info->min_date) ? date_format($view->date_info->min_date, DATE_FORMAT_DATETIME) : '';
+  $vars['max_date_formatted'] = !empty($view->date_info->end_date) ? date_format($view->date_info->max_date, DATE_FORMAT_DATETIME) : '';
+  $view->date_info->mini = isset($view->date_info->mini) ? $view->date_info->mini : $view->date_info->granularity == 'year';
+
+  // The argument might either be the multi-value 'date_argument' or the simple date argument. 
+  $date_argument = NULL;
+  foreach ($view->argument as $id => $handler) {
+    if (date_views_handler_is_date($handler, 'argument')) {
+      $date_argument = $handler;
+    }
+  }
+
+  // Create the links to other displays.
+  $url = $view->get_url();
+  $view->date_info->url = $url;
+  $arg = $view->date_info->date_arg;
+
+  // Set up the links to other calendar views.
+  $current_date = $view->date_info->min_date;
+  if (!empty($date->info->day)) {
+    $current_date = new DateObject($date_info->date_arg .' 00:00:00');
+  }
+  elseif (!empty($view->date_info->week)) {
+    $week = date_week_range($view->date_info->week, $view->date_info->year);
+    $current_date = $week[0]; 
+  }
+  elseif (!empty($view->date_info->month)) {
+    $current_date = new DateObject($view->date_info->year .'-'. date_pad($view->date_info->month) .'-01 00:00:00');
+  }
+  else {
+    $current_date = new DateObject($view->date_info->year .'-01-01 00:00:00');
+  }
+  if (empty($view->date_info->month) || $view->date_info->month == $date_argument->options['exception']['value']) {
+    $view->date_info->month = date_format($current_date, 'm');
+  }
+  if (empty($view->date_info->day) || $view->date_info->day == $date_argument->options['exception']['value']) {
+    $view->date_info->day = date_format($current_date, 'd');
+  }
+  if (empty($view->date_info->week) || $view->date_info->week == $date_argument->options['exception']['value']) {
+    $view->date_info->week = date_week($view->date_info->year .'-'. date_pad($view->date_info->month) .'-'. date_pad($view->date_info->day));
+  }
+  $view->date_info->calendar_basics_processed = TRUE;
+  $vars['mini'] = !empty($view->date_info->mini);
+  $vars['block'] = !empty($view->date_info->block);
+  $vars['block_identifier'] = date_block_identifier($view);
+  $vars['view'] = $view;  
 }

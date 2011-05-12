@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar_plugin_style_ical.inc,v 1.15 2011/01/19 15:41:29 karens Exp $
 
 /**
  * @file
@@ -155,87 +154,93 @@ class calendar_plugin_style_ical extends views_plugin_style_rss {
     $this->view->date_info->description_field = $style_options['description_field'];
     $this->view->date_info->location_field = $style_options['location_field'];
 
-    // Evaluate our argument values and figure out which
-    // calendar display we need to create.
+    // Evaluate our argument values and figure out which values to use.
+    $date_filter = NULL;
+    foreach ($this->view->filter as $id => $handler) {
+      if (date_views_handler_is_date($handler, 'filter')) {
+        $date_filter = $handler;
+        $key = 'filter';
+        $name = $id;
+      }
+    }
     $i = 0;
-    foreach ($this->view->argument as $id => $argument) {
-      if ($argument->field == 'date_argument') {
+    foreach ($this->view->argument as $id => $handler) {
+      if (date_views_handler_is_date($handler, 'argument')) {
+        $date_filter = $handler;
+        $key = 'argument';
+        $name = $id;
+        $pos = $i;
+        $i++;
+      }
+    }
+    if (!empty($date_filter)) {
+      
+      if ($key == 'argument') {
+        $this->view->date_info->date_arg = !empty($this->view->args) ? $this->view->args[$date_filter->position] : '';
+        $this->view->date_info->date_arg_pos = $pos;
+
         // TODO Decide if we want to provide a date here or not.
         // Adding this now is to prevent fatal errors later if the
         // view is used in unexpected ways without a date being set.
-        if (empty($argument->min_date)) {
-          $value = $argument->get_default_argument();
-          $range = $argument->date_handler->arg_range($value);
-          $argument->min_date = $range[0];
-          $argument->max_date = $range[1];
-        }
-        $this->view->date_info->granularity = !empty($argument->granularity) ? $argument->granularity : $argument->options['granularity'];
-        $this->view->date_info->date_arg = !empty($this->view->args) ? $this->view->args[$argument->position] : '';
-        $this->view->date_info->date_arg_pos = $i;
-        $this->view->date_info->year = isset($argument->year) ? $argument->year : NULL;
-        $this->view->date_info->month = isset($argument->month) ? $argument->month : NULL;
-        $this->view->date_info->day = isset($argument->day) ? $argument->day : NULL;
-        $this->view->date_info->week = isset($argument->week) ? $argument->week : NULL;
-        $this->view->date_info->min_date = $argument->min_date;
-        $this->view->date_info->max_date = $argument->max_date;
-
-        // Stop after the first date argument, if there is more than one.
-        break;
-      }
-      $i++;
-    }
-
-    // The ical display might have date filters instead of arguments.
-    // If we missed getting a min date from date arguments, try date filters.
-    if (empty($this->view->date_info->min_date)) {
-      foreach ($this->view->filter as $id => $filter) {
-        if ($filter->field == 'date_filter') {
-          // TODO Decide if we want to provide a date here or not.
-          // Adding this now is to prevent fatal errors later if the
-          // view is used in unexpected ways without a date being set.
-          if (empty($filter->min_date)) {
-            $value = $filter->default_value('value');
-            $range = $filter->date_handler->arg_range($value);
-            $filter->min_date = $range[0];
-            $filter->max_date = $range[1];
-          }
-          $this->view->date_info->granularity = !empty($filter->granularity) ? $filter->granularity : $filter->options['granularity'];
-          $this->view->date_info->year = isset($filter->year) ? $filter->year : NULL;
-          $this->view->date_info->month = isset($filter->month) ? $filter->month : NULL;
-          $this->view->date_info->day = isset($filter->day) ? $filter->day : NULL;
-          $this->view->date_info->week = isset($filter->week) ? $filter->week : NULL;
-          $this->view->date_info->min_date = $filter->min_date;
-          $this->view->date_info->max_date = $filter->max_date;
-          if (empty($this->view->date_info->date_fields)) {
-            $this->view->date_info->date_fields = array();
-          }
-          $this->view->date_info->date_fields = array_merge($this->view->date_info->date_fields, array_keys($filter->options['date_fields']));
-
-          // Stop after the first date filter, if there is more than one.
-          break;
+        if (empty($date_filter->min_date)) {
+          $value = $date_filter->get_default_argument();
+          $range = $date_filter->date_handler->arg_range($value);
+          $date_filter->min_date = $range[0];
+          $date_filter->max_date = $range[1];
         }
       }
-      $i++;
+
+      elseif ($key == 'filter') {
+        // TODO Decide if we want to provide a date here or not.
+        // Adding this now is to prevent fatal errors later if the
+        // view is used in unexpected ways without a date being set.
+        if (empty($date_filter->min_date)) {
+          $value = $date_filter->date_default_value('value');
+          $range = $date_filter->date_handler->arg_range($value);
+          $date_filter->min_date = $range[0];
+          $date_filter->max_date = $range[1];
+        }
+      }
+      $this->view->date_info->granularity = !empty($date_filter->granularity) ? $date_filter->granularity : $date_filter->options['granularity'];
+      $this->view->date_info->min_date = $date_filter->min_date;
+      $this->view->date_info->max_date = $date_filter->max_date;
+      if (empty($this->view->date_info->date_fields)) {
+        $this->view->date_info->date_fields = array();
+      }
+      $this->view->date_info->date_fields = array_merge($this->view->date_info->date_fields, array_keys($date_filter->options['date_fields']));
+
     }
 
     // Render each field into an output array.
+    $result   = (array) $this->view->result;
+    $this->view->style_plugin->render_fields($result);
+    $rendered_items = !empty($view->style_plugin->rendered_fields) ? $view->style_plugin->rendered_fields : array();
     $items = array();
+  
     $calendar_fields = date_views_fields($this->view->base_table);
     $calendar_fields = array_keys($calendar_fields['alias']);
-    foreach ($this->view->result as $num => $row) {
-      $items[$num] = $row;
-      // Store the raw date values before formatting the results.
+  
+    // Try to figure out the 'id' for this collection of items.
+    // The id field is often not a field but instead an 'additional field',
+    // so this is cludgy.
+    foreach ($result as $num => $row) {
+      $keys = array_keys((array) $row);
+      foreach ($keys as $key) {
+        if (strlen($key) == 3 && substr($key, -2) == 'id' && !empty($row->$key)) {
+          $id = $key;
+        }
+      }
+    }
+    foreach ($result as $num => $row) {
+      $copy = clone($row);
+      $items[$num]->id = !empty($row->$id) ? $row->$id : NULL;
+      $items[$num]->rendered = !empty($rendered_items[$num]) ? $rendered_items[$num] : '';
+      $items[$num]->raw = $copy;
+  
+      $items[$num]->calendar_fields = new stdClass();
       foreach ($row as $key => $value) {
         if (in_array($key, $calendar_fields)) {
           $items[$num]->calendar_fields->$key = $value;
-        }
-      }
-      foreach ($this->view->field as $name => $field) {
-        // Some fields, like the node edit and delete links, have no alias.
-        $field_alias = $field->field_alias != 'unknown' ? $field->field_alias : $name;
-        if (!empty($field) && is_object($field)) {
-          $field_output = $field->theme($row);
-          $items[$num]->{$field_alias} = $field_output;
         }
       }
     }
@@ -254,6 +259,7 @@ class calendar_plugin_style_ical extends views_plugin_style_rss {
         }
       }
     }
+      
     return theme($this->theme_functions(),
       array(
         'view' => $this->view,

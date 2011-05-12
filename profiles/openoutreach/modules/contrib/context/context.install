@@ -1,5 +1,4 @@
 <?php
-// $Id: context.install,v 1.1.2.1.2.6.2.9.2.1 2010/09/13 21:10:58 jmiccolis Exp $
 
 /**
  * Implementation of hook_install().
@@ -282,6 +281,34 @@ function context_update_6304() {
     return array(array('success' => TRUE, 'query' => 'Variable renamed successfully.'));
   }
   return array();
+}
+
+/**
+ * Update 7000: Handle adjustments to split of theme reaction to support D7 preprocess split between _page and _html
+ */
+
+function context_update_7000() {
+  $updated = array();
+  $contexts = context_load(NULL, TRUE);
+  foreach ($contexts as $c) {
+    // if the old data is in the old reaction and the new reaction hasn't been saved, migrate the old data to the new reaction
+    if (isset($c->reactions['theme']) &&
+        isset($c->reactions['theme']['class']) &&
+        !empty($c->reactions['theme']['class']) &&
+        !isset($c->reactions['theme_html'])
+    ) {
+      $c->reactions['theme_html']['class'] = $c->reactions['theme']['class'];
+      context_save($c);
+      $updated[] = $c->name;
+    }
+  }
+  if (empty($updated)) {
+    $ret = t('No contexts requiring migration detected');
+  }
+  else {
+    $ret = t('The following contexts had theme reaction data migrated: @names', array('@names' => join(', ', $updated)));
+  }
+  return $ret;
 }
 
 /**

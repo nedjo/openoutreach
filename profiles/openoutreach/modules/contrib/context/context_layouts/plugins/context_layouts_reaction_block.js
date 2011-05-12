@@ -1,4 +1,3 @@
-// $Id: context_layouts_reaction_block.js,v 1.1.2.1.2.1 2010/09/17 18:40:26 yhahn Exp $
 
 (function($) {
 

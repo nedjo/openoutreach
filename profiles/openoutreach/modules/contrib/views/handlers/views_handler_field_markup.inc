@@ -1,5 +1,4 @@
 <?php
-// $Id: views_handler_field_markup.inc,v 1.3.6.5 2010/12/16 18:23:42 dereine Exp $
 
 /**
  * A handler to run a field through check_markup, using a companion
@@ -28,15 +27,24 @@ class views_handler_field_markup extends views_handler_field {
   }
 
   function render($values) {
-    $value = $values->{$this->field_alias};
-    $format = is_array($this->format) ? $values->{$this->aliases['format']} : $this->format;
+    $value = $this->get_value($values);
+    if (is_array($this->format)) {
+      $format = $this->get_value($values, 'format');
+    }
+    else {
+      $format = $this->format;
+    }
     if ($value) {
       $value = str_replace('<!--break-->', '', $value);
       return check_markup($value, $format, '');
     }
   }
 
-  function element_type($none_supported = FALSE, $default_empty = FALSE) {
+  function element_type($none_supported = FALSE, $default_empty = FALSE, $inline = FALSE) {
+    if ($inline) {
+      return 'span';
+    }
+
     if (isset($this->definition['element type'])) {
       return $this->definition['element type'];
     }

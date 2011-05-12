@@ -1,4 +1,3 @@
-// $Id: logintoboggan.permissions.js,v 1.3 2011/01/06 06:52:19 thehunmonkgroup Exp $
 
 /**
  * This is a custom implementation of user.permissions.js, which is necessary

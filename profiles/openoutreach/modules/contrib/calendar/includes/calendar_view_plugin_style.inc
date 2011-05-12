@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar_view_plugin_style.inc,v 1.11 2011/01/18 00:37:21 karens Exp $
 
 /**
  * @file
@@ -28,8 +27,6 @@ class calendar_view_plugin_style extends calendar_plugin_style {
     $view->date_info->style_theme_style = $this->options['theme_style'];
     $view->date_info->style_max_items = $this->options['max_items'];
     $view->date_info->style_max_items_behavior = $this->options['max_items_behavior'];
-    $view->date_info->style_truncated_fields = $this->options['truncated_fields'];
-    $view->date_info->style_truncate_length = $this->options['truncate_length'];
     if (!empty($this->options['groupby_times_custom'])) {
       $view->date_info->style_groupby_times = explode(',', $this->options['groupby_times_custom']);
     }
@@ -48,18 +45,33 @@ class calendar_view_plugin_style extends calendar_plugin_style {
   /**
    * Set default options
    */
-  function options(&$options) {
-    $options['name_size'] = 3;
-    $options['with_weekno'] = 0;
-    $options['multiday_theme'] = module_exists('calendar_multiday') ? '1' : '0';
-    $options['theme_style'] = module_exists('calendar_multiday') ? '1' : '0';
-    $options['max_items'] = 0;
-    $options['max_items_behavior'] = 'more';
-    $options['truncated_fields'] = array();
-    $options['truncate_length'] = '';
-    $options['groupby_times'] = 'hour';
-    $options['groupby_times_custom'] = '';
-    $options['groupby_field'] = '';
+  // Set default values for the date filter.
+  function option_definition() {
+    $options = parent::option_definition();
+    $options['name_size'] = array('default' => 3, 'export' => 'export_plugin');
+    $options['with_weekno'] = array('default' => 0, 'export' => 'export_plugin');
+    $options['multiday_theme'] = array('default' => module_exists('calendar_multiday') ? '1' : '0', 'export' => 'export_plugin');
+    $options['theme_style'] = array('default' => module_exists('calendar_multiday') ? '1' : '0', 'export' => 'export_plugin');
+    $options['max_items'] = array('default' => 0, 'export' => 'export_plugin');  
+    $options['max_items_behavior'] = array('default' => 'more', 'export' => 'export_plugin');  
+    $options['groupby_times'] = array('default' => 'hour', 'export' => 'export_plugin');  
+    $options['groupby_times_custom'] = array('default' => '', 'export' => 'export_plugin');  
+    $options['groupby_field'] = array('default' => '', 'export' => 'export_plugin');  
+    return $options;
+  }
+
+  /**
+   * Make sure our custom options get exported.
+   * Handle the options we know about, pass the rest to the parent plugin.
+   */
+  function export_plugin($indent, $prefix, $storage, $option, $definition, $parents) {
+    $output = '';
+    if (in_array($option, array('name_size', 'with_weekno', 'multiday_theme', 'theme_style', 'max_items', 'max_items_behavior', 'groupby_times', 'groupby_times_custom', 'groupby_field'))) {
+      $name = $this->options[$option];
+      $output .= $indent . $prefix . "['$option'] = '$name';\n";
+      return $output;
+    }
+    return parent::export_plugin($indent, $prefix, $storage, $option, $definition, $parents);
   }
 
   /**
@@ -115,12 +127,11 @@ class calendar_view_plugin_style extends calendar_plugin_style {
     $fields = $this->display->handler->get_option('fields');
     $date_fields = array_keys($this->date_fields());
     foreach ($fields as $field_name => $field) {
-      $handler = views_get_handler($field['table'], $field['field'], 'field');
       if (!in_array($field['table'] . '.' . $field['field'], $date_fields)) {
-        $field_options[$field['table'] . '_' . $field['field']] = $handler->ui_name();
+        $field_options[$field['table'] . '_' . $field['field']] = $field['field'];
       }
       else {
-        $date_field_options[$field['table'] . '_' . $field['field']] = $handler->ui_name();
+        $date_field_options[$field['table'] . '_' . $field['field']] = $field['field'];
       }
     }
     $form['groupby_field'] = array(
@@ -180,24 +191,25 @@ class calendar_view_plugin_style extends calendar_plugin_style {
    */
   function render() {
     $calendar_type = $this->display->handler->get_option('calendar_type');
-
+    $this->view->calendar_type = $calendar_type;
+ 
     // Adjust the theme to match the currently selected default.
     // Only the month view needs the special 'mini' class,
     // which is used to retrieve a different, more compact, theme.
     if (!empty($this->view->date_info->mini) && $this->view->date_info->granularity == 'month') {
       $this->definition['theme'] = 'calendar_mini';
     }
-    elseif ( $calendar_type == 'week') {
+    elseif (module_exists('calendar_multiday') && $calendar_type == 'week') {
       $this->view->date_info->mini = FALSE;
-      $this->definition['theme'] = ($this->view->style_plugin->options['multiday_theme'] == '1' && $this->view->style_plugin->options['theme_style'] == '1') ? 'calendar_'. $this->view->date_info->granularity .'_overlap' : 'calendar_'. $this->view->date_info->granularity;
+      $this->definition['theme'] = (!isset($this->view->style_options['multiday_theme']) || ($this->view->style_options['multiday_theme'] == '1' && $this->view->style_options['theme_style'] == '1')) ? 'calendar_'. $this->view->date_info->granularity .'_overlap' : 'calendar_'. $calendar_type;
     }
-    elseif ( $calendar_type == 'day') {
+    elseif (module_exists('calendar_multiday') && $calendar_type == 'day') {
       $this->view->date_info->mini = FALSE;
-      $this->definition['theme'] = ($this->view->style_plugin->options['theme_style'] == '1') ? 'calendar_'. $this->view->date_info->granularity .'_overlap' : 'calendar_'. $this->view->date_info->granularity;
+      $this->definition['theme'] = (!isset($this->view->style_options['multiday_theme']) || ($this->view->style_options['theme_style'] == '1')) ? 'calendar_'. $this->view->date_info->granularity .'_overlap' : 'calendar_'. $calendar_type;
     }
     else {
       $this->view->date_info->mini = FALSE;
-      $this->definition['theme'] = 'calendar_' . $this->view->date_info->granularity;
+      $this->definition['theme'] = 'calendar_' . $calendar_type;
     }
     $this->view->date_info->hide_admin_links = TRUE;
     return theme($this->theme_functions(), array('view' => $this->view, 'options' => $this->options, 'items' => array()));

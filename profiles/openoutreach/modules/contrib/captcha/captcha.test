@@ -1,5 +1,4 @@
 <?php
-// $Id: captcha.test,v 1.25 2010/12/30 00:29:15 soxofaan Exp $
 
 /**
  * @file
@@ -596,6 +595,25 @@ class CaptchaAdminTestCase extends CaptchaBaseWebTestCase {
     $this->drupalGet('user/register');
     $this->assertNoRaw($xss, 'Javascript should not be allowed in CAPTCHA description.', 'CAPTCHA');
 
+  }
+
+  /**
+   * Test the CAPTCHA placement flushing.
+   */
+  function testCaptchaPlacementCacheFlushing() {
+    // Set CAPTCHA on user register form.
+    captcha_set_form_id_setting('user_register_form', 'captcha/Math');
+    // Visit user register form to fill the CAPTCHA placement cache.
+    $this->drupalGet('user/register');
+    // Check if there is CAPTCHA placement cache.
+    $placement_map = variable_get('captcha_placement_map_cache', NULL);
+    $this->assertNotNull($placement_map, 'CAPTCHA placement cache should be set.');
+    // Flush the cache
+    $this->drupalLogin($this->admin_user);
+    $this->drupalPost(self::CAPTCHA_ADMIN_PATH, array(), t('Flush the CAPTCHA placement cache'));
+    // Check that the placement cache is unset
+    $placement_map = variable_get('captcha_placement_map_cache', NULL);
+    $this->assertNull($placement_map, 'CAPTCHA placement cache should be unset after flush.');
   }
 
   /**

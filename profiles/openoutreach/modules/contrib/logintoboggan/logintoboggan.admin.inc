@@ -1,5 +1,4 @@
 <?php
-// $Id: logintoboggan.admin.inc,v 1.2 2011/01/06 06:52:19 thehunmonkgroup Exp $
 
 /**
  * @file

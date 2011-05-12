@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_social.captcha.inc
+ */
 
 /**
  * Implementation of hook_captcha_default_points().

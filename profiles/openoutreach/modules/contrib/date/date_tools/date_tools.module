@@ -1,5 +1,4 @@
 <?php
-// $Id: date_tools.module,v 1.23 2011/01/18 00:37:34 karens Exp $
 
 /**
  * Implementation of hook_help().
@@ -68,7 +67,7 @@ function date_tools_menu() {
     'title'    => 'Remove calendar',
     'access arguments'   => array('administer date tools'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('date_tools_remove_form', 3),
+    'page arguments' => array('date_tools_remove_form', 4),
     'type' => MENU_CALLBACK,
   );
   $items['admin/structure/date/change'] = array(
@@ -124,7 +123,7 @@ function date_tools_page() {
 /**
  * Menu callback; present a form for removing a field from a content type.
  */
-function date_tools_remove_form(&$form_state, $view_name) {
+function date_tools_remove_form($form, &$form_state, $view_name) {
   $form = array();
   $form['view_name'] = array(
     '#type' => 'value',
@@ -146,7 +145,6 @@ function date_tools_remove_form(&$form_state, $view_name) {
 function date_tools_remove_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
   $view_name = $form_values['view_name'];
-
   if ($view_name && $form_values['confirm']) {
     calendar_remove($view_name);
     drupal_set_message(t('Removed calendar %calendar. ', array(

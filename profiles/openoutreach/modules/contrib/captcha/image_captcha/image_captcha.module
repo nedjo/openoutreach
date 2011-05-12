@@ -1,5 +1,4 @@
 <?php
-// $Id: image_captcha.module,v 1.39 2010/11/29 00:12:19 soxofaan Exp $
 
 /**
  * @file
@@ -255,7 +254,6 @@ function image_captcha_captcha($op, $captcha_type='', $captcha_sid=NULL) {
           '#weight' => 0,
           '#required' => TRUE,
           '#size' => 15,
-          '#attributes' => array('autocomplete' => 'off'),
         );
 
         // Handle the case insensitive validation option combined with ignoring spaces.

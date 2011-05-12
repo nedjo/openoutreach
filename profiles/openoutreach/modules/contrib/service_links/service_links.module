@@ -1,5 +1,4 @@
 <?php
-// $Id: service_links.module,v 1.26.4.26.2.9 2011/02/07 18:37:55 thecrow Exp $
 
 /**
  * @file
@@ -95,7 +94,7 @@ function service_links_menu() {
 /**
  * Implements hook_node_load().
  */
-function service_links_node_load($nodes, $types) {
+/*function service_links_node_load($nodes, $types) {
   if (arg(2) != 'edit') {
     foreach ($nodes as $node) {
       if (service_links_show($node)) {
@@ -104,19 +103,23 @@ function service_links_node_load($nodes, $types) {
       }
     }
   }
-}
+}*/
 
 /**
  * Implements hook_node_view().
  */
 function service_links_node_view($node, $view_mode) {
-  if (isset($node->service_links) && user_access('access service links')) {
+  //if (isset($node->service_links) && user_access('access service links')) {
+  if ((arg(2) != 'edit') && service_links_show($node) && user_access('access service links')) {
+    $node->service_links = service_links_render($node, TRUE);
+    $node->service_links_rendered = theme('service_links_node_format', array('links' => $node->service_links, 'label' => variable_get('service_links_label_in_node', 'Bookmark/Search this post with')));
+
     switch (variable_get('service_links_in_node', SERVICE_LINKS_DISABLED)) {
       case SERVICE_LINKS_IN_TEASER:
         if ($view_mode == 'teaser') {
           $node->content['service_links'] = array(
             '#markup' => $node->service_links_rendered,
-            '#weight' => 10,
+            '#weight' => variable_get('service_links_weight_in_node', 10),
           );
         }
         break;
@@ -124,7 +127,7 @@ function service_links_node_view($node, $view_mode) {
         if ($view_mode == 'full') {
           $node->content['service_links'] = array(
             '#markup' => $node->service_links_rendered,
-            '#weight' => 10,
+            '#weight' => variable_get('service_links_weight_in_node', 10),
           );
         }
         break;
@@ -132,13 +135,13 @@ function service_links_node_view($node, $view_mode) {
         if ($view_mode == 'teaser') {
           $node->content['service_links'] = array(
             '#markup' => $node->service_links_rendered,
-            '#weight' => 10,
+            '#weight' => variable_get('service_links_weight_in_node', 10),
           );
         }
         elseif ($view_mode == 'full') {
           $node->content['service_links'] = array(
             '#markup' => $node->service_links_rendered,
-            '#weight' => 10,
+            '#weight' => variable_get('service_links_weight_in_node', 10),
           );
         }
         break;
@@ -172,8 +175,10 @@ function _service_links_link($node, $view_mode) {
       break;
   }
 
-  if (service_links_show($node) && $show_links) {
-    $links = service_links_render($node, TRUE);
+  //if (service_links_show($node) && $show_links) {
+  if ($show_links) {
+    //$links = service_links_render($node, TRUE);
+    $links = $node->service_links;
     if (!empty($links)) {
       $node->content['links']['node']['#links'] = array_merge($node->content['links']['node']['#links'], $links);
     }
@@ -275,6 +280,13 @@ function service_links_block_configure($delta = '') {
           SERVICE_LINKS_STYLE_IMAGE_AND_TEXT => t('Image and Text'),
         ),
       );
+
+      $form['service_links_block_not_node_front'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Link always to the front page'),
+        '#description' => t('If selected the services will link always to the front page %front.', array('%front' => url('<front>', array('absolute' => TRUE)))),
+        '#default_value' => variable_get('service_links_block_not_node_front', FALSE),
+      );
       break;
   }
 
@@ -294,6 +306,7 @@ function service_links_block_save($delta = '', $edit = array()) {
       break;
     case 'service_links_not_node':
       variable_set('service_links_block_not_node_style', $edit['service_links_block_not_node_style']);
+      variable_set('service_links_block_not_node_front', $edit['service_links_block_not_node_front']);
       break;
   }
 }
@@ -394,7 +407,7 @@ function service_links_short_url($url, $nid = NULL) {
         $turl = shorten_url($url);
       }
       else {
-        $turl = drupal_http_request('http://tinyurl.com/api-create.php?url='. $url);
+        $turl = drupal_http_request('http://tinyurl.com/api-create.php?url=' . urlencode($url));
         $turl = (isset($turl->data) && ($turl->code == 200)) ? $turl->data : $url;
       }
       return $turl;
@@ -535,12 +548,7 @@ function _service_links_render($service_id, $service, $settings, $nodelink) {
 
   // Add the related JavaScript and CSS.
   if (isset($service['javascript'])) {
-    if (strpos($service['javascript'], '://') !== FALSE) {
-      drupal_add_js(service_links_expand_path($service['javascript'], 'javascript'), array('type' => 'external'));
-    }
-    else {
-      drupal_add_js(service_links_expand_path($service['javascript'], 'javascript'));
-    }
+    _service_links_add_js($service['javascript']);
   }
   if (isset($service['css'])) {
     drupal_add_css(service_links_expand_path($service['css'], 'css'));
@@ -548,7 +556,6 @@ function _service_links_render($service_id, $service, $settings, $nodelink) {
 
   // Invoke callback function.
   if (isset($service['callback'])) {
-    //call_user_func($service['callback'], &$service, $settings['subst']);
     if (function_exists($function = $service['callback'])) {
       $function($service, $settings['subst']);
     }
@@ -565,6 +572,33 @@ function _service_links_render($service_id, $service, $settings, $nodelink) {
   ));
 
   return array($service_id => $link);
+}
+
+/**
+ * Load correctly the needed javascripts.
+ */
+function _service_links_add_js($javascript) {
+  static $external_js;
+
+  if (!is_array($javascript)) {
+    $javascript = array($javascript);
+  }
+
+  if (!isset($external_js)) {
+    $external_js = array();
+  }
+
+  foreach ($javascript as $js) {
+    if (strpos($js, '://') !== FALSE) {
+      if (!in_array($js, $external_js)) {
+        drupal_add_js($js, array('type' => 'external'));
+        $external_js[] = $js;
+      }
+    }
+    else {
+      drupal_add_js(service_links_expand_path($js, 'javascript'));
+    }
+  }
 }
 
 /**
@@ -586,7 +620,10 @@ function _service_links_get_tags($node, &$settings) {
   }
   else {
     $title = drupal_get_title();
-    $url = url($_GET['q'], array('absolute' => TRUE, 'query' => service_links_get_query($settings['text_to_append'])));
+    //$url = url($_GET['q'], array('absolute' => TRUE, 'query' => service_links_get_query($settings['text_to_append'])));
+    $url = _service_links_get_page_url(NULL, $settings);
+
+    //The choice of front_page shouldn't  affect the query which should point the original page
     $query = check_plain(arg(0)) . str_replace(url(arg(0)), '', url($_GET['q']));
     $teaser = '';
     $nid = NULL;
@@ -665,6 +702,22 @@ function _service_links_get_tags($node, &$settings) {
 }
 
 /**
+ * Return the url for not-node pages.
+ */
+function _service_links_get_page_url($node, $settings) {
+  $use_front = variable_get('service_links_block_not_node_front', FALSE);
+
+  if ($use_front) {
+    $url = url('<front>', array('absolute' => TRUE, 'query' => service_links_get_query($settings['text_to_append'])));
+  }
+  else {
+    $url = url($_GET['q'], array('absolute' => TRUE, 'query' => service_links_get_query($settings['text_to_append'])));
+  }
+
+  return $url; 
+}
+
+/**
  * Return the properly title.
  */
 function _service_links_get_node_title($node, $settings) {
@@ -677,7 +730,7 @@ function _service_links_get_node_title($node, $settings) {
       $title = str_replace('<title>', $title, $settings['title_text']);
       break;
     case SERVICE_LINKS_TAG_TITLE_TOKEN:
-      $title = token_replace($settings['title_text'], 'node', $node);
+      $title = token_replace($settings['title_text'], array('node' => $node));
       break;
   }
 

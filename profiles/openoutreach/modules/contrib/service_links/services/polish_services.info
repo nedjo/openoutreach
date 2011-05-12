@@ -1,0 +1,12 @@
+name = Polish Services
+description = Provide the Polish Services: Blip, Wykop, Sledzik
+core = 7.x
+package = Service Links
+dependencies[] = service_links
+
+; Information added by drupal.org packaging script on 2011-04-04
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "service_links"
+datestamp = "1301919206"
+

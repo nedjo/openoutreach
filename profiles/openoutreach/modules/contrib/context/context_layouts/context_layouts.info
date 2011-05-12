@@ -1,13 +1,12 @@
-; $Id: context_layouts.info,v 1.1.2.1.2.1 2010/09/17 18:40:25 yhahn Exp $
 name = Context layouts
 description = Allow theme layer to provide multiple region layouts and integrate with context.
 dependencies[] = context
 package = Context
 core = 7.x
 
-; Information added by drupal.org packaging script on 2011-01-03
-version = "7.x-3.0-alpha3"
+; Information added by drupal.org packaging script on 2011-02-28
+version = "7.x-3.0-beta1"
 core = "7.x"
 project = "context"
-datestamp = "1294089953"
+datestamp = "1298925068"
 

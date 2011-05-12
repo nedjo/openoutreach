@@ -376,10 +376,14 @@ table.calendar-legend tr.even .stripe {
   width : 100%;
 }
 
+.calendar-calendar .week-view .full .calendar-agenda-hour,
+.calendar-calendar .day-view .full .calendar-agenda-hour {
+  padding-right : 2px;
+}
+
 .calendar-calendar .week-view .full .calendar-agenda-hour {
   width : 6%;
   min-width : 0px;
-  padding-right : 2px;
 }
 
 .calendar-calendar .week-view .full .days {
@@ -404,14 +408,12 @@ table.calendar-legend tr.even .stripe {
 .calendar-calendar .month-view .full tr.single-day .no-entry .inner {
   height : 44px !important;
   line-height : 44px;
-  font-size : 1px;
 }
 
 .calendar-calendar .month-view .full tr.single-day .noentry-multi-day,
 .calendar-calendar .month-view .full tr.single-day .noentry-multi-day .inner {
   height : 22px !important;
   line-height : 22px;
-  font-size : 1px;
 }
 
 .calendar-calendar .month-view .full td,
@@ -704,6 +706,10 @@ table.calendar-legend tr.even .stripe {
 }
 
 /* Restyle Header */
+.view-content .calendar-calendar .clear-block {
+  margin-bottom: 10px;
+}
+
 .view-content .calendar-calendar {
   position : relative;
   margin-top : 5px;
@@ -744,6 +750,7 @@ table.calendar-legend tr.even .stripe {
   height : 30px;
   height : auto ;
   min-height : 30px;
+  position : relative;
 }
 
 .view-content .calendar-calendar .date-prev a,

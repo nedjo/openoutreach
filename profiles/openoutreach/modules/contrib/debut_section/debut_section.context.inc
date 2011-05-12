@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_section.context.inc
+ */
 
 /**
  * Implementation of hook_context_default_contexts().

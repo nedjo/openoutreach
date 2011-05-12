@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.test,v 1.1.2.12 2011/02/04 14:57:23 fago Exp $
 
 /**
  * @file
@@ -473,6 +472,14 @@ class EntityMetadataTestCase extends DrupalWebTestCase {
     $wrapper->delete();
     $return = node_load($wrapper->getIdentifier());
     $this->assertFalse($return, "Node has been successfully deleted.");
+
+    // Test labels.
+    $user = $this->drupalCreateUser();
+    user_save($user, array('roles' => array()));
+    $wrapper->author = $user->uid;
+    $this->assertEqual($wrapper->label(), $node->title, 'Entity label returned.');
+    $this->assertEqual($wrapper->author->roles[0]->label(), t('authenticated user'), 'Label from options list returned');
+    $this->assertEqual($wrapper->author->roles->label(), t('authenticated user'), 'Label for a list from options list returned');
   }
 
   /**
@@ -589,13 +596,16 @@ class EntityMetadataTestCase extends DrupalWebTestCase {
   function testEntityQuery() {
     $title = '<b>Is it bold?<b>';
     $values[LANGUAGE_NONE][0] = array('value' => 'foo');
-    $node = $this->drupalCreateNode(array($this->field_name => $values, 'title' => $title));
+    $node = $this->drupalCreateNode(array($this->field_name => $values, 'title' => $title, 'uid' => $GLOBALS['user']->uid));
 
     $results = entity_property_query('node', 'title', $title);
     $this->assertEqual($results, array($node->nid), 'Queried nodes with a given title.');
 
     $results = entity_property_query('node', $this->field_name, 'foo');
     $this->assertEqual($results, array($node->nid), 'Queried nodes with a given field value.');
+
+    $results = entity_property_query('node', 'author', $GLOBALS['user']);
+    $this->assertEqual($results, array($node->nid), 'Queried nodes with a given auhtor.');
   }
 
   /**
@@ -845,6 +855,11 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
     foreach ($wrapper as $key => $value) {
       $this->assertValue($wrapper, $key);
     }
+    // Test page request related properties.
+    foreach ($wrapper->current_page as $key => $value) {
+      $this->assertValue($wrapper->current_page, $key);
+    }
+
     // Test files.
     $file = $this->createFile();
 
@@ -877,8 +892,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
       foreach (entity_metadata_wrapper($entity_type) as $name => $wrapper) {
         $info = $wrapper->info();
         if (!empty($info['setter callback'])) {
-          $info += array('type' => 'text');
-          $values[$name] = $this->createValue($info['type'], $info);
+          $values[$name] = $this->createValue($wrapper);
         }
       }
       $entity = entity_property_values_create_entity($entity_type, $values)->value();
@@ -1093,26 +1107,27 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
   }
 
   /**
-   * Creates a value for the given type.
+   * Creates a value for the given property.
    */
-  protected function createValue($type, $info) {
+  protected function createValue($wrapper) {
     if (!isset($this->node)) {
       $this->node = $this->drupalCreateNode(array('type' => 'page'));
       $this->user = $this->drupalCreateUser();
       $this->taxonomy_vocabulary = $this->createVocab();
     }
 
-    if (isset($info['options list'])) {
-      $options = array_keys($info['options list']());
-      return entity_property_list_extract_type($type) ? array(reset($options)) : reset($options);
+    if ($options = $wrapper->optionsList()) {
+      $options = entity_property_options_flatten($options);
+      return $wrapper instanceof EntityListWrapper ? array(key($options)) : key($options);
     }
 
     // For mail addresses properly pass an mail address.
+    $info = $wrapper->info();
     if ($info['name'] == 'mail') {
       return 'webmaster@example.com';
     }
 
-    switch ($type) {
+    switch ($wrapper->type()) {
       case 'decimal':
       case 'integer':
       case 'duration':
@@ -1131,7 +1146,7 @@ class EntityMetadataIntegrationTestCase extends DrupalWebTestCase {
         return array();
 
       default:
-        return $this->$type;
+        return $this->{$wrapper->type()};
     }
   }
 

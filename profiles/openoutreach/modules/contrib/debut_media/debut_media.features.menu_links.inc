@@ -12,7 +12,7 @@ function debut_media_menu_default_menu_links() {
       'menu_name' => 'main-menu',
       'link_path' => 'media',
       'router_path' => 'media',
-      'link_title' => 'Media',
+      'link_title' => 'Multimedia',
       'options' => array(
         'attributes' => array(
           'title' => 'View media files.',

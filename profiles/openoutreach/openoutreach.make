@@ -1,15 +1,13 @@
-; $Id: openoutreach.make,v 1.16 2011/02/11 03:23:07 nedjo Exp $
-
 ; Drupal version
 core = 7.x
 api = 2
 
-includes[debut] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut/debut.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_article] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_article/debut_article.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_blog] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_blog/debut_blog.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_comment] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_comment/debut_comment.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_event] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_event/debut_event.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_media] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_media/debut_media.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_section] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_section/debut_section.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_social] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_social/debut_social.make.inc?content-type=text%2Fplain&view=co"
-includes[debut_wysiwyg] = "http://drupalcode.org/viewvc/drupal/contributions/modules/debut_wysiwyg/debut_wysiwyg.make.inc?content-type=text%2Fplain&view=co"
+includes[debut] = "http://drupalcode.org/project/debut.git/blob_plain/HEAD:/debut.make.inc"
+includes[debut_article] = "http://drupalcode.org/project/debut_article.git/blob_plain/HEAD:/debut_article.make.inc"
+includes[debut_blog] = "http://drupalcode.org/project/debut_blog.git/blob_plain/HEAD:/debut_blog.make.inc"
+includes[debut_comment] = "http://drupalcode.org/project/debut_comment.git/blob_plain/HEAD:/debut_comment.make.inc"
+includes[debut_event] = "http://drupalcode.org/project/debut_event.git/blob_plain/HEAD:/debut_event.make.inc"
+includes[debut_media] = "http://drupalcode.org/project/debut_media.git/blob_plain/HEAD:/debut_media.make.inc"
+includes[debut_section] = "http://drupalcode.org/project/debut_section.git/blob_plain/HEAD:/debut_section.make.inc"
+includes[debut_social] = "http://drupalcode.org/project/debut_social.git/blob_plain/HEAD:/debut_social.make.inc"
+includes[debut_wysiwyg] = "http://drupalcode.org/project/debut_wysiwyg.git/blob_plain/HEAD:/debut_wysiwyg.make.inc"

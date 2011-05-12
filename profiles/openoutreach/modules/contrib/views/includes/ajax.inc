@@ -1,5 +1,4 @@
 <?php
-// $Id: ajax.inc,v 1.20.4.17 2011/01/03 22:56:39 merlinofchaos Exp $
 
 /**
  * @file ajax.inc
@@ -19,12 +18,25 @@ function views_ajax() {
     $display_id = $_REQUEST['view_display_id'];
     $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', $_REQUEST['view_args']) : array();
     $path = isset($_REQUEST['view_path']) ? $_REQUEST['view_path'] : NULL;
-    $dom_id = isset($_REQUEST['view_dom_id']) ? intval($_REQUEST['view_dom_id']) : NULL;
+    $dom_id = isset($_REQUEST['view_dom_id']) ? preg_replace('/[^a-zA-Z0-9_-]+/', '-', $_REQUEST['view_dom_id']) : NULL;
     $pager_element = isset($_REQUEST['pager_element']) ? intval($_REQUEST['pager_element']) : NULL;
 
     $commands = array();
 
     $arg = explode('/', $_REQUEST['view_path']);
+
+    // Remove all of this stuff from $_GET so it doesn't end up in pagers and tablesort URLs.
+    foreach (array('view_name', 'view_display_id', 'view_args', 'view_path', 'view_dom_id', 'pager_element', 'view_base_path', 'ajax_html_ids', 'ajax_page_state') as $key) {
+      if (isset($_GET[$key])) {
+        unset($_GET[$key]);
+      }
+      if (isset($_REQUEST[$key])) {
+        unset($_REQUEST[$key]);
+      }
+      if (isset($_POST[$key])) {
+        unset($_POST[$key]);
+      }
+    }
 
     // Load the view.
     $view = views_get_view($name);
@@ -137,27 +149,14 @@ function views_ajax_command_add_tab($id, $title, $body) {
 }
 
 /**
- * Disables Save, Cancel, and Delete buttons.
+ * Shows Save and Cancel buttons.
  *
  * @return
  *   An array suitable for use with the ajax_render() function.
  */
-function views_ajax_command_disable_buttons() {
+function views_ajax_command_show_buttons() {
   $command = array(
-    'command' => 'viewsDisableButtons',
-  );
-  return $command;
-}
-
-/**
- * Enables Save, Cancel, and Delete buttons.
- *
- * @return
- *   An array suitable for use with the ajax_render() function.
- */
-function views_ajax_command_enable_buttons() {
-  $command = array(
-    'command' => 'viewsEnableButtons',
+    'command' => 'viewsShowButtons',
   );
   return $command;
 }
@@ -171,6 +170,21 @@ function views_ajax_command_enable_buttons() {
 function views_ajax_command_trigger_preview() {
   $command = array(
     'command' => 'viewsTriggerPreview',
+  );
+  return $command;
+}
+
+/**
+ * Replace the page title.
+ *
+ * @return
+ *   An array suitable for use with the ajax_render() function.
+ */
+function views_ajax_command_replace_title($title) {
+  $command = array(
+    'command' => 'viewsReplaceTitle',
+    'title' => $title,
+    'siteName' => variable_get('site_name', 'Drupal'),
   );
   return $command;
 }
@@ -207,6 +221,7 @@ function views_ajax_form_wrapper($form_id, &$form_state) {
   // These forms have the title built in, so set the title here:
   if (empty($form_state['ajax']) && !empty($form_state['title'])) {
     drupal_set_title($form_state['title']);
+    drupal_add_css(drupal_get_path('module', 'views_ui') . '/css/views-admin.css');
   }
 
   if (!empty($form_state['ajax']) && (empty($form_state['executed']) || !empty($form_state['rerender']))) {
@@ -255,10 +270,10 @@ function views_ajax_form_wrapper($form_id, &$form_state) {
  * Page callback for views user autocomplete
  */
 function views_ajax_autocomplete_user($string = '') {
-  // The user enters a comma-separated list of tags. We only autocomplete the last tag.
+  // The user enters a comma-separated list of user name. We only autocomplete the last name.
   $array = drupal_explode_tags($string);
 
-  // Fetch last tag
+  // Fetch last name
   $last_string = trim(array_pop($array));
   $matches = array();
   if ($last_string != '') {
@@ -267,19 +282,21 @@ function views_ajax_autocomplete_user($string = '') {
     if (strpos('anonymous', strtolower($last_string)) !== FALSE) {
       $matches[$prefix . 'Anonymous'] = 'Anonymous';
     }
-    $result = db_query_range("SELECT name FROM {users} WHERE name = :string",
-      0, 1,
-      array(
-        ':string' => $last_string
-      ));
+
+    $result = db_select('users', 'u')
+      ->fields('u', array('uid', 'name'))
+      ->condition('u.name', db_like($last_string) . '%', 'LIKE')
+      ->range(0, 10)
+      ->execute()
+      ->fetchAllKeyed();
 
     foreach ($result as $account) {
-      $n = $account->name;
+      $n = $account;
       // Commas and quotes in terms are special cases, so encode 'em.
-      if (strpos($account->name, ',') !== FALSE || strpos($account->name, '"') !== FALSE) {
-        $n = '"' . str_replace('"', '""', $account->name) . '"';
+      if (strpos($account, ',') !== FALSE || strpos($account, '"') !== FALSE) {
+        $n = '"' . str_replace('"', '""', $account) . '"';
       }
-      $matches[$prefix . $n] = check_plain($account->name);
+      $matches[$prefix . $n] = check_plain($account);
     }
   }
 

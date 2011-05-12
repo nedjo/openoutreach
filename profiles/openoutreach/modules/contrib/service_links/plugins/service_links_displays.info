@@ -1,17 +1,16 @@
-; $Id: service_links_displays.info,v 1.1.2.1 2010/11/01 12:03:16 thecrow Exp $
 name = Service Links Displays
 description = Provide the integration between Service Links and Node Displays (Display Suite)
 core = 7.x
 package = Display suite
 dependencies[] = service_links
-dependencies[] = nd
+dependencies[] = ds
 
 version = VERSION
 files[] = service_links_displays.module
 
-; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+; Information added by drupal.org packaging script on 2011-04-04
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "service_links"
-datestamp = "1297125270"
+datestamp = "1301919206"
 

@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_media.features.inc
+ */
 
 /**
  * Implementation of hook_ctools_plugin_api().
@@ -14,7 +18,8 @@ function debut_media_ctools_plugin_api() {
  * Implementation of hook_views_api().
  */
 function debut_media_views_api() {
-  return array(
-    'api' => '3.0-alpha1',
-  );
+  list($module, $api) = func_get_args();
+  if ($module == "views" && $api == "views_default") {
+    return array("version" => 3.0);
+  }
 }

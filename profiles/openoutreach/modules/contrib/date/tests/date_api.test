@@ -1,5 +1,4 @@
 <?php
-// $Id: date_api.test,v 1.14 2011/01/18 00:37:35 karens Exp $
 /**
  * Test Date API functions
  */

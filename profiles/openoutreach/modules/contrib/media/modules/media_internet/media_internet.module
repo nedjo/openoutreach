@@ -1,5 +1,4 @@
 <?php
-//$Id: media_internet.module,v 1.8 2010/11/29 20:03:11 JacobSingh Exp $
 
 /**
  * Implements hook_media_browser_plugin_info().
@@ -48,7 +47,7 @@ function media_internet_media_browser_plugin_view($plugin_name, $params) {
         '#title' => t('Web'),
         'form' => array($from_web_form),
         '#attached' => array(
-          //'js' => array($path . '/javascript/plugins/media.fromurl.js'),
+          //'js' => array($path . '/js/plugins/media.fromurl.js'),
         ),
       );
       break;
@@ -272,7 +271,10 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
   public function preSave(&$file_obj) {
     // Coppies the remote file locally.
     $remote_uri = $file_obj->uri;
-    $local_uri = file_stream_wrapper_uri_normalize('temporary://' . basename($remote_uri));
+    //@TODO: we should follow redirection here an save the final filename, not just the basename.
+    $local_filename = basename($remote_uri);
+    $local_filename = file_munge_filename($local_filename, media_variable_get('file_extensions'), FALSE);
+    $local_uri = file_stream_wrapper_uri_normalize('temporary://' . $local_filename);
     if (!@copy($remote_uri, $local_uri)) {
       throw new Exception('Unable to add file ' . $remote_uri);
       return;
@@ -283,7 +285,7 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
   
   public function postSave(&$file_obj) {
     $scheme = variable_get('file_default_scheme', 'public') . '://';
-    $uri = file_stream_wrapper_uri_normalize($scheme . $this->fileObject->filename);
+    $uri = file_stream_wrapper_uri_normalize($scheme . $file_obj->filename);
     // Now to its new home.
     $file_obj = file_move($file_obj, $uri, FILE_EXISTS_RENAME);
   }
@@ -343,14 +345,14 @@ abstract class MediaInternetBaseHandler {
    * 
    * @param $file_obj;
    */
-  public function postSave($file_obj) {
+  public function postSave(&$file_obj) {
     
   }
   
   /**
    * Before the file has been saved, implementors may do additional operations.
    */
-  public function preSave($file_obj) {
+  public function preSave(&$file_obj) {
     
   }
 }

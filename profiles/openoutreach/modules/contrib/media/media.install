@@ -1,10 +1,11 @@
 <?php
-// $Id: media.install,v 1.18 2011/01/13 18:52:41 effulgentsia Exp $
 
 /**
  * @file
  * Install, update and uninstall functions for the Media module.
  */
+
+define('MEDIA_UPDATE_RECORDS_ON_INSTALL', 200);
 
 /**
  * Implements hook_install().
@@ -56,7 +57,6 @@ function media_enable() {
     'media_preview' => 'media_large_icon',
     //@TODO: We need a real "original" formatter
     'media_original' => 'file_generic',
-    //@TODO: Non-sequiter small == medium.  Why medium if there is no small?
     'media_small'   => 'hidden',
     'media_large'   => 'file_generic',
   );
@@ -141,6 +141,19 @@ function media_enable() {
   $roles = user_roles();
   foreach ($roles as $rid => $role) {
     user_role_grant_permissions($rid, array('view media'));
+  }
+
+  // Updates the type field for the first MEDIA_UPDATE_RECORDS_ON_INSTALL files.
+  $invalid_files = media_type_invalid_files_count();
+  if ($invalid_files <= MEDIA_UPDATE_RECORDS_ON_INSTALL) {
+    media_type_batch_update(FALSE, MEDIA_UPDATE_RECORDS_ON_INSTALL);
+  }
+
+  $invalid_files = media_type_invalid_files_count();
+  if ($invalid_files > 0) {
+    // Not all files could be converted. Display a persistant nag message on
+    // every page for the administrator, urging them to finish the process.
+    media_variable_set('show_file_type_rebuild_nag', TRUE);
   }
 }
 
@@ -487,4 +500,22 @@ function media_update_7013() {
     }
     filter_format_save($format);
   }
+}
+
+/**
+ * Renames the badly named variable for the theme used for the media browser
+ * and other media related dialogs.
+ */
+function media_update_7014() {
+  if ($old_value = variable_get('media__dialog_get_theme_name')) {
+    variable_del('media__dialog_get_theme_name');
+    variable_set('media__dialog_theme', $old_value);
+  }
+}
+
+/**
+ * Rebuild the registry to locate class files in new location.
+ */
+function media_update_7015() {
+  registry_rebuild();
 }

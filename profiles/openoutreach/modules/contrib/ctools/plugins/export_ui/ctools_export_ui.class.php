@@ -1,5 +1,4 @@
 <?php
-// $Id: ctools_export_ui.class.php,v 1.5 2011/01/05 22:35:46 merlinofchaos Exp $
 
 /**
  * Base class for export UI.
@@ -36,6 +35,17 @@ class ctools_export_ui {
     }
 
     return $title;
+  }
+
+  /**
+   * Called by ctools_export_ui_load to load the item.
+   *
+   * This can be overridden for modules that want to be able to export
+   * items currently being edited, for example.
+   */
+  function load_item($item_name) {
+    $item = ctools_export_crud_load($this->plugin['schema'], $item_name);
+    return empty($item) ? FALSE : $item;
   }
 
   // ------------------------------------------------------------------------
@@ -181,7 +191,14 @@ class ctools_export_ui {
       $form_state['input']['form_id'] = 'ctools_export_ui_list_form';
     }
 
-    $form = drupal_render(drupal_build_form('ctools_export_ui_list_form', $form_state));
+    // If we do any form rendering, it's to completely replace a form on the
+    // page, so don't let it force our ids to change.
+    if ($js && isset($_POST['ajax_html_ids'])) {
+      unset($_POST['ajax_html_ids']);
+    }
+
+    $form = drupal_build_form('ctools_export_ui_list_form', $form_state);
+    $form = drupal_render($form);
 
     $output = $this->list_header($form_state) . $this->list_render($form_state) . $this->list_footer($form_state);
 
@@ -320,6 +337,7 @@ class ctools_export_ui {
   function list_form_submit(&$form, &$form_state) {
     // Filter and re-sort the pages.
     $plugin = $this->plugin;
+    $schema = ctools_export_get_schema($this->plugin['schema']);
 
     $prefix = ctools_export_ui_plugin_base_path($plugin);
 
@@ -335,10 +353,10 @@ class ctools_export_ui {
       $allowed_operations = drupal_map_assoc(array_keys($plugin['allowed operations']));
       $not_allowed_operations = array('import');
 
-      if ($item->type == t('Normal')) {
+      if ($item->{$schema['export']['export type string']} == t('Normal')) {
         $not_allowed_operations[] = 'revert';
       }
-      elseif ($item->type == t('Overridden')) {
+      elseif ($item->{$schema['export']['export type string']} == t('Overridden')) {
         $not_allowed_operations[] = 'delete';
       }
       else {
@@ -400,7 +418,8 @@ class ctools_export_ui {
    *   TRUE if the item should be excluded.
    */
   function list_filter($form_state, $item) {
-    if ($form_state['values']['storage'] != 'all' && $form_state['values']['storage'] != $item->type) {
+    $schema = ctools_export_get_schema($this->plugin['schema']);
+    if ($form_state['values']['storage'] != 'all' && $form_state['values']['storage'] != $item->{$schema['export']['export type string']}) {
       return TRUE;
     }
 
@@ -489,8 +508,9 @@ class ctools_export_ui {
   function list_build_row($item, &$form_state, $operations) {
     // Set up sorting
     $name = $item->{$this->plugin['export']['key']};
+    $schema = ctools_export_get_schema($this->plugin['schema']);
 
-    // Note: $item->type should have already been set up by export.inc so
+    // Note: $item->{$schema['export']['export type string']} should have already been set up by export.inc so
     // we can use it safely.
     switch ($form_state['values']['order']) {
       case 'disabled':
@@ -503,7 +523,7 @@ class ctools_export_ui {
         $this->sorts[$name] = $name;
         break;
       case 'storage':
-        $this->sorts[$name] = $item->type . $name;
+        $this->sorts[$name] = $item->{$schema['export']['export type string']} . $name;
         break;
     }
 
@@ -515,8 +535,11 @@ class ctools_export_ui {
       $this->rows[$name]['data'][] = array('data' => check_plain($item->{$this->plugin['export']['admin_title']}), 'class' => array('ctools-export-ui-title'));
     }
     $this->rows[$name]['data'][] = array('data' => check_plain($name), 'class' => array('ctools-export-ui-name'));
-    $this->rows[$name]['data'][] = array('data' => check_plain($item->type), 'class' => array('ctools-export-ui-storage'));
-    $this->rows[$name]['data'][] = array('data' => theme('links', array('links' => $operations)), 'class' => array('ctools-export-ui-operations'));
+    $this->rows[$name]['data'][] = array('data' => check_plain($item->{$schema['export']['export type string']}), 'class' => array('ctools-export-ui-storage'));
+
+    $ops = theme('links__ctools_dropbutton', array('links' => $operations, 'attributes' => array('class' => array('links', 'inline'))));
+
+    $this->rows[$name]['data'][] = array('data' => $ops, 'class' => array('ctools-export-ui-operations'));
 
     // Add an automatic mouseover of the description if one exists.
     if (!empty($this->plugin['export']['admin_description'])) {
@@ -557,6 +580,7 @@ class ctools_export_ui {
       'header' => $this->list_table_header(),
       'rows' => $this->rows,
       'attributes' => array('id' => 'ctools-export-ui-list-items'),
+      'empty' => $this->plugin['strings']['message']['no items'],
     );
     return theme('table', $table);
   }
@@ -970,10 +994,6 @@ class ctools_export_ui {
     $item = $form_state['item'];
     $schema = ctools_export_get_schema($this->plugin['schema']);
 
-    // TODO: Drupal 7 has a nifty method of auto guessing names from
-    // titles that is standard. We should integrate that here as a
-    // nice standard.
-    // Guess at a couple of our standard fields.
     if (!empty($this->plugin['export']['admin_title'])) {
       $form['info'][$this->plugin['export']['admin_title']] = array(
         '#type' => 'textfield',
@@ -1115,7 +1135,7 @@ class ctools_export_ui {
    * as though the filter form had been executed.
    */
   function set_item_state($state, $js, $input, $item) {
-    ctools_export_set_object_status($item, $state);
+    ctools_export_crud_set_status($this->plugin['schema'], $item, $state);
 
     if (!$js) {
       drupal_goto(ctools_export_ui_plugin_base_path($this->plugin));

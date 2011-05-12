@@ -162,9 +162,6 @@ div.block div.context-block-empty {
   #context-blockform td.blocks div.label { background:#eee; }
   #context-blockform td.blocks div.label a { float:right; }
 
-#context-blockform td.blocks div.form-item,
-#context-blockform td.blocks input.block-weight { display:none; }
-
 #context-ui-items #context-blockform {
   font-size:11px;
   line-height:15px;
@@ -191,4 +188,8 @@ div.block div.context-block-empty {
   background:#fff;
   display:block;
   border:0px;
+  }
+
+#context-blockform .tabledrag-toggle-weight-wrapper {
+  margin-bottom:0;
   }

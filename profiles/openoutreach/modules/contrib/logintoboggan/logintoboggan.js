@@ -1,4 +1,3 @@
-// $Id: logintoboggan.js,v 1.4 2011/01/06 06:52:19 thehunmonkgroup Exp $
 
 (function ($) {
   Drupal.behaviors.LoginToboggan = {

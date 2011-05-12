@@ -1,5 +1,4 @@
 <?php
-// $Id: media.api.php,v 1.5 2010/08/13 15:28:17 JacobSingh Exp $
 
 /**
  * Return an array of plugins for the media browser.
@@ -18,7 +17,7 @@
  *  '#title' => t('Library'),
  *  '#attached' => array(
  *    'js' => array(
- *       $path . '/javascript/plugins/media.library.js',
+ *       $path . '/js/plugins/media.library.js',
  *     ),
  *   ),
  *   '#settings' => array(
@@ -67,7 +66,7 @@ function hook_media_browser_plugin_info() {
 }
 
 /**
- * Returns an array of operations which can be taked on media items.
+ * Returns an array of operations which can be taken on media items.
  *
  * This is used on the admin/content/media page so users can select multiple
  * items and do something with them.

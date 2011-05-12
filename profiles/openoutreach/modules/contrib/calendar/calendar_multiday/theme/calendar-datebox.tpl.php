@@ -1,5 +1,4 @@
 <?php
-// $Id: calendar-datebox.tpl.php,v 1.4 2010/12/31 14:17:25 karens Exp $
 /**
  * @file 
  * Template to display the date box in a calendar.

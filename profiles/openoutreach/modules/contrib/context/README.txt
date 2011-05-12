@@ -1,4 +1,3 @@
-$Id: README.txt,v 1.1.4.2.2.7.2.3 2010/12/09 22:30:15 yhahn Exp $
 
 Current state of Context for Drupal 7
 -------------------------------------
@@ -38,7 +37,7 @@ Installation
 ------------
 Context can be installed like any other Drupal module -- place it in
 the modules directory for your site and enable it (and its requirement,
-CTools) on the `admin/build/modules` page.
+CTools) on the `admin/modules` page.
 
 You will probably also want to install Context UI which provides a way for
 you to edit contexts through the Drupal admin interface.

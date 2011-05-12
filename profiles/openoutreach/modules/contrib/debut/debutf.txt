@@ -1,4 +1,3 @@
-$Id: debutf.txt,v 1.6 2010/09/30 22:59:35 nedjo Exp $
 
 Debut Feature Specification (debutf 1.0-draft)
 ----------------------------------------------
@@ -9,7 +8,7 @@ time integrate effectively into a cohesive feature set. Debut features should
 together provide an integrated set of functionality that covers the basic needs
 of most Drupal websites and distributions.
 
-This document is based on the Drupal 6.x versions of Drupal core, contributed
+This document is based on the Drupal 7.x versions of Drupal core, contributed
 modules and themes.
 
 
@@ -19,6 +18,7 @@ The kitf feature specification provides important guidelines and requirements
 to ensure interoperability among Drupal features.
 
 Building on kitf, Debut features are based on the following precepts:
+
 * Debut features should provide the basic functionality that most sites or
 distributions will need.
 * Any advanced or specialized functionality should be provided in separate
@@ -68,24 +68,71 @@ contextual customization, the Spaces module should be used.
 One of the most challenging tasks for novice site admins is controlling layout
 of individual sections or pages. The Panels module is a highly advanced and
 powerful solution for this purpose, but using Panels in combination with Context
-is demanding and error-prone. No suitable standards have been developed yet for 
-the use of Panels in Debut features. For these reasons, a feature should not
-require Panels and should instead rely on Context wherever possible. Any use of
-Panels should include a patch on this specification proposing standards for use
-of Panels in a consistent way.
+is demanding and error-prone. If e.g. a node type is overridden with a panel page,
+this panels page must be created by a single feature--barring custom coding,
+there is no easy way for other features to selectively add panes such that the
+overall panels page is constructed from the contributions of whatever other
+features are enabled. For this reason, Context rather than Panels seems the best
+overall choice for building displays in Debut.
 
-### Integrator modules
+However, Panels provides much greater flexibility and power in building complex,
+customized layouts than Context does.
 
-To help produce uniformity among the various Debut features, the following
-helper modules should be relied upon, but not required. E.g., where appropriate,
-paths variables should be set so that, if Pathauto is present, content types
-defined by a feature will get appropriate paths.
-- Pathauto
+Therefore, Debut features providing complex layout may use Mini-Panels, which can
+themselves be positioned and displayed via Context. This approach may give some
+of the power of Panels while retaining the overall use of Context for piecing
+together displays from the components offered by multiple features.
 
-In addition to these integrator modules:
+### Standard solutions
 
+To help produce uniformity among the various Debut features, standard solutions
+are adopted across Debut. For example, for mapping, there are several Drupal
+modules available, e.g., Gmap, OpenLayers. To ensure consistency, one should be
+designated as the Debut standard.
+
+In selecting between alternatives, the Drupal principles are to be used as well
+as the following additional criteria:
+
+* Community open source: the candidate solution is a community-driven open source
+solution.
+* Non-proprietary: The candidate solution is not limited to, branded by, or
+controlled by a single company.
+* Data security: The candidate solution does not require posting data to an
+external source unless doing so is the explicit purpose.
+* Works out of the box without requiring manual configuration, e.g., entry of
+an API key.
+
+Before introducing a new Debut feature that introduces a dependency that could
+be considered as a new standard solution, an issue must be posted on the Debut
+project proposing the new standard solution with justification.
+
+Adopted standard solutions:
+
+- Captcha: where forms are protected from automated submission, the Captcha
+module should be used.
+- OpenLayers: where client side mapping is required, the OpenLayers Drupal module
+should be used.
+- Pathauto: where appropriate, paths variables should be set so that, if Pathauto
+is present, content types defined by a feature will get appropriate paths.
 - Rules should be used and not the core Trigger module for any configurable
 actions.
+
+### Opportunity for peer review
+
+There should be an opportunity for review prior to a new Debut feature being posted.
+Such review will help ensure that new features indeed meet the Debut spec, e.g.,
+
+* identify any potential components that could/should be pulled into more specific
+Debut features,
+* identify properties that are too site-specific to warrant inclusion in Debut,
+* if the feature introduces a new solution to standardize (e.g., an external library
+or a way to structure particular data), ensure a consensus prior to adoption.
+
+Therefore each proposed Debut feature should be posted first as an issue on the
+Debut project, with a link to the sandbox version of the proposed feature and
+two weeks allowed for peer review prior to the new feature being promoted from
+a sandbox project to a full project on drupal.org.
+
 
 2. Namespaces
 -------------
@@ -93,12 +140,14 @@ actions.
 ### 2.1 Code namespace
 
 A Debut feature must include the debut namespace.
+
 - Example: `debut_blog`.
 
 
 ### 2.2 Project namespace
 
 A Debut project must include the debut namespace.
+
 - Example: `debut_blog`.
 
 
@@ -109,8 +158,8 @@ A Debut project must include the debut namespace.
 
 The `administrator` role defined in kitf should be used for site administration
 tasks, such as installing and configuring modules, content types, and blocks.
-The administrator role is defined by debut_admin and so should not be defined
-by any other Debut feature.
+The administrator role is defined by the Debut feature and so should not be
+defined by any other Debut feature.
 
 In addition to the three roles defined in kitf, features should use the
 following two roles as appropriate.
@@ -123,9 +172,8 @@ taxonomies, and comments.
 No additional roles may be provided by a feature.
 
 These roles are provided by the Debut feature and so will be present if Debut
-is installed. However, to avoid unwanted roles, Debut features should not
-require the Debut feature.
-
+is installed. However, to avoid unwanted roles, Debut features should avoid
+requiring the Debut feature if feasible.
 
 ### 3.2 Permissions
 
@@ -153,7 +201,7 @@ Doing so will facilitate Spaces integration.
 
 ### 5.1 Primary path and nesting
 
-Where features provide content or nested pages, these should wherever feasible
+Where a feature provides content or nested pages, these should wherever feasible
 be available at paths nested below the feature's primary path.
 
 Without creating a dependency on Pathauto, a feature that defines a content
@@ -190,21 +238,15 @@ visibility.
 
 ### 6.2 Theme regions
 
-In addition to the the regions specified in kitf, only the following may be
-used.
+Only the theme regions specified in kitf may be used. Pending a Drupal 7 version
+of kitf, those regions are:
 
-- `content_left`: A left column in the main page content region.
-- `content_right`: A right column in the main page content region.
+* `content`
+* `sidebar_first`
+* `sidebar_second`
 
---------------------------------------------
-left | content                       | right
-     |                               |
-     |                               |
-     |-------------------------------|
-     | content_left  | content_right |
-     |               |               |
-     |               |               |
-     |               |               |
+The sidebar_second region should be used primarily, with only occasional,
+supplemental blocks being assigned to the sidebar_first region.
 
 
 7. Dependencies
@@ -217,14 +259,6 @@ specification.
 Wherever feasible, features should use the recommended stable release versions
 of contributed modules and themes.
 
-Exceptions:
-* If Context is used, version 6.3.x must be used.
-* Features using Views should be tested with and compatible with Views 3,
-though they need not require it.
-* If jQuery Update is used, the 6.x-2.x branch should be used.
-* If Captcha is used, the 6.x.2.x-dev release should be used until 
-http://drupal.org/node/704110 reaches stable.
-
 ### Libraries
 
 Any external libraries used by a feature should be installed in a libraries
@@ -236,7 +270,7 @@ Patches should be avoided wherever possible. Ideally, patches should be used
 only up to and including beta releases, to include functionality expected
 to reach stable releases by the time the feature is out of beta.
 
-Where possible, patches should be replaced with workarounds in a feature's
+Where feasible, patches should be replaced with workarounds in a feature's
 .module file that use Drupal APIs to achieve the same ends. These workarounds
 should include documentation identifying the patch that they relate to so
 they can be removed if/when that patch is accepted.
@@ -262,28 +296,23 @@ those in another, the following path convention must be used:
 Examples:
 
 ; A drupal.org hosted project.
-projects[jquery_ui][subdir] = contrib
+projects[views][subdir] = contrib
 ; An externally hosted project.
 projects[seed][subdir] = external
 projects[seed][location] = http://code.developmentseed.org/fserver
-; A library required by a contrib module.
-libraries[jquery_ui][download][type] = "get"
-libraries[jquery_ui][download][url] = "http://jquery-ui.googlecode.com/files/
-jquery-ui-1.7.3.zip"
-libraries[jquery_ui][directory_name] = "jquery.ui"
-libraries[jquery_ui][destination] = "modules/contrib/jquery_ui"
 
-
-8. Content types
-----------------
+8. Content types and fields
+---------------------------
 
 Where a feature defines a content type, the following guidelines should be
 followed:
 
-### Image fields
+### Image and other media fields
 
-* If images are used with the content type, the feature should depend on the
-Debut Image feature and use its imagecache presets wherever possible.
+* If a single image is desired to represent each piece of content in the content
+type, the content type should use field_image as used in e.g. debut_article.
+* If media (images, audio, video, files) are desired, the content type should
+use field_media as used in e.g. debut_article.
 
 
 9. Views
@@ -297,11 +326,11 @@ should be named for the machine name of that content type.
 * At a minimum, views of a content type should include a page, block, and feed 
 display, with the feed display attached to both the page and block. The page
 display should have a path matching the content type's machine name and the feed
-should have the same path with an .rss extension.
+should have the same path with an .xml extension.
 
 
 10. Contexts
------------
+------------
 
 Where appropriate, features that define a content type should include a context
 that displays related content on node pages of that content type. For example,
@@ -309,16 +338,11 @@ an event feature might display a calendar block and an upcoming events block
 when event content is being viewed.
 
 For consistency, unless there are extenuating reasons, such contextual blocks
-should be placed in the right region.
+should be placed in the sidebar_second region.
+
 
 11. Help
 --------
 
-A feature should include contextual help provided through the Advanced Help
-module covering all major components of the feature. For example, a debut_audio
-feature including an audio content type with an embedded audio field, a view, and
-a context might include help on all the following:
-* The content type.
-* How to embed an audio file.
-* For each enabled embedded audio provider, specific instructions on posting
-audio.
+A feature may include contextual help provided through the Advanced Help
+module covering major components of the feature.

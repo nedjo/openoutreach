@@ -1,4 +1,3 @@
-// $Id: tesox_readme.txt,v 1.3 2009/09/19 12:29:08 soxofaan Exp $
 
 The Tesox typeface
 ==================

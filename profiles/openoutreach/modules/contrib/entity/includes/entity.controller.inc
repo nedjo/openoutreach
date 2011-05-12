@@ -1,5 +1,4 @@
 <?php
-// $Id: entity.controller.inc,v 1.1.2.7 2011/02/01 09:36:07 fago Exp $
 
 /**
  * @file
@@ -309,16 +308,9 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
   protected function attachLoad(&$queried_entities, $revision_id = FALSE) {
     // Attach fields.
     if ($this->entityInfo['fieldable']) {
-      $entities = $queried_entities;
-      if ($this->nameKey != $this->idKey) {
-        // Field API assumes queried entities are keyed by the idkey, thus
-        // adapt the array accordingly for it.
-        $entities = array();
-        foreach ($queried_entities as $entity) {
-          $entities[$entity->{$this->idKey}] = $entity;
-        }
-      }
-
+      // Field API assumes queried entities are keyed by the idkey, thus
+      // adapt the array accordingly for it.
+      $entities = $this->getEntitiesKeyedByNumericID($queried_entities);
       if ($revision_id) {
         field_attach_load_revision($this->entityType, $entities);
       }
@@ -339,6 +331,20 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
     foreach (module_implements($this->entityInfo['load hook']) as $module) {
       call_user_func_array($module . '_' . $this->entityInfo['load hook'], $args);
     }
+  }
+
+  /**
+   * Converts an array of entities in an array of entities keyed by numeric id, i.e. by id key.
+   */
+  protected function getEntitiesKeyedByNumericID($entities) {
+    if ($this->nameKey != $this->idKey) {
+      $result = array();
+      foreach ($entities as $entity) {
+        $result[$entity->{$this->idKey}] = $entity;
+      }
+      return $result;
+    }
+    return $entities;
   }
 
   public function resetCache(array $ids = NULL) {
@@ -390,12 +396,16 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
    *   in their transaction object.
    */
   public function delete($ids, DatabaseTransaction $transaction = NULL) {
-    $entities = $this->load($ids);
+    $entities = $ids ? $this->load($ids) : FALSE;
+    if (!$entities) {
+      // Do nothing, in case invalid or no ids have been passed.
+      return;
+    }
     $transaction = isset($transaction) ? $transaction : db_transaction();
 
     try {
       db_delete($this->entityInfo['base table'])
-        ->condition($this->nameKey, $ids, 'IN')
+        ->condition($this->nameKey, array_keys($entities), 'IN')
         ->execute();
       // Reset the cache as soon as the changes have been applied.
       $this->resetCache($ids);
@@ -544,7 +554,9 @@ class EntityAPIController extends DrupalDefaultEntityController implements Entit
    */
   public function view($entities, $view_mode = 'full', $langcode = NULL) {
     if (!empty($this->entityInfo['fieldable'])) {
-      field_attach_prepare_view($this->entityType, $entities, $view_mode);
+      // Field API assumes queried entities are keyed by the idkey, thus
+      // adapt the array accordingly for it.
+      field_attach_prepare_view($this->entityType, $this->getEntitiesKeyedByNumericID($entities), $view_mode);
     }
     entity_prepare_view($this->entityType, $entities);
     $langcode = isset($langcode) ? $langcode : $GLOBALS['language_content']->language;

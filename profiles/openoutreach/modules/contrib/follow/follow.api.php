@@ -1,5 +1,4 @@
 <?php
-// $Id: follow.api.php,v 1.1 2010/02/09 01:21:53 robloach Exp $
 
 /**
  * Alter the available networks to the Follow module.

@@ -1,5 +1,4 @@
 <?php
-// $Id: comment.views.inc,v 1.33.4.17 2010/11/25 20:56:40 dereine Exp $
 /**
  * @file
  * Provide views data and handlers for comment.module
@@ -8,7 +7,7 @@
 /**
  * @defgroup views_comment_module comment.module handlers
  *
- * Includes the tables 'comments' and 'node_comment_statistics'
+ * Includes the tables 'comment' and 'node_comment_statistics'
  * @{
  */
 
@@ -17,6 +16,9 @@
  */
 
 function comment_views_data() {
+  $data['comments']['moved to'] = 'comment';
+  $data['comment']['comment']['moved to'] = array('field_data_comment_body', 'comment_body');
+  $data['comment']['comment']['field']['moved to'] = array('field_data_comment_body', 'comment_body');
   // Define the base group of this table. Fields that don't
   // have a group defined will go into this field by default.
   $data['comment']['table']['group']  = t('Comment');
@@ -169,9 +171,10 @@ function comment_views_data() {
     ),
   );
 
+  $data['comments']['timestamp']['moved to'] = array('comment', 'changed');
   // changed (when comment was last updated)
   $data['comment']['changed'] = array(
-    'title' => t('Post date'),
+    'title' => t('Updated date'),
     'help' => t('Date and time of when the comment was last updated.'),
     'field' => array(
       'handler' => 'views_handler_field_date',
@@ -184,57 +187,63 @@ function comment_views_data() {
       'handler' => 'views_handler_filter_date',
     ),
   );
-  
-  $data['comments']['timestamp_fulldate'] = array(
+
+  $data['comments']['timestamp_fulldate']['moved to'] = array('comment', 'changed_fulldata');
+  $data['comment']['changed_fulldata'] = array(
     'title' => t('Created date'),
     'help' => t('In the form of CCYYMMDD.'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_fulldate',
     ),
   );
 
-  $data['comments']['timestamp_year_month'] = array(
+  $data['comments']['timestamp_year_month']['moved to'] = array('comment', 'changed_year_month');
+  $data['comment']['changed_year_month'] = array(
     'title' => t('Created year + month'),
     'help' => t('In the form of YYYYMM.'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_year_month',
     ),
   );
 
-  $data['comments']['timestamp_year'] = array(
+  $data['comments']['timestamp_year']['moved to'] = array('comment', 'changed_year');
+  $data['comment']['changed_year'] = array(
     'title' => t('Created year'),
     'help' => t('In the form of YYYY.'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_year',
     ),
   );
 
-  $data['comments']['timestamp_month'] = array(
+  $data['comments']['timestamp_month']['moved to'] = array('comment', 'changed_month');
+  $data['comment']['changed_month'] = array(
     'title' => t('Created month'),
     'help' => t('In the form of MM (01 - 12).'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_month',
     ),
   );
 
-  $data['comments']['timestamp_day'] = array(
+  $data['comments']['timestamp_day']['moved to'] = array('comment', 'changed_day');
+  $data['comment']['changed_day'] = array(
     'title' => t('Created day'),
     'help' => t('In the form of DD (01 - 31).'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_day',
     ),
   );
 
-  $data['comments']['timestamp_week'] = array(
+  $data['comments']['timestamp_week']['moved to'] = array('comment', 'changed_week');
+  $data['comment']['changed_week'] = array(
     'title' => t('Created week'),
     'help' => t('In the form of WW (01 - 53).'),
     'argument' => array(
-      'field' => 'timestamp',
+      'field' => 'changed',
       'handler' => 'views_handler_argument_node_created_week',
     ),
   );
@@ -307,13 +316,13 @@ function comment_views_data() {
   );
 
   $data['comment']['nid'] = array(
-    'title' => t('Node'),
-    'help' => t('The node the comment is a reply to.'),
+    'title' => t('Content'),
+    'help' => t('The content to which the comment is a reply to.'),
     'relationship' => array(
       'base' => 'node',
       'base field' => 'nid',
       'handler' => 'views_handler_relationship',
-      'label' => t('Node'),
+      'label' => t('Content'),
     ),
   );
 
@@ -348,7 +357,7 @@ function comment_views_data() {
   // node_comment_statistics table
 
   // define the group
-  $data['node_comment_statistics']['table']['group']  = t('Node');
+  $data['node_comment_statistics']['table']['group']  = t('Content');
 
   // joins
   $data['node_comment_statistics']['table']['join'] = array(
@@ -383,9 +392,11 @@ function comment_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_ncs_last_comment_name',
       'click sortable' => TRUE,
+      'no group by' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort_ncs_last_comment_name',
+      'no group by' => TRUE,
     ),
   );
 
@@ -415,9 +426,11 @@ function comment_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_ncs_last_updated',
       'click sortable' => TRUE,
+      'no group by' => TRUE,
     ),
     'sort' => array(
       'handler' => 'views_handler_sort_ncs_last_updated',
+      'no group by' => TRUE,
     ),
     'filter' => array(
       'handler' => 'views_handler_filter_ncs_last_updated',
@@ -488,6 +501,7 @@ function comment_views_data_alter(&$data) {
       'name table' => 'users',
       'name field' => 'name',
       'handler' => 'views_handler_argument_comment_user_uid',
+      'no group by' => TRUE,
     ),
     'filter' => array(
       'field' => 'uid',
@@ -543,7 +557,18 @@ function template_preprocess_views_view_row_comment(&$vars) {
   // Put the view on the node so we can retrieve it in the preprocess.
   $node->view = &$view;
 
-  $vars['comment'] = drupal_render(comment_view_multiple(array($comment->cid => $comment), $node));
+  $build = comment_view_multiple(array($comment->cid => $comment), $node);
+  // If we're displaying the comments without links, remove them from the
+  // renderable array. There is no way to avoid building them in the first
+  // place (see comment_build_content()).
+  if (empty($options['links'])) {
+    foreach ($build as $cid => &$comment_build) {
+      if (isset($comment_build['links'])) {
+        unset($comment_build['links']);
+      }
+    }
+  }
+  $vars['comment'] = drupal_render($build);
 }
 
 /**

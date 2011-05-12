@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * debut_wysiwyg.features.inc
+ */
 
 /**
  * Implementation of hook_default_wysiwyg_profile().

@@ -1,5 +1,4 @@
 <?php
-// $Id: logintoboggan.tokens.inc,v 1.1 2010/10/24 06:53:58 thehunmonkgroup Exp $
 
 /**
  * @file

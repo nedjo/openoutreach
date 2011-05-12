@@ -1,5 +1,4 @@
 <?php
-// $Id: tinymce.inc,v 1.48 2011/02/03 11:46:02 twod Exp $
 
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id: service_links.theme.inc,v 1.1.4.2 2011/02/07 18:37:55 thecrow Exp $
 
 /**
  * @file
@@ -32,7 +31,7 @@ function theme_service_links_build_link($variables) {
         break;
       case SERVICE_LINKS_STYLE_IMAGE:
         $link = array(
-          'title' => theme('image', array('path' => service_links_expand_path($image), 'attributes' => array('title' => $text))),
+          'title' => theme('image', array('path' => service_links_expand_path($image), 'alt' => $text)),
           'href' => $url[0],
           'query' => $query,
           'attributes' => $attributes,
@@ -41,7 +40,7 @@ function theme_service_links_build_link($variables) {
         break;
       case SERVICE_LINKS_STYLE_IMAGE_AND_TEXT:
         $link = array(
-          'title' => theme('image', array('path' => service_links_expand_path($image), 'attributes' => array('title' => $text))) .' '. $text,
+          'title' => theme('image', array('path' => service_links_expand_path($image), 'alt' => $text)) .' '. $text,
           'href' => $url[0],
           'query' => $query,
           'attributes' => $attributes,
@@ -50,10 +49,11 @@ function theme_service_links_build_link($variables) {
         break;
       case SERVICE_LINKS_STYLE_EMPTY:
         $link = array(
-          'title' => '',
+          'title' => '<span class="element-invisible">' . $text . '</span>',
           'href' => $url[0],
           'query' => $query,
           'attributes' => $attributes,
+          'html' => TRUE,
         );
         break;
       default:
@@ -72,19 +72,20 @@ function theme_service_links_build_link($variables) {
         break;
       case SERVICE_LINKS_STYLE_IMAGE:
         $attributes = array_merge($attributes, array('html' => TRUE));
-        $link = l(theme('image', array('path' => service_links_expand_path($image), 'attributes' => array('alt' => $text))), $url[0], $attributes);
+        $link = l(theme('image', array('path' => service_links_expand_path($image), 'alt' => $text)), $url[0], $attributes);
         break;
       case SERVICE_LINKS_STYLE_IMAGE_AND_TEXT:
         $attributes = array_merge($attributes, array('html' => TRUE));
-        $link = l(theme('image', array('path' => service_links_expand_path($image), 'attributes' => array('alt' => $text))) .' '. $text, $url[0], $attributes);
+        $link = l(theme('image', array('path' => service_links_expand_path($image), 'alt' => $text)) .' '. $text, $url[0], $attributes);
         break;
       case SERVICE_LINKS_STYLE_EMPTY:
-        $link = l('', $url[0], $attributes);
+        $attributes = array_merge($attributes, array('html' => TRUE));
+        $link = l('<span class="element-invisible">' . $text . '</span>', $url[0], $attributes);
         break;
       case SERVICE_LINKS_STYLE_FISHEYE:
         $attributes['attributes']['class'] = isset($attributes['attributes']['class']) ? array_merge($attributes['attributes']['class'], array('fisheyeItem')) : array('fisheyeItem');
         $attributes = array_merge($attributes, array('html' => TRUE));
-        $link = l(theme('image', array('path' => service_links_expand_path($image, 'fisheye'), 'attributes' => array('alt' => $text), 'getsize' => FALSE)) .'<span>'. $text .'</span>', $url[0], $attributes);
+        $link = l(theme('image', array('path' => service_links_expand_path($image, 'fisheye'), 'alt' => $text, 'getsize' => FALSE)) .'<span>'. $text .'</span>', $url[0], $attributes);
         break;
       default:
         $link = theme($style, $variables);

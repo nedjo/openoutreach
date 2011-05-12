@@ -1,5 +1,4 @@
 <?php
-// $Id: date_validation.test,v 1.3 2011/01/18 00:37:35 karens Exp $
 class DateValidationTestCase extends DrupalWebTestCase {
   protected $privileged_user;
 

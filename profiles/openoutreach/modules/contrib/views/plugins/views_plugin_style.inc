@@ -1,5 +1,4 @@
 <?php
-// $Id: views_plugin_style.inc,v 1.8.4.10 2010/12/10 08:12:31 dereine Exp $
 
 /**
  * @defgroup views_style_plugins Views' style plugins
@@ -19,6 +18,10 @@
  * Base class to define a style plugin handler.
  */
 class views_plugin_style extends views_plugin {
+  /**
+   * Store all availible tokens row rows.
+   */
+  var $row_tokens = array();
   /**
    * Initialize a style plugin.
    *
@@ -101,12 +104,18 @@ class views_plugin_style extends views_plugin {
    * Return the token replaced row class for the specified row.
    */
   function get_row_class($row_index) {
-    $class = $this->options['row_class'];
-    if ($this->uses_fields() && $this->view->field) {
-      $class = $this->tokenize_value($class, $row_index);
-    }
+    if ($this->uses_row_class()) {
+      $class = $this->options['row_class'];
+      if ($this->uses_fields() && $this->view->field) {
+        $class = strip_tags($this->tokenize_value($class, $row_index));
+      }
 
-    return drupal_clean_css_identifier($class);
+      $classes = explode(' ', $class);
+      foreach ($classes as &$class) {
+        $class = drupal_clean_css_identifier($class);
+      }
+      return implode(' ', $classes);
+    }
   }
 
   /**
@@ -119,13 +128,25 @@ class views_plugin_style extends views_plugin {
         'text' => $value,
       );
 
-      $tokens = $this->row_tokens[$row_index];
-      // Grab a random field handler to perform the render.
-      $field = end($this->view->field);
-      $value = strip_tags($field->render_altered($fake_item, $tokens));
+      // Row tokens might be empty, for example for node row style.
+      $tokens = isset($this->row_tokens[$row_index]) ? $this->row_tokens[$row_index] : array();
+      if (!empty($this->view->build_info['substitutions'])) {
+        $tokens += $this->view->build_info['substitutions'];
+      }
+
+      if ($tokens) {
+        $value = strtr($value, $tokens);
+      }
     }
 
     return $value;
+  }
+
+  /**
+   * Should the output of the style plugin be rendered even if it's a empty view.
+   */
+  function even_empty() {
+    return !empty($this->definition['even empty']);
   }
 
   function option_definition() {
@@ -297,9 +318,7 @@ class views_plugin_style extends views_plugin {
         $this->rendered_fields[$count][$id] = $this->view->field[$id]->theme($row);
       }
 
-      if ($this->uses_tokens()) {
-        $this->row_tokens[$count] = $this->view->field[$id]->get_render_tokens(array());
-      }
+      $this->row_tokens[$count] = $this->view->field[$id]->get_render_tokens(array());
     }
     unset($this->view->row_index);
   }

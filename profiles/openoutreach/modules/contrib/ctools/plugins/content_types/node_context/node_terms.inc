@@ -1,5 +1,4 @@
 <?php
-// $Id: node_terms.inc,v 1.2 2010/10/11 22:18:22 sdboyer Exp $
 
 /**
  * Plugins are described by creating a $plugin array which will be used
@@ -147,7 +146,6 @@ function ctools_node_terms_content_type_edit_form($form, &$form_state) {
     '#type' => 'checkbox',
     '#default_value' => $conf['link'],
     '#description' => t('Check here to make the terms link to the term paths.'),
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:term_format' => array('inline-delimited', 'ul')),
     '#prefix' => '<div class="clearfix">',
     '#suffix' => '</div>',
@@ -158,7 +156,6 @@ function ctools_node_terms_content_type_edit_form($form, &$form_state) {
     '#title' => t('Term delimiter'),
     '#default_value' => $conf['term_delimiter'],
     '#size' => 10,
-    '#process' => array('ctools_dependent_process'),
     '#dependency' => array('radio:term_format' => array('inline-delimited')),
   );
   return $form;

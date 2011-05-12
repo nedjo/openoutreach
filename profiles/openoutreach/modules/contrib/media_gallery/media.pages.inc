@@ -1,5 +1,4 @@
 <?php
-// $Id: media.pages.inc,v 1.2 2010/10/21 16:26:44 JacobSingh Exp $
 
 /**
  * @todo Move this code to the Media module's media.pages.inc file when it is

@@ -22,3 +22,20 @@ function openoutreach_modules_installed($modules) {
   module_load_include('inc', 'openoutreach', 'openoutreach.module_batch');
   openoutreach_module_batch($modules);
 }
+
+/**
+ * Check that other install profiles are not present to ensure we don't collide with a
+ * similar form alter in their profile.
+ *
+ * Set Open Outreach as default install profile.
+ */
+if (!function_exists('system_form_install_select_profile_form_alter')) {
+  function system_form_install_select_profile_form_alter(&$form, $form_state) {
+    // Only set the value if Open Outreach is the only profile.
+    if (count($form['profile']) == 1) {
+      foreach($form['profile'] as $key => $element) {
+        $form['profile'][$key]['#value'] = 'openoutreach';
+      }
+    }
+  }
+}

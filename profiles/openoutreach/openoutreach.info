@@ -33,7 +33,6 @@ features[variable][] = "user_picture_style"
 features[variable][] = "user_pictures"
 features[variable][] = "user_register"
 files[] = "openoutreach.profile"
-hidden = TRUE
 name = "Open Outreach"
 package = "Other"
 php = "5.2.4"

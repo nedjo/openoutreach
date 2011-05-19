@@ -3,23 +3,28 @@
 include_once('debut_media.features.inc');
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_init().
  *
- * Add a local action link to the article view page.
+ * Add javascript and css required for the media browser link.
  */
 function debut_media_init() {
   if (arg(0) == 'media' && is_null(arg(1))) {
     $path = drupal_get_path('module', 'media');
-    drupal_add_js($path . '/javascript/media-admin.js');
-    module_load_include('inc', 'media', 'media.browser');
-    media_include_browser_js();
+    $element['#attached'] = array(
+      'js' => array($path . '/js/media.admin.js'),
+      'css' => array($path . '/css/media.css'),
+    );
+    module_load_include('inc', 'media', 'includes/media.browser');
+    media_attach_browser_js($element);
+    // Render an empty element to add the js and css.
+    drupal_render($element);
   }
 }
 
 /**
  * Implements hook_menu_alter().
  *
- * Add a local action link to the article view page.
+ * Add a local action link to the media page.
  */
 function debut_media_menu_alter(&$items) {
   if (isset($items['media/browser'])) {

@@ -145,6 +145,7 @@ files[] = modules/taxonomy/views_handler_argument_term_node_tid.inc
 files[] = modules/taxonomy/views_handler_argument_term_node_tid_depth.inc
 files[] = modules/taxonomy/views_handler_argument_term_node_tid_depth_modifier.inc
 files[] = modules/taxonomy/views_handler_argument_vocabulary_vid.inc
+files[] = modules/taxonomy/views_handler_argument_vocabulary_machine_name.inc
 files[] = modules/taxonomy/views_handler_field_taxonomy.inc
 files[] = modules/taxonomy/views_handler_field_term_node_tid.inc
 files[] = modules/taxonomy/views_handler_field_term_link_edit.inc
@@ -275,9 +276,9 @@ files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
 
-; Information added by drupal.org packaging script on 2011-05-12
+; Information added by drupal.org packaging script on 2011-05-18
 version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1305161603"
+datestamp = "1305679973"
 

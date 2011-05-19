@@ -172,7 +172,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
         break;
 
       case 'user':
-        $args[] = (isset($conf['arguments'][$id])  && $conf['arguments'][$id] !== '') ? $conf['arguments'][$id] : NULL;
+        $args[] = (isset($conf['arguments'][$id])  && $conf['arguments'][$id] !== '') ? ctools_context_keyword_substitute($conf['arguments'][$id], array(), $contexts) : NULL;
         break;
 
      case 'wildcard':
@@ -369,6 +369,7 @@ function views_content_views_panes_content_type_edit_form($form, &$form_state) {
       $form['arguments'][$id] = array(
         '#type' => 'textfield',
         '#default_value' => isset($conf['arguments'][$id]) ? $conf['arguments'][$id] : '',
+        '#description' => t('You may use keywords for substitutions.'),
         '#title' => check_plain($argument['label']),
       );
     }

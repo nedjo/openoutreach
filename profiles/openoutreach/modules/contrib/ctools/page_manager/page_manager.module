@@ -159,6 +159,9 @@ function page_manager_menu() {
 }
 
 function page_manager_admin_paths() {
+  /* @todo FIX ME this is a major resource suck. */
+  return;
+
   $items = array();
   ctools_include('page', 'page_manager', 'plugins/tasks');
   $pages = page_manager_page_load_all();

@@ -150,11 +150,11 @@ function page_manager_term_view_page($term) {
 function page_manager_term_view_get_arguments($task, $subtask_id) {
   return array(
     array(
-      'keyword' => 'taxonomy_term',
+      'keyword' => 'term',
       'identifier' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? t('Term(s) being viewed') : t('Term being viewed'),
       'id' => 1,
       //'name' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? 'terms' : 'term',
-      'name' => 'entity_id:taxonomy_term',
+      'name' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? 'terms' : 'term',
       'settings' => array('input_form' => 'tid', 'breadcrumb' => variable_get('page_manager_taxonomy_breadcrumb', TRUE)),
       'default' => '404',
     ),
@@ -178,11 +178,11 @@ function page_manager_term_view_get_contexts($task, $subtask_id) {
 /**
  * Settings page for this item.
  */
-function page_manager_term_view_settings(&$form, &$form_state) {
+function page_manager_term_view_settings($form, &$form_state) {
   // This passes thru because the setting can also appear on the main Panels
   // settings form. If $settings is an array it will just pick up the default.
   $settings = isset($form_state->update_values) ? $form_state->update_values : array();
-  page_manager_term_view_admin_settings($form, $settings);
+  return page_manager_term_view_admin_settings($form, $settings);
 }
 
 /**
@@ -205,7 +205,7 @@ function page_manager_term_view_save($subtask, $cache) {
 /**
  * Provide a setting to the Panels administrative form.
  */
-function page_manager_term_view_admin_settings(&$form, $settings = array()) {
+function page_manager_term_view_admin_settings($form, $settings = array()) {
   if (empty($settings)) {
     $settings = array(
       'page_manager_term_view_type' => variable_get('page_manager_term_view_type', 'multiple'),
@@ -226,6 +226,8 @@ function page_manager_term_view_admin_settings(&$form, $settings = array()) {
     '#default_value' => $settings['page_manager_taxonomy_breadcrumb'],
     '#description' => t('If checked, taxonomy term parents will appear in the breadcrumb trail.'),
   );
+
+  return $form;
 }
 
 /**

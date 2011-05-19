@@ -31,36 +31,41 @@ function ctools_term_context($arg = NULL, $conf = NULL, $empty = FALSE) {
     return ctools_context_create_empty('entity:taxonomy_term');
   }
 
-  switch ($conf['input_form']) {
-    case 'tid':
-    default:
-      if (!is_numeric($arg)) {
-        return FALSE;
-      }
-      $term = taxonomy_term_load($arg);
-      break;
+  if (is_object($arg)) {
+    $term = $arg;
+  }
+  else {
+    switch ($conf['input_form']) {
+      case 'tid':
+      default:
+        if (!is_numeric($arg)) {
+          return FALSE;
+        }
+        $term = taxonomy_term_load($arg);
+        break;
 
-    case 'term':
-      $terms = taxonomy_get_term_by_name($arg);
+      case 'term':
+        $terms = taxonomy_get_term_by_name($arg);
 
-      $conf['vids'] = is_array($conf['vids']) ? array_filter($conf['vids']) : NULL;
-      if ((count($terms) > 1) && isset($conf['vids'])) {
-        foreach ($terms as $potential) {
-          foreach ($conf['vids'] as $vid => $active) {
-            if ($active && $potential->vid == $vid) {
-              $term = $potential;
-              // break out of the foreaches AND the case
-              break 3;
+        $conf['vids'] = is_array($conf['vids']) ? array_filter($conf['vids']) : NULL;
+        if ((count($terms) > 1) && isset($conf['vids'])) {
+          foreach ($terms as $potential) {
+            foreach ($conf['vids'] as $vid => $active) {
+              if ($active && $potential->vid == $vid) {
+                $term = $potential;
+                // break out of the foreaches AND the case
+                break 3;
+              }
             }
           }
         }
-      }
-      $term = array_shift($terms);
-      break;
-  }
+        $term = array_shift($terms);
+        break;
+    }
 
-  if (empty($term)) {
-    return NULL;
+    if (empty($term)) {
+      return NULL;
+    }
   }
 
   if (!empty($conf['vids']) && array_filter($conf['vids']) && empty($conf['vids'][$term->vid])) {

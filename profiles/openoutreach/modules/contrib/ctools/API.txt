@@ -4,6 +4,12 @@ Please note that the API version is an internal number and does not match releas
 
 This file contains a log of changes to the API.
 
+API Version 2.0.1
+  Introduce ctools_export_crud_enable(), ctools_export_crud_disable() and
+    ctools_export_crud_set_status() and requisite changes.
+  Introduce 'object factory' to export schema, allowing modules to control
+    how the exportable objects are instantiated.
+  
 API Version 2.0 
   Remove the deprecated callback-based behavior of the 'defaults' property on
     plugin types; array addition is now the only option. If you need more
@@ -15,8 +21,5 @@ API Version 2.0
   Introduce ctools_plugin_api_get_hook() to get the hook name above.
   Introduce 'cache defaults' and 'default cache bin' keys to export.inc
 
-API Version 2.0.1
-  Introduce ctools_export_crud_enable(), ctools_export_crud_disable() and ctools_export_crud_set_status() and requisite changes.
-  
 Versions prior to 2.0 have been removed from this document. See the D6 version
 for that information.

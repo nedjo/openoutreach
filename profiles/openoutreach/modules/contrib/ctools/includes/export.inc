@@ -397,7 +397,7 @@ function ctools_export_load_object($table, $type = 'all', $args = array()) {
   if (!empty($schema['join'])) {
     foreach ($schema['join'] as $join_key => $join) {
       if ($join_schema = drupal_get_schema($join['table'])) {
-        $query->join($join['table'], 't__' . $alias_count, 't__0' . $join['left_key'] . ' = ' . 't__' . $alias_count . '.' . $join['right_key']);
+        $query->join($join['table'], 't__' . $alias_count, 't__0.' . $join['left_key'] . ' = ' . 't__' . $alias_count . '.' . $join['right_key']);
         $query->fields('t__' . $alias_count);
         $alias_count++;
 
@@ -429,7 +429,12 @@ function ctools_export_load_object($table, $type = 'all', $args = array()) {
   $status = variable_get($export['status'], array());
   // Unpack the results of the query onto objects and cache them.
   foreach ($result as $data) {
-    $object = _ctools_export_unpack_object($schema, $data, $export['object']);
+    if (isset($schema['export']['object factory']) && function_exists($schema['export']['object factory'])) {
+      $object = $schema['export']['object factory']($schema, $data);
+    }
+    else {
+      $object = _ctools_export_unpack_object($schema, $data, $export['object']);
+    }
     $object->table = $table;
     $object->{$export['export type string']} = t('Normal');
     $object->export_type = EXPORT_IN_DATABASE;

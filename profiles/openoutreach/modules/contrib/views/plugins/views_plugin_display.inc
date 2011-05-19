@@ -1899,6 +1899,11 @@ class views_plugin_display extends views_plugin {
    */
   function options_validate(&$form, &$form_state) {
     switch ($form_state['section']) {
+      case 'display_title':
+        if (empty($form_state['values']['display_title'])) {
+          form_error($form['options']['display_title'], t('Display title may not be empty.'));
+        }
+        break;
       case 'css_class':
         $css_class = $form_state['values']['css_class'];
         if (preg_match('/[^a-zA-Z0-9-_ ]/', $css_class)) {
@@ -2672,6 +2677,25 @@ class views_plugin_display extends views_plugin {
     }
 
     return $output;
+  }
+
+  /**
+   * Provide some helpful text for the arguments.
+   * The result should contain of an array with
+   *   - filter value present: The title of the fieldset in the argument
+   *     where you can configure what should be done with a given argument.
+   *   - filter value not present: The tiel of the fieldset in the argument
+   *     where you can configure what should be done if the argument does not
+   *     exist.
+   *   - description: A description about how arguments comes to the display.
+   *     For example blocks don't get it from url.
+   */
+  function get_argument_text() {
+    return array(
+      'filter value not present' => t('When the filter value is <em>NOT</em> available'),
+      'filter value present' => t('When the filter value <em>IS</em> available or a default is provided'),
+      'description' => t("This display does not have a source for contextual filters, so no contextual filter value will be available unless you select 'Provide default'."),
+    );
   }
 }
 

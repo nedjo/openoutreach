@@ -1,3 +1,10 @@
 name = Subprofiles
 description = Provide multiple variations of a single installation profile.
 core = 7.x
+
+; Information added by drupal.org packaging script on 2011-05-12
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "subprofiles"
+datestamp = "1305161227"
+

@@ -775,7 +775,8 @@ class views_many_to_one_helper {
    */
   function ensure_my_table() {
     if (!isset($this->handler->table_alias)) {
-      // For 'or' if we're not reducing duplicates, we get the absolute simplest:
+      // Case 1: Operator is an 'or' and we're not reducing duplicates.
+      // We hence get the absolute simplest:
       $field = $this->handler->table . '.' . $this->handler->field;
       if ($this->handler->operator == 'or' && empty($this->handler->options['reduce_duplicates'])) {
         if (empty($this->handler->options['add_table']) && empty($this->handler->view->many_to_one_tables[$field])) {
@@ -808,8 +809,9 @@ class views_many_to_one_helper {
         return $this->handler->table_alias;
       }
 
+      // Case 2: it's an 'and' or an 'or'.
+      // We do one join per selected value.
       if ($this->handler->operator != 'not') {
-        // If it's an and or an or, we do one join per selected value.
         // Clone the join for each table:
         $this->handler->table_aliases = array();
         foreach ($this->handler->value as $value) {
@@ -841,9 +843,10 @@ class views_many_to_one_helper {
           }
         }
       }
+      // Case 3: it's a 'not'.
+      // We just do one join. We'll add a where clause during
+      // the query phase to ensure that $table.$field IS NULL.
       else {
-        // For not, we just do one join. We'll add a where clause during
-        // the query phase to ensure that $table.$field IS NULL.
         $join = $this->get_join();
         $join->type = 'LEFT';
         $join->extra = array();
@@ -937,17 +940,20 @@ class views_many_to_one_helper {
 }
 
 /*
- * Break x,y,z and x+y+z into an array. Numeric only.
+ * Break x,y,z and x+y+z into an array. Works for strings.
  *
  * @param $str
  *   The string to parse.
- * @param $handler
- *   The handler object to use as a base.
+ * @param $object
+ *   The object to use as a base. If not specified one will
+ *   be created.
  *
- * @return $handler
- *   The new handler object.
+ * @return $object
+ *   An object containing
+ *   - operator: Either 'and' or 'or'
+ *   - value: An array of numeric values.
  */
-function views_break_phrase_string($str, &$handler) {
+function views_break_phrase_string($str, &$handler = NULL) {
   if (!$handler) {
     $handler = new stdClass();
   }
@@ -993,14 +999,14 @@ function views_break_phrase_string($str, &$handler) {
  *
  * @param $str
  *   The string to parse.
- * @param $filter
- *   The filter object to use as a base. If not specified one will
+ * @param $handler
+ *   The handler object to use as a base. If not specified one will
  *   be created.
  *
- * @return $filter
- *   The new filter object.
+ * @return $handler
+ *   The new handler object.
  */
-function views_break_phrase($str, $handler = NULL) {
+function views_break_phrase($str, &$handler = NULL) {
   if (!$handler) {
     $handler = new stdClass();
   }

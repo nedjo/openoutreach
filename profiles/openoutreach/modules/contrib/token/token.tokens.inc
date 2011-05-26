@@ -1,5 +1,4 @@
 <?php
-// $Id: token.tokens.inc,v 1.37 2011/01/09 20:49:07 davereid Exp $
 
 /**
  * @file
@@ -149,6 +148,11 @@ function token_token_info() {
       'type' => 'file',
     );
   }
+  $info['tokens']['user']['roles'] = array(
+    'name' => t('Roles'),
+    'description' => t('The user roles associated with the user account.'),
+    'type' => 'array',
+  );
 
   // Current user tokens.
   $info['tokens']['current-user']['ip-address'] = array(
@@ -210,6 +214,7 @@ function token_token_info() {
     'dynamic' => TRUE,
   );
 
+  // URL tokens.
   $info['types']['url'] = array(
     'name' => t('URL'),
     'description' => t('Tokens related to URLs.'),
@@ -230,6 +235,44 @@ function token_token_info() {
   $info['tokens']['url']['absolute'] = array(
     'name' => t('Absolute URL'),
     'description' => t('The absolute URL.'),
+  );
+  $info['tokens']['url']['brief'] = array(
+    'name' => t('Brief URL'),
+    'description' => t('The URL without the protocol and trailing backslash.'),
+  );
+
+  // Array tokens.
+  $info['types']['array'] = array(
+    'name' => t('Array'),
+    'description' => t('Tokens related to arrays of strings.'),
+    'needs-data' => 'array',
+  );
+  $info['tokens']['array']['first'] = array(
+    'name' => t('First'),
+    'description' => t('The first element of the array.'),
+  );
+  $info['tokens']['array']['last'] = array(
+    'name' => t('Last'),
+    'description' => t('The last element of the array.'),
+  );
+  $info['tokens']['array']['count'] = array(
+    'name' => t('Count'),
+    'description' => t('The number of elements in the array.'),
+  );
+  $info['tokens']['array']['reversed'] = array(
+    'name' => t('Reversed'),
+    'description' => t('The array reversed.'),
+    'type' => 'array',
+  );
+  $info['tokens']['array']['keys'] = array(
+    'name' => t('Keys'),
+    'description' => t('The array of keys of the array.'),
+    'type' => 'array',
+  );
+  $info['tokens']['array']['join'] = array(
+    'name' => t('Imploded'),
+    'description' => t('The values of the array joined together with a custom string in-between each value.'),
+    'dynamic' => TRUE,
   );
 
   return $info;
@@ -392,6 +435,9 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
             $replacements[$original] = theme('user_picture', array('account' => $account));
           }
           break;
+        case 'roles':
+          $replacements[$original] = token_render_array($account->roles, $options);
+          break;
       }
     }
 
@@ -401,8 +447,11 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
       $account->picture->description = '';
       $replacements += token_generate('file', $picture_tokens, array('file' => $account->picture), $options);
     }
-    if (($url_tokens = token_find_with_prefix($tokens, 'url'))) {
+    if ($url_tokens = token_find_with_prefix($tokens, 'url')) {
       $replacements += token_generate('url', $url_tokens, entity_uri('user', $account), $options);
+    }
+    if ($role_tokens = token_find_with_prefix($tokens, 'roles')) {
+      $replacements += token_generate('array', $role_tokens, array('array' => $account->roles), $options);
     }
   }
 
@@ -525,6 +574,9 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
         case 'relative':
           $replacements[$original] = url($path, array('absolute' => FALSE) + $url_options);
           break;
+        case 'brief':
+          $replacements[$original] = preg_replace(array('!^https?://!', '!/$!'), '', url($path, $url_options));
+          break;
       }
     }
   }
@@ -553,6 +605,64 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
     if (($url_tokens = token_find_with_prefix($tokens, 'url')) && _token_module($type, 'url') == 'token') {
       $replacements += token_generate('url', $url_tokens, entity_uri($entity_type, $entity), $options);
     }
+  }
+
+  // Array tokens.
+  if ($type == 'array' && !empty($data['array']) && is_array($data['array'])) {
+    $array = $data['array'];
+
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'first':
+          $first = reset($array);
+          $replacements[$original] = token_render_array_value($first, $options);
+          reset($array);
+          break;
+        case 'last':
+          $last = end($array);
+          $replacements[$original] = token_render_array_value($last, $options);
+          reset($array);
+          break;
+        case 'count':
+          $replacements[$original] = count($array);
+          break;
+        case 'keys':
+          $keys = array_keys($array);
+          $replacements[$original] = token_render_array($keys, $options);
+          break;
+        case 'reversed':
+          $reversed = array_reverse($array, TRUE);
+          $replacements[$original] = token_render_array($reversed, $options);
+          break;
+        case 'join':
+          $replacements[$original] = token_render_array($array, array('join' => '') + $options);
+          break;
+      }
+    }
+
+    // Dynamic tokens.
+    if ($value_tokens = token_find_with_prefix($tokens, 'value')) {
+      foreach ($value_tokens as $key => $original) {
+        if (isset($array[$key])) {
+          $replacements[$original] = token_render_array_value($array[$key], $options);
+        }
+      }
+    }
+    if ($join_tokens = token_find_with_prefix($tokens, 'join')) {
+      foreach ($join_tokens as $join => $original) {
+        $replacements[$original] = token_render_array($array, array('join' => $join) + $options);
+      }
+    }
+
+    // Chained token relationships.
+    if ($key_tokens = token_find_with_prefix($tokens, 'keys')) {
+      $replacements += token_generate('array', $key_tokens, array('array' => array_keys($array)), $options);
+    }
+    if ($reversed_tokens = token_find_with_prefix($tokens, 'reversed')) {
+      $replacements += token_generate('array', $reversed_tokens, array('array' => array_reverse($array, TRUE)), $options);
+    }
+
+    // @todo Handle if the array values are not strings and could be chained.
   }
 
   // If $type is a token type, $data[$type] is empty but $data[$entity_type] is
@@ -851,9 +961,10 @@ function _token_profile_fields() {
   $fields = &drupal_static(__FUNCTION__);
 
   if (!isset($fields)) {
+    $fields = array();
     $results = db_query("SELECT name, title, category, type FROM {profile_field}");
     foreach ($results as $field) {
-      $field->token_name = strtr($field->name, '_', '-');
+      $field->token_name = token_clean_token_name($field->name);
       $fields[$field->token_name] = $field;
     }
   }

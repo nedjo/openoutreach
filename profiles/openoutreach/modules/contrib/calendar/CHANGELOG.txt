@@ -5,6 +5,9 @@ Calendar Module 7.x
 Version 7.x-2.x-dev
 =================
 
+- The delta value was not being computed or added correctly.
+- Issue #1137538, by westbywest: Fix incorrect value for 'delta' in calendar_plugin_style.inc.
+
 ======================
 Version 7.x-2.0-alpha1
 ======================

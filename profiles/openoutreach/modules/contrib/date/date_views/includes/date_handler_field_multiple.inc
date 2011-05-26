@@ -134,18 +134,18 @@ class date_handler_field_multiple extends views_handler_field_field {
     $vid = $values->{$this->field_alias};
     if (isset($this->field_values[$vid])) {
       // Build a pseudo-node from the retrieved values.
-      $node = clone($values);
+      $entity = clone($values);
       // content_format and formatters will need a 'type' .
-      $node->type = $values->{$this->aliases['type']};
-      $node->nid = $values->{$this->aliases['nid']};
-      $node->vid = $values->{$this->aliases['vid']};
+      $entity->type = $values->{$this->aliases['type']};
+      $entity->nid = $values->{$this->aliases['nid']};
+      $entity->vid = $values->{$this->aliases['vid']};
       $items = $this->field_values[$vid];
-      $node->$field_name = $items;
+      $entity->$field_name = $items;
 
       // Some formatters need to behave differently depending on the build_mode
       // (for instance: preview), so we provide one.
       // TODO This has changed in D7.
-      $node->build_mode = NODE_BUILD_NORMAL;
+      $entity->build_mode = NODE_BUILD_NORMAL;
 
       // Render items.
       $formatter_name = $options['format'];

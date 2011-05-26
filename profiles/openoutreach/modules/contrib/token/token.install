@@ -1,5 +1,4 @@
 <?php
-// $Id: token.install,v 1.15 2010/12/08 16:25:09 davereid Exp $
 
 /**
  * Implements hook_requirements().

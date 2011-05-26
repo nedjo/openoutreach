@@ -1,5 +1,4 @@
 <?php
-// $Id: token.pages.inc,v 1.13 2010/12/18 01:53:33 davereid Exp $
 
 /**
  * @file

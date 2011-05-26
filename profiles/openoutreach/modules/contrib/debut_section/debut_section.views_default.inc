@@ -88,11 +88,11 @@ function debut_section_views_default_views() {
   $handler->display->display_options['arguments']['nid']['field'] = 'nid';
   $handler->display->display_options['arguments']['nid']['relationship'] = 'nid';
   $handler->display->display_options['arguments']['nid']['default_action'] = 'default';
-  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'php';
-  $handler->display->display_options['arguments']['nid']['default_argument_options']['code'] = 'if (arg(0) == \'node\' && is_numeric(arg(1))) {
-  return arg(1);
-}';
+  $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'node';
+  $handler->display->display_options['arguments']['nid']['default_argument_skip_url'] = 0;
+  $handler->display->display_options['arguments']['nid']['summary']['number_of_records'] = '0';
   $handler->display->display_options['arguments']['nid']['summary']['format'] = 'default_summary';
+  $handler->display->display_options['arguments']['nid']['summary_options']['items_per_page'] = '25';
   $handler->display->display_options['arguments']['nid']['break_phrase'] = 0;
   $handler->display->display_options['arguments']['nid']['not'] = 0;
   /* Filter criterion: Content: Published */
@@ -104,6 +104,13 @@ function debut_section_views_default_views() {
   /* Display: Section children block */
   $handler = $view->new_display('block', 'Section children block', 'block_1');
   $handler->display->display_options['defaults']['title'] = FALSE;
+
+  /* Display: Entity content */
+  $handler = $view->new_display('entity_view', 'Entity content', 'entity_view_1');
+  $handler->display->display_options['entity_type'] = 'node';
+  $handler->display->display_options['bundles'] = array(
+    0 => 'section',
+  );
   $translatables['section_children'] = array(
     t('Defaults'),
     t('Section children'),
@@ -116,6 +123,7 @@ function debut_section_views_default_views() {
     t('Book parent'),
     t('All'),
     t('Section children block'),
+    t('Entity content'),
   );
   $export['section_children'] = $view;
 

@@ -12,7 +12,7 @@
 /**
  * Theme from/to date combination in the view.
  *
- *   $node->date_id 
+ *   $entity->date_id 
  *     If set, this will show only an individual date on a field with 
  *     multiple dates. The value should be a string that contains
  *     the following values, separated with periods:
@@ -25,7 +25,7 @@
  *     Used by the calendar module and available for other uses.
  *     example: 'date.217.field_date.3.test'
  * 
- *   $node->date_repeat_show
+ *   $entity->date_repeat_show
  *     If true, tells the theme to show all the computed values
  *     of a repeating date. If not true or not set, only the
  *     start date and the repeat rule will be displayed.
@@ -60,8 +60,8 @@ function theme_date_display_combination($vars) {
   $output = ''; 
 
   // If date_id is set for this field and the delta doesn't match, don't display it.
-  if (!empty($node->date_id)) {
-    foreach ((array) $node->date_id as $key => $id) {
+  if (!empty($entity->date_id)) {
+    foreach ((array) $entity->date_id as $key => $id) {
       list($module, $nid, $field_name, $item_delta, $other) = explode('.', $id);
       if ($field_name == $field['field_name'] && isset($delta) && $item_delta != $delta) {
         return $output;

@@ -53,6 +53,12 @@ class view extends views_db_object {
   // To avoid recursion in views embebed into areas
   var $parent_views = array();
 
+  // Stores the next steps of form items to handle.
+  // It's an array of stack items, which contain the form id, the type of form,
+  // the view, the display and some additional arguments.
+  // @see views_ui_add_form_to_stack().
+  // var $stack;
+
   /**
    * Where the $query object will reside:
    *
@@ -1768,6 +1774,7 @@ class view extends views_db_object {
 
     $errors = array();
 
+    $current_display = $this->current_display;
     foreach ($this->display as $id => $display) {
       if ($display->handler) {
         if (!empty($display->deleted)) {
@@ -1781,6 +1788,7 @@ class view extends views_db_object {
       }
     }
 
+    $this->set_display($current_display);
     return $errors ? $errors : TRUE;
   }
 

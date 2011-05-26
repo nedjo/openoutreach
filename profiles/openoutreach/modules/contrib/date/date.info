@@ -17,9 +17,9 @@ files[] = tests/date_api.test
 files[] = tests/date.test
 files[] = tests/date_field.test
 files[] = tests/date_validation.test
-; Information added by drupal.org packaging script on 2011-05-01
+; Information added by drupal.org packaging script on 2011-05-26
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "date"
-datestamp = "1304208437"
+datestamp = "1306368435"
 

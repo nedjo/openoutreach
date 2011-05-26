@@ -1,5 +1,4 @@
 <?php
-// $Id: token.module,v 1.61 2011/01/12 03:26:59 davereid Exp $
 
 /**
  * The maximum depth for token tree recursion.
@@ -11,6 +10,12 @@ define('TOKEN_MAX_DEPTH', 9);
  */
 function token_help($path, $arg) {
   if ($path == 'admin/help#token') {
+    if (current_path() != 'admin/help/token') {
+      // Because system_modules() executes hook_help() for each module to 'test'
+      // if they will return anything, but not actually display it, we want to
+      // return a TRUE value if this is not actually the help page.
+      return TRUE;
+    }
     $output = '<dl>';
     $output .= '<dt>' . t('List of the currently available tokens on this site') . '</dt>';
     $output .= '<dd>' . theme('token_tree', array('token_types' => 'all', 'click_insert' => FALSE, 'show_restricted' => TRUE)) . '</dd>';
@@ -170,7 +175,7 @@ function token_form_alter(&$form, $form_state, $form_id) {
  * Clear token caches and static variables.
  */
 function token_clear_cache() {
-  cache_clear_all(NULL, 'cache_token');
+  cache_clear_all('*', 'cache_token', TRUE);
   drupal_static_reset('token_get_info');
   drupal_static_reset('token_get_global_token_types');
   drupal_static_reset('token_build_tree');
@@ -302,10 +307,13 @@ function token_get_info($token_type = NULL, $token = NULL) {
 
       foreach (array_keys($token_info['types']) as $type_key) {
         if (isset($token_info['types'][$type_key]['type'])) {
+          $base_type = $token_info['types'][$type_key]['type'];
           // If this token type extends another token type, then merge in
           // the base token type's tokens.
-          $token_info['tokens'] += array($type_key => array());
-          $token_info['tokens'][$type_key] += $token_info['tokens'][$token_info['types'][$type_key]['type']];
+          if (isset($token_info['tokens'][$base_type])) {
+            $token_info['tokens'] += array($type_key => array());
+            $token_info['tokens'][$type_key] += $token_info['tokens'][$base_type];
+          }
         }
         else {
           // Add a 'type' value to each token type so we can properly use
@@ -729,7 +737,7 @@ function _token_build_tree($token_type, array $options) {
   );
 
   $info = token_get_info();
-  if ($options['depth'] <= 0 || !isset($info['types'][$token_type])) {
+  if ($options['depth'] <= 0 || !isset($info['types'][$token_type]) || !isset($info['tokens'][$token_type])) {
     return array();
   }
 
@@ -915,4 +923,48 @@ function _token_menu_link_translate(&$item) {
   }
 
   return $map;
+}
+
+/**
+ * Prepare a string for use as a valid token name.
+ *
+ * @param $name
+ *   The token name to clean.
+ * @return
+ *   The cleaned token name.
+ */
+function token_clean_token_name($name) {
+  static $names = array();
+
+  if (!isset($names[$name])) {
+    $cleaned_name = strtr($name, array(' ' => '-', '_' => '-', '/' => '-', '[' => '-', ']' => ''));
+    $cleaned_name = preg_replace('/[^\w\-]/i', '', $cleaned_name);
+    $cleaned_name = trim($cleaned_name, '-');
+    $names[$name] = $cleaned_name;
+  }
+
+  return $names[$name];
+}
+
+/**
+ * Do not use this function yet. Its API has not been finalized.
+ */
+function token_render_array(array $array, array $options = array()) {
+  $rendered = array_map('render', $array);
+  if (!empty($options['sanitize'])) {
+    $rendered = array_map('check_plain', $rendered);
+  }
+  $join = isset($options['join']) ? $options['join'] : ', ';
+  return implode($join, $rendered);
+}
+
+/**
+ * Do not use this function yet. Its API has not been finalized.
+ */
+function token_render_array_value($value, array $options = array()) {
+  $rendered = render($value);
+  if (!empty($options['sanitize'])) {
+    $rendered = check_plain($rendered);
+  }
+  return $rendered;
 }

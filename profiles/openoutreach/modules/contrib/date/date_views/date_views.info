@@ -22,9 +22,9 @@ files[] = theme/date-valarm.tpl.php
 files[] = theme/date-vcalendar.tpl.php
 files[] = theme/date-vevent.tpl.php
 files[] = theme/date-views-filter-form.tpl.php
-; Information added by drupal.org packaging script on 2011-05-01
+; Information added by drupal.org packaging script on 2011-05-26
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "date"
-datestamp = "1304208437"
+datestamp = "1306368435"
 

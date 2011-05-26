@@ -262,7 +262,7 @@ function date_repeat_rrule_description($rrule, $format = 'D M d Y') {
  * Parse an iCal rule into a parsed RRULE array and an EXDATE array.
  */
 function date_repeat_split_rrule($rrule) {
-  $parts = explode("\n", $rrule);
+  $parts = explode("\n", str_replace("\r\n", "\n", $rrule));
   $rrule = array();
   $exceptions = array();
   $additions = array();

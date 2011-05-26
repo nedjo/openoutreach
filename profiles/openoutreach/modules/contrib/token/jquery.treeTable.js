@@ -1,4 +1,3 @@
-// $Id: jquery.treeTable.js,v 1.1 2010/03/16 23:48:58 davereid Exp $
 
 /*
  * jQuery treeTable Plugin 2.3.0

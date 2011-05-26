@@ -39,3 +39,16 @@ function debut_section_enable() {
   }
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * When creating a new section not part of an existing book, default to new
+ * book if the user has permission.
+ */
+function debut_section_form_section_node_form_alter(&$form, $form_state) {
+  // 'new' will be an option only if the user has permission to create books.
+  if (!isset($form['#node']->nid) && isset($form['book']) && $form['book']['bid']['#default_value'] === 0 && isset($form['book']['bid']['#options']['new'])) {
+    $form['book']['bid']['#default_value'] = 'new';
+  }
+}
+

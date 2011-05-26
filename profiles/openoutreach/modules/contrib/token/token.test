@@ -1,5 +1,4 @@
 <?php
-// $Id: token.test,v 1.32 2011/01/12 03:26:59 davereid Exp $
 
 /**
  * Helper test class with some added functions for testing.
@@ -12,13 +11,16 @@ class TokenTestHelper extends DrupalWebTestCase {
     parent::setUp($modules);
   }
 
-  function assertToken($type, $object, $token, $expected, array $options = array()) {
-    $this->assertTokens($type, $object, array($token => $expected), $options);
+  function assertToken($type, $data, $token, $expected, array $options = array()) {
+    $this->assertTokens($type, $data, array($token => $expected), $options);
   }
 
-  function assertTokens($type, $object, array $tokens, array $options = array()) {
+  function assertTokens($type, $data, array $tokens, array $options = array()) {
     $token_input = drupal_map_assoc(array_keys($tokens));
-    $values = token_generate($type, $token_input, array($type => $object), $options);
+    if (!is_array($data)) {
+      $data = array($type => $data);
+    }
+    $values = token_generate($type, $token_input, $data, $options);
     foreach ($tokens as $token => $expected) {
       if (!isset($expected)) {
         $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
@@ -32,9 +34,12 @@ class TokenTestHelper extends DrupalWebTestCase {
     }
   }
 
-  function assertNoTokens($type, $object, array $tokens, array $options = array()) {
+  function assertNoTokens($type, $data, array $tokens, array $options = array()) {
     $token_input = drupal_map_assoc($tokens);
-    $values = token_generate($type, $token_input, array($type => $object), $options);
+    if (!is_array($data)) {
+      $data = array($type => $data);
+    }
+    $values = token_generate($type, $token_input, $data, $options);
     foreach ($tokens as $token) {
       $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
     }
@@ -174,6 +179,33 @@ class TokenUnitTestCase extends TokenTestHelper {
       sort($test['invalid tokens']);
       $this->assertEqual($invalid_tokens, $test['invalid tokens'], 'Invalid tokens detected properly: ' . implode(', ', $invalid_tokens));
     }
+  }
+}
+
+class TokenURLTestCase extends TokenTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'URL token tests',
+      'description' => 'Test the URL tokens.',
+      'group' => 'Token',
+    );
+  }
+
+  function setUp($modules = array()) {
+    parent::setUp($modules);
+    $this->saveAlias('node/1', 'first-node');
+    variable_set('clean_url', 1);
+  }
+
+  function testURLTokens() {
+    $tokens = array(
+      'absolute' => 'http://example.com/first-node',
+      'relative' => base_path() . 'first-node',
+      'path' => 'node/1',
+      'alias' => 'first-node',
+      'brief' => 'example.com/first-node',
+    );
+    $this->assertTokens('url', array('path' => 'node/1', 'options' => array('base_url' => 'http://example.com')), $tokens);
   }
 }
 
@@ -349,7 +381,7 @@ class TokenMenuTestCase extends TokenTestHelper {
       'root:parent' => NULL,
       'root:root' => NULL,
     );
-    $this->assertTokens('menu-link', $parent_link, $tokens);
+    $this->assertTokens('menu-link', array('menu-link' => $parent_link), $tokens);
 
     // Add a node menu link
     $node_link = array(
@@ -737,5 +769,38 @@ class TokenCurrentPageTestCase extends TokenTestHelper {
       '[current-page:arg:2]' => NULL,
     );
     $this->assertPageTokens("node/{$node->nid}", $tokens);
+  }
+}
+
+class TokenArrayTestCase extends TokenTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'Array token tests',
+      'description' => 'Test the array tokens.',
+      'group' => 'Token',
+    );
+  }
+
+  function testArrayTokens() {
+    $array = array(0 => 'a', 1 => 'b', 2 => 'c', 4 => 'd');
+
+    // Test the profile token values.
+    $tokens = array(
+      'first' => 'a',
+      'last' => 'd',
+      'value:0' => 'a',
+      'value:2' => 'c',
+      'count' => 4,
+      'keys' => '0, 1, 2, 4',
+      'keys:value:3' => '4',
+      'keys:join' => '0124',
+      'reversed' => 'd, c, b, a',
+      'reversed:keys' => '4, 2, 1, 0',
+      'join:/' => 'a/b/c/d',
+      'join' => 'abcd',
+      'join:, ' => 'a, b, c, d',
+      'join: ' => 'a b c d',
+    );
+    $this->assertTokens('array', $array, $tokens);
   }
 }

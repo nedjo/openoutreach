@@ -666,7 +666,7 @@ function calendar_build_nodes(&$view, &$items) {
     $processed = array();
     $rrule_processed = array();
     foreach ($items as $pos => $item) {
-      $delta = !empty($field['delta_field']) && !empty($item->{$field['delta_field']}) ? $item->{$field['delta_field']} : 0;
+      $delta = !empty($field['delta_field']) && !empty($item->raw->{$field['delta_field']}) ? $item->raw->{$field['delta_field']} : 0;
       $id = 'calendar.' . $item->id . '.' . $real_field . '.' . $delta;
       // When creating iCal feeds for repeating dates we don't want all
       // the multiple values, send only the first value.

@@ -187,7 +187,7 @@ function date_local_date($form, $form_state, $delta, $item, $timezone, $field, $
  */
 function date_combo_element_process($element, &$form_state, $form) {
   if (isset($element['#access']) && empty($element['#access'])) {
-    return;
+    return $element;
   }
 
   $field_name = $element['#field_name'];

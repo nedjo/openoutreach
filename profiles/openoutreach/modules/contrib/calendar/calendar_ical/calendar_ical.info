@@ -15,9 +15,9 @@ files[] = calendar_plugin_display_ical.inc
 files[] = calendar_plugin_style_ical.inc
 files[] = theme.inc
 
-; Information added by drupal.org packaging script on 2011-04-26
+; Information added by drupal.org packaging script on 2011-05-22
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "calendar"
-datestamp = "1303819424"
+datestamp = "1306065847"
 

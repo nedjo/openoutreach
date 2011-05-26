@@ -8,8 +8,8 @@
  *
  * Included only when needed.
  */
-function date_devel_generate($node, $field, $instance, $bundle) {
-  $node_field = array();
+function date_devel_generate($entity, $field, $instance, $bundle) {
+  $entity_field = array();
   if (isset($instance['widget']['settings']['year_range'])) {
     $split = explode(':', $instance['widget']['settings']['year_range']);
     $back = str_replace('-', '', $split[0]);
@@ -65,15 +65,15 @@ function date_devel_generate($node, $field, $instance, $bundle) {
       $format = DATE_FORMAT_DATETIME;
       break;
   }
-  $node_field['value'] = date_format($start, $format);
+  $entity_field['value'] = date_format($start, $format);
   if ($field['settings']['todate']) {
-    $node_field['value2'] = date_format($start2, $format);
+    $entity_field['value2'] = date_format($start2, $format);
   }
   date_timezone_set($start, timezone_open($timezone));
-  $node_field['timezone'] = $timezone;
-  $node_field['offset'] = date_offset_get($start);
+  $entity_field['timezone'] = $timezone;
+  $entity_field['offset'] = date_offset_get($start);
   date_timezone_set($start2, timezone_open($timezone));
-  $node_field['offset2'] = date_offset_get($start2);          
+  $entity_field['offset2'] = date_offset_get($start2);          
 
   if (!empty($field['settings']['repeat'])) {
     module_load_include('inc', 'date_repeat', 'date_repeat_calc');
@@ -151,14 +151,14 @@ function date_devel_generate($node, $field, $instance, $bundle) {
     $form_values['COUNT'] = $max_items;
 
     $rrule = date_api_ical_build_rrule($form_values);
-    $values = date_repeat_build_dates($rrule, $form_values, $field, $node_field);
+    $values = date_repeat_build_dates($rrule, $form_values, $field, $entity_field);
 
-    $start = $node_field;
-    $node_field = array(0 => $start);
-    $node_field[0]['rrule'] = $rrule;
-    $node_field += $values;
+    $start = $entity_field;
+    $entity_field = array(0 => $start);
+    $entity_field[0]['rrule'] = $rrule;
+    $entity_field += $values;
   }
-  return $node_field;
+  return $entity_field;
 }
 
 function date_content_generate_key($array) {

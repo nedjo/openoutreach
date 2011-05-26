@@ -276,9 +276,9 @@ files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
 
-; Information added by drupal.org packaging script on 2011-05-18
+; Information added by drupal.org packaging script on 2011-05-25
 version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1305679973"
+datestamp = "1306285223"
 

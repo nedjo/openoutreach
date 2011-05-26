@@ -5,6 +5,12 @@ Date Module 7.x
 Version 7.x-2.x-dev
 ===================
 
+- Issue #1118356, Disabling the Timepicker was having no effect.
+- Issue #408770 by vkareh, Make sure dates with #access = FALSE get passed through date_combo_element_process().
+- Issue #1037174 by das-peter, add ajax support to date popup.
+- Issue #1160614 by joelstein, Make sure date repeat rule gets split correctly no matter which line endings were used.
+- Issue #1110708 by mr.baileys, Fix problem combining date filter with other exposed filters.
+- Switch some references to $node to use $entity instead.
 - Issue #1112206, add a dummy field to the date navigation bar query to keep it from trying to create invalid sql.
 - Issue #1112206, $this->view->query->clear_fields() is still need for date_browser to keep Views from trying to use missing field values.
 - Date browser only works with date_argument, should work with any argument derived from date.

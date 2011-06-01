@@ -1,4 +1,5 @@
 core = "7.x"
+debut[social][node_types][] = "blog"
 dependencies[] = "captcha"
 dependencies[] = "context"
 dependencies[] = "features"

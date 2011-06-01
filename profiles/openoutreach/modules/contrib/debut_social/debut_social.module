@@ -1,3 +1,12 @@
 <?php
 
 include_once('debut_social.features.inc');
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function debut_social_modules_enabled($modules) {
+  module_load_include('inc', 'debut_social', 'debut_social.util');
+  debut_social_add_node_types($modules);
+}
+

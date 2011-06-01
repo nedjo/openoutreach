@@ -1,0 +1,10 @@
+<?php
+
+/**
+ * Implements hook_enable().
+ */
+function debut_social_enable() {
+  $modules = module_list();
+  module_load_include('inc', 'debut_social', 'debut_social.util');
+  debut_social_add_node_types($modules);
+}

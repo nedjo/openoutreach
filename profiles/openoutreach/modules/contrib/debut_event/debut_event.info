@@ -1,4 +1,5 @@
 core = "7.x"
+debut[social][node_types][] = "event"
 dependencies[] = "calendar"
 dependencies[] = "context"
 dependencies[] = "date"

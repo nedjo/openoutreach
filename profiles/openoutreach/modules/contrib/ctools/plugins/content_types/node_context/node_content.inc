@@ -98,8 +98,9 @@ function ctools_node_content_render_node($node, $conf) {
 
     if (empty($conf['no_extras'])) {
       // Allow modules to make their own additions to the node.
-      module_invoke_all('node_view', $node, $conf['build_mode'], '');
-      module_invoke_all('entity_view', $node, 'node', $conf['build_mode']);
+      $langcode = $GLOBALS['language_content']->language;
+      module_invoke_all('node_view', $node, $conf['build_mode'], $langcode);
+      module_invoke_all('entity_view', $node, 'node', $conf['build_mode'], $langcode);
     }
   }
 

@@ -30,9 +30,9 @@ name = "Debut Comment"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-05-11
-version = "7.x-1.0-beta2"
+; Information added by drupal.org packaging script on 2011-09-07
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "debut_comment"
-datestamp = "1305152815"
+datestamp = "1315397607"
 

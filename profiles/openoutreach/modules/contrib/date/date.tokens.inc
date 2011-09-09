@@ -16,15 +16,15 @@ function date_token_info() {
     'needs-data' => 'date-field-value',
     'field-value' => TRUE,
   );
-  // Provide two tokens: 'date' (the date or from-date), and 'to-date'.
+  // Provide two tokens: 'date' (the date or start-date), and 'end-date'.
   $info['tokens']['date-field-value']['date'] = array(
     'name' => t('Date'),
     'description' => t('The date value.'),
     'type' => 'date',
   );
   $info['tokens']['date-field-value']['to-date'] = array(
-    'name' => t('To Date'),
-    'description' => t('The to date value.'),
+    'name' => t('End Date'),
+    'description' => t('The End date value.'),
     'type' => 'date',
   );
 
@@ -41,9 +41,9 @@ function date_tokens($type, $tokens, array $data = array(), array $options = arr
   if (($type == 'date-field-value') && !empty($data['item'])) {
     $item = $data['item'];
 
-    // Create tokens for the field "Date" or "From date".
+    // Create tokens for the field "Date" or "Start date".
     if (($date_tokens = token_find_with_prefix($tokens, 'date')) && !empty($item['value'])) {
-      // Load the from date and convert to a unix timestamp.
+      // Load the Start date and convert to a unix timestamp.
       $date = new DateObject($item['value'], $item['timezone_db'], date_type_format($item['date_type']));
       if (!empty($date) && $item['timezone_db'] != $item['timezone']) {
         date_timezone_set($date, timezone_open($item['timezone']));
@@ -54,8 +54,8 @@ function date_tokens($type, $tokens, array $data = array(), array $options = arr
       $replacements += token_generate('date', $date_tokens, array('date' => $timestamp), $options);
     }
 
-    // Create tokens for the field "To date".
-    if (($date_tokens = token_find_with_prefix($tokens, 'to-date')) && !empty($item['value2'])) {
+    // Create tokens for the field "End date".
+    if (($date_tokens = token_find_with_prefix($tokens, 'end-date')) && !empty($item['value2'])) {
       // Load the to date and convert to a unix timestamp.
       $date = new DateObject($item['value2'], $item['timezone_db'], date_type_format($item['date_type']));
       if (!empty($date) && $item['timezone_db'] != $item['timezone']) {

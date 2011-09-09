@@ -38,6 +38,12 @@ To submit bug reports and feature suggestions, or to track changes:
 * Setup editor profiles in Administration » Configuration » Content authoring
   » Wysiwyg.
 
+-- EXPORT --
+
+You can export Wysiwyg profiles to code using the Features module, if you have also enabled the Entity module.
+
+  http://drupal.org/project/features
+  http://drupal.org/project/entity
 
 -- CONTACT --
 
@@ -50,4 +56,3 @@ This project has been sponsored by:
   Specialized in consulting and planning of Drupal powered sites, UNLEASHED
   MIND offers installation, development, theming, customization, and hosting
   to get you started. Visit http://www.unleashedmind.com for more information.
-

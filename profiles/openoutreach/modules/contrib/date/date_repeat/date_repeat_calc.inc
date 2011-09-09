@@ -45,9 +45,15 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
   // Get the parsed array of rule values.
   $rrule = date_ical_parse_rrule('RRULE:', $rrule);
 
+  // These default values indicate there is no RRULE here.
+  if ($rrule['FREQ'] == 'NONE' || (isset($rrule['INTERVAL']) && $rrule['INTERVAL'] == 0)) {
+    return array();
+  }
+
   // Create a date object for the start and end dates.
   $start_date = new DateObject($start, $timezone);
   $end_date = new DateObject($end, $timezone);
+  $modify_time = ' ' . $start_date->format('g:ia');
 
   // If the rule has an UNTIL, see if that is earlier than the end date.
   if (!empty($rrule['UNTIL'])) {
@@ -58,7 +64,10 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
   }
 
   // Get an integer value for the interval, if none given, '1' is implied.
-  $interval = max(1, isset($rrule['INTERVAL']) ? $rrule['INTERVAL'] : 1);
+  if (empty($rrule['INTERVAL'])) {
+    $rrule['INTERVAL'] = 1;
+  }
+  $interval = max(1, $rrule['INTERVAL']);
   $count = isset($rrule['COUNT']) ? $rrule['COUNT'] : NULL;
 
   if (empty($rrule['FREQ'])) {
@@ -131,7 +140,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
           }
           // Back up to first of month and jump.
           $current_day = date_repeat_set_month_day($current_day, NULL, 1, '+', $timezone);
-          date_modify($current_day, '+'. $jump);
+          date_modify($current_day, '+'. $jump . $modify_time);
         }
         // If it's yearly, break out of the loop at the
         // end of every year, and jump one INTERVAL in years.
@@ -142,14 +151,14 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
           else {
             // Back up to first of month and jump.
             $current_day = date_repeat_set_month_day($current_day, NULL, 1, '+', $timezone);
-            date_modify($current_day, '+1 month');
+            date_modify($current_day, '+1 month' . $modify_time);
           }
         }
       }
       if ($rrule['FREQ'] == 'YEARLY') {
         // Back up to first of year and jump.
         $current_day = date_repeat_set_year_day($current_day, NULL, 1, '+', $timezone);
-        date_modify($current_day, '+'. $jump);
+        date_modify($current_day, '+'. $jump . $modify_time);
       }
       $finished = date_repeat_is_finished($current_day, $days, $count, $end_date);
     }
@@ -167,7 +176,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
     while (!$finished) {
       date_repeat_add_dates($days, $current_day, $start_date, $end_date, $exceptions, $rrule);
       $finished = date_repeat_is_finished($current_day, $days, $count, $end_date);
-      date_modify($current_day, '+'. $jump);
+      date_modify($current_day, '+'. $jump . $modify_time);
     }
   }
 
@@ -243,7 +252,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
           date_date_set($current_day, $year, 1, 1);
         }
         // Jump to the next period.
-        date_modify($current_day, '+' . $jump);
+        date_modify($current_day, '+' . $jump . $modify_time);
       }
     }
 
@@ -265,7 +274,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
       // jump to the next week. The date_repeat_add_dates() function will
       // keep dates outside the range from getting added.
       if (date_format($current_day, 'l') != $day_names[$day]) {  
-        date_modify($current_day, '-1 ' . $week_start_day);
+        date_modify($current_day, '-1 ' . $week_start_day . $modify_time);
       }
       while (!$finished) {
         $period_finished = FALSE;
@@ -281,7 +290,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
             // If we're already on the right day, don't jump or we
             // will prematurely move into the next week.
             if (date_format($current_day, 'l') != $day) {
-              date_modify($current_day, '+1 ' . $day);
+              date_modify($current_day, '+1 ' . $day . $modify_time);
               $moved = TRUE;
             }
             if ($rrule['FREQ'] == 'WEEKLY' || date_format($current_day, $format) == $current_period) {
@@ -293,7 +302,7 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
           // Make sure we don't get stuck in endless loop if the current
           // day never got changed above.
           if (!$moved) {
-            date_modify($current_day, '+1 day');
+            date_modify($current_day, '+1 day' . $modify_time);
           }
 
           // If this is a WEEKLY frequency, stop after each week,
@@ -318,20 +327,20 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
         // ensure we jump to the first day of the next period.
         switch ($rrule['FREQ']) {
           case 'WEEKLY':
-            date_modify($current_day, '+1 ' . $week_start_day);
-            date_modify($current_day, '-1 week');
+            date_modify($current_day, '+1 ' . $week_start_day . $modify_time);
+            date_modify($current_day, '-1 week' . $modify_time);
             break;
           case 'MONTHLY':
-            date_modify($current_day, '-' . (date_format($current_day, 'j') - 1) . ' days');
-            date_modify($current_day, '-1 month');
+            date_modify($current_day, '-' . (date_format($current_day, 'j') - 1) . ' days' . $modify_time);
+            date_modify($current_day, '-1 month' . $modify_time);
             break;
           case 'YEARLY':
-            date_modify($current_day, '-' . date_format($current_day, 'z') . ' days');
-            date_modify($current_day, '-1 year');
+            date_modify($current_day, '-' . date_format($current_day, 'z') . ' days' . $modify_time);
+            date_modify($current_day, '-1 year' . $modify_time);
             break;
         }
         // Jump ahead to the next period to be evaluated.
-        date_modify($current_day, '+' . $jump);
+        date_modify($current_day, '+' . $jump . $modify_time);
         $current_period = date_format($current_day, $format);
         $finished = date_repeat_is_finished($current_day, $days, $count, $end_date);
       }
@@ -340,7 +349,8 @@ function _date_repeat_calc($rrule, $start, $end, $exceptions, $timezone, $additi
 
   // add additional dates
   foreach($additions as $addition) {
-    $days[] = date_format($addition, DATE_FORMAT_DATETIME);
+    $date = new dateObject($addition . ' ' . $start_date->format('H:i:s'), $timezone);
+    $days[] = date_format($date, DATE_FORMAT_DATETIME);
   }
 
   sort($days);

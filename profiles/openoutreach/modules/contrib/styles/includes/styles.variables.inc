@@ -1,5 +1,4 @@
 <?php
-// $Id: styles.variables.inc,v 1.1.4.2 2010/09/03 13:18:51 aaron Exp $
 
 /**
  * @file styles.variables.inc

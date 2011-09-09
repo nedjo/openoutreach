@@ -243,6 +243,11 @@ class views_plugin_style_table extends views_plugin_style {
         '#default_value' => isset($this->options['info'][$field]['separator']) ? $this->options['info'][$field]['separator'] : '',
         '#dependency' => array($id => array($field)),
       );
+      $form['info'][$field]['empty_column'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => isset($this->options['info'][$field]['empty_column']) ? $this->options['info'][$field]['empty_column'] : FALSE,
+        '#dependency' => array($id => array($field)),
+      );
 
       // markup for the field name
       $form['info'][$field]['name'] = array(
@@ -261,7 +266,7 @@ class views_plugin_style_table extends views_plugin_style {
 
     $form['empty_table'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Show the empty text in the table.'),
+      '#title' => t('Show the empty text in the table'),
       '#default_value' => $this->options['empty_table'],
       '#description' => t('Per default the table is hidden for an empty view. With this option it is posible to show an empty table with the text in it.'),
     );

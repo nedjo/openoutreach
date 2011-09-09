@@ -12,7 +12,7 @@
 Drupal.behaviors.mediaElement = {
   attach: function (context, settings) {
     // Options set from media.fields.inc for the types, etc to show in the browser.
-    
+
     // For each widget (in case of multi-entry)
     $('.media-widget', context).once('mediaBrowserLaunch', function () {
       var options = settings.media.elements[this.id];

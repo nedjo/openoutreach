@@ -279,6 +279,7 @@ function hook_views_api() {
   return array(
     'api' => 2,
     'path' => drupal_get_path('module', 'example') . '/includes/views',
+    'template path' => drupal_get_path('module', 'example') . 'themes',
   );
 }
 
@@ -555,6 +556,32 @@ function hook_views_query_substitutions() {
 }
 
 /**
+ * This hook is called to get a list of placeholders and their substitutions,
+ * used when preprocessing a View with form elements.
+ */
+function hook_views_form_substitutions() {
+  return array(
+    '<!--views-form-example-substitutions-->' => 'Example Substitution',
+  );
+}
+
+/**
+ * Views form (View with form elements) validate handler.
+ * Called for all steps ($form_state['step']) of the multistep form.
+ */
+function hook_views_form_validate($form, &$form_state) {
+  // example code here
+}
+
+/**
+ * Views form (View with form elements) submit handler.
+ * Called for all steps ($form_state['step']) of the multistep form.
+ */
+function hook_views_form_submit($form, &$form_state) {
+  // example code here
+}
+
+/**
  * This hook is called at the very beginning of views processing,
  * before anything is done.
  *
@@ -684,6 +711,21 @@ function hook_views_query_alter(&$view, &$query) {
  * @see theme_table
  */
 function hook_views_preview_info_alter(&$rows, $view) {
+  // example code here
+}
+
+/**
+ * This hooks allows to alter the links at the top of the view edit form.
+ * Some modules might want to add links there.
+ *
+ * @param $links
+ *   The links which will be displayed at the top of the view edit form.
+ * @param view $view
+ *   The full view object which is currently changed.
+ * @param $display_id
+ *   The current display id which is edited. For example that's 'default' or 'page_1'.
+ */
+function hook_views_ui_display_top_links_alter(&$links, $view, $display_id) {
   // example code here
 }
 

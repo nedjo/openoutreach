@@ -33,3 +33,80 @@ function debut_media_menu_alter(&$items) {
   }
 }
 
+/**
+ * Implements hook_views_data_alter().
+ *
+ * Use the media_title field for the file fid argument's name field.
+ *
+ * @todo: determine why this doesn't appear to work with views contextual
+ *   filters;
+ */
+function debut_media_views_data_alter(&$data) {
+  $data['file_managed']['fid']['argument']['name field'] = 'media_title';
+  $data['file_managed']['fid']['argument']['name table'] = 'field_data_media_title';
+}
+
+/**
+ * Implements hook_page_alter().
+ *
+ * Set the page title for media items to the title of the item.
+ */
+function debut_media_page_alter(&$variables) {
+  if (arg(0) == 'media' && $file = menu_get_object('file')) {
+    if (!empty($file->media_title['und'][0]['safe_value'])) {
+      drupal_set_title($file->media_title['und'][0]['safe_value']);
+    }
+  }
+  // Add late in the page generation process to override the jcarousel css.
+  drupal_add_css(drupal_get_path('module', 'debut_media') . '/debut_media.css');
+}
+
+/**
+ * Implementation of Styles module hook_styles_default_styles().
+ */
+function debut_media_styles_default_styles() {
+  return array(
+    'file' => array(
+      'styles' => array(
+        'medium_large' => array(
+          'label' => 'Medium large',
+          'description' => 'A medium large format of the media.',
+        ),
+        'small_square_thumbnail' => array(
+          'label' => 'Small square thumbnail',
+          'description' => 'A small, square format of the media.',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implementation of Styles module hook_styles_default_presets_alter().
+ *
+ */
+function debut_media_styles_default_presets_alter(&$presets) {
+  foreach (array_keys(debut_media_image_default_styles()) as $image_style) {
+    // Cover the containers defined by file_styles and media_youtube.
+    foreach (array('image', 'audio', 'video', 'default', 'media_youtube') as $type) {
+      // Ensure another module hasn't removed the container.
+      if (isset($presets['file']['containers'][$type])) {
+        $presets['file']['containers'][$type]['styles'][$image_style] = array(
+          'default preset' => 'medium_large',
+        );
+        $presets['file']['containers'][$type]['presets'][$image_style] = array(
+          array(
+            'name' => 'image_style',
+            'settings' => array(
+              'image_style' => $image_style,
+            ),
+          ),
+          array(
+            'name' => 'thumbnail',
+            'settings' => array(),
+          ),
+        );
+      }
+    }
+  }
+}

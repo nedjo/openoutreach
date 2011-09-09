@@ -1,5 +1,4 @@
 <?php
-// $Id: styles_ui.module,v 1.1.2.4.2.8 2010/10/26 17:56:54 aaron Exp $
 
 /**
  *  @file
@@ -29,7 +28,7 @@ function styles_ui_menu() {
       $field_label = $field_info['label'];
       $title = $field_label . ' styles';
       $description = 'Configure ' . $field_label . ' styles.';
-      $access = isset($containers['admin']['access arguments']) ? $containers['admin']['access arguments'] : array('administer site configuration');
+      $access = isset($containers['admin']['access arguments']) ? $containers['admin']['access arguments'] : array('administer styles ui');
       $items[$containers['admin']['path']] = array(
         'title' => $title,
         'description' => $description,
@@ -50,7 +49,7 @@ function styles_ui_menu() {
         'description' => $description,
         'page callback' => 'drupal_get_form',
         'page arguments' => array('styles_ui_style_add_form', $field_type),
-        'access arguments' => $containers['admin']['access arguments'],
+        'access arguments' => $access,
         'type' => MENU_LOCAL_ACTION,
         'file' => 'styles_ui.admin.inc',
       );
@@ -58,8 +57,13 @@ function styles_ui_menu() {
       $items[$containers['admin']['path'] . '/edit/%'] = array(
         'page callback' => 'drupal_get_form',
         'page arguments' => array('styles_ui_style_edit_form', $field_type, $count),
-        'access arguments' => $containers['admin']['access arguments'],
-        'type' => MENU_CALLBACK,
+        'access arguments' => $access,
+        'file' => 'styles_ui.admin.inc',
+      );
+      $items[$containers['admin']['path'] . '/delete/%'] = array(
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('styles_ui_delete_confirm', $field_type, $count),
+        'access arguments' => $access,
         'file' => 'styles_ui.admin.inc',
       );
     }
@@ -82,4 +86,17 @@ function styles_ui_menu() {
 function styles_ui_styles_style_flush($style = NULL) {
   // Rebuild the menu so that we catch any new styles or containers.
   menu_rebuild();
+}
+
+
+/**
+ * Implementation of hook_permission().
+ */
+function styles_ui_permission() {
+  return array(
+    'administer styles ui' => array(
+      'title' => t('Administer Styles'),
+      'description' => t('Configure styles settings.'),
+    ),
+  );
 }

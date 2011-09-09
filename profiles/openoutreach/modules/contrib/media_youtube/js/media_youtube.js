@@ -1,4 +1,3 @@
-// $Id: media_youtube.js,v 1.1.2.4 2011/01/04 19:50:41 aaron Exp $
 
 /**
  * @file media_youtube/js/media_youtube.js
@@ -49,7 +48,7 @@ Drupal.media_youtube.insertEmbed = function (embed_id) {
   var src = 'http://www.youtube.com/embed/' + settings.video_id;
 
   // Allow other modules to modify the video settings.
-  settings.options = {wmode : 'opaque'};
+  settings.options.wmode = 'opaque';
   $(window).trigger('media_youtube_load', settings);
 
   // Merge YouTube options (such as autoplay) into the source URL.

@@ -38,14 +38,16 @@ function ctools_token_content_type_content_types() {
 
   foreach ($info['tokens'] as $entity_type => $tokens) {
     foreach ($tokens as $name => $token) {
-      $token += array('description' => '');
-      $types[$entity_type . ':' . $name] = array(
-        'category' => t('@entity (tokens)', array('@entity' => ucfirst($entity_type))),
-        'icon' => 'icon_token.png',
-        'title' => $token['name'],
-        'description' => $token['description'],
-        'required context' => new ctools_context_required(t(ucfirst($entity_type)), $entity_type),
-      );
+      if (!empty($token['name'])) {
+        $token += array('description' => '');
+        $types[$entity_type . ':' . $name] = array(
+          'category' => t('@entity (tokens)', array('@entity' => ucfirst($entity_type))),
+          'icon' => 'icon_token.png',
+          'title' => $token['name'],
+          'description' => $token['description'],
+          'required context' => new ctools_context_required(t(ucfirst($entity_type)), $entity_type),
+        );
+      }
     }
   }
 

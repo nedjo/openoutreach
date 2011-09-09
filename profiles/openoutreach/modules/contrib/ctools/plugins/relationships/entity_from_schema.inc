@@ -43,7 +43,7 @@ function ctools_entity_from_schema_get_children($parent_plugin, $parent) {
               continue;
             }
 
-            if ($info['table'] == $to_entity_info['base table'] && in_array($to_entity_info['entity keys']['id'], $info['columns'])) {
+            if (isset($to_entity_info['base table']) && $info['table'] == $to_entity_info['base table'] && in_array($to_entity_info['entity keys']['id'], $info['columns'])) {
               $this_col = ctools_entity_from_schema_columns_filter($info['columns'], $to_entity_info['entity keys']['id']);
 
               // Set up our t() replacements as we reuse these.

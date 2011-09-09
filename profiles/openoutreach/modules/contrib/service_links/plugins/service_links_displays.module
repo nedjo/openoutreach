@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function service_links_displays_theme() {
   return array(
@@ -35,7 +35,7 @@ function service_links_displays_theme() {
 }
 
 /**
- * Implementation of hook_ds_fields().
+ * Implements hook_ds_fields().
  */
 function service_links_displays_ds_fields($type_name, $build_mode, $extra) {
   $fields = array(
@@ -128,7 +128,9 @@ function theme_sld_group_fisheye($variables) {
   $fields = $variables['fields'];
 
   if (service_links_show($fields['object']) && user_access('access service links')) {
-    return theme('service_links_fisheye_format', service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_FISHEYE));
+    return theme('service_links_fisheye_format', array(
+      'items' => service_links_render($fields['object'], FALSE, SERVICE_LINKS_STYLE_FISHEYE),
+    ));
   }
 }
 
@@ -175,7 +177,7 @@ function theme_sld_group_image_and_text($variables) {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  */
 function service_links_displays_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'service_links_admin_services') {
@@ -183,7 +185,7 @@ function service_links_displays_form_alter(&$form, &$form_state, $form_id) {
     $settings['weight'] = variable_get('service_links_weight', NULL);
 
     $form['service_links']['service_links_displays'] = array('#tree' => TRUE);
-    $services = array_filter(array_keys($form['service_links']['service_links_weight']), _sld_only_keys);
+    $services = array_filter(array_keys($form['service_links']['service_links_weight']), '_sld_only_keys');
 
     foreach ($services as $service_id) {
       $weight = isset($settings['weight'][$service_id]) ? $settings['weight'][$service_id] : 0;
@@ -199,7 +201,7 @@ function service_links_displays_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Implementation of hook_sl_servicestable_alter().
+ * Implements hook_sl_servicestable_alter().
  */
 function service_links_displays_sl_servicestable_alter(&$table, $form) {
   $table['header'][] = t('Displays');

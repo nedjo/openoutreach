@@ -12,7 +12,7 @@ function wysiwyg_entity_info() {
   $types['wysiwyg_profile'] = array(
     'label' => t('Wysiwyg profile'),
     'base table' => 'wysiwyg',
-    'controller class' => module_exists('entity') ? 'EntityAPIController' : 'WysiwygProfileController',
+    'controller class' => module_exists('entity') ? 'EntityAPIControllerExportable' : 'WysiwygProfileController',
     'fieldable' => FALSE,
     // When loading all entities, DrupalDefaultEntityController::load() ignores
     // its static cache. Therefore, wysiwyg_profile_load_all() implements a
@@ -142,6 +142,23 @@ function wysiwyg_form_alter(&$form, &$form_state) {
  */
 function wysiwyg_element_info_alter(&$types) {
   $types['text_format']['#pre_render'][] = 'wysiwyg_pre_render_text_format';
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function wysiwyg_modules_disabled($modules) {
+  if (in_array('entity', $modules)) {
+    // Since Entity API module is an optional dependency, if it is disabled,
+    // the columns it was managing must be reset to their defaults.
+    $schema = drupal_get_schema('wysiwyg');
+    db_update('wysiwyg')
+      ->fields(array(
+        'status' => $schema['fields']['status']['default'],
+        'module' => $schema['fields']['module']['default'],
+      ))->execute();
+    wysiwyg_profile_cache_clear();
+  }
 }
 
 /**
@@ -671,9 +688,15 @@ function wysiwyg_profile_load_all() {
  * Deletes a profile from the database.
  */
 function wysiwyg_profile_delete($format) {
-  db_delete('wysiwyg')
-    ->condition('format', $format)
-    ->execute();
+  if (module_exists('entity')) {
+    entity_delete('wysiwyg_profile', $format);
+  }
+  else {
+    db_delete('wysiwyg')
+      ->condition('format', $format)
+      ->execute();
+  }
+  wysiwyg_profile_cache_clear();
 }
 
 /**

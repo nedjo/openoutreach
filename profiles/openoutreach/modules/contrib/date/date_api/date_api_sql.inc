@@ -132,7 +132,7 @@ class date_sql_handler {
         case 'pgsql':
           db_query("SET TIME ZONE INTERVAL '$offset' HOUR TO MINUTE");
           break;
-        case 'sqlsvr':
+        case 'sqlsrv':
           db_query('TimeZone.setDefault(TimeZone.getTimeZone("GMT"))');
           break;
       }
@@ -192,11 +192,12 @@ class date_sql_handler {
             $field = "$field::ABSTIME";
             break;
           case DATE_ISO:
-            $field = "TO_DATE($field, 'FMYYYY-FMMM-FMDDTFMHH:FMMI:FMSS')";
+            $field = "TO_DATE($field, 'FMYYYY-FMMM-FMDDTFMHH24:FMMI:FMSS')";
             break;
           case DATE_DATETIME:
             break;
         }
+        break;
       case 'sqlite':
         switch ($this->date_type) {
           case DATE_UNIX:
@@ -420,7 +421,7 @@ class date_sql_handler {
           );
         $format = strtr($format, $replace);
         return "strftime('$format', $field)";
-      case 'sqlsvr':
+      case 'sqlsrv':
         $replace = array(
           'Y' => 'yyyy', // 4 digit year number
           'y' => 'yy', // 2 digit year number
@@ -752,6 +753,9 @@ class date_sql_handler {
   }
 
   function views_formats($granularity, $type = 'sql') {
+    if (empty($granularity)) {
+      return DATE_FORMAT_ISO;
+    }
     $formats = array('display', 'sql');
     // Start with the site long date format and add seconds to it
     $long = str_replace(':i', ':i:s', variable_get('date_format_long',  'l, F j, Y - H:i'));
@@ -807,9 +811,9 @@ class date_sql_handler {
    * See http://en.wikipedia.org/wiki/ISO_8601#Duration for definitions of ISO duration and time interval.
    *
    * Parses a value like 2006-01-01--2006-01-15, or 2006-W24, or @P1W.
-   * Separate from and to dates or date and period with a double hyphen (--).
+   * Separate start and end dates or date and period with a double hyphen (--).
    *
-   * The 'to' portion of the argument can be eliminated if it is the same as the 'from' portion.
+   * The 'end' portion of the argument can be eliminated if it is the same as the 'start' portion.
    * Use @ instead of a date to substitute in the current date and time.
    *
    * Use periods (P1H, P1D, P1W, P1M, P1Y) to get next hour/day/week/month/year from now.

@@ -1,5 +1,4 @@
 <?php
-// $Id: get_called_class.inc,v 1.1.4.2 2011/01/05 16:08:45 aaron Exp $
 
 /**
  * @file

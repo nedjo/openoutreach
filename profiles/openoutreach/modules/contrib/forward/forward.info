@@ -7,9 +7,9 @@ files[] = forward.tpl.php
 files[] = forward.views.inc
 files[] = forward.views_default.inc
 configure = admin/config/user-interface/forward
-; Information added by drupal.org packaging script on 2011-04-30
-version = "7.x-1.0-rc3"
+; Information added by drupal.org packaging script on 2011-08-17
+version = "7.x-1.1"
 core = "7.x"
 project = "forward"
-datestamp = "1304123258"
+datestamp = "1313593316"
 

@@ -44,26 +44,15 @@ function media_gallery_install() {
   // Save the new bundle settings.
   field_bundle_settings('node', 'media_gallery', $bundle_settings);
 
-  // Set the "Gallery Thumbnail", "Gallery Lightbox", and "Gallery Detail" view
-  // modes to be enabled for image and video bundles and default those bundle's
-  // file field display appropriately. Do this before creating new field
-  // instances in media entity bundles.
+  // Enable custom display settings for gallery context view modes for file
+  // types that can be in a gallery.
   // @todo Add a hook_update() function for 'video'.
   foreach (array('image', 'video') as $bundle) {
-    $bundle_settings = field_bundle_settings('media', $bundle);
-    $bundle_settings['view_modes']['media_gallery_thumbnail']['custom_settings'] = TRUE;
-    $bundle_settings['view_modes']['media_gallery_lightbox']['custom_settings'] = TRUE;
-    $bundle_settings['view_modes']['media_gallery_detail']['custom_settings'] = TRUE;
-    $bundle_settings['view_modes']['media_gallery_block_thumbnail']['custom_settings'] = TRUE;
-    $bundle_settings['view_modes']['media_gallery_collection_thumbnail']['custom_settings'] = TRUE;
-    field_bundle_settings('media', $bundle, $bundle_settings);
-    $instance = field_info_instance('media', 'file', $bundle);
-    $instance['display']['media_gallery_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-    $instance['display']['media_gallery_lightbox'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
-    $instance['display']['media_gallery_detail'] = array('type' => 'styles_file_media_gallery_large', 'label' => 'hidden');
-    $instance['display']['media_gallery_block_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-    $instance['display']['media_gallery_collection_thumbnail'] = array('type' => 'styles_file_media_gallery_thumbnail', 'label' => 'hidden');
-    field_update_instance($instance);
+    $bundle_settings = field_bundle_settings('file', $bundle);
+    foreach (media_gallery_file_view_modes() as $view_mode => $label) {
+      $bundle_settings['view_modes'][$view_mode]['custom_settings'] = TRUE;
+    }
+    field_bundle_settings('file', $bundle, $bundle_settings);
   }
 
   // Clear caches so that our implementation of hook_image_default_styles() is
@@ -72,7 +61,9 @@ function media_gallery_install() {
   cache_clear_all('*', 'cache', TRUE);
   drupal_static_reset('image_styles');
   drupal_static_reset('image_effects');
-  drupal_static_reset('styles_presets');
+  if (module_exists('styles')) {
+    styles_style_flush();
+  }
 
   // Add the taxonomy vocabulary for media gallery collections.
   $vocabulary = media_gallery_create_taxonomy_vocab();
@@ -114,6 +105,14 @@ function media_gallery_install() {
  */
 function media_gallery_requirements() {
   $requirements = array();
+
+  // If this module is part of an install profile, its requirements will be
+  // checked before the field system is available. The rest of this function is
+  // unneeded anyway in that case, so bail out here to avoid fatal errors.
+  if (!module_exists('field')) {
+    return $requirements;
+  }
+
   $t = get_t();
 
   $required_fields = _media_gallery_controlled_fields();
@@ -340,6 +339,9 @@ function _media_gallery_controlled_instances($group = NULL) {
         'type' => 'text_textarea',
         'settings' => array('rows' => 4),
       ),
+      'settings' => array(
+        'text_processing' => 1,
+      ),
       'display' => array(
         'default' => array(
           'type' => 'text_default',
@@ -376,22 +378,26 @@ function _media_gallery_controlled_instances($group = NULL) {
       ),
       'display' => array(
         'default' => array(
-          'type' => 'media_gallery_thumbnail',
+          'type' => 'media_gallery',
+          'settings' => array('file_view_mode' => 'media_gallery_thumbnail'),
           'label' => 'hidden',
           'weight' => 2,
         ),
         'full' => array(
-          'type' => 'media_gallery_thumbnail',
+          'type' => 'media_gallery',
+          'settings' => array('file_view_mode' => 'media_gallery_thumbnail'),
           'label' => 'hidden',
           'weight' => 2,
         ),
         'teaser' => array(
-          'type' => 'media_gallery_collection_thumbnail',
+          'type' => 'media_gallery',
+          'settings' => array('file_view_mode' => 'media_gallery_collection_thumbnail'),
           'label' => 'hidden',
           'weight' => 2,
         ),
         'media_gallery_block' => array(
-          'type' => 'media_gallery_block_thumbnail',
+          'type' => 'media_gallery',
+          'settings' => array('file_view_mode' => 'media_gallery_block_thumbnail'),
           'label' => 'hidden',
           'weight' => 2,
         ),
@@ -769,6 +775,9 @@ function _media_required_instances() {
         'type' => 'text_textarea',
         'settings' => array('rows' => 4),
       ),
+      'settings' => array(
+        'text_processing' => 1,
+      ),
       'display' => array(
         'default' => array('type' => 'text_default', 'label' => 'above'),
         'media_gallery_thumbnail' => array('type' => 'text_default', 'label' => 'above'),
@@ -850,10 +859,9 @@ function _media_gallery_ensure_media_instances() {
     foreach ($instances as $instance) {
       $instance_copy = $instance;
       $instance_copy += array(
-        'entity_type' => 'media',
+        'entity_type' => 'file',
         'bundle' => $bundle,
       );
-      // Friendlier label than "media".
       $label = in_array($bundle, array('image', 'audio', 'video')) ? $bundle : 'file';
       if ($instance_copy['field_name'] == 'field_tags' && !isset($instance_copy['description'])) {
         $instance_copy['description'] = $t("Enter a comma-separated list of words to describe your $label.");
@@ -912,6 +920,13 @@ function media_gallery_create_taxonomy_term($vocabulary) {
     'link_title' => 'Taxonomy term',
     'link_path' => 'taxonomy/term/' . $term->tid,
   );
+  // If the router item doesn't exist yet (for example, if we are installing
+  // either the Taxonomy module or Drupal itself at the same time as Media
+  // Gallery), rebuild the menu before saving, to avoid errors.
+  $router_item_exists = (bool) db_query_range('SELECT 1 FROM {menu_router} WHERE path = :path', 0, 1, array(':path' => 'taxonomy/term/%'))->fetchField();
+  if (!$router_item_exists) {
+    menu_rebuild();
+  }
   menu_link_save($menu_item);
 
   // Save the term ID for future use.
@@ -1226,4 +1241,49 @@ function media_gallery_update_7007() {
     }
   }
   field_bundle_settings('node', 'media_gallery', $bundle_settings);
+}
+
+/**
+ * Ensure that the description fields for galleries and media allow filtered text.
+ */
+function media_gallery_update_7008() {
+  // Ensure that the media_description field is filtered text.
+  foreach (array('video', 'image') as $bundle) {
+    $instance = field_info_instance('media', 'media_description', $bundle);
+    if ($instance) {
+      $instance['settings']['text_processing'] = 1;
+      field_update_instance($instance);
+    }
+  }
+
+  // Ensure that the media_gallery_description field is filtered text.
+  $instance = field_info_instance('node', 'media_gallery_description', 'media_gallery');
+  if ($instance) {
+    $instance['settings']['text_processing'] = 1;
+    field_update_instance($instance);
+  }
+}
+
+/**
+ * Update old per-view-mode media_gallery_* field formatters to the generic media_gallery formatter with a setting.
+ */
+function media_gallery_update_7009() {
+  $instances = array();
+  $fields = field_read_fields(array('type' => 'media'), array('include_inactive' => TRUE));
+  foreach ($fields as $field) {
+    $instances = array_merge($instances, field_read_instances(array('field_id' => $field['id']), array('include_inactive' => TRUE)));
+  }
+  foreach ($instances as $instance) {
+    $update_instance = FALSE;
+    foreach ($instance['display'] as $view_mode => $display) {
+      if (in_array($display['type'], array('media_gallery_thumbnail', 'media_gallery_lightbox', 'media_gallery_detail', 'media_gallery_block_thumbnail', 'media_gallery_collection_thumbnail'))) {
+        $update_instance = TRUE;
+        $instance['display'][$view_mode]['type'] = 'media_gallery';
+        $instance['display'][$view_mode]['settings'] = array('file_view_mode' => $display['type']);
+      }
+    }
+    if ($update_instance) {
+      field_update_instance($instance);
+    }
+  }
 }

@@ -13,7 +13,7 @@
  * The widget builds out a complex date element in the following way:
  *
  * - A field is pulled out of the database which is comprised of one or
- *   more collections of from/to dates.
+ *   more collections of start/end dates.
  *
  * - The dates in this field are all converted from the UTC values stored
  *   in the database back to the local time before passing their values
@@ -22,7 +22,7 @@
  * - If values are empty, the field settings rules are used to determine
  *   if the default_values should be empty, now, the same, or use strtotime.
  *
- * - Each from/to combination is created using the date_combo element type
+ * - Each start/end combination is created using the date_combo element type
  *   defined by the date module. If the timezone is date-specific, a
  *   timezone selector is added to the first combo element.
  *
@@ -30,7 +30,7 @@
  *   added to the field element.
  *
  * - The date combo element creates two individual date elements, one each
- *   for the from and to field, using the appropriate individual Date API
+ *   for the start and end field, using the appropriate individual Date API
  *   date elements, like selects, textfields, or popups.
  *
  * - In the individual element validation, the data supplied by the user is
@@ -46,6 +46,19 @@
  */
 function date_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $base) {
   $element = $base;
+  $field_name = $field['field_name'];
+
+  // Since repeating dates cannot use the default Add more button, we have to handle our own behaviors here.
+  // Return only the first multiple value for repeating dates, then clean up the 'Add more' bits in #after_build.
+  if (!empty($field['settings']['repeat'])) {
+    if ($delta == 0) {
+      $form['#after_build'] = array('date_repeat_after_build');
+      $form_state['storage']['repeat_fields'][$field_name] = array_merge($form['#parents'], array($field_name));
+    }
+    else {
+      return;
+    }
+  }
 
   module_load_include('inc', 'date_api', 'date_api_elements');  
   $timezone = date_get_timezone($field['settings']['tz_handling'], isset($items[0]['timezone']) ? $items[0]['timezone'] : date_default_timezone());
@@ -76,7 +89,6 @@ function date_field_widget_form(&$form, &$form_state, $field, $instance, $langco
     $date = date_local_date($form, $form_state, $delta, $items[$delta], $timezone, $field, $instance, $processed);
     $items[$delta][$processed] = is_object($date) ? date_format($date, DATE_FORMAT_DATETIME) : '';
   }
-
   $element += array(
     '#type' => 'date_combo',
     '#theme_wrappers' => array('date_combo'),
@@ -89,14 +101,17 @@ function date_field_widget_form(&$form, &$form_state, $field, $instance, $langco
   if ($field['settings']['tz_handling'] == 'date') {
     $element['timezone'] = array(
       '#type' => 'date_timezone',
+      '#theme_wrappers' => array('date_timezone'),
       '#delta' => $delta,
       '#default_value' => $timezone,
-      '#weight' => $instance['widget']['weight'] + .2,
+      '#weight' => $instance['widget']['weight'] + 1,
+      '#attributes' => array('class' => array('date-no-float')),
+      '#date_label_position' => $instance['widget']['settings']['label_position'],
       );  
   }
 
   // Add a date repeat form element, if needed.
-  if (module_exists('date_repeat') && $field['settings']['repeat'] == 1) {
+  if (module_exists('date_repeat') && date_is_repeat_field($field, $instance)) {
     module_load_include('inc', 'date', 'date_repeat');    
     _date_repeat_widget($element, $field, $instance, $items, $delta);
     $element['rrule']['#weight'] = $instance['widget']['weight'] + .4;
@@ -109,6 +124,21 @@ function date_combo_value_callback($element, $input = FALSE, &$form_state) {
   if (!$input) {
     return array();
   }
+}
+
+/**
+ * Remove the 'Add more' elements from a repeating date form.
+ */
+function date_repeat_after_build(&$element, &$form_state) {
+  foreach ($form_state['storage']['repeat_fields'] as $field_name => $parents) {
+    $value = drupal_array_get_nested_value($element, $parents);
+    $lang = $value['#language'];
+    unset($value[$lang]['add_more'], $value[$lang]['#suffix'], $value[$lang]['#prefix'], $value[$lang][0]['_weight']);
+    $value[$lang]['#cardinality'] = 1;
+    $value[$lang]['#max_delta'] = 1;
+    drupal_array_set_nested_value($element, $parents, $value);
+  }
+  return $element;
 }
 
 /**
@@ -189,13 +219,16 @@ function date_combo_element_process($element, &$form_state, $form) {
   if (isset($element['#access']) && empty($element['#access'])) {
     return $element;
   }
-
   $field_name = $element['#field_name'];
   $delta = $element['#delta'];
   $bundle = $element['#bundle'];
   $entity_type = $element['#entity_type'];
   $field = field_widget_field($element, $form_state);
   $instance = field_widget_instance($element, $form_state);
+
+  // Figure out how many items are in the form, including new ones added by ajax.
+  $field_state = field_form_get_state($element['#field_parents'], $field_name, $element['#language'], $form_state);
+  $items_count = $field_state['items_count'];
 
   $columns = $element['#columns'];
   if (isset($columns['rrule'])) {
@@ -213,10 +246,56 @@ function date_combo_element_process($element, &$form_state, $form) {
     unset($element['#default_value'][$to_field]);
   }
 
+  $from = $element['#default_value'][$from_field];
+  $to = !empty($element['#default_value'][$to_field]) ? $element['#default_value'][$to_field] : $element['#default_value'][$from_field];
+  $date_is_all_day = date_is_all_day($from, $to);
+  $all_day = !empty($form_state['values']['all_day']) || $date_is_all_day;
+  $element['all_day'] = array(
+    '#title' => t('All Day'),
+    '#type' => 'checkbox',
+    '#default_value' => $all_day,
+    '#weight' => -21,
+    '#access' => date_has_time($field['settings']['granularity']) && !in_array($instance['widget']['type'], array('date_text')),
+    '#prefix' => '<div class="date-float">',
+    '#suffix' => '</div>',
+  );
+  $all_day_id = str_replace('_', '-', 'edit-' . implode('-', $element['#array_parents']) . '-all-day');
+
+  // Unlimited fields using javascript Add more button end up with altered ids.
+  // Even on ajax-created items, the newest form element will have the original id.
+  // If the form won't pass validation, the multiple values will get re-displayed, but this time NOT using ajax.
+  // !empty($form_state['triggering_element']['#ajax']['callback'] tells us if this item is being added by ajax.
+  $ajax_field = !empty($form_state['triggering_element']['#ajax'])
+   && !empty($form_state['triggering_element']['#ajax']['callback'])
+   && $form_state['triggering_element']['#ajax']['callback'] == 'field_add_more_js'
+   && $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED
+   && $items_count > 0 && $delta < $items_count;
+
+  // Adjust the id for ajax 'add more' items.
+  if ($ajax_field) {
+    $all_day_id .= '--' . ($items_count - $delta + 1);
+  }
+
+  $show_todate = !empty($form_state['values']['show_todate']) || !empty($element['#default_value'][$to_field]);
+  $element['show_todate'] = array(
+    '#title' => t('Show End Date'),
+    '#type' => 'checkbox',
+    '#default_value' => $show_todate,
+    '#weight' => -20,
+    '#access' => $field['settings']['todate'] == 'optional',
+    '#prefix' => '<div class="date-float">',
+    '#suffix' => '</div>',
+  );
+  $show_id = str_replace('_', '-', 'edit-' . implode('-', $element['#array_parents']) . '-show-todate');
+
+  // Adjust the id for ajax 'add more' items.
+  if ($ajax_field) {
+    $show_id .= '--' . ($items_count - $delta + 1);
+  }
+
   $element[$from_field] = array(
     '#field'         => $field,
     '#instance'      => $instance,
-    '#title'         => t($instance['label']),
     '#weight'        => $instance['widget']['weight'],
     '#required'      => ($instance['required'] && $delta == 0) ? 1 : 0,
     '#default_value' => isset($element['#default_value'][$from_field]) ? $element['#default_value'][$from_field] : '',
@@ -227,26 +306,23 @@ function date_combo_element_process($element, &$form_state, $form) {
     '#date_increment'   => $instance['widget']['settings']['increment'],
     '#date_year_range'  => $instance['widget']['settings']['year_range'],
     '#date_label_position' => $instance['widget']['settings']['label_position'],
+    '#date_all_day_id'  => $all_day_id,
     );
 
   $description =  !empty($instance['description']) ? t($instance['description']) : ''; 
 
   // Give this element the right type, using a Date API
   // or a Date Popup element type.
+  $element[$from_field]['#attributes'] = array('class' => array('date-clear'));
+  $element[$from_field]['#wrapper_attributes'] = array('class' => array());
+  $element[$from_field]['#wrapper_attributes']['class'][] = 'date-no-float';
 
   switch ($instance['widget']['type']) {
     case 'date_select':
-    case 'date_select_repeat':
-      // From/to selectors with lots of parts will look better if displayed 
-      // on two rows instead of in a single row.
-      if (!empty($field['settings']['todate']) && count($field['settings']['granularity']) > 3) {
-        $element[$from_field]['#attributes'] = array('class' => array('date-clear'));
-      }
       $element[$from_field]['#type'] = 'date_select';
       $element[$from_field]['#theme_wrappers'] = array('date_select');
       break;
     case 'date_popup':
-    case 'date_popup_repeat':  
       $element[$from_field]['#type'] = 'date_popup';
       $element[$from_field]['#theme_wrappers'] = array('date_popup');
       break;
@@ -256,22 +332,26 @@ function date_combo_element_process($element, &$form_state, $form) {
       break;
   }
 
-  // If this field uses the 'To', add matching element
-  // for the 'To' date, and adapt titles to make it clear which
-  // is the 'From' and which is the 'To' .
+  // If this field uses the 'End', add matching element
+  // for the 'End' date, and adapt titles to make it clear which
+  // is the 'Start' and which is the 'End' .
 
   if (!empty($field['settings']['todate'])) {
-    $element['#date_float'] = TRUE;
-    $element[$from_field]['#title']  = t('From date');
+    // Add class to allow date parts to float together on the same line. 
+    $element[$from_field]['#title']  = ''; // The title is in the fieldset.
     $element[$to_field] = $element[$from_field];
-    $element[$to_field]['#title'] = t('To date');
     $element[$to_field]['#default_value'] = isset($element['#default_value'][$to_field]) ? $element['#default_value'][$to_field] : '';
     $element[$to_field]['#required'] = FALSE;
-    $element[$to_field]['#weight'] += .1;
-    if ($instance['widget']['type'] == 'date_select') {
-      $description .= ' ' . t("Empty 'To date' values will use the 'From date' values.");
-    }
+    $element[$to_field]['#weight'] += .2;
+    $element[$to_field]['#prefix'] = '';
+    $description .= ' ' . t("Empty 'End date' values will use the 'Start date' values.");
     $element['#fieldset_description'] = $description;
+    if ($field['settings']['todate'] == 'optional') {
+      $element[$to_field]['#states'] = array(
+        'visible' => array(
+          '#' . $show_id => array('checked' => TRUE),
+      ));
+    }
   }
   else {
     $element[$from_field]['#description'] = $description;
@@ -279,20 +359,19 @@ function date_combo_element_process($element, &$form_state, $form) {
 
   // Create label for error messages that make sense in multiple values
   // and when the title field is left blank.
-  if (!empty($field['cardinality']) && empty($field['settings']['repeat'])) {
-    $element[$from_field]['#date_title'] = t('@field_name From date value #@delta', array('@field_name' => $instance['label'], '@delta' => $delta + 1));
+  if ($field['cardinality'] <> 1 && empty($field['settings']['repeat'])) {
+    $element[$from_field]['#date_title'] = t('@field_name Start date value #@delta', array('@field_name' => $instance['label'], '@delta' => $delta + 1));
     if (!empty($field['settings']['todate'])) {
-      $element[$to_field]['#date_title'] = t('@field_name To date value #@delta', array('@field_name' => $instance['label'], '@delta' => $delta + 1));
+      $element[$to_field]['#date_title'] = t('@field_name End date value #@delta', array('@field_name' => $instance['label'], '@delta' => $delta + 1));
     }
   }
   elseif (!empty($field['settings']['todate'])) {
-    $element[$from_field]['#date_title'] = t('@field_name From date', array('@field_name' => $instance['label']));
-    $element[$to_field]['#date_title'] = t('@field_name To date', array('@field_name' => $instance['label']));
+    $element[$from_field]['#date_title'] = t('@field_name Start date', array('@field_name' => $instance['label']));
+    $element[$to_field]['#date_title'] = t('@field_name End date', array('@field_name' => $instance['label']));
   }
   else {
     $element[$from_field]['#date_title'] = $instance['label'];
   }
-
   return $element;
 }
 
@@ -324,10 +403,8 @@ function date_combo_validate($element, &$form_state) {
     return;
   }
 
-  // Repeating dates have a different form structure, so get the
-  // right item values.
-  $item = isset($form_values[$field_name][$langcode]['rrule']) ? $form_values[$field_name][$langcode] : $form_values[$field_name][$langcode][$delta];
-  $posted = isset($form_values[$field_name][$langcode]['rrule']) ? $form_input[$field_name][$langcode] : $form_input[$field_name][$langcode][$delta];
+  $item = $form_values[$field_name][$langcode][$delta];
+  $posted = $form_input[$field_name][$langcode][$delta];
 
   $field = field_widget_field($element, $form_state);
   $instance = field_widget_instance($element, $form_state);
@@ -346,7 +423,7 @@ function date_combo_validate($element, &$form_state) {
   $error_field = array_pop($parent);
   $errors = array();
 
-  // Check for empty 'From date', which could either be an empty
+  // Check for empty 'Start date', which could either be an empty
   // value or an array of empty values, depending on the widget.
   $empty = TRUE;
   if (!empty($item[$from_field])) {
@@ -363,22 +440,43 @@ function date_combo_validate($element, &$form_state) {
     }
   }
 
-  // A 'To' date without a 'From' date is a validation error.
+  // An 'End' date without a 'Start' date is a validation error.
   if ($empty && !empty($item[$to_field])) {
     if (!is_array($item[$to_field])) {
-      form_set_error($error_field, t("A 'From date' date is required if a 'To date' is supplied for field %field #%delta.", array('%delta' => $field['cardinality'] ? intval($delta + 1) : '', '%field' => t($instance['label']))));
+      form_set_error($error_field, t("A 'Start date' date is required if an 'end date' is supplied for field %field #%delta.", array('%delta' => $field['cardinality'] ? intval($delta + 1) : '', '%field' => t($instance['label']))));
       $empty = FALSE;
     }
     else {
       foreach ($item[$to_field] as $key => $value) {
         if (!empty($value)) {
-          form_set_error($error_field, t("A 'From date' date is required if a 'To date' is supplied for field %field #%delta.", array('%delta' => $field['cardinality'] ? intval($delta + 1) : '', '%field' => t($instance['label']))));
+          form_set_error($error_field, t("A 'Start date' date is required if an 'End date' is supplied for field %field #%delta.", array('%delta' => $field['cardinality'] ? intval($delta + 1) : '', '%field' => t($instance['label']))));
           $empty = FALSE;
           break;
         }
       }
     }
   }
+
+  // If the user chose the option to not show the end date, just swap in the 
+  // start date as that value so the start and end dates are the same.
+  if ($field['settings']['todate'] == 'optional' && empty($item['show_todate'])) {
+    $item[$to_field] = $item[$from_field];
+    $posted[$to_field] = $posted[$from_field];
+  }
+
+  // If the user chose the option to make this field an all day field,
+  // we'll need to adjust the time.
+  $all_day = FALSE;
+  if (!empty($item['all_day'])) {
+    $all_day = TRUE;
+    // If we have an all day flag on this date and the time is empty,
+    // change the format to match the input value so we don't get validation errors.
+    $element[$from_field]['#date_format'] = date_part_format('date', $element[$from_field]['#date_format']);
+    if (!empty($field['settings']['todate'])) {
+      $element[$to_field]['#date_format'] = date_part_format('date', $element[$to_field]['#date_format']);
+    }
+  }
+
 
   if ($empty) {
     $item = date_element_empty($element, $form_state);
@@ -390,10 +488,9 @@ function date_combo_validate($element, &$form_state) {
   // because otherwise we'll show errors on the nested elements
   // more than once.
   elseif (!form_get_errors()) {
-
     // Check todate input for blank values and substitute in fromdate
     // values where needed, then re-compute the todate with those values.
-    if ($field['settings']['todate']) {
+    if (!empty($field['settings']['todate'])) {
       $merged_date = array();
       $to_date_empty = TRUE;
       foreach ($posted[$to_field] as $part => $value) {
@@ -412,7 +509,7 @@ function date_combo_validate($element, &$form_state) {
       // duplicate messages on every date part, so the error will 
       // only go on the first.  
       if ($to_date_empty && $field['settings']['todate'] == 'required') {
-        $errors[] = t('Some value must be entered in the To date.');
+        $errors[] = t('Some value must be entered in the End date.');
       }
 
       $element[$to_field]['#value'] = $merged_date;
@@ -437,20 +534,27 @@ function date_combo_validate($element, &$form_state) {
       $to_date = $from_date;
     }
 
-    // Neither the from date nor the to date should be empty at this point
+    // Neither the start date nor the end date should be empty at this point
     // unless they held values that couldn't be evaluated.
-    if (!$instance['required'] && (empty($from_date) || empty($to_date))) {
+
+    if (!$instance['required'] && (!date_is_date($from_date) || !date_is_date($to_date))) {
       $item = date_element_empty($element, $form_state);
       $errors[] = t('The dates are invalid.');
     }
     elseif (!empty($field['settings']['todate']) && $from_date > $to_date) {
       form_set_value($element[$to_field], $to_date, $form_state);
-      $errors[] = t('The To date must be greater than the From date.');
+      $errors[] = t('The End date must be greater than the Start date.');
     }
     else {
       // Convert input dates back to their UTC values and re-format to ISO
       // or UNIX instead of the DATETIME format used in element processing.
       $item[$tz_field] = $timezone;
+
+      // If this is an 'All day' value, set the time to midnight.
+      if ($all_day) {
+        $from_date->setTime(0, 0, 0);
+        $to_date->setTime(0, 0, 0);
+      }
 
       $item[$offset_field] = date_offset_get($from_date);
 
@@ -477,13 +581,12 @@ function date_combo_validate($element, &$form_state) {
         date_timezone_set($to_date, timezone_open($timezone));
 
         if ($test_from != date_format($from_date, 'r')) {
-          $errors[] = t('The From date is invalid.');
+          $errors[] = t('The Start date is invalid.');
         }
         if ($test_to != date_format($to_date, 'r')) {
-          $errors[] = t('The To date is invalid.');
+          $errors[] = t('The End date is invalid.');
         }
       }
-
       if (empty($errors)) {
         form_set_value($element, $item, $form_state);
       }

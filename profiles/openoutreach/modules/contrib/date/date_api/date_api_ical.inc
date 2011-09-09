@@ -703,7 +703,7 @@ function date_api_ical_build_rrule($form_values) {
     $RRULE .= ';WKST=' . $form_values['WKST'];
   }
   else {
-    $RRULE .= ';WKST=' . date_repeat_dow2day(variable_get('date_first_day', 1));
+    $RRULE .= ';WKST=' . date_repeat_dow2day(variable_get('date_first_day', 0));
   }
 
   // Exceptions dates go last, on their own line.

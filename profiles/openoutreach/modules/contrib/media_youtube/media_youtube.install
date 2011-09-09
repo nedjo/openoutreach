@@ -1,5 +1,4 @@
 <?php
-// $Id: media_youtube.install,v 1.1.4.7 2011/01/11 19:37:33 aaron Exp $
 
 /**
  * @file
@@ -61,5 +60,33 @@ function media_youtube_update_7005() {
  * Add a square thumbnail preset.
  */
 function media_youtube_update_7006() {
+  return array();
+}
+
+/**
+ * Rebuild the registry to locate class files in new location.
+ */
+function media_youtube_update_7007() {
+  registry_rebuild();
+}
+
+/**
+ * Rebuild styles presets to use camelCase.
+ */
+function media_youtube_update_7008() {
+  return array();
+}
+
+/**
+ * Change default styles presets.
+ */
+function media_youtube_update_7009() {
+  return array();
+}
+
+/**
+ * Change default styles presets.
+ */
+function media_youtube_update_7010() {
   return array();
 }

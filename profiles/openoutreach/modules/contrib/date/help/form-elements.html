@@ -26,7 +26,7 @@ function mymodule_form($form_state) {
   $format = 'Y-m-d H:i';
 
   $form['date2'] = array(
-     '#type' => 'date_select', // types 'date_text' and 'date_timezone' are also supported. See .inc file.
+     '#type' => 'date_select', // types 'date_text', 'date_timezone', and 'date_year_range' are also supported. See .inc file.
      '#title' => 'select a date',
      '#default_value' => $date, 
      '#date_format' => $format,

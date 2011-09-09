@@ -1,5 +1,4 @@
 <?php
-// $Id: Styles.inc,v 1.1.4.6 2011/01/11 19:28:41 aaron Exp $
 
 /**
  * @file Styles.inc
@@ -21,77 +20,121 @@ class StylesDefault {
   public $prefix;
   public $suffix;
 
-  public $wrapper_type = 'div';
+  public $wrapperType = 'div';
   public $classes = array('styles');
 
   public $id;
   private $_id = 0;
 
   public function __construct($object = NULL, $effects = NULL, $variables = NULL) {
+    // @TODO: This is not great IMO, the ->object and ->variables props already have everything
+    // we shouldn't be duplicating it in different methods / properties.
     if (isset($variables)) {
       $properties = (array) $variables;
-      // Get the array of callable class methods for this object.
-      $methods = get_class_methods($this);
-      foreach ($properties as $key => $value) {
-        $function = 'set_'. $key;
-        if (in_array($function, $methods)) {
-          // Call $this->set_PROPERTY_KEY($value) if that method exists.
-          $this->$function($value);
-        }
-      }
-      $this->set_variables($variables);
+      $this->magicSet($properties);
+      $this->setVariables($variables);
     }
     // If we are passed an array, then set the object properties from its keys.
     if (isset($object)) {
       $properties = (array) $object;
-      // Get the array of callable class methods for this object.
-      $methods = get_class_methods($this);
-      foreach ($properties as $key => $value) {
-        $function = 'set_'. $key;
-        if (in_array($function, $methods)) {
-          // Call $this->set_PROPERTY_KEY($value) if that method exists.
-          $this->$function($value);
-        }
-      }
-      $this->set_object($object);
+      $this->magicSet($properties);
+      $this->setObject($object);
     }
     if (isset($effects)) {
-      $this->set_effects($effects);
+      $this->setEffects($effects);
     }
   }
 
+  /**
+   * Converts a string in the form with_underscores to withUnderscores
+   * @param string $str
+   * @return string
+   */
+  protected function _toCamelCase($str) {
+    $parts = explode("_", $str);
+    $out = array_shift($parts);
+    foreach ($parts as $part) {
+      $out .= ucfirst($part);
+    }
+    return $out;
+  }
+
+  /**
+   * Given an array of k/v pairs calls set$key
+   * @param array $properties
+   */
+  protected function magicSet($properties) {
+    $methods = get_class_methods($this);
+    foreach ($properties as $key => $value) {
+      $propName = "set_{$key}";
+      $function = $this->_toCamelCase($propName);
+      if (in_array($function, $methods)) {
+        $this->$function($value);
+      }
+    }
+  }
+
+  /**
+   * Display the rendered output.
+   *
+   * @param boolean $reset
+   *  Optional; if TRUE, the rebuild the output.
+   * @return
+   *  A fully themed snippet of HTML for output.
+   */
   public function display($reset = FALSE) {
     return $this->render($reset);
   }
 
+  /**
+   * Build the output for display.
+   *
+   * @param boolean $reset
+   *  Optional; if TRUE, the rebuild the output.
+   * @return
+   *  A fully themed snippet of HTML for output.
+   */
   public function render($reset = FALSE) {
+    // If we need to reset, then set the output to NULL.
     if ($reset) {
-      $this->set_output(NULL);
+      $this->setOutput(NULL);
     }
 
-    $output = $this->get_output();
+    // Have we already rendered the output?
+    $output = $this->getOutput();
 
+    // We need to render the output the first time around, or if reset.
     if (!isset($output)) {
-      // Get the array of callable class methods for this object.
+      // First, we get the array of callable class methods for this object.
+      // These may each be called by effects called for by the style.
+      // @TODO: Should we have a proper array of allowable effects, rather
+      // than our current lazy method of allowing all class functions?
       $methods = get_class_methods($this);
-      foreach ($this->get_effects() as $effect) {
-        $effect_name = $effect['name'];
-        if ($effect_name && in_array($effect_name, $methods)) {
-          $this->$effect_name($effect['settings']);
+
+      // Loop through and apply each effect.
+      foreach ($this->getEffects() as $effect) {
+        // What is the effect?
+        $effectName = $effect['name'];
+        if ($effectName && in_array($effectName, $methods)) {
+          // Apply the effect with its settings.
+          $this->$effectName($effect['settings']);
         }
         else {
-          $variables = $this->get_variables();
-          $style_name = $variables['style']['name'];
-          watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effect_name, '%style_name' => $style_name, '%class_name' => $this->get_class_name()), WATCHDOG_WARNING);
+          // Ouch. We have an invalid effect. Flag for bug reporting.
+          $variables = $this->getVariables();
+          $styleName = $variables['style']['name'];
+          watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effectName, '%style_name' => $styleName, '%class_name' => $this->getClassName()), WATCHDOG_WARNING);
         }
       }
-      $output = $this->get_output();
+
+      // Now the output will have been fully built.
+      $output = $this->getOutput();
     }
 
     return $output;
   }
 
-  static public function get_class_name() {
+  public function getClassName() {
     return get_called_class();
   }
 
@@ -112,22 +155,22 @@ class StylesDefault {
     }
   }
 
-  public function array_push($variable, $element) {
+  public function arrayPush($variable, $element) {
     $array = (array) $this->_get($variable);
     array_push($array, $element);
     return $this->_set($variable, $array);
   }
-  public function array_pop($variable) {
+  public function arrayPop($variable) {
     $array = (array) $this->_get($variable);
     array_pop($array);
     return $this->_set($variable, $array);
   }
-  public function array_unshift($variable, $element) {
+  public function arrayUnshift($variable, $element) {
     $array = (array) $this->_get($variable);
     array_unshift($array, $element);
     return $this->_set($variable, $array);
   }
-  public function array_shift($variable) {
+  public function arrayShift($variable) {
     $array = (array) $this->_get($variable);
     array_shift($array);
     return $this->_set($variable, $array);
@@ -140,119 +183,119 @@ class StylesDefault {
    * class function to be called during the rendering process. It will usually
    * also contain an array of 'effects' to apply.
    */
-  public function add_effect($effect) {
-    return $this->push_effect($effect);
+  public function addEffect($effect) {
+    return $this->pushEffect($effect);
   }
-  public function push_effect($effect) {
-    $effect_name = $effect['name'];
-    if (method_exists($this, $effect_name)) {
-      $effects = $this->get_effects();
+  public function pushEffect($effect) {
+    $effectName = $effect['name'];
+    if (method_exists($this, $effectName)) {
+      $effects = $this->getEffects();
       array_push($effects, $effect);
-      return $this->set_effects($effects);
+      return $this->setEffects($effects);
     }
     else {
-      $variables = $this->get_variables();
-      $style_name = $variables['style']['label'];
-      watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effect_name, '%style_name' => $style_name, '%class_name' => $this->get_class_name()), WATCHDOG_WARNING);
+      $variables = $this->getVariables();
+      $styleName = $variables['style']['label'];
+      watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effectName, '%style_name' => $styleName, '%class_name' => $this->getClassName()), WATCHDOG_WARNING);
     }
   }
-  public function pop_effect() {
-    $effects = $this->get_effects();
+  public function popEffect() {
+    $effects = $this->getEffects();
     $effect = array_pop($effects);
-    $this->set_effects($effects);
+    $this->setEffects($effects);
     return $effect;
   }
-  public function unshift_effect($effect) {
-    $effect_name = $effect['name'];
-    if (method_exists($this, $effect_name)) {
-      $effects = $this->get_effects();
+  public function unshiftEffect($effect) {
+    $effectName = $effect['name'];
+    if (method_exists($this, $effectName)) {
+      $effects = $this->getEffects();
       array_unshift($effects, $effect);
-      return $this->set_effects($effects);
+      return $this->setEffects($effects);
     }
     else {
-      $variables = $this->get_variables();
-      $style_name = $variables['style']['label'];
-      watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effect_name, '%style_name' => $this->get_name(), '%class_name' => $this->get_class_name()), WATCHDOG_WARNING);
+      $variables = $this->getVariables();
+      $styleName = $variables['style']['label'];
+      watchdog('styles', 'Effect %effect_name not found for %style_name display formatter style of the %class_name class.', array('%effect_name' => $effectName, '%style_name' => $this->getName(), '%class_name' => $this->getClassName()), WATCHDOG_WARNING);
     }
   }
-  public function shift_effect() {
-    $effects = $this->get_effects();
+  public function shiftEffect() {
+    $effects = $this->getEffects();
     $effect = array_shift($effects);
-    $this->set_effects($effects);
+    $this->setEffects($effects);
     return $effect;
   }
 
-  public function get_object() {
+  public function getObject() {
     return $this->get('object');
   }
-  public function set_object($value) {
+  public function setObject($value) {
     return $this->set('object', $value);
   }
 
-  public function get_variables() {
+  public function getVariables() {
     return $this->get('variables');
   }
-  public function set_variables($value) {
+  public function setVariables($value) {
     return $this->set('variables', $value);
   }
 
-  public function get_effects() {
+  public function getEffects() {
     return $this->get('effects');
   }
-  public function set_effects($value) {
+  public function setEffects($value) {
     return $this->set('effects', $value);
   }
 
-  public function get_wrapper_type() {
-    return $this->get('wrapper_type');
+  public function getWrapperType() {
+    return $this->get('wrapperType');
   }
-  public function set_wrapper_type($value) {
-    return $this->set('wrapper_type', $value);
+  public function setWrapperType($value) {
+    return $this->set('wrapperType', $value);
   }
-  public function get_classes() {
+  public function getClasses() {
     $classes = $this->get('classes');
     return is_array($classes) ? implode(' ', $classes) : $classes;
   }
-  public function set_classes($value) {
+  public function setClasses($value) {
     return $this->set('classes', $value);
   }
-  public function get_id() {
+  public function getId() {
     return $this->get('id');
   }
-  public function set_id($value) {
+  public function setId($value) {
     return $this->set('id', $value);
   }
-  public function get_output() {
+  public function getOutput() {
     return $this->get('output');
   }
-  public function set_output($value) {
+  public function setOutput($value) {
     return $this->set('output', $value);
   }
-  public function get_prefix() {
+  public function getPrefix() {
     $prefix = $this->get('prefix');
     if (!isset($prefix)) {
-      $wrapper_type = $this->get_wrapper_type();
-      $id = $this->get_id();
+      $wrapperType = $this->getWrapperType();
+      $id = $this->getId();
       $_id = $this->_id++;
-      $classes = $this->get_classes();
-      $prefix = "<$wrapper_type id=\"styles-$id-$_id\" class=\"$classes\">";
+      $classes = $this->getClasses();
+      $prefix = "<$wrapperType id=\"styles-$id-$_id\" class=\"$classes\">";
     }
 
     return $prefix;
   }
-  public function set_prefix($value) {
+  public function setPrefix($value) {
     return $this->set('prefix', $value);
   }
-  public function get_suffix() {
+  public function getSuffix() {
     $suffix = $this->get('suffix');
     if (!isset($suffix)) {
-      $wrapper_type = $this->get_wrapper_type();
-      $suffix = "</$wrapper_type>";
+      $wrapperType = $this->getWrapperType();
+      $suffix = "</$wrapperType>";
     }
 
     return $suffix;
   }
-  public function set_suffix($value) {
+  public function setSuffix($value) {
     return $this->set('suffix', $value);
   }
 

@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Hook provided by the media module.
+ */
+
+/**
  * Return an array of plugins for the media browser.
  *
  * Implementors are expected to return a renderable element.
@@ -62,7 +67,7 @@ function hook_media_browser_plugin_view($plugin_name, $params) {
  * </code>
  */
 function hook_media_browser_plugin_info() {
-  
+
 }
 
 /**
@@ -81,5 +86,5 @@ function hook_media_browser_plugin_info() {
  *     1, 3 and 2 were selected.
  */
 function media_media_operations() {
-  
+
 }

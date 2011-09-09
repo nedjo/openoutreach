@@ -35,6 +35,12 @@ function debut_event_context_default_contexts() {
           'region' => 'sidebar_second',
           'weight' => '-10',
         ),
+        'views-event_calendar-block_2' => array(
+          'module' => 'views',
+          'delta' => 'event_calendar-block_2',
+          'region' => 'sidebar_second',
+          'weight' => '-10',
+        ),
       ),
     ),
     'breadcrumb' => 'event',

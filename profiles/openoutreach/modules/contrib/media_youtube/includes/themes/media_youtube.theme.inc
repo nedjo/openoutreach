@@ -1,5 +1,4 @@
 <?php
-// $Id: media_youtube.theme.inc,v 1.1.2.4 2011/01/11 18:40:39 aaron Exp $
 
 /**
  * @file media_youtube/includes/themes/media_youtube.theme.inc
@@ -21,26 +20,19 @@ function media_youtube_preprocess_media_youtube_video(&$variables) {
   $variables['height'] = isset($variables['height']) ? $variables['height'] : media_youtube_variable_get('height');
   $variables['autoplay'] = isset($variables['autoplay']) ? $variables['autoplay'] : media_youtube_variable_get('autoplay');
   $variables['fullscreen'] = isset($variables['fullscreen']) ? $variables['fullscreen'] : media_youtube_variable_get('fullscreen');
-  $variables['autoplay'] = $variables['autoplay'] ? 1 : 1;
+  $variables['autoplay'] = $variables['autoplay'] ? 1 : 0;
   $variables['fullscreen'] = $variables['fullscreen'] ? 'true' : 'false';
 
   $variables['wrapper_id'] = 'media_youtube_' . $variables['video_id'] . '_' . $variables['id'];
 
   // For users with JavaScript, these object and embed tags will be replaced
   // by an iframe, so that we can support users without Flash.
-  $variables['output'] = '<object width="' . $variables['width'] . '" height="' . $variables['height'] . '">';
-  $variables['output'] .= '<param name="movie" value="http://www.youtube.com/v/' . $variables['video_id'] . '&autoplay=' . $variables['autoplay'] . '"></param>';
-  $variables['output'] .= '<param name="allowFullScreen" value="' . $variables['fullscreen'] . '"></param>';
-  $variables['output'] .= '<param name="wmode" value="transparent" />';
-  $variables['output'] .= '<embed src="http://www.youtube.com/v/' . $variables['video_id'] .'" type="application/x-shockwave-flash" width="' . $variables['width'] . '" height="' . $variables['height'] . '" allowfullscreen="' . $variables['fullscreen'] . '"></embed>';
-  $variables['output'] .= '</object>';
-
   $variables['output'] = <<<OUTPUT
     <object width="{$variables['width']}" height="{$variables['height']}">
       <param name="movie" value="http://www.youtube.com/v/{$variables['video_id']}"></param>
       <param name="allowFullScreen" value="{$variables['fullscreen']}"></param>
       <param name="wmode" value="transparent" />
-      <embed src="http://www.youtube.com/v/{$variables['video_id']}" type="application/x-shockwave-flash" width="{$variables['width']}" height="{$variables['height']}" allowfullscreen="{$variables['fullscreen']}"></embed>';
+      <embed src="http://www.youtube.com/v/{$variables['video_id']}" type="application/x-shockwave-flash" width="{$variables['width']}" height="{$variables['height']}" allowfullscreen="{$variables['fullscreen']}"></embed>
     </object>
 OUTPUT;
 
@@ -61,6 +53,7 @@ OUTPUT;
         $JSObject.video_id = "{$variables['video_id']}";
         $JSObject.fullscreen = {$variables['fullscreen']};
         $JSObject.id = $iframe_id;
+        $JSObject.options = { autoplay: {$variables['autoplay']} };
         Drupal.media_youtube.insertEmbed($wrapper_id);
       }
     </script>

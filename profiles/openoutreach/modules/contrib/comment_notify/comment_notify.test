@@ -1,5 +1,4 @@
 <?php
-// $Id: comment_notify.test,v 1.8 2010/10/11 01:27:59 greggles Exp $
 
 /**
  * @file
@@ -56,7 +55,7 @@ class CommentNotifyTestCase extends DrupalWebTestCase {
     $this->assertText(t($expected_error));
 
     // Try again with an e-mail address.
-    $contact_1 = array('name' => $this->randomName(), 'mail' => $this->randomName() .'@'. $this->randomName());
+    $contact_1 = array('name' => $this->randomName(), 'mail' => $this->getRandomEmailAddress());
     $anonymous_comment_1 = $this->postCommentNotifyComment($this->node, $this->randomName(), $this->randomName(), $subscribe_1, $contact_1);
 
     // Confirm that the notification is saved.
@@ -65,7 +64,7 @@ class CommentNotifyTestCase extends DrupalWebTestCase {
 
     // Notify type 2 - replies to a comment.
     $subscribe_2 = array('notify' => TRUE, 'notify_type' => 2);
-    $contact_2 = array('name' => $this->randomName(), 'mail' => $this->randomName() .'@'. $this->randomName());
+    $contact_2 = array('name' => $this->randomName(), 'mail' => $this->getRandomEmailAddress());
     $anonymous_comment_2 = $this->postCommentNotifyComment($this->node, $this->randomName(), $this->randomName(), $subscribe_2, $contact_2);
 
     // Confirm that the notification is saved.
@@ -78,7 +77,7 @@ class CommentNotifyTestCase extends DrupalWebTestCase {
     // Notify type 0 (i.e. only one mode is enabled).
     variable_set('comment_notify_available_alerts', array(1 => 0, 2 => 2));
     $subscribe_0 = array('notify' => TRUE);
-    $contact_0 = array('mail' => $this->randomName() . '@' . $this->randomName());
+    $contact_0 = array('mail' => $this->getRandomEmailAddress());
     $anonymous_comment_0 = $this->postCommentNotifyComment($this->node, $this->randomName(), $this->randomName(), $subscribe_0, $contact_0);
 
     // Confirm that the notification is saved.
@@ -159,4 +158,12 @@ class CommentNotifyTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Returns a randomly generated valid email address.
+   * 
+   * @return string.
+   */
+  function getRandomEmailAddress() {
+    return $this->randomName() . '@example.com';
+  }
 }

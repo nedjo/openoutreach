@@ -146,6 +146,16 @@ class views_handler extends views_object {
   var $query = NULL;
 
   /**
+   * The type of the handler, for example filter/footer/field.
+   */
+  var $handler_type = NULL;
+
+  /**
+   * The alias of the table of this handler which is used in the query.
+   */
+  public $table_alias;
+
+  /**
    * init the handler with necessary data.
    * @param $view
    *   The $view object this handler is attached to.
@@ -254,6 +264,7 @@ class views_handler extends views_object {
 
     // If grouping, check to see if the aggregation method needs to modify the field.
     if ($this->view->display_handler->use_group_by()) {
+      $this->view->init_query();
       $info = $this->query->get_aggregation_info();
       if (!empty($info[$this->options['group_type']]['method']) && function_exists($info[$this->options['group_type']]['method'])) {
         return $info[$this->options['group_type']]['method']($this->options['group_type'], $field);
@@ -284,6 +295,43 @@ class views_handler extends views_object {
         break;
     }
     return $value;
+  }
+
+  /**
+   * Transform a string by a certain method.
+   *
+   * @param $string
+   *    The input you want to transform.
+   * @param $option
+   *    How do you want to transform it, possible values:
+   *      - upper: Uppercase the string.
+   *      - lower: lowercase the string.
+   *      - ucfirst: Make the first char uppercase.
+   *      - ucwords: Make each word in the string uppercase.
+   *
+   * @return string
+   *    The transformed string.
+   */
+  function case_transform($string, $option) {
+    global $multibyte;
+
+    switch ($option) {
+      default:
+        return $string;
+      case 'upper':
+        return drupal_strtoupper($string);
+      case 'lower':
+        return drupal_strtolower($string);
+      case 'ucfirst':
+        return drupal_strtoupper(drupal_substr($string, 0, 1)) . drupal_substr($string, 1);
+      case 'ucwords':
+        if ($multibyte == UNICODE_MULTIBYTE) {
+          return mb_convert_case($string, MB_CASE_TITLE);
+        }
+        else {
+          return ucwords($string);
+        }
+    }
   }
 
   /**
@@ -327,7 +375,13 @@ class views_handler extends views_object {
   function options_submit(&$form, &$form_state) { }
 
   /**
-   * Provide a form for groupby settings.
+   * Provides the handler some groupby.
+   */
+  function use_group_by() {
+    return TRUE;
+  }
+  /**
+   * Provide a form for aggregation settings.
    */
   function groupby_form(&$form, &$form_state) {
     $view = &$form_state['view'];
@@ -337,10 +391,11 @@ class views_handler extends views_object {
     $id = $form_state['id'];
 
     $form['#title'] = check_plain($view->display[$display_id]->display_title) . ': ';
-    $form['#title'] .= t('Configure group settings for @type %item', array('@type' => $types[$type]['lstitle'], '%item' => $this->ui_name()));
+    $form['#title'] .= t('Configure aggregation settings for @type %item', array('@type' => $types[$type]['lstitle'], '%item' => $this->ui_name()));
 
     $form['#section'] = $display_id . '-' . $type . '-' . $id;
 
+    $view->init_query();
     $info = $view->query->get_aggregation_info();
     foreach ($info as $id => $aggregate) {
       $group_types[$id] = $aggregate['title'];
@@ -348,9 +403,9 @@ class views_handler extends views_object {
 
     $form['group_type'] = array(
       '#type' => 'select',
-      '#title' => t('Group type'),
+      '#title' => t('Aggregation type'),
       '#default_value' => $this->options['group_type'],
-      '#description' => t('Select the grouping function to use on this field.'),
+      '#description' => t('Select the aggregation function to use on this field.'),
       '#options' => $group_types,
     );
   }
@@ -684,7 +739,7 @@ class views_many_to_one_helper {
    */
   function add_table($join = NULL, $alias = NULL) {
     // This is used for lookups in the many_to_one table.
-    $field = $this->handler->table . '.' . $this->handler->field;
+    $field = $this->handler->relationship . '_' . $this->handler->table . '.' . $this->handler->field;
 
     if (empty($join)) {
       $join = $this->get_join();
@@ -737,7 +792,7 @@ class views_many_to_one_helper {
    * it will cooperate with other arguments if possible.
    */
   function summary_join() {
-    $field = $this->handler->table . '.' . $this->handler->field;
+    $field = $this->handler->relationship . '_' . $this->handler->table . '.' . $this->handler->field;
     $join = $this->get_join();
 
     // shortcuts
@@ -777,13 +832,15 @@ class views_many_to_one_helper {
     if (!isset($this->handler->table_alias)) {
       // Case 1: Operator is an 'or' and we're not reducing duplicates.
       // We hence get the absolute simplest:
-      $field = $this->handler->table . '.' . $this->handler->field;
+      $field = $this->handler->relationship . '_' . $this->handler->table . '.' . $this->handler->field;
       if ($this->handler->operator == 'or' && empty($this->handler->options['reduce_duplicates'])) {
         if (empty($this->handler->options['add_table']) && empty($this->handler->view->many_to_one_tables[$field])) {
           // query optimization, INNER joins are slightly faster, so use them
           // when we know we can.
           $join = $this->get_join();
-          $join->type = 'INNER';
+          if (isset($join)) {
+            $join->type = 'INNER';
+          }
           $this->handler->table_alias = $this->handler->query->ensure_table($this->handler->table, $this->handler->relationship, $join);
           $this->handler->view->many_to_one_tables[$field] = $this->handler->value;
         }
@@ -976,7 +1033,7 @@ function views_break_phrase_string($str, &$handler = NULL) {
     $handler->operator = 'or';
     $handler->value = preg_split('/[+ ]/', $str);
   }
-  else if (preg_match('/^(\w+,)*\w+$/', $str)) {
+  else if (preg_match('/^((\w|\s)+,)*(\w|\s)+$/', $str)) {
     $handler->operator = 'and';
     $handler->value = explode(',', $str);
   }
@@ -1288,11 +1345,10 @@ function views_date_sql_extract($extract_type, $field, $field_type = 'int', $set
  *     parent::construct($table, $left_table, $left_field, $field, $extra, $type);
  *   }
  *
- *   function join($table, &$query) {
- *     $output = parent::join($table, $query);
+ *   function build_join($select_query, $table, $view_query) {
+ *     $this->extra = 'foo.bar = baz.boing';
+ *     parent::build_join($select_query, $table, $view_query);
  *   }
- *   $output .= "AND foo.bar = baz.boing";
- *   return $output;
  * }
  * @endcode
  */
@@ -1387,6 +1443,113 @@ class views_join {
     $arguments = array();
 
     // Tack on the extra.
+    if (isset($this->extra)) {
+      if (is_array($this->extra)) {
+        $extras = array();
+        foreach ($this->extra as $info) {
+          $extra = '';
+          // Figure out the table name. Remember, only use aliases provided
+          // if at all possible.
+          $join_table = '';
+          if (!array_key_exists('table', $info)) {
+            $join_table = $table['alias'] . '.';
+          }
+          elseif (isset($info['table'])) {
+            $join_table = $info['table'] . '.';
+          }
+
+          // Convert a single-valued array of values to the single-value case,
+          // and transform from IN() notation to = notation
+          if (is_array($info['value']) && count($info['value']) == 1) {
+            if (empty($info['operator'])) {
+              $operator = '=';
+            }
+            else {
+              $operator = $info['operator'] == 'NOT IN' ? '!=' : '=';
+            }
+            $info['value'] = array_shift($info['value']);
+          }
+
+          if (is_array($info['value'])) {
+            // With an array of values, we need multiple placeholders and the
+            // 'IN' operator is implicit.
+            foreach ($info['value'] as $value) {
+              $placeholder_i = ':views_join_condition_' . $select_query->nextPlaceholder();
+              $arguments[$placeholder_i] = $value;
+            }
+
+            $operator = !empty($info['operator']) ? $info['operator'] : 'IN';
+            $placeholder = '( ' . implode(', ', array_keys($arguments)) . ' )';
+          }
+          else {
+            // With a single value, the '=' operator is implicit.
+            $operator = !empty($info['operator']) ? $info['operator'] : '=';
+            $placeholder = ':views_join_condition_' . $select_query->nextPlaceholder();
+            $arguments[$placeholder] = $info['value'];
+          }
+
+          $extras[] = "$join_table$info[field] $operator $placeholder";
+        }
+
+        if ($extras) {
+          if (count($extras) == 1) {
+            $condition .= ' AND ' . array_shift($extras);
+          }
+          else {
+            $condition .= ' AND (' . implode(' ' . $this->extra_type . ' ', $extras) . ')';
+          }
+        }
+      }
+      elseif ($this->extra && is_string($this->extra)) {
+        $condition .= " AND ($this->extra)";
+      }
+    }
+
+    $select_query->addJoin($this->type, $right_table, $table['alias'], $condition, $arguments);
+  }
+}
+
+/**
+ * Join handler for relationships that join with a subquery as the left field.
+ * eg:
+ *  LEFT JOIN node node_term_data ON ([YOUR SUBQUERY HERE]) = node_term_data.nid 
+ *
+ * join definition
+ *   same as views_join class above, except:
+ *   - left_query: The subquery to use in the left side of the join clause.
+ */
+class views_join_subquery extends views_join {
+  function construct($table = NULL, $left_table = NULL, $left_field = NULL, $field = NULL, $extra = array(), $type = 'LEFT') {
+    parent::construct($table, $left_table, $left_field, $field, $extra, $type);
+    $this->left_query = $this->definition['left_query'];
+  }
+  
+  /**
+   * Build the SQL for the join this object represents.
+   *
+   * @param $select_query
+   *   An implementation of SelectQueryInterface.
+   * @param $table
+   *   The base table to join.
+   * @param $view_query
+   *   The source query, implementation of views_plugin_query.
+   * @return
+   *
+   */
+  function build_join($select_query, $table, $view_query) {
+    if (empty($this->definition['table formula'])) {
+      $right_table = "{" . $this->table . "}";
+    }
+    else {
+      $right_table = $this->definition['table formula'];
+    }
+
+    // Add our join condition, using a subquery on the left instead of a field.
+    $condition = "($this->left_query) = $table[alias].$this->field";
+    $arguments = array();
+
+    // Tack on the extra.
+    // This is just copied verbatim from the parent class, which itself has a bug: http://drupal.org/node/1118100
     if (isset($this->extra)) {
       if (is_array($this->extra)) {
         $extras = array();

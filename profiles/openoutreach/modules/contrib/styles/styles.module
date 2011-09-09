@@ -1,5 +1,4 @@
 <?php
-// $Id: styles.module,v 1.2.2.26.2.22 2011/01/18 22:49:48 aaron Exp $
 
 /**
  *  @file
@@ -41,19 +40,13 @@ function styles_field_formatter_info() {
 function styles_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array('#formatter' => $display['type']);
   foreach ($items as $delta => $item) {
-    // @todo This should be refactored, but for legacy reasons, we pass a
-    //   context object containing both the field item keys and the entity
-    //   properties, because there are current use-cases of each one being
-    //   needed. For example, file_styles_styles_formatter_filter() expects
-    //   $object to contain a file field's $item data, and
-    //   theme_media_youtube_embed() expects $object to contain the entity's
-    //   'override' property. This came about because an early use-case of the
-    //   Styles module is the Media module, where there is tight coupling
-    //   between the entity and the field item. Creating a merged context object
-    //   is an initial step towards making the Styles module usable by modules
-    //   other than Media. See http://drupal.org/node/797502.
-    $object = (object) ((array) $item + (array) $entity);
-    $element[$delta] = array('#markup' => theme('styles_field_formatter', array('element' => $element, 'object' => $object)));
+    // @todo The variable name 'object' is misleading, but retained for
+    //   backwards compatibility until a broader refactoring of the Styles
+    //   module. For now, it's the $item array cast to an object. For File and
+    //   Image fields, this is a fully loaded file object, because
+    //   file_field_load() loads the referenced file and merges its properties
+    //   into $item, but for other field types, it may simply be raw field data.
+    $element[$delta] = array('#markup' => theme('styles_field_formatter', array('element' => $element, 'object' => (object) $item, 'delta' => $delta, 'entity' => $entity)));
   }
   return $element;
 }
@@ -471,22 +464,13 @@ function styles_get_styles_class_by_class_name($class_name = NULL, $reset = FALS
   }
 }
 
-/**
- * Implementation of hook_perm().
- */
-function styles_perm() {
-  return array('administer styles');
-}
-
-function styles_instance($field_type, $style_name, $object) {
+function styles_instance($variables) {
   static $id = 0;
 
-  $variables = array(
-    'field_type' => $field_type,
-    'style_name' => $style_name,
-    'object' => $object,
-    'id' => $id++,
-  );
+  $variables['id'] = $id++;
+  $field_type = $variables['field_type'];
+  $style_name = $variables['style_name'];
+  $object = $variables['object'];
 
   // Grab the containers for this field type.
   $containers = styles_default_containers($field_type);
@@ -567,9 +551,6 @@ function styles_style_load($field_type, $name = NULL, $sid = NULL, $include = NU
   return array();
 }
 
-function styles_style_reset_preset($field_type, $container_name, $style_name, $preset_name) {
-}
-
 /**
  * Save a style/preset instance.
  *
@@ -622,9 +603,8 @@ function styles_style_save_preset($field_type, $container_name, $style_name, $pr
   }
 
   // Delete old style/preset instances for this container.
-  // This is probably only good for MySQL. Unfortunately, we can't use joins
-  // with DeleteQuery. See following comment.
-  db_query("DELETE i FROM {styles_preset_instances} i INNER JOIN {styles} s ON s.sid = i.sid INNER JOIN {styles_presets} p ON i.pid = p.pid AND s.field_type = p.field_type WHERE i.sid = :sid AND p.container_name = :container_name", array(':sid' => $style['sid'], ':container_name' => $container_name));
+  // Unfortunately, we can't use joins with DeleteQuery. See following comment.
+  db_query("DELETE FROM {styles_preset_instances} WHERE {styles_preset_instances}.sid = :sid AND EXISTS (SELECT * FROM {styles} s, {styles_presets} p WHERE s.sid = {styles_preset_instances}.sid AND p.pid = {styles_preset_instances}.pid AND s.field_type = p.field_type AND p.container_name = :container_name);", array(':sid' => $style['sid'], ':container_name' => $container_name));
 
   // @TODO: See if there's a way to implement something like the following:
 //   db_delete('styles_preset_instances')
@@ -637,7 +617,7 @@ function styles_style_save_preset($field_type, $container_name, $style_name, $pr
 //     ->condition('p.container_name', $container_name)
 //     ->execute();
 
-
+  // Write the revised style for an update, unless we're only deleting the old.
   if (!$delete_only) {
     $record = array(
       'sid' => $style['sid'],
@@ -654,6 +634,28 @@ function styles_style_save_preset($field_type, $container_name, $style_name, $pr
   styles_style_flush($style);
 
   return TRUE;
+}
+
+function styles_style_delete($field_type, $style_name) {
+  // Let other modules update as necessary on deletion.
+  module_invoke_all('styles_delete', $field_type, $style_name);
+
+  $sid = db_select('styles', 's')
+    ->fields('s', array('sid'))
+    ->condition('name', $style_name)
+    ->condition('field_type', $field_type)
+    ->execute()
+    ->fetchField();
+  if ($sid) {
+    db_delete('styles_preset_instances')
+      ->condition('sid', $sid)
+      ->execute();
+    db_delete('styles')
+      ->condition('sid', $sid)
+      ->execute();
+  }
+  // Clear all caches and flush.
+  styles_style_flush();
 }
 
 function styles_style_save(&$style) {

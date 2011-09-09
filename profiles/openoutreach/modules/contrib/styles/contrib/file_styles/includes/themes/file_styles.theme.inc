@@ -1,5 +1,4 @@
 <?php
-// $Id: file_styles.theme.inc,v 1.1.2.3 2011/01/14 20:39:54 aaron Exp $
 
 /**
  * @file file_styles/includes/themes/file_styles.theme.inc
@@ -31,7 +30,7 @@ function theme_file_styles_image_preview($variables) {
   // that need to use an image style.
   // @see http://drupal.org/node/987846#comment-3949112
   $sample_image = file_styles_preview_image();
-  $variables['object'] = file_uri_to_object($sample_image);
+  $variables['object'] = file_styles_uri_to_object($sample_image);
   $variables['field_type'] = 'file';
   return theme('styles', $variables);
 }

@@ -1,5 +1,4 @@
 <?php
-// $Id: file_styles.effects.inc,v 1.1.2.1 2010/01/07 17:56:38 aaron Exp $
 
 /**
  * @file

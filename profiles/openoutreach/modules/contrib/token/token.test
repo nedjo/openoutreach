@@ -11,15 +11,12 @@ class TokenTestHelper extends DrupalWebTestCase {
     parent::setUp($modules);
   }
 
-  function assertToken($type, $data, $token, $expected, array $options = array()) {
-    $this->assertTokens($type, $data, array($token => $expected), $options);
+  function assertToken($type, array $data, $token, $expected, array $options = array()) {
+    return $this->assertTokens($type, $data, array($token => $expected), $options);
   }
 
-  function assertTokens($type, $data, array $tokens, array $options = array()) {
+  function assertTokens($type, array $data, array $tokens, array $options = array()) {
     $token_input = drupal_map_assoc(array_keys($tokens));
-    if (!is_array($data)) {
-      $data = array($type => $data);
-    }
     $values = token_generate($type, $token_input, $data, $options);
     foreach ($tokens as $token => $expected) {
       if (!isset($expected)) {
@@ -28,21 +25,24 @@ class TokenTestHelper extends DrupalWebTestCase {
       elseif (!isset($values[$token])) {
         $this->fail(t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
       }
+      elseif (!empty($options['regex'])) {
+        $this->assertTrue(preg_match('/^' . $expected . '$/', $values[$token]), t("Token value for [@type:@token] was '@actual', matching regular expression pattern '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+      }
       else {
         $this->assertIdentical($values[$token], $expected, t("Token value for [@type:@token] was '@actual', expected value '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
       }
     }
+
+    return $values;
   }
 
-  function assertNoTokens($type, $data, array $tokens, array $options = array()) {
+  function assertNoTokens($type, array $data, array $tokens, array $options = array()) {
     $token_input = drupal_map_assoc($tokens);
-    if (!is_array($data)) {
-      $data = array($type => $data);
-    }
     $values = token_generate($type, $token_input, $data, $options);
     foreach ($tokens as $token) {
       $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
     }
+    return $values;
   }
 
   function saveAlias($source, $alias, $language = LANGUAGE_NONE) {
@@ -201,9 +201,20 @@ class TokenURLTestCase extends TokenTestHelper {
     $tokens = array(
       'absolute' => 'http://example.com/first-node',
       'relative' => base_path() . 'first-node',
-      'path' => 'node/1',
-      'alias' => 'first-node',
+      'path' => 'first-node',
       'brief' => 'example.com/first-node',
+      'args:value:0' => 'first-node',
+      'args:value:1' => NULL,
+      'args:value:N' => NULL,
+      'unaliased' => 'http://example.com/node/1',
+      'unaliased:relative' => base_path() . 'node/1',
+      'unaliased:path' => 'node/1',
+      'unaliased:brief' => 'example.com/node/1',
+      'unaliased:args:value:0' => 'node',
+      'unaliased:args:value:1' => '1',
+      'unaliased:args:value:2' => NULL,
+      // Deprecated tokens.
+      'alias' => 'first-node',
     );
     $this->assertTokens('url', array('path' => 'node/1', 'options' => array('base_url' => 'http://example.com')), $tokens);
   }
@@ -239,10 +250,9 @@ class TokenCommentTestCase extends TokenTestHelper {
       'url:absolute' => url('comment/' . $parent_comment->cid, array('fragment' => 'comment-' . $parent_comment->cid, 'absolute' => TRUE)),
       'url:relative' => url('comment/' . $parent_comment->cid, array('fragment' => 'comment-' . $parent_comment->cid, 'absolute' => FALSE)),
       'url:path' => 'comment/' . $parent_comment->cid,
-      'url:alias' => 'comment/' . $parent_comment->cid,
       'parent:url:absolute' => NULL,
     );
-    $this->assertTokens('comment', $parent_comment, $tokens);
+    $this->assertTokens('comment', array('comment' => $parent_comment), $tokens);
 
     $comment = new stdClass();
     $comment->nid = $node->nid;
@@ -260,10 +270,9 @@ class TokenCommentTestCase extends TokenTestHelper {
       'url:absolute' => url('comment/' . $comment->cid, array('fragment' => 'comment-' . $comment->cid, 'absolute' => TRUE)),
       'url:relative' => url('comment/' . $comment->cid, array('fragment' => 'comment-' . $comment->cid, 'absolute' => FALSE)),
       'url:path' => 'comment/' . $comment->cid,
-      'url:alias' => 'comment/' . $comment->cid,
       'parent:url:absolute' => url('comment/' . $parent_comment->cid, array('fragment' => 'comment-' . $parent_comment->cid, 'absolute' => TRUE)),
     );
-    $this->assertTokens('comment', $comment, $tokens);
+    $this->assertTokens('comment', array('comment' => $comment), $tokens);
   }
 }
 
@@ -282,10 +291,10 @@ class TokenNodeTestCase extends TokenTestHelper {
       'source' => NULL,
       'source:nid' => NULL,
       'log' => $source_node->log,
+      'url:path' => 'content/source-node',
       'url:absolute' => url("node/{$source_node->nid}", array('absolute' => TRUE)),
       'url:relative' => url("node/{$source_node->nid}", array('absolute' => FALSE)),
-      'url:path' => "node/{$source_node->nid}",
-      'url:alias' => 'content/source-node',
+      'url:unaliased:path' => "node/{$source_node->nid}",
       'content-type' => 'Basic page',
       'content-type:name' => 'Basic page',
       'content-type:machine-name' => 'page',
@@ -296,18 +305,19 @@ class TokenNodeTestCase extends TokenTestHelper {
       'tnid' => 0,
       'type' => 'page',
       'type-name' => 'Basic page',
+      'url:alias' => 'content/source-node',
     );
-    $this->assertTokens('node', $source_node, $tokens);
+    $this->assertTokens('node', array('node' => $source_node), $tokens);
 
     $translated_node = $this->drupalCreateNode(array('tnid' => $source_node->nid, 'type' => 'article'));
     $tokens = array(
       'source' => $source_node->title,
       'source:nid' => $source_node->nid,
       'log' => '',
+      'url:path' => "node/{$translated_node->nid}",
       'url:absolute' => url("node/{$translated_node->nid}", array('absolute' => TRUE)),
       'url:relative' => url("node/{$translated_node->nid}", array('absolute' => FALSE)),
-      'url:path' => "node/{$translated_node->nid}",
-      'url:alias' => "node/{$translated_node->nid}",
+      'url:unaliased:path' => "node/{$translated_node->nid}",
       'content-type' => 'Article',
       'content-type:name' => 'Article',
       'content-type:machine-name' => 'article',
@@ -318,8 +328,9 @@ class TokenNodeTestCase extends TokenTestHelper {
       'type' => 'article',
       'type-name' => 'Article',
       'tnid' => $source_node->nid,
+      'url:alias' => "node/{$translated_node->nid}",
     );
-    $this->assertTokens('node', $translated_node, $tokens);
+    $this->assertTokens('node', array('node' => $translated_node), $tokens);
   }
 }
 
@@ -408,7 +419,7 @@ class TokenMenuTestCase extends TokenTestHelper {
       'menu-link:root' => 'Root link',
       'menu-link:root:mlid' => $root_link['mlid'],
     );
-    $this->assertTokens('node', $node, $tokens);
+    $this->assertTokens('node', array('node' => $node), $tokens);
   }
 }
 
@@ -439,11 +450,14 @@ class TokenTaxonomyTestCase extends TokenTestHelper {
       'url' => url("taxonomy/term/{$parent_term->tid}", array('absolute' => TRUE)),
       'url:absolute' => url("taxonomy/term/{$parent_term->tid}", array('absolute' => TRUE)),
       'url:relative' => url("taxonomy/term/{$parent_term->tid}", array('absolute' => FALSE)),
-      'url:path' => "taxonomy/term/{$parent_term->tid}",
-      'url:alias' => 'parent-term',
+      'url:path' => 'parent-term',
+      'url:unaliased:path' => "taxonomy/term/{$parent_term->tid}",
       'edit-url' => url("taxonomy/term/{$parent_term->tid}/edit", array('absolute' => TRUE)),
+      'root' => NULL,
+      // Deprecated tokens
+      'url:alias' => 'parent-term',
     );
-    $this->assertTokens('term', $parent_term, $parent_term_tokens);
+    $this->assertTokens('term', array('term' => $parent_term), $parent_term_tokens);
 
     $child_term = $this->addTerm($this->vocab, array('parent' => $parent_term->tid));
     $child_term_tokens = array(
@@ -451,10 +465,14 @@ class TokenTaxonomyTestCase extends TokenTestHelper {
       'url:absolute' => url("taxonomy/term/{$child_term->tid}", array('absolute' => TRUE)),
       'url:relative' => url("taxonomy/term/{$child_term->tid}", array('absolute' => FALSE)),
       'url:path' => "taxonomy/term/{$child_term->tid}",
-      'url:alias' => "taxonomy/term/{$child_term->tid}",
+      'url:unaliased:path' => "taxonomy/term/{$child_term->tid}",
       'edit-url' => url("taxonomy/term/{$child_term->tid}/edit", array('absolute' => TRUE)),
+      'root' => check_plain($parent_term->name),
+      'root:tid' => $parent_term->tid,
+      // Deprecated tokens
+      'url:alias' => "taxonomy/term/{$child_term->tid}",
     );
-    $this->assertTokens('term', $child_term, $child_term_tokens);
+    $this->assertTokens('term', array('term' => $child_term), $child_term_tokens);
   }
 
   /**
@@ -466,7 +484,7 @@ class TokenTaxonomyTestCase extends TokenTestHelper {
       'machine-name' => 'tags',
       'edit-url' => url("admin/structure/taxonomy/{$vocabulary->machine_name}/edit", array('absolute' => TRUE)),
     );
-    $this->assertTokens('vocabulary', $vocabulary, $tokens);
+    $this->assertTokens('vocabulary', array('vocabulary' => $vocabulary), $tokens);
   }
 
   function addVocabulary(array $vocabulary = array()) {
@@ -531,9 +549,10 @@ class TokenUserTestCase extends TokenTestHelper {
     $user_tokens = array(
       'picture' => theme('user_picture', array('account' => $this->account)),
       'picture:fid' => $this->account->picture->fid,
+      'picture:size-raw' => 125,
       'ip-address' => NULL,
     );
-    $this->assertTokens('user', $this->account, $user_tokens);
+    $this->assertTokens('user', array('user' => $this->account), $user_tokens);
 
     $edit = array('user_pictures' => FALSE);
     $this->drupalPost('admin/config/people/accounts', $edit, 'Save configuration');
@@ -544,13 +563,13 @@ class TokenUserTestCase extends TokenTestHelper {
       'picture:fid' => NULL,
       'ip-address' => NULL,
     );
-    $this->assertTokens('user', $this->account, $user_tokens);
+    $this->assertTokens('user', array('user' => $this->account), $user_tokens);
 
     // The ip address token should work for the current user token type.
     $tokens = array(
       'ip-address' => ip_address(),
     );
-    $this->assertTokens('current-user', NULL, $tokens);
+    $this->assertTokens('current-user', array(), $tokens);
   }
 }
 
@@ -663,7 +682,7 @@ class TokenProfileTestCase extends TokenTestHelper {
       'profile-date:raw' => '453859200',
       'profile-date:custom:Y' => '1984',
     );
-    $this->assertTokens('user', $account, $tokens);
+    $this->assertTokens('user', array('user' => $account), $tokens);
 
     // 'Un-select' the checkbox and select profile fields.
     $edit = array(
@@ -678,7 +697,7 @@ class TokenProfileTestCase extends TokenTestHelper {
       'profile-checkbox' => NULL,
       'profile-selection' => NULL,
     );
-    $this->assertTokens('user', $account, $tokens);
+    $this->assertTokens('user', array('user' => $account), $tokens);
   }
 
   /**
@@ -743,13 +762,19 @@ class TokenCurrentPageTestCase extends TokenTestHelper {
 
   function testCurrentPageTokens() {
     $tokens = array(
-      '[current-page:title]' => 'Welcome to Drupal',
+      '[current-page:title]' => t('Welcome to @site-name', array('@site-name' => variable_get('site_name', 'Drupal'))),
       '[current-page:url]' => url('node', array('absolute' => TRUE)),
       '[current-page:url:absolute]' => url('node', array('absolute' => TRUE)),
       '[current-page:url:relative]' => url('node', array('absolute' => FALSE)),
       '[current-page:url:path]' => 'node',
-      '[current-page:url:alias]' => 'node',
+      '[current-page:url:args:value:0]' => 'node',
+      '[current-page:url:args:value:1]' => NULL,
+      '[current-page:url:unaliased]' => url('node', array('absolute' => TRUE, 'alias' => TRUE)),
       '[current-page:page-number]' => 1,
+      '[current-page:query:foo]' => NULL,
+      '[current-page:query:bar]' => NULL,
+      '[current-page:query:q]' => 'node',
+      // Deprecated tokens
       '[current-page:arg:0]' => 'node',
       '[current-page:arg:1]' => NULL,
     );
@@ -761,14 +786,23 @@ class TokenCurrentPageTestCase extends TokenTestHelper {
       '[current-page:url]' => url("node/{$node->nid}", array('absolute' => TRUE)),
       '[current-page:url:absolute]' => url("node/{$node->nid}", array('absolute' => TRUE)),
       '[current-page:url:relative]' => url("node/{$node->nid}", array('absolute' => FALSE)),
-      '[current-page:url:path]' => "node/{$node->nid}",
       '[current-page:url:alias]' => 'node-alias',
+      '[current-page:url:args:value:0]' => 'node-alias',
+      '[current-page:url:args:value:1]' => NULL,
+      '[current-page:url:unaliased]' => url("node/{$node->nid}", array('absolute' => TRUE, 'alias' => TRUE)),
+      '[current-page:url:unaliased:args:value:0]' => 'node',
+      '[current-page:url:unaliased:args:value:1]' => $node->nid,
+      '[current-page:url:unaliased:args:value:2]' => NULL,
       '[current-page:page-number]' => 1,
+      '[current-page:query:foo]' => 'bar',
+      '[current-page:query:bar]' => NULL,
+      '[current-page:query:q]' => 'node/1',
+      // Deprecated tokens
       '[current-page:arg:0]' => 'node',
-      '[current-page:arg:1]' => $node->nid,
+      '[current-page:arg:1]' => 1,
       '[current-page:arg:2]' => NULL,
     );
-    $this->assertPageTokens("node/{$node->nid}", $tokens);
+    $this->assertPageTokens("node/{$node->nid}", $tokens, array(), array('url_options' => array('query' => array('foo' => 'bar'))));
   }
 }
 
@@ -801,6 +835,54 @@ class TokenArrayTestCase extends TokenTestHelper {
       'join:, ' => 'a, b, c, d',
       'join: ' => 'a b c d',
     );
-    $this->assertTokens('array', $array, $tokens);
+    $this->assertTokens('array', array('array' => $array), $tokens);
+  }
+}
+
+class TokenRandomTestCase extends TokenTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'Random token tests',
+      'description' => 'Test the random tokens.',
+      'group' => 'Token',
+    );
+  }
+
+  function testRandomTokens() {
+    $tokens = array(
+      'number' => '[0-9]{1,}',
+      'hash:md5' => '[0-9a-f]{32}',
+      'hash:sha1' => '[0-9a-f]{40}',
+      'hash:sha256' => '[0-9a-f]{64}',
+      'hash:invalid-algo' => NULL,
+    );
+
+    $first_set = $this->assertTokens('random', array(), $tokens, array('regex' => TRUE));
+    $second_set = $this->assertTokens('random', array(), $tokens, array('regex' => TRUE));
+    foreach ($first_set as $token => $value) {
+      $this->assertNotIdentical($first_set[$token], $second_set[$token]);
+    }
+  }
+}
+
+/**
+ * @todo Remove when http://drupal.org/node/1173706 is fixed.
+ */
+class TokenDateTestCase extends TokenTestHelper {
+  public static function getInfo() {
+    return array(
+      'name' => 'Date token tests',
+      'description' => 'Test the date tokens.',
+      'group' => 'Token',
+    );
+  }
+
+  function testDateTokens() {
+    $tokens = array(
+      'token_test' => '1984',
+      'invalid_format' => NULL,
+    );
+
+    $this->assertTokens('date', array('date' => 453859200), $tokens);
   }
 }

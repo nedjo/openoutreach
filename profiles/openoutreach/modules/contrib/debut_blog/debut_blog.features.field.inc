@@ -117,22 +117,28 @@ function debut_blog_field_default_fields() {
         'default' => array(
           'label' => 'hidden',
           'module' => 'media',
-          'settings' => array(),
-          'type' => 'media_large',
+          'settings' => array(
+            'file_view_mode' => 'media_large',
+          ),
+          'type' => 'media',
           'weight' => '0',
         ),
         'rss' => array(
           'label' => 'hidden',
           'module' => 'media',
-          'settings' => array(),
-          'type' => 'media_large',
+          'settings' => array(
+            'file_view_mode' => 'media_large',
+          ),
+          'type' => 'media',
           'weight' => '0',
         ),
         'teaser' => array(
           'label' => 'hidden',
           'module' => 'media',
-          'settings' => array(),
-          'type' => 'media_preview',
+          'settings' => array(
+            'file_view_mode' => 'media_preview',
+          ),
+          'type' => 'media',
           'weight' => '0',
         ),
       ),
@@ -192,15 +198,19 @@ function debut_blog_field_default_fields() {
         'default' => array(
           'label' => 'hidden',
           'module' => 'media',
-          'settings' => array(),
-          'type' => 'media_large',
+          'settings' => array(
+            'file_view_mode' => 'media_large',
+          ),
+          'type' => 'media',
           'weight' => '2',
         ),
         'rss' => array(
           'label' => 'hidden',
           'module' => 'media',
-          'settings' => array(),
-          'type' => 'media_large',
+          'settings' => array(
+            'file_view_mode' => 'media_large',
+          ),
+          'type' => 'media',
           'weight' => '2',
         ),
         'teaser' => array(

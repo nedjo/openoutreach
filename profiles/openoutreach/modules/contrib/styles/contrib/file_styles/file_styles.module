@@ -1,5 +1,4 @@
 <?php
-// $Id: file_styles.module,v 1.1.2.8.2.11 2011/01/14 20:39:54 aaron Exp $
 
 /**
  *  @file styles/contrib/file_styles/file_styles.module
@@ -31,7 +30,7 @@ function file_styles_styles_register() {
  */
 function file_styles_styles_filter($object, $element = NULL) {
   // Ensure we're working against the fully loaded file object.
-  $file = file_uri_to_object($object->uri);
+  $file = !empty($object->file) ? $object->file : file_styles_uri_to_object($object->uri, TRUE);
 
   // Allow other modules to define their own file styles.
   // In general, they'll most likely want to check against the mimetype.
@@ -47,7 +46,7 @@ function file_styles_styles_filter($object, $element = NULL) {
   // Now check the part of the mimetype before the slash.
   // Note that we can't use strstr($haystack, $needle, $before_needle)
   // < PHP 5.3, so we need a work-around.
-  $filter = file_styles_strstr($object->filemime, '/', TRUE);
+  $filter = file_styles_strstr($file->filemime, '/', TRUE);
   if (isset($containers['containers'][$filter])) {
     return $filter;
   }
@@ -61,7 +60,8 @@ function file_styles_styles_filter($object, $element = NULL) {
  */
 function file_styles_strstr($haystack, $needle, $before_needle = FALSE){
   if ($before_needle) {
-    return array_shift(explode($needle, $haystack, 2));
+    list($var) = explode($needle, $haystack, 2);
+    return $var;
   }
   return strstr($haystack, $needle);
 }
@@ -108,3 +108,62 @@ function file_styles_theme($existing, $type, $theme, $path) {
     ),
   );
 }
+
+/**
+  * Returns a file object which can be passed to file_save().
+  *
+  * @param $uri
+  *   A string containing the URI, path, or filename.
+  * @param $use_existing
+  *   (Optional) If TRUE and there's an existing file in the {file_managed}
+  *   table with the passed in URI, then that file object is returned.
+  *   Otherwise, a new file object is returned.
+  * @return
+  *   A file object, or FALSE on error.
+  *
+  * @see http://drupal.org/node/685818
+  */
+function file_styles_uri_to_object($uri, $use_existing = FALSE) {
+  if ($use_existing) {
+    $query = db_select('file_managed', 'f')
+      ->fields('f', array('fid'))
+      ->condition('uri', $uri)
+      ->execute()
+      ->fetchCol();
+    if (!empty($query)) {
+      $file = file_load(array_shift($query));
+    }
+  }
+  if (!isset($file)) {
+    global $user;
+    $uri = file_stream_wrapper_uri_normalize($uri);
+    $wrapper = file_stream_wrapper_get_instance_by_uri($uri);
+    $file = new StdClass;
+    $file->uid = $user->uid;
+    $file->filename = basename($uri);
+    $file->uri = $uri;
+    $file->filemime = file_get_mimetype($uri);
+    // This is gagged because some uris will not support it.
+    $file->filesize = @filesize($uri);
+    $file->timestamp = REQUEST_TIME;
+    $file->status = FILE_STATUS_PERMANENT;
+    $file->is_new = TRUE;
+  }
+  return $file;
+}
+
+/**
+ * Implements hook_image_style_save().
+ */
+function file_styles_image_style_save($image_style) {
+  // Rebuild the styles to account for any new image styles.
+  styles_style_flush();
+}
+
+/**
+ * Implements hook_image_style_delete().
+ */
+ function file_styles_image_style_delete($image_style) {
+  // Rebuild the styles to account for any deleted image styles.
+  styles_style_flush();
+ }

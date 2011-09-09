@@ -22,10 +22,10 @@ Drupal.behaviors.mediaGalleryColorbox.attach = function (context, settings) {
       $links.not('.meta-wrapper').colorbox({
         slideshow: true,
         slideshowAuto: false,
-        slideshowStart: 'Slideshow',
-        slideshowStop: '[stop slideshow]',
+        slideshowStart: Drupal.t('Slideshow'),
+        slideshowStop: '[' + Drupal.t('stop slideshow') + ']',
         slideshowSpeed: 4000,
-        current: "Item {current} of {total}",
+        current: Drupal.t('Item !current of !total', {'!current':'{current}', '!total':'{total}'}),
         innerWidth: 'auto',
         // If 'title' evaluates to false, Colorbox will use the title from the
         // underlying <a> element, which we don't want. Using a space is the

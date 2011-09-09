@@ -1,23 +1,22 @@
 name = Calendar iCal
-description = Adds ical functionality to Calendar views.
+description = Adds ical feeds to views.
 dependencies[] = views
 dependencies[] = date_api
 dependencies[] = date_views
 dependencies[] = calendar
 package = Date/Time
 core = 7.x
-files[] = calendar-view-ical.tpl.php
 files[] = calendar_ical.install
 files[] = calendar_ical.module
-files[] = calendar_ical.views.inc
-files[] = calendar_ical_admin.inc
-files[] = calendar_plugin_display_ical.inc
 files[] = calendar_plugin_style_ical.inc
+files[] = calendar_plugin_row_ical_node.inc
+files[] = calendar-style-ical.tpl.php
+files[] = calendar-row-ical-node.tpl.php
 files[] = theme.inc
 
-; Information added by drupal.org packaging script on 2011-05-22
-version = "7.x-2.x-dev"
+; Information added by drupal.org packaging script on 2011-09-06
+version = "7.x-3.x-dev"
 core = "7.x"
 project = "calendar"
-datestamp = "1306065847"
+datestamp = "1315310698"
 

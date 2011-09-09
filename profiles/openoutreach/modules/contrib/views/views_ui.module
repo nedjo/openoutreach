@@ -80,7 +80,7 @@ function views_ui_menu() {
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => -10,
-    'theme callback' => 'views_ajax_theme_callback',
+    'theme callback' => 'ajax_base_page_theme',
   ) + $base;
   $items['admin/structure/views/view/%views_ui_cache/edit/%/ajax'] = array(
     'page callback' => 'views_ui_ajax_get_form',
@@ -145,17 +145,14 @@ function views_ui_menu() {
     'type' => MENU_CALLBACK,
   ) + $base;
 
+  // A page in the Reports section to show usage of fields in all views
+  $items['admin/reports/views-fields'] = array(
+    'title' => 'Fields used in views',
+    'description' => 'Overview of fields used in all views.',
+    'page callback' => 'views_ui_field_list',
+  ) + $base;
+
   return $items;
-}
-
-/**
- * Implements hook_help().
- */
-function views_ui_help($path, $arg = '') {
-  switch ($path) {
-
-  }
- // return '<pre>'.print_r(views_ui_get_wizards(),1);
 }
 
 /**
@@ -188,9 +185,6 @@ function views_ui_theme() {
     'views_ui_rearrange_filter_form' => array(
       'render element' => 'form',
       'file' => 'includes/admin.inc',
-    ),
-    'views_ui_item_delete_form' => array(
-      'render element' => 'form',
     ),
     'views_ui_expose_filter_form' => array(
       'render element' => 'form',
@@ -348,7 +342,7 @@ function views_ui_preprocess_views_view(&$vars) {
           '#theme' => 'views_ui_view_preview_section',
           '#view' => $view,
           '#section' => $section,
-          '#content' => $vars[$section],
+          '#content' => is_array($vars[$section]) ? drupal_render($vars[$section]) : $vars[$section],
           '#theme_wrappers' => array('views_container'),
           '#attributes' => array('class' => 'contextual-links-region'),
         );

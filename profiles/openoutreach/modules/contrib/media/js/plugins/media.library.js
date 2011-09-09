@@ -70,7 +70,7 @@ Drupal.media.browser.library.prototype.loadMedia = function () {
   };
 
   var errorCallback = function () {
-    alert('Error getting media.');
+    alert(Drupal.t('Error getting media.'));
   };
 
   $.ajax({

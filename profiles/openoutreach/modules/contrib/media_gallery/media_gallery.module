@@ -19,6 +19,19 @@ require_once(dirname(__FILE__) . '/fields_rsi_prevention.inc');
 define('MEDIA_GALLERY_PAGER_ELEMENT', 1);
 
 /**
+ * Helper function to return the view modes used by this module for displaying files in gallery context.
+ */
+function media_gallery_file_view_modes() {
+  return array(
+    'media_gallery_thumbnail' => t('Gallery thumbnail'),
+    'media_gallery_lightbox' => t('Gallery lightbox'),
+    'media_gallery_detail' => t('Gallery detail'),
+    'media_gallery_block_thumbnail' => t('Gallery block thumbnail'),
+    'media_gallery_collection_thumbnail' => t('Gallery collection thumbnail'),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function media_gallery_menu() {
@@ -45,20 +58,20 @@ function media_gallery_menu() {
     'page arguments' => array('gallery', 3),
     'file' => 'media_gallery.pages.inc',
   );
-  $items['media-gallery/detail/%node/%media'] = array(
+  $items['media-gallery/detail/%node/%file'] = array(
     'page callback' => 'media_gallery_detail_page',
     'page arguments' => array(2, 3),
     'access callback' => 'node_access',
     'access arguments' => array('view', 2),
     'file' => 'media_gallery.pages.inc',
   );
-  $items['media-gallery/detail/%node/%media/view'] = array(
+  $items['media-gallery/detail/%node/%file/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  // An in-gallery-context version of media/%media/edit.
-  $items['media-gallery/detail/%node/%media/edit'] = array(
+  // An in-gallery-context version of media/%file/edit.
+  $items['media-gallery/detail/%node/%file/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'media_gallery_media_page_edit',
     'page arguments'  => array(2, 3),
@@ -71,7 +84,7 @@ function media_gallery_menu() {
      // Use the same setting as node module
     'theme callback' => '_node_custom_theme',
   );
-  $items['media-gallery/detail/%node/%media/remove'] = array(
+  $items['media-gallery/detail/%node/%file/remove'] = array(
     'title' => 'Remove',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('media_gallery_remove_item_form', 2, 3),
@@ -83,7 +96,7 @@ function media_gallery_menu() {
      // Use the same setting as node module.
     'theme callback' => '_node_custom_theme',
   );
-  $items['media-gallery/lightbox/%node/%media'] = array(
+  $items['media-gallery/lightbox/%node/%file'] = array(
     'page callback' => 'media_gallery_lightbox_page',
     'page arguments' => array(2, 3),
     'access callback' => 'node_access',
@@ -111,7 +124,7 @@ function media_gallery_menu() {
   );
 
   // @todo Move to Media module once it is ready.
-  $items['media/%media/download'] = array(
+  $items['media/%file/download'] = array(
     'title' => 'Download',
     'page callback' => 'media_download',
     'page arguments'  => array(1),
@@ -139,7 +152,7 @@ function media_gallery_menu_alter(&$items) {
   // you won't be allowed to delete it anyway. Therefore, do not show
   // contextual links there.
   // @todo Perhaps this should be changed in the media module itself?
-  $items['media/%media/delete']['context'] = MENU_CONTEXT_PAGE;
+  $items['media/%file/delete']['context'] = MENU_CONTEXT_PAGE;
 }
 
 /**
@@ -233,9 +246,10 @@ function media_gallery_view($node, $view_mode) {
 
     // These JS settings are used by the "add media" link but are also shared
     // by the drag-and-drop code below.
+    $token = drupal_get_token('media_gallery');
     $gallery_js_settings = array(
-      'mediaGalleryNid' => $node->nid,
-      'mediaGalleryToken' => drupal_get_token('media_gallery'),
+      'mediaGalleryAddImagesUrl' => url('media-gallery/add-images/' . $node->nid . '/' . $token),
+      'mediaGallerySortGalleryUrl' => url('media-gallery/sort/gallery/' . $node->nid . '/' . $token),
     );
 
     // When viewing the full node, add front-end resources for drag-and-drop
@@ -243,6 +257,7 @@ function media_gallery_view($node, $view_mode) {
     if ($view_mode == 'full') {
       drupal_add_css(drupal_get_path('module', 'media_gallery') . '/media_gallery.dragdrop.css');
       drupal_add_library('system', 'ui.sortable');
+      drupal_add_library('system', 'jquery.bbq');
       drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.dragdrop.js');
       drupal_add_js($gallery_js_settings, array('type' => 'setting'));
     }
@@ -357,7 +372,7 @@ function media_gallery_view($node, $view_mode) {
  */
 function media_gallery_add_images_link_pre_render($elements) {
   drupal_add_library('media', 'media_browser');
-  module_load_include('inc', 'media', 'media.browser');
+  module_load_include('inc', 'media', 'includes/media.browser');
   // The correct function to call here switched between Media 7.x-1.0-beta3 and
   // the latest Media 7.x-1.x code, and calling the wrong function in either
   // case leads to a PHP fatal error. So for now, we have to support both.
@@ -773,16 +788,16 @@ function _media_gallery_get_media_fid($file) {
  *
  * @param $node
  *   The gallery node object.
- * @param $media
- *   The media item object to remove from the gallery.
+ * @param $file
+ *   The file to remove from the gallery.
  *
  * @return
  *   The updated gallery node object.
  */
-function media_gallery_remove_item_from_gallery($node, $media) {
+function media_gallery_remove_item_from_gallery($node, $file) {
   $items = &$node->media_gallery_media[LANGUAGE_NONE];
   foreach ($items as $key => $item) {
-    if ($media->fid == _media_gallery_get_media_fid($item)) {
+    if ($file->fid == _media_gallery_get_media_fid($item)) {
       unset($items[$key]);
     }
   }
@@ -793,19 +808,16 @@ function media_gallery_remove_item_from_gallery($node, $media) {
 /**
  * Implements hook_entity_info_alter().
  */
-function media_gallery_entity_info_alter(&$info) {
-  // For each media field formatter we add, we also need to add the
-  // corresponding media entity view mode.
-  foreach (media_gallery_field_formatter_info() as $formatter_name => $formatter_info) {
-    if (in_array('media', $formatter_info['field types'])) {
-      $info['media']['view modes'][$formatter_name] = array('label' => $formatter_info['label'], 'custom settings' => FALSE);
-    }
+function media_gallery_entity_info_alter(&$entity_info) {
+  // Add view modes for displaying files in gallery contexts.
+  foreach (media_gallery_file_view_modes() as $view_mode => $label) {
+    $entity_info['file']['view modes'][$view_mode] = array('label' => $label, 'custom settings' => FALSE);
   }
-  // Add a view mode for displaying a node in a media gallery block.
-  $info['node']['view modes']['media_gallery_block'] = array(
-    'label' => t('Media gallery block'),
-    'custom settings' => FALSE,
-  );
+
+  // Add a view mode for media_gallery_block_view() to use for displaying a
+  // media gallery node in a block. Drupal does not support restricting view
+  // modes to specific bundles.
+  $entity_info['node']['view modes']['media_gallery_block'] = array('label' => t('Media gallery block'), 'custom settings' => FALSE);
 }
 
 /**
@@ -826,9 +838,9 @@ function media_gallery_form_alter(&$form, &$form_state, $form_id) {
       // Prepopulate the media_edit form with our best guess at the image title.
       if (!empty($form['media_title']) && empty($form['media_title'][LANGUAGE_NONE][0]['value']['#default_value'])) {
         $fid = $form['fid']['#value'];
-        $entity = media_load($fid);
-        if ($entity->type === 'image') {
-          $form['media_title'][LANGUAGE_NONE][0]['value']['#default_value'] = _media_gallery_get_media_title($entity);
+        $file = file_load($fid);
+        if ($file->type === 'image') {
+          $form['media_title'][LANGUAGE_NONE][0]['value']['#default_value'] = _media_gallery_get_media_title($file);
         }
       }
       // Prepopulate the license field with the correct default.
@@ -880,7 +892,11 @@ function media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state) 
   // Move the items to the fieldset.
   foreach($fieldset as $id => $subgroup) {
     $form['settings_wrapper'][$subgroup][$id] = $form[$id];
-    unset($form[$id]);
+    // locale_field_node_form_submit() looks for field language information in
+    // a hard-coded part of $form.
+    // @todo Other modules may as well, so would be best to move form elements
+    //   within #pre_render rather than in hook_form_alter().
+    $form[$id] = array('#language' => $form[$id]['#language']);
   }
 
   // Add a vertical tab menu for blocks
@@ -903,7 +919,11 @@ function media_gallery_form_media_gallery_node_form_alter(&$form, &$form_state) 
   // Move the items to the fieldset.
   foreach($fieldset as $id => $subgroup) {
     $form[$subgroup][$id] = $form[$id];
-    unset($form[$id]);
+    // locale_field_node_form_submit() looks for field language information in
+    // a hard-coded part of $form.
+    // @todo Other modules may as well, so would be best to move form elements
+    //   within #pre_render rather than in hook_form_alter().
+    $form[$id] = array('#language' => $form[$id]['#language']);
   }
 
   // Add a class to the fieldset to target it in the js
@@ -1001,8 +1021,8 @@ function media_gallery_multiedit_remove_item($form, &$form_state) {
     $gallery = $form['#gallery'];
     if (!empty($form_state['values']['remove'])) {
       // Remove the item from the gallery.
-      $media = media_load($form_state['values']['fid']);
-      media_gallery_remove_item_from_gallery($gallery, $media);
+      $file = file_load($form_state['values']['fid']);
+      media_gallery_remove_item_from_gallery($gallery, $file);
     }
     // Redirect to the gallery page.
     $uri = entity_uri('node', $gallery);
@@ -1025,7 +1045,7 @@ function media_gallery_media_edit_submit($form, &$form_state) {
 function media_gallery_field_attach_form($entity_type, $entity, &$form, &$form_state, $langcode) {
   // Remove the ability for a user to select a license for externally hosted
   // media.
-  if ($entity_type == 'media') {
+  if ($entity_type == 'file') {
     $scheme = file_uri_scheme($entity->uri);
     // @todo Implement a more generic determination for when it makes sense for
     //   a user to select a license and when it doesn't.
@@ -1087,7 +1107,7 @@ function media_gallery_node_view_alter(&$build) {
       foreach (element_children($build['media_gallery_media']) as $delta) {
         // For each media item, add contextual links to the in-gallery-context
         // tasks that can be performed on a media item.
-        $fid = $build['media_gallery_media'][$delta]['#media_gallery_media_entity']->fid;
+        $fid = $build['media_gallery_media'][$delta]['#file']->fid;
         $build['media_gallery_media'][$delta]['#contextual_links']['media_gallery'] = array('media-gallery/detail', array($build['#node']->nid, $fid));
       }
     }
@@ -1224,11 +1244,8 @@ function media_gallery_select_galleries($tid, $pager = TRUE, $limit = FALSE) {
  * Used to modify the taxonomy term edit screen for gallery collection settings.
  */
 function media_gallery_form_taxonomy_form_term_alter(&$form, &$form_state) {
-  // This form is used for deleting taxonomy terms also (in which case
-  // $form['#term'] has a totally different structure) so make sure to check
-  // those conditions first before continuing. We only want to alter this form
-  // if a media gallery taxonomy term is being edited.
-  if (isset($form_state['confirm_delete']) || !is_array($form['#term']) || $form['#term']['vid'] != variable_get('media_gallery_collection_vid')) {
+  // Don't do anything unless this is a gallery collection edit form.
+  if (isset($form_state['confirm_delete']) || !isset($form['#vocabulary']) || $form['#vocabulary']->vid != variable_get('media_gallery_collection_vid')) {
     return;
   }
 
@@ -1377,16 +1394,16 @@ function media_gallery_multiedit_access($node) {
  *
  * @param $node
  *   The gallery node object.
- * @param $media
- *   The media item object to remove from the gallery.
+ * @param $file
+ *   The file to remove from the gallery.
  *
  * @return
  *   TRUE if access is granted; FALSE otherwise.
  */
-function media_gallery_remove_item_access($node, $media) {
+function media_gallery_remove_item_access($node, $file) {
   // Only grant access if the user can edit the gallery and the provided media
   // item is attached to the gallery.
-  return media_gallery_edit_access($node) && in_array($media->fid, media_gallery_get_file_ids($node));
+  return media_gallery_edit_access($node) && in_array($file->fid, media_gallery_get_file_ids($node));
 }
 
 /**
@@ -1447,7 +1464,10 @@ function media_gallery_styles_default_presets_alter(&$styles) {
       $styles['file']['containers'][$container]['styles'][$image_style]['default preset'] = $image_style;
       $styles['file']['containers'][$container]['presets'][$image_style] = array(
         array(
-          'name' => 'image_style',
+          // @todo Styles 2.0-alpha6 and later uses 'imageStyle', while earlier
+          //   versions use 'image_style'. Change to simply using 'imageStyle'
+          //   when it's okay to drop compatibility with the earlier versions.
+          'name' => (class_exists('FileStyles') && method_exists('FileStyles', 'imageStyle')) ? 'imageStyle' : 'image_style',
           'settings' => array(
             'image_style' => $image_style,
           ),
@@ -1490,15 +1510,11 @@ function media_gallery_styles_presets() {
 /**
  * Implements hook_media_wysiwyg_allowed_view_modes_alter().
  *
- * We don't want media's WYSIWYG form to show the view modes for galleries.
- * So we remove any of the view modes we create.
+ * Removes view modes intended for gallery context only from the formatting
+ * options of media added to wysiwyg.
  */
-function media_gallery_media_wysiwyg_allowed_view_modes_alter($bundle, &$view_modes) {
-  require_once dirname(__FILE__) . '/media_gallery.fields.inc';
-  // While these technically aren't view modes, we know they are all media
-  // view_modes as well as media formatters.
-  $media_gallery_view_modes = media_gallery_field_formatter_info();
-  $view_modes = array_diff_key($view_modes, $media_gallery_view_modes);
+function media_gallery_media_wysiwyg_allowed_view_modes_alter(&$view_modes) {
+  $view_modes = array_diff_key($view_modes, media_gallery_file_view_modes());
 }
 
 /**
@@ -1596,4 +1612,86 @@ function _media_gallery_allow_all_pathauto_aliases() {
   if (isset($GLOBALS['conf']['media_gallery_original_pathauto_taxonomy_pattern'])) {
     $GLOBALS['conf']['pathauto_taxonomy_pattern'] = $GLOBALS['conf']['media_gallery_original_pathauto_taxonomy_pattern'];
   }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ *
+ * Lets CTools know which plugin APIs are implemented by this module.
+ */
+function media_gallery_ctools_plugin_api($owner, $api) {
+  static $api_versions = array(
+    'file_entity' => array(
+      'file_default_displays' => 1,
+    ),
+  );
+  if (isset($api_versions[$owner][$api])) {
+    return array('version' => $api_versions[$owner][$api]);
+  }
+}
+
+/**
+ * Implements hook_file_default_displays().
+ *
+ * Provides default display configurations for files displayed in gallery view
+ * modes.
+ *
+ * @see file_entity_schema()
+ */
+function media_gallery_file_default_displays() {
+  $default_displays = array();
+
+  $default_image_styles = array(
+    'media_gallery_thumbnail' => 'media_gallery_thumbnail',
+    'media_gallery_lightbox' => 'media_gallery_large',
+    'media_gallery_detail' => 'media_gallery_large',
+    'media_gallery_block_thumbnail' => 'media_gallery_thumbnail',
+    'media_gallery_collection_thumbnail' => 'media_gallery_thumbnail',
+  );
+
+  // People updating from older versions of Media module will have Styles module
+  // formatters enabled at weight 0. By default, we want the following taking
+  // precedence, but we do not want to disable the Styles module ones since
+  // those might be capable of rendering files not covered by these. Therefore,
+  // set these at a lower weight.
+  $default_weight = -1;
+
+  foreach ($default_image_styles as $view_mode => $image_style) {
+    // Images.
+    $display_name = 'image__' . $view_mode . '__file_image';
+    $default_displays[$display_name] = (object) array(
+      'api_version' => 1,
+      'name' => $display_name,
+      'status' => 1,
+      'settings' => array('image_style' => $image_style),
+      'weight' => $default_weight,
+    );
+
+    // YouTube.
+    if (module_exists('media_youtube')) {
+      if (in_array($view_mode, array('media_gallery_lightbox', 'media_gallery_detail'))) {
+        // Video. Omit settings to use media_youtube_video defaults.
+        $display_name = 'video__' . $view_mode . '__media_youtube_video';
+        $default_displays[$display_name] = (object) array(
+          'api_version' => 1,
+          'name' => $display_name,
+          'status' => 1,
+          'weight' => $default_weight,
+        );
+      }
+      else {
+        // Thumbnail.
+        $display_name = 'video__' . $view_mode . '__media_youtube_image';
+        $default_displays[$display_name] = (object) array(
+          'api_version' => 1,
+          'name' => $display_name,
+          'status' => 1,
+          'settings' => array('image_style' => $image_style),
+          'weight' => $default_weight,
+        );
+      }
+    }
+  }
+
+  return $default_displays;
 }

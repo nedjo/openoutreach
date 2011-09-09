@@ -3,7 +3,6 @@
  * Simple filter to handle matching of multiple options selectable via checkboxes
  *
  * Definition items:
- * - numeric: If set to true, this item will use numeric operators instead of string.
  * - options callback: The function to call in order to generate the value options. If omitted, the options 'Yes' and 'No' will be used.
  * - options arguments: An array of arguments to pass to the options callback.
  *
@@ -352,5 +351,45 @@ class views_handler_filter_in_operator extends views_handler_filter {
     }
 
     $this->query->add_where($this->options['group'], "$this->table_alias.$this->real_field", NULL, $operator);
+  }
+
+  function validate() {
+    $this->get_value_options();
+    $errors = array();
+
+    // If the operator is an operator which doesn't require a value, there is
+    // no need for additional validation.
+    if (in_array($this->operator, $this->operator_values(0))) {
+      return array();
+    }
+
+    if (!in_array($this->operator, $this->operator_values(1))) {
+      $errors[] = t('The operator is invalid on filter: @filter.', array('@filter' => $this->ui_name(TRUE)));
+    }
+    if (is_array($this->value)) {
+      if (!isset($this->value_options)) {
+        // Don't validate if there are none value options provided, for example for special handlers.
+        return $errors;
+      }
+      if ($this->options['exposed'] && !$this->options['expose']['required'] && empty($this->value)) {
+        // Don't validate if the field is exposed and no default value is provided.
+        return $errors;
+      }
+
+      // Remove every element which is not known.
+      foreach ($this->value as $value) {
+        if (!isset($this->value_options[$value])) {
+          unset($this->value[$value]);
+        }
+      }
+      // Choose different kind of ouput for 0, a single and multiple values.
+      if (count($this->value) == 0) {
+        $errors[] = t('No valid values found on filter: @filter.', array('@filter' => $this->ui_name(TRUE)));
+      }
+    }
+    elseif (!empty($this->value) && ($this->operator == 'in' || $this->operator == 'not in')) {
+      $errors[] = t('The value @value is not an array for @operator on filter: @filter', array('@value' => views_var_export($this->value), '@operator' => $this->operator, '@filter' => $this->ui_name(TRUE)));
+    }
+    return $errors;
   }
 }

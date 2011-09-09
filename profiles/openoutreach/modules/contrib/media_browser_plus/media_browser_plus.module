@@ -76,7 +76,7 @@ function media_browser_plus_submit($form, &$form_state) {
   if (!is_array($fids)) {
     $fids = array($fids);
   }
-  $media_entities = media_load_multiple($fids);
+  $files = file_load_multiple($fids);
   $needs_save = FALSE;
 
   // If tags have been entered, apply them to each new entity.
@@ -92,8 +92,8 @@ function media_browser_plus_submit($form, &$form_state) {
       unset($item);
     }
 
-    foreach ($media_entities as $media) {
-      $media->field_tags[LANGUAGE_NONE] = $form_state['values']['field_tags'];
+    foreach ($files as $file) {
+      $file->field_tags[LANGUAGE_NONE] = $form_state['values']['field_tags'];
     }
     $needs_save = TRUE;
   }
@@ -109,10 +109,10 @@ function media_browser_plus_submit($form, &$form_state) {
         // Limiting value population only if the field is of type 'text' or
         // 'text_long' isn't as extensible as would be ideal, but we need some
         // protection against populating a field with incompatible content.
-        if (isset($field) && in_array($field['type'], array('text', 'text_long')) && isset($field['bundles']['media'])) {
-          foreach ($media_entities as $media) {
-            if (in_array($media->type, $field['bundles']['media']) && !isset($media->{$field_name}[LANGUAGE_NONE][0]['value'])) {
-              $media->{$field_name}[LANGUAGE_NONE][0]['value'] = $value;
+        if (isset($field) && in_array($field['type'], array('text', 'text_long')) && isset($field['bundles']['file'])) {
+          foreach ($files as $file) {
+            if (in_array($file->type, $field['bundles']['file']) && !isset($file->{$field_name}[LANGUAGE_NONE][0]['value'])) {
+              $file->{$field_name}[LANGUAGE_NONE][0]['value'] = $value;
               $needs_save = TRUE;
             }
           }
@@ -122,8 +122,8 @@ function media_browser_plus_submit($form, &$form_state) {
   }
 
   if ($needs_save) {
-    foreach ($media_entities as $media) {
-      media_save($media);
+    foreach ($files as $file) {
+      file_save($file);
     }
   }
 }
@@ -167,11 +167,11 @@ function _media_browser_plus_metadata($provider) {
 function media_browser_plus_preprocess_media_link(&$variables) {
   // Use the value of the title field, when there is one, as the link text for
   // all links that would otherwise default to the filename.
-  // @todo Solve generically using the 'label' key of hook_entity_indo(). See
+  // @todo Solve generically using the 'label' key of hook_entity_info(). See
   //   http://drupal.org/node/910396.
-  $media = media_load($variables['file']->fid);
-  if (empty($variables['file']->description) && isset($media->media_title[LANGUAGE_NONE][0]['value'])) {
-    $variables['file']->description = $media->media_title[LANGUAGE_NONE][0]['value'];
+  $file = file_load($variables['file']->fid);
+  if (empty($variables['file']->description) && isset($file->media_title[LANGUAGE_NONE][0]['value'])) {
+    $variables['file']->description = $file->media_title[LANGUAGE_NONE][0]['value'];
   }
 }
 
@@ -181,8 +181,8 @@ function media_browser_plus_preprocess_media_link(&$variables) {
 function media_browser_plus_preprocess_media_thumbnail(&$variables) {
   // See media_browser_plus_preprocess_media_link(). Same thing here, but for
   // the links that appear underneath thumbnail previews.
-  $media = $variables['element']['#object'];
-  if (isset($media->media_title[LANGUAGE_NONE][0]['value'])) {
-    $variables['element']['#name'] = $media->media_title[LANGUAGE_NONE][0]['value'];
+  $file = $variables['element']['#file'];
+  if (isset($file->media_title[LANGUAGE_NONE][0]['value'])) {
+    $variables['element']['#name'] = $file->media_title[LANGUAGE_NONE][0]['value'];
   }
 }

@@ -9,8 +9,8 @@
  * <code>
  * // Name and description of the subprofile. A "standard" subprofile is
  * // required and is used by default if no subprofile is selected.
- * subprofiles[standard][name] = Openoutreach standard
- * subprofiles[standard][description] = Install a full version of Open Outreach with all commonly needed features enabled.
+ * subprofiles[standard][name] = My Profile standard
+ * subprofiles[standard][description] = Install a full version of My Profile with all commonly needed features enabled.
  * // A feature called feature_x that should be enabled by default.
  * subprofiles[standard][features][feature_x] = TRUE
  * subprofiles[standard][features][feature_y] = TRUE

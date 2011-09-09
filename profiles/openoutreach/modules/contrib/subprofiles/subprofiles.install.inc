@@ -70,18 +70,20 @@ function subprofiles_install_profile_features(&$install_state) {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Alter the site configuration form to enable selecting of an Open Outreach
- * subprofile and specific subprofile features to be enabled.
+ * Alter the site configuration form to enable selecting of a subprofile and
+ * specific subprofile features to be enabled.
  */
 function subprofiles_form_install_configure_form_alter(&$form, $form_state) {
   // Pre-populate the site name with the server name.
   $form['site_information']['site_name']['#default_value'] = $_SERVER['SERVER_NAME'];
 
   if ($subprofiles = subprofiles_get_subprofiles()) {
+    $info = install_profile_info(drupal_get_profile());
+    
     $form['subprofile'] = array(
       '#type' => 'fieldset',
-      '#title' => st('Open Outreach flavours'),
-      '#description' => st('Select the flavour of Open Outreach you wish to install.'),
+      '#title' => st('!profile flavours', array('!profile' => $info['name'])),
+      '#description' => st('Select the flavour of !profile you wish to install.', array('!profile' => $info['name'])),
       '#weight' => -1,
     );
     // Extract features checkboxes from the features admin form.

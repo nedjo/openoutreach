@@ -26,7 +26,7 @@ function _media_retrieve_xml($url, $display_errors = FALSE, $refresh = FALSE) {
   if (!$refresh && isset($xmls[$url])) {
     return $xmls[$url];
   }
-  else if (!$refresh && $cache = cache_get('media:xml:'. $url, 'cache_media_xml')) {
+  elseif (!$refresh && $cache = cache_get('media:xml:' . $url, 'cache_media_xml')) {
     $xmls[$url] = $cache->data;
     return $xmls[$url];
   }
@@ -39,13 +39,12 @@ function _media_retrieve_xml($url, $display_errors = FALSE, $refresh = FALSE) {
 
   if (!$xml) {
     foreach (libxml_get_errors() as $error) {
-      $message = 'Error retrieving XML from %url: %error';
       $params = array('%url' => $url, '%error' => $error->message);
       // Handle errors here.
       if ($display_errors) {
-        drupal_set_message(t($message, $params), 'error');
+        drupal_set_message(t('Error retrieving XML from %url: %error', $params), 'error');
       }
-      watchdog('media', $message, $params, WATCHDOG_WARNING);
+      watchdog('media', 'Error retrieving XML from %url: %error', $params, WATCHDOG_WARNING);
     }
 
     // Clear our error cache.
@@ -57,7 +56,7 @@ function _media_retrieve_xml($url, $display_errors = FALSE, $refresh = FALSE) {
   }
   else {
     $xmls[$url] = _media_unserialize_xml($xml);
-    cache_set('media:xml:'. $url, $xmls[$url], 'cache_media_xml', media_variable_get('xml_cache_expire', 3600));
+    cache_set('media:xml:' . $url, $xmls[$url], 'cache_media_xml', media_variable_get('xml_cache_expire', 3600));
   }
 
   return $xmls[$url];

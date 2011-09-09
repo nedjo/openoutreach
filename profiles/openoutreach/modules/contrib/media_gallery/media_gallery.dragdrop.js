@@ -6,10 +6,10 @@ Drupal.behaviors.mediaGallerySort.attach = function (context, settings) {
   // Create a drag-and-drop editor for gallery collections.
   var $collection = $('.media-gallery-collection', context).once('media-gallery-sortable');
   $('.node-media-gallery.node-teaser .float-overflow', $gallery).once('media-gallery-draggable', Drupal.mediaGallerySort.addDraggableIcon);
-  if ($collection.length && settings.mediaGalleryTid) {
+  if ($collection.length && settings.mediaGallerySortCollectionUrl) {
     $collection.sortable();
     //Drupal.mediaGallerySort.setHeight($collection);
-    var callback = settings.basePath + 'media-gallery/sort/collection/' + settings.mediaGalleryTid + '/' + settings.mediaGalleryToken;
+    var callback = settings.mediaGallerySortCollectionUrl;
     $collection.bind('sortupdate', {'callback': callback}, Drupal.mediaGallerySort.handle_update);
     $collection.bind('sortstart', Drupal.mediaGallerySort.setHeight);
     $collection.bind('sortstop', Drupal.mediaGallerySort.setHeight);
@@ -17,10 +17,10 @@ Drupal.behaviors.mediaGallerySort.attach = function (context, settings) {
   // Create a drag-and-drop editor for individual gallery grid pages.
   var $gallery = $('body.page-node #block-system-main .node-media-gallery .media-gallery-media > .field-items').once('media-gallery-sortable');
   $('.media-gallery-item-wrapper', $gallery).once('media-gallery-draggable', Drupal.mediaGallerySort.addDraggableIcon);
-  if ($gallery.length && settings.mediaGalleryNid) {
+  if ($gallery.length && settings.mediaGallerySortGalleryUrl) {
     $gallery.sortable();
     //Drupal.mediaGallerySort.setHeight($gallery);
-    callback = settings.basePath + 'media-gallery/sort/gallery/' + settings.mediaGalleryNid + '/' + settings.mediaGalleryToken;
+    callback = settings.mediaGallerySortGalleryUrl;
     $gallery.bind('sortupdate', {'callback': callback, 'reorder': 'true'}, Drupal.mediaGallerySort.handle_update);
     $gallery.bind('sortstart', Drupal.mediaGallerySort.setHeight);
     $gallery.bind('sortstop', Drupal.mediaGallerySort.setHeight);
@@ -60,8 +60,11 @@ Drupal.mediaGallerySort.addDraggableIcon = function () {
 Drupal.mediaGallerySort.handle_update = function (event, ui) {
   var $ = jQuery;
   var sortable = $(this);
-  var post = {order: sortable.sortable('toArray')};
   var reorder = event.data.reorder;
+  var post = {
+    order: sortable.sortable('toArray'),
+    page: $.deparam.querystring().page
+  };
 
   /**
    * Change ID attributes of sorted items to reflect the new order.

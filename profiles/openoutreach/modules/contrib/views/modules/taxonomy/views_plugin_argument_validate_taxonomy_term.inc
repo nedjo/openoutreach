@@ -105,6 +105,11 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
         return empty($vocabularies) || !empty($vocabularies[$term->machine_name]);
 
       case 'tids':
+        // An empty argument is not a term so doesn't pass.
+        if (empty($argument)) {
+          return FALSE;
+        }
+
         $tids = new stdClass();
         $tids->value = $argument;
         $tids = views_break_phrase($argument, $tids);
@@ -182,6 +187,33 @@ class views_plugin_argument_validate_taxonomy_term extends views_plugin_argument
           return TRUE;
         }
         return FALSE;
+    }
+  }
+
+  function process_summary_arguments(&$args) {
+    $type = $this->options['type'];
+    $transform = $this->options['transform'];
+
+    if ($type == 'convert') {
+      $arg_keys = array_flip($args);
+
+      $query = db_select('taxonomy_term_data', 'td');
+      $query->condition('tid', $args);
+      $query->addField('td', 'tid', 'tid');
+      if (!empty($vocabularies)) {
+        $query->leftJoin('taxonomy_vocabulary', 'tv', 'td.vid = tv.vid');
+        $query->condition('tv.machine_name', $vocabularies);
+      }
+      if ($transform) {
+        $query->addExpression("REPLACE(td.name, ' ', '-')", 'name');
+      }
+      else {
+        $query->addField('td', 'name', 'name');
+      }
+
+      foreach ($query->execute()->fetchAllKeyed() as $tid => $term) {
+        $args[$arg_keys[$tid]] = $term;
+      }
     }
   }
 }

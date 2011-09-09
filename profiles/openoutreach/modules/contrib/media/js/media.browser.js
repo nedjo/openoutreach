@@ -56,16 +56,16 @@ Drupal.media.browser.validateButtons = function() {
   //
   // @todo An alternate, less hacky solution would be most welcome.
   if (!($('.form-submit', this).length > 0)) {
-    $('<a class="button fake-ok">Submit</a>').appendTo(this).bind('click', Drupal.media.browser.submit);
+    $('<a class="button fake-ok">' + Drupal.t('Submit') + '</a>').appendTo(this).bind('click', Drupal.media.browser.submit);
     if (!($('.fake-cancel', this).length > 0)) {
-      $('<a class="button fake-cancel">Cancel</a>').appendTo(this).bind('click', Drupal.media.browser.submit);
+      $('<a class="button fake-cancel">' + Drupal.t('Cancel') + '</a>').appendTo(this).bind('click', Drupal.media.browser.submit);
     }
   } else if (!($('.fake-cancel', this).length > 0)) {
     var parent = $('.form-actions', this);
     if (!parent.length) {
       parent = $('form > div', this);
     }
-    $('<a class="button fake-cancel">Cancel</a>').appendTo(parent).bind('click', Drupal.media.browser.submit);
+    $('<a class="button fake-cancel">' + Drupal.t('Cancel') + '</a>').appendTo(parent).bind('click', Drupal.media.browser.submit);
   }
 };
 
@@ -85,7 +85,7 @@ Drupal.media.browser.selectMedia = function (selectedMedia) {
 
 Drupal.media.browser.finalizeSelection = function () {
   if (!Drupal.media.browser.selectedMedia) {
-    throw new exception('Cannot continue, nothing selected');
+    throw new exception(Drupal.t('Cannot continue, nothing selected'));
   }
   else {
     Drupal.media.browser.selectionFinalized(Drupal.media.browser.selectedMedia);

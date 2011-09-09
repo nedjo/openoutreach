@@ -1,4 +1,3 @@
-// $Id: media_youtube.fromurl.js,v 1.1.2.6 2010/01/28 22:06:26 aaron Exp $
 
 /**
  *  @file

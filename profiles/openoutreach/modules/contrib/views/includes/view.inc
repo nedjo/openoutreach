@@ -60,6 +60,13 @@ class view extends views_db_object {
   // var $stack;
 
   /**
+   * Identifier of the current display.
+   *
+   * @var string
+   */
+  var $current_display;
+
+  /**
    * Where the $query object will reside:
    *
    * @var views_plugin_query
@@ -80,6 +87,20 @@ class view extends views_db_object {
    */
    var $style_plugin;
 
+   /**
+   * Allow to override the url of the current view.
+   *
+   * @var string
+   */
+  var $override_url = NULL;
+
+  /**
+   * Allow to override the path used for generated urls.
+   *
+   * @var string
+   */
+  var $override_path = NULL;
+
   /**
    * Constructor
    */
@@ -90,6 +111,20 @@ class view extends views_db_object {
       $this->$object = array();
     }
   }
+
+  /**
+   * Perform automatic updates when loading or importing a view.
+   *
+   * Over time, some things about Views or Drupal data has changed.
+   * this attempts to do some automatic updates that must happen
+   * to ensure older views will at least try to work.
+   */
+  function update() {
+    // When views are converted automatically the base_table should be renamed
+    // to have a working query.
+    $this->base_table = views_move_table($this->base_table);
+  }
+
 
   /**
    * Returns a list of the sub-object types used by this view. These types are
@@ -170,6 +205,15 @@ class view extends views_db_object {
     // If the pager is already initialized, pass it through to the pager.
     if (!empty($this->query->pager)) {
       $this->query->pager->set_offset($offset);
+    }
+  }
+
+  /**
+   * Determine if the pager actually uses a pager.
+   */
+  function use_pager() {
+    if (!empty($this->query->pager)) {
+      return $this->query->pager->use_pager();
     }
   }
 
@@ -384,8 +428,11 @@ class view extends views_db_object {
     // For each relationship we have, make sure we mark the base it provides as
     // available.
     foreach ($this->display_handler->get_option('relationships') as $id => $options) {
-      $data = views_fetch_data($options['table']);
-      $base_tables[$data[$options['field']]['relationship']['base']] = TRUE;
+      $options['table'] = views_move_table($options['table']);
+      $data = views_fetch_data($options['table'], FALSE);
+      if (isset($data[$options['field']])) {
+        $base_tables[$data[$options['field']]['relationship']['base']] = TRUE;
+      }
     }
 
     $base_tables = array_keys($base_tables);
@@ -394,7 +441,9 @@ class view extends views_db_object {
     $types = views_object_types();
     foreach ($types as $key => $info) {
       foreach ($this->display_handler->get_option($info['plural']) as $id => $options) {
-        $data = views_fetch_data($options['table']);
+        $options['table'] = views_move_table($options['table']);
+        $data = views_fetch_data($options['table'], FALSE);
+
         $valid_bases = array($options['table']);
         if (isset($data['table']['join'])) {
           $valid_bases = array_merge($valid_bases, array_keys($data['table']['join']));
@@ -610,6 +659,7 @@ class view extends views_db_object {
 
         // Add this argument's substitution
         $substitutions['%' . ($position + 1)] = $arg_title;
+        $substitutions['!' . ($position + 1)] = strip_tags(html_entity_decode($arg));
 
         // Since we're really generating the breadcrumb for the item above us,
         // check the default action of this argument.
@@ -671,7 +721,7 @@ class view extends views_db_object {
 
     // Create and initialize the query object.
     $views_data = views_fetch_data($this->base_table);
-    $this->base_field = $views_data['table']['base']['field'];
+    $this->base_field = !empty($views_data['table']['base']['field']) ? $views_data['table']['base']['field'] : '';
     if (!empty($views_data['table']['base']['database'])) {
       $this->base_database = $views_data['table']['base']['database'];
     }
@@ -793,6 +843,11 @@ class view extends views_db_object {
       // allow the plugin to build second sorts as well.
       $this->style_plugin->build_sort_post();
     }
+
+    // Allow area handlers to affect the query.
+    $this->_build('header');
+    $this->_build('footer');
+    $this->_build('empty');
 
     // Allow display handler to affect the query:
     $this->display_handler->query($this->display_handler->use_group_by());
@@ -960,7 +1015,7 @@ class view extends views_db_object {
       // Let the theme play too, because pre render is a very themey thing.
       $function = $GLOBALS['theme'] . '_views_pre_render';
       if (function_exists($function)) {
-        $function($this, $this->display_handler->output, $cache);
+        $function($this);
       }
 
       // Give field handlers the opportunity to perform additional queries
@@ -1235,10 +1290,7 @@ class view extends views_db_object {
       $human_name = $this->human_name;
     }
     else {
-      $human_name = $this->get_title();
-      if (empty($human_name)) {
-        $human_name = $this->name;
-      }
+      $human_name = $this->name;
     }
     return $human_name;
   }
@@ -1264,6 +1316,10 @@ class view extends views_db_object {
    * This URL will be adjusted for arguments.
    */
   function get_url($args = NULL, $path = NULL) {
+    if (!empty($this->override_url)) {
+      return $this->override_url;
+    }
+
     if (!isset($path)) {
       $path = $this->get_path();
     }
@@ -1800,7 +1856,7 @@ class view extends views_db_object {
       return TRUE;
     }
 
-    $this->localization_plugin = views_get_plugin('localization', variable_get('views_localization_plugin', 'core'));
+    $this->localization_plugin = views_get_plugin('localization', views_get_localization_plugin());
 
     if (empty($this->localization_plugin)) {
       return FALSE;
@@ -2220,7 +2276,7 @@ class views_db_object {
   }
 
   /**
-   * Get the configuration of an item (field/sort/filter/etc) on a given
+   * Set the configuration of an item (field/sort/filter/etc) on a given
    * display.
    *
    * Pass in NULL for the $item to remove an item.

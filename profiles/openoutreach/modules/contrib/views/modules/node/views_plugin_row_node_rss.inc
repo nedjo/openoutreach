@@ -20,6 +20,7 @@ class views_plugin_row_node_rss extends views_plugin_row {
     $options = parent::option_definition();
 
     $options['item_length'] = array('default' => 'default');
+    $options['links'] = FALSE;
 
     return $options;
   }
@@ -32,6 +33,11 @@ class views_plugin_row_node_rss extends views_plugin_row {
       '#title' => t('Display type'),
       '#options' => $this->options_form_summary_options(),
       '#default_value' => $this->options['item_length'],
+    );
+    $form['links'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Display links'),
+      '#default_value' => $this->options['links'],
     );
   }
 
@@ -54,10 +60,13 @@ class views_plugin_row_node_rss extends views_plugin_row {
 
 
   function pre_render($values) {
+    $nids = array();
     foreach ($values as $row) {
       $nids[] = $row->{$this->field_alias};
     }
-    $this->nodes = node_load_multiple($nids);
+    if (!empty($nids)) {
+      $this->nodes = node_load_multiple($nids);
+    }
   }
 
   function render($row) {
@@ -97,8 +106,12 @@ class views_plugin_row_node_rss extends views_plugin_row {
 
     if ($item_length != 'title' && !empty($node->content)) {
       // We render node contents and force links to be last.
-      $links = drupal_render($node->content['links']);
-      $item_text .= drupal_render($node->content) . $links;
+      hide($node->content['links']);
+      $item_text .= drupal_render($node->content);
+      if ($this->options['links']) {
+        show($node->content['links']);
+        $item_text .= drupal_render($node->content['links']);
+      }
     }
 
     $item = new stdClass;

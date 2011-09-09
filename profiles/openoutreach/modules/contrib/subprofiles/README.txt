@@ -22,8 +22,8 @@ To add subprofiles support to your installation profile:
      subprofile is required and will be used if no subprofile is
      specified.
      <code>
-     subprofiles[standard][name] = Openoutreach standard
-     subprofiles[standard][description] = Install a full version of Open Outreach with all commonly needed features enabled.
+     subprofiles[standard][name] = My Profile standard
+     subprofiles[standard][description] = Install a full version of My Profile with all commonly needed features enabled.
      // A feature called feature_x that should be enabled by default.
      subprofiles[standard][features][feature_x] = TRUE
      subprofiles[standard][features][feature_y] = TRUE

@@ -143,10 +143,10 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
   foreach ($info as $module => $plugin_info) {
     if (!isset($already_done[$owner][$api][$module])) {
       if (isset($plugin_info["$api file"])) {
-        $file = isset($plugin_info["$api file"]);
+        $file = $plugin_info["$api file"];
       }
       else if (isset($plugin_info['file'])) {
-        $file = isset($plugin_info['file']);
+        $file = $plugin_info['file'];
       }
       else {
         $file = "$module.$api.inc";
@@ -156,7 +156,7 @@ function ctools_plugin_api_include($owner, $api, $minimum_version, $current_vers
         require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
       }
       else if (file_exists(DRUPAL_ROOT . "/$file")) {
-        require_once DRUPAL_ROOT . "/$plugin_info[path]/$file";
+        require_once DRUPAL_ROOT . "/$file";
       }
       $already_done[$owner][$api][$module] = TRUE;
     }
@@ -405,7 +405,7 @@ function ctools_get_plugins_reset() {
  *   An array of information created for this plugin.
  */
 function ctools_plugin_load_includes($info, $filename = NULL) {
-  // Keep a static array so we don't hit drupal_system_listing more than necessary.
+  // Keep a static array so we don't hit file_scan_directory more than necessary.
   $all_files = &drupal_static(__FUNCTION__, array());
 
   // store static of plugin arrays for reference because they can't be reincluded.
@@ -436,7 +436,7 @@ function ctools_plugin_load_includes($info, $filename = NULL) {
       $extension = empty($info['info file']) ? $info['extension'] : 'info';
 
       foreach ($directories as $module => $path) {
-        $all_files[$info['module']][$info['type']][$module] = drupal_system_listing('/\.' . $extension . '$/', $path, 'name', 0);
+        $all_files[$info['module']][$info['type']][$module] = file_scan_directory($path, '/\.' . $extension . '$/', array('key' => 'name'));
       }
 
       cache_set("ctools_plugin_files:$info[module]:$info[type]", $all_files[$info['module']][$info['type']]);

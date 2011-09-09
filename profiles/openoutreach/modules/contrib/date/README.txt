@@ -196,68 +196,28 @@ that match those rules. The API is implemented in the Date module as a
 new date widget if the Date Repeat API is installed.
 
 ============================================================================
-Install file for dependent modules
+RDF Integration
 ============================================================================
 
-The following code is an example of what should go in the .install file for
-any module that uses the new Date API. This is needed to be sure the system 
-is not using an earlier version of the API that didn't include all these new 
-features. Testing for version '5.2' will pick up any version on or after the 
-change to the new API.
+To make RDF easier to use, the base date themes (date_display_single and
+date_display_range) have been expanded so they pass attributes and 
+RDF mappings for the field, if any, to the theme. If RDF is installed
+and no other mappings are provided, the theme adds RDF information
+to mark both the Start and End dates as 'xsd:dateTime' datatypes with the
+property of 'dc:date'. This occurs in the theme preprocess layer, in
+particular via the functions template_preprocess_date_display_single() and
+template_preprocess_date_display_range().
 
-/**
- * Implementation of hook_requirements().
- */
-function calendar_requirements($phase) {
-  $requirements = array();
-  $t = get_t();
+To mark these as events instead, you could install the schemaorg
+module, which will load the schema.org vocabulary. The mark the content type
+that contains events as an 'Event', using the UI exposed by that
+module and set the event start date field with the 'dateStart'
+property and tag other fields in the content type with the appropriate
+property types. The Date module theme will wrap the start and end
+date output with appropriate markup.
 
-  // This is the minimum required version for the Date API so that it will 
-     work with this module.
-  $required_version = 5.2;
+If the result is not quite what you need, you should be able to implement your
+own theme preprocess functions, e.g. MYTHEME_preprocess_date_display_single()
+or MYTHEME_preprocess_date_display_range() and alter the attributes to use the
+values you want.
 
-  // Make sure the matching version of date_api is installed.
-  // Use info instead of an error at install time since the problem may
-  // just be that they were installed in the wrong order.
-  switch ($phase) {
-    case 'runtime':
-      if (variable_get('date_api_version', 0) < $required_version) {
-        $requirements['calendar_api_version'] = array(
-          'title' => $t('Calendar requirements'),
-          'value' => $t('The Calendar module requires a more current version 
-             of the Date API. Please check for a newer version.'),
-          'severity' => REQUIREMENT_ERROR,
-          );
-      }
-      break;
-     case 'install':
-      if (variable_get('date_api_version', 0) < $required_version) {
-        $requirements['calendar_api_version'] = array(
-          'title' => $t('Calendar requirements'),
-          'value' => $t('The Calendar module requires the latest version 
-             of the Date API, be sure you are installing the latest versions 
-             of both modules.'),
-          'severity' => REQUIREMENT_INFO,
-          );
-      }
-      break;
-  }
-  return $requirements;
-}
-
-/**
- * Implementation of hook_install().
- */
-function calendar_install() {
-  // Make sure this module loads after date_api.
-  db_query("UPDATE {system} SET weight = 1 WHERE name = 'calendar'");
-}
-
-/**
- * Implementation of hook_update().
- */
-function calendar_update_5000() {
-  $ret = array();
-  $ret[] = update_sql("UPDATE {system} SET weight = 1 WHERE name = 'calendar'");
-  return $ret;
-}

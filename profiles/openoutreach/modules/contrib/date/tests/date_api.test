@@ -351,6 +351,31 @@ class DateAPITestCase extends DrupalWebTestCase {
     $expected = '10:30:00';
     $this->assertEqual($expected, $value, "Test new dateObject($input, $timezone, $format): should be $expected, found $value.");
 
+    // Test date ranges.
+    $valid = array(
+      '-20:+20',
+      '-1:+0',
+      '-10:-5',
+      '2000:2020',
+      '-10:2010',
+      '1980:-10',
+      '1920:+20',
+    );
+    $invalid = array(
+      'abc',
+      'abc:+20',
+      '1920:+20a',
+      '+-20:+-30',
+      '12:12',
+      '0:+20',
+      '-20:0',
+    );
+    foreach ($valid as $range) {
+      $this->assertTrue(date_range_valid($range), "$range recognized as a valid date range.");
+    }
+    foreach ($invalid as $range) {
+      $this->assertFalse(date_range_valid($range), "$range recognized as an invalid date range.");
+    }
   }
 
   public function tearDown() {

@@ -1,5 +1,4 @@
 <?php
-// $Id: media-youtube-video.tpl.php,v 1.1.2.2 2011/01/10 20:52:44 aaron Exp $
 
 /**
  * @file media_youtube/includes/themes/media-youtube-video.tpl.php

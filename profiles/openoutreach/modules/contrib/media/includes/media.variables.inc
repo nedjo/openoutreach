@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @file
+ * Contains the variables used by media and their defaults.
+ */
 
 /* ***************************************** */
 /* CONSTANTS                                 */
@@ -11,10 +15,6 @@
  */
 define('MEDIA_RESOURCE_URI_DEFAULT', 'public://');
 define('MEDIA_TYPES_DEFAULT', '*');
-
-/**
- * @file Contains the variables used by media and their defaults.
- */
 
 /**
  * Define constants.
@@ -148,10 +148,9 @@ function media_variable_default($name = NULL) {
       'type_icon_directory' => drupal_get_path('module', 'media') . '/images/types',
       'icon_base_directory' => drupal_get_path('module', 'media') . '/images/icons',
       'icon_set' => 'default',
-      
-       // This is set in media_enable().  It will show a persistant dsm on every page
-       // until the user runs the batch operation provided by media_admin_rebuild_types_form().
-      'show_file_type_rebuild_nag' => FALSE,
+
+       // Deprecated variables.
+      'show_file_type_rebuild_nag' => NULL,
     );
   }
 

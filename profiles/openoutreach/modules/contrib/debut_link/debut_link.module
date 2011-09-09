@@ -1,0 +1,35 @@
+<?php
+/**
+ * @file
+ * Code for the Debut Link feature.
+ */
+
+include_once('debut_link.features.inc');
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * Add a local action link to the link view page.
+ */
+function debut_link_menu_alter(&$items) {
+  if (isset($items['node/add/link'])) {
+    $items['link/add'] = $items['node/add/link'];
+    $items['link/add']['title'] = 'Add a new link';
+    $items['link/add']['type'] = MENU_LOCAL_ACTION;
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ *
+ * Declare link/add as an admin path to trigger e.g. admin theme and overlay.
+ */
+function debut_link_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    $paths = array(
+      'link/add' => TRUE,
+    );
+    return $paths;
+  }
+}
+

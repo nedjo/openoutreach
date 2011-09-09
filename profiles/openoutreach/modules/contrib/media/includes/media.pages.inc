@@ -6,27 +6,22 @@
  */
 
 /**
- * Menu callback; view a single piece of media.
+ * Menu callback; view a single file entity.
  */
-function media_file_view($media) {
+function media_view_page($file) {
   // @todo Implement granular editorial access: http://drupal.org/node/696970.
   //   In the meantime, protect information about private files from being
-  //   discovered by unprivileged users. Media IDs are autoincrement, so one can
+  //   discovered by unprivileged users. File IDs are autoincrement, so one can
   //   attempt discovery by trying to access different media/ID paths. See also
   //   media_browser_list(). This logic potentially belongs within
   //   media_access(), but that would require extending that function's
-  //   signature to accept a $media paramter, and this is temporary code anyway.
-  if (!user_access('administer media') && (file_uri_scheme($media->uri) === 'private')) {
+  //   signature to accept a $file paramter, and this is temporary code anyway.
+  if (!user_access('administer media') && (file_uri_scheme($file->uri) === 'private')) {
     return MENU_ACCESS_DENIED;
   }
 
-  drupal_set_title($media->filename);
-
-  // @TODO maybe something more elegant... ?
-  field_attach_prepare_view('media', array($media->fid => $media), 'media_original');
-  $build['media'][$media->fid] = field_attach_view('media', $media, 'media_original');
-
-  return $build;
+  drupal_set_title($file->filename);
+  return file_view($file, 'media_original');
 }
 
 /**
@@ -36,9 +31,9 @@ function media_preview_ajax() {
   $url = $_GET['url'];
   $uri = media_parse_to_uri($url);
   if ($uri) {
-    $media = file_uri_to_object($uri);
+    $file = file_uri_to_object($uri);
     drupal_json_output(array(
-      'preview' => theme('media_admin_thumbnail', array('file' => $media)),
+      'preview' => theme('media_admin_thumbnail', array('file' => $file)),
     ));
   }
   else {
@@ -52,34 +47,34 @@ function media_preview_ajax() {
 /**
  * Menu callback; presents the Media editing form.
  */
-function media_page_edit($media) {
-  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $media->type, '@title' => $media->filename)), PASS_THROUGH);
-  return drupal_get_form('media_edit', $media);
+function media_page_edit($file) {
+  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => $file->filename)), PASS_THROUGH);
+  return drupal_get_form('media_edit', $file);
 }
 
 /**
- * Menu callback; presents the Media editing form for multiple items.
+ * Menu callback; presents the Media editing form for multiple file entities.
  */
-function media_page_multiedit($media_items) {
+function media_page_multiedit($files) {
   if (!module_exists('multiform')) {
-    drupal_set_message('To edit multiple media items, you must install the multiform module.');
+    drupal_set_message(t('To edit multiple media items, you must install the multiform module.'));
   }
   $i = 0;
-  foreach ($media_items as $item) {
+  foreach ($files as $file) {
     // To maintain unique form_ids, increment this counter.
     // @see media_forms().
     $i++;
-    $forms[] = array("media_edit_$i", $item);
+    $forms[] = array("media_edit_$i", $file);
   }
-  
+
   $form = call_user_func_array('multiform_get_form', $forms);
   $form['#attributes']['class'][] = 'media-multiedit-form';
-  
+
   unset($form['buttons']['Delete']);
   // Would be nice to add this to show a message, but not working.
   // Can debug.
   //$form['buttons']['Save']['#submit'][] = 'media_page_multiedit_submit';
-  
+
   drupal_set_title(t('Editing multiple media files'));
   return $form;
 }
@@ -87,19 +82,17 @@ function media_page_multiedit($media_items) {
 /**
  * Menu callback; shows delete confirmation form.
  */
-function media_page_delete($media) {
-  drupal_set_title(t('<em>Delete @type</em> @title', array('@type' => $media->type, '@title' => $media->filename)), PASS_THROUGH);
+function media_page_delete($file) {
+  drupal_set_title(t('<em>Delete @type</em> @title', array('@type' => $file->type, '@title' => $file->filename)), PASS_THROUGH);
   // Don't bother showing the form if the item is in use, since we won't allow
-  // them to delete it anyway. Note that file_usage_list() requires a stdClass,
-  // so we can't pass the $media object in directly.
-  $file = file_load($media->fid);
+  // them to delete it anyway.
   $references = file_usage_list($file);
   if (!empty($references)) {
-    return t('The file %title is in use and cannot be deleted.', array('%title' => $media->filename));
+    return t('The file %title is in use and cannot be deleted.', array('%title' => $file->filename));
   }
   else {
-    $files = array($media->fid => $media);
-    return drupal_get_form('media_multiple_delete_confirm', $files, '<front>', 'media/' . $media->fid);
+    $files = array($file->fid => $file);
+    return drupal_get_form('media_multiple_delete_confirm', $files, '<front>', 'media/' . $file->fid);
   }
 }
 
@@ -186,7 +179,7 @@ function media_add_upload($form, &$form_state, $types = NULL) {
   if ($types) {
     $validators['media_file_validate_types'] = array($types);
   }
-  
+
   // A blank set of allowed file extensions means no need to validate.
   if (!$validators['file_validate_extensions'][0]) {
     unset($validators['file_validate_extensions']);
@@ -201,7 +194,7 @@ function media_add_upload($form, &$form_state, $types = NULL) {
   }
 
   $form['#validators'] = $validators;
-  
+
   $form['upload'] = array(
     '#type' => 'file',
     '#title' => t('Upload a new file'),
@@ -223,7 +216,7 @@ function media_add_upload($form, &$form_state, $types = NULL) {
 function media_add_upload_validate($form, &$form_state) {
   // Save the file as a temporary file.
   $file = file_save_upload('upload', $form['#validators']);
-  
+
   if ($file === NULL) {
     form_set_error('upload', t("No file appears to have been selected."));
   }
@@ -245,7 +238,7 @@ function media_add_upload_submit($form, &$form_state) {
 
   $destination = file_stream_wrapper_uri_normalize($scheme . $file->filename);
 
-  $defaults = array (
+  $defaults = array(
     'display' => TRUE,
   );
 
@@ -269,7 +262,7 @@ function media_add_upload_multiple($form, &$form_state, $types) {
   // The validators will be set from plupload anyway.  This isn't pretty, but don't
   // it to show up twice.
   unset($form['upload']['#description']);
-  
+
   $form['upload']['#type'] = 'plupload';
   $form['submit']['#value'] = t('Start upload');
   return $form;
@@ -286,13 +279,13 @@ function media_add_upload_multiple_submit($form, &$form_state) {
       // Rename it to its original name, and put it in its final home.
       // Note - not using file_move here because if we call file_get_mime
       // (in file_uri_to_object) while it has a .tmp extension, it horks.
-      
+
       $destination = file_unmanaged_move($source, $destination, FILE_EXISTS_RENAME);
-      
+
       $file = file_uri_to_object($destination);
       file_save($file);
       _media_save_file_permenently($file);
-      
+
       $saved_files[] = $file;
     }
     else {
@@ -311,9 +304,9 @@ function media_add_upload_multiple_submit($form, &$form_state) {
 /**
  * Form builder: Builds the edit file form.
  */
-function media_edit($form, $form_state, $media) {
-  field_attach_form('media', $media, $form, $form_state);
-  unset($form['file']);
+function media_edit($form, $form_state, $file) {
+  $form_state['file'] = $file;
+  field_attach_form('file', $file, $form, $form_state);
 
   $form['#attached'] = array(
     'css' => array(drupal_get_path('module', 'media') . '/css/media.css'),
@@ -322,8 +315,8 @@ function media_edit($form, $form_state, $media) {
   // Not sure about this class name, seems to indicate the style.
   $form['#attributes']['class'][] = 'media-image-left';
   $form['#attributes']['class'][] = 'media-edit-form';
-  
-  $form['preview'] = field_view_field('media', $media, 'file', 'media_preview');
+
+  $form['preview'] = file_view_file($file, 'media_preview');
   $form['preview']['#weight'] = -10;
   $form['preview']['#suffix'] = '<div class="no-overflow">';
 
@@ -336,7 +329,7 @@ function media_edit($form, $form_state, $media) {
     '#weight' => 15,
     '#submit' => array('media_edit_delete_submit'),
   );
-  
+
   $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -344,29 +337,34 @@ function media_edit($form, $form_state, $media) {
     '#submit' => array('media_edit_submit'),
   );
 
-  $form['fid'] = array(
-    '#type' => 'hidden',
-    '#value' => $media->fid,
-  );
+  // Add internal file properties needed by media_edit_validate().
+  foreach (array('fid', 'type') as $key) {
+    $form[$key] = array('#type' => 'value', '#value' => $file->$key);
+  }
 
   return $form;
 }
 
+/**
+ * Form validation handler for the media edit form.
+ */
 function media_edit_validate($form, &$form_state) {
-  $media = media_load($form_state['values']['fid']);
-  field_attach_form_validate('media', $media, $form, $form_state);
+  entity_form_field_validate('file', $form, $form_state);
 }
 
 /**
- * Process media_edit form submissions.
+ * Form submit handler for the media submit form.
  */
 function media_edit_submit($form, &$form_state) {
-  $media = media_load($form_state['values']['fid']);
-  field_attach_submit('media', $media, $form, $form_state);
-  media_save($media);
-  $form_state['redirect'] = 'media/' . $media->fid;
+  $file = $form_state['file'];
+  entity_form_submit_build_entity('file', $file, $form, $form_state);
+  file_save($file);
+  $form_state['redirect'] = 'media/' . $file->fid;
 }
 
+/**
+ * Form submit handler for the Delete button on the media edit form.
+ */
 function media_edit_delete_submit($form, &$form_state) {
   $fid = $form_state['values']['fid'];
   $destination = array();
@@ -429,4 +427,3 @@ function media_add_remote($form, &$form_state) {
 
   return $form;
 }
-

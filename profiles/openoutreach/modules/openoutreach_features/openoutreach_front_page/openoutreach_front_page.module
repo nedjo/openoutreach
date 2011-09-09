@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Open Outreach Front Page feature.
+ */
+
+include_once('openoutreach_front_page.features.inc');

@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_views_data().
+ * Implements hook_views_data().
  */
 function service_links_views_data() {
   // We're registering the 'custom_teasers' table.
@@ -22,7 +22,7 @@ function service_links_views_data() {
 }
 
 /**
- * Implementation of hook_views_handlers().
+ * Implements hook_views_handlers().
  */
 function service_links_views_handlers() {
   return array(

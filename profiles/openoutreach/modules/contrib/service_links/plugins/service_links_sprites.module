@@ -101,7 +101,7 @@ function sls_build_sprites($files = array()) {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  */
 function service_links_sprites_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'service_links_admin_settings') {
@@ -137,7 +137,7 @@ function service_links_sprites_validate($form, &$form_state) {
 }
 
 /**
- * Implementation of hook_sl_styles().
+ * Implements hook_sl_styles().
  */
 function service_links_sprites_sl_styles($nodelink = FALSE) {
   return array(
@@ -147,7 +147,7 @@ function service_links_sprites_sl_styles($nodelink = FALSE) {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function service_links_sprites_theme() {
   return array(

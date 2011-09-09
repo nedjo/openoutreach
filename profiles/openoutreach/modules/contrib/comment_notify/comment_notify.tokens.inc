@@ -1,5 +1,4 @@
 <?php
-// $Id: comment_notify.tokens.inc,v 1.1 2010/10/11 01:32:06 greggles Exp $
 
 /**
  * @file
@@ -10,10 +9,20 @@
  * Implements hook_token_info().
  */
 function comment_notify_token_info() {
+  // Comment tokens.
   $info['tokens']['comment']['unsubscribe-url'] = array(
     'name' => t('Unsubscribe URL'),
     'description' => t('The URL to disable notifications for the comment.'),
+    'type' => 'url',
   );
+
+  // Comment subscriber token type (extends the comment token type).
+  $info['types']['comment-subscribed'] = array(
+    'name' => t('Subscribed comment'),
+    'description' => t('Tokens related to a comment that is subscribed to new comments.'),
+    'type' => 'comment',
+  );
+
   return $info;
 }
 
@@ -39,12 +48,23 @@ function comment_notify_tokens($type, $tokens, array $data = array(), array $opt
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'unsubscribe-url':
-          module_load_include('inc', 'comment_notify', 'comment_notify');
-          if ($hash = comment_notify_get_notify_hash($cid)) {
-            $replacements[$original] = url('comment_notify/disable/' . $hash, $url_options);
+          if ($unsubscribe_url = comment_notify_get_unsubscribe_url($comment)) {
+            $replacements[$original] = url($unsubscribe_url, $url_options);
           }
           break;
       }
     }
+
+    // [comment:unsubscribe-url:*] chained token replacements.
+    if (($unsubscribe_url_tokens = token_find_with_prefix($tokens, 'unsubscribe-url')) && $unsubscribe_url = comment_notify_get_unsubscribe_url($comment)) {
+      $replacements += token_generate('url', $unsubscribe_url_tokens, array('path' => $unsubscribe_url), $options);
+    }
   }
+
+  // Comment subscriber tokens (pass through to comment token replacement).
+  if ($type == 'comment-subscribed' && !empty($data['comment-subscribed'])) {
+    $replacements += token_generate('comment', $tokens, array('comment' => $data['comment-subscribed']), $options);
+  }
+
+  return $replacements;
 }

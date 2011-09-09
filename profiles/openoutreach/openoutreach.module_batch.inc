@@ -18,19 +18,15 @@
  *   An array of names of modules whose recommended modules should be enabled.
  */
 function openoutreach_module_batch($modules) {
-  // Because the dependencies of installation profiles are not enforced, we
-  // can't assume that subprofiles is available.
-  if (module_exists('subprofiles')) {
-    module_load_include('inc', 'subprofiles', 'subprofiles.module_batch');
+  module_load_include('inc', 'subprofiles', 'subprofiles.module_batch');
 
-    $recommended = array();
-    foreach ($modules as $module) {
-      $info = drupal_parse_info_file(drupal_get_path('module', $module) . "/$module.info");
-      if ($info && isset($info['recommends'])) {
-        $recommended = array_unique(array_merge($recommended, $info['recommends']));
-      }
+  $recommended = array();
+  foreach ($modules as $module) {
+    $info = drupal_parse_info_file(drupal_get_path('module', $module) . "/$module.info");
+    if ($info && isset($info['recommends'])) {
+      $recommended = array_unique(array_merge($recommended, $info['recommends']));
     }
-    subprofiles_set_module_batch($recommended);
   }
+  subprofiles_set_module_batch($recommended);
 }
 

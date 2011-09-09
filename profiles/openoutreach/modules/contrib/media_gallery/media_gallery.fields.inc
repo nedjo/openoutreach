@@ -11,27 +11,51 @@
  */
 function media_gallery_field_formatter_info() {
   return array(
-    'media_gallery_thumbnail' => array(
-      'label' => t('Gallery thumbnail'),
+    'media_gallery' => array(
+      'label' => t('Gallery media'),
       'field types' => array('media'),
-    ),
-    'media_gallery_lightbox' => array(
-      'label' => t('Gallery lightbox'),
-      'field types' => array('media'),
-    ),
-    'media_gallery_detail' => array(
-      'label' => t('Gallery detail'),
-      'field types' => array('media'),
-    ),
-    'media_gallery_block_thumbnail' => array(
-      'label' => t('Block thumbnail'),
-      'field types' => array('media'),
-    ),
-    'media_gallery_collection_thumbnail' => array(
-      'label' => t('Collection thumbnail'),
-      'field types' => array('media'),
+      'settings' => array('file_view_mode' => 'media_gallery_thumbnail'),
     ),
   );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function media_gallery_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $element = array();
+
+  if ($display['type'] == 'media_gallery') {
+    $element['file_view_mode'] = array(
+      '#title' => t('File view mode'),
+      '#type' => 'select',
+      '#default_value' => $settings['file_view_mode'],
+      '#options' => media_gallery_file_view_modes(),
+    );
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function media_gallery_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = '';
+
+  if ($display['type'] == 'media_gallery') {
+    $entity_info = entity_get_info('file');
+    $file_view_mode_label = isset($entity_info['view modes'][$settings['file_view_mode']]) ? $entity_info['view modes'][$settings['file_view_mode']]['label'] : t('Default');
+    $summary = t('File view mode: @view_mode', array('@view_mode' => $file_view_mode_label));
+  }
+
+  return $summary;
 }
 
 /**
@@ -39,12 +63,16 @@ function media_gallery_field_formatter_info() {
  */
 function media_gallery_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
+  if (!$items) {
+    return $element;
+  }
+  $file_view_mode = $display['settings']['file_view_mode'];
 
   // The Formatter Reference module allows per-entity, rather than
   // per-bundle, formatter assignment, but it only works when the field being
   // formatted and the reference field are part of the same entity. For media
   // galleries, we want to enable formatter reference fields on the gallery node
-  // to be used as formatters for fields within the media entities, so we pass
+  // to be used as formatters for fields within the file entities, so we pass
   // along those field values to them. Here we just collect all formatter
   // reference field names for the entity.
   $formatter_reference_fields = array();
@@ -57,46 +85,38 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
       }
     }
   }
-  if (!$items) {
-    return $element;
-  }
 
-  // Each item is a fully loaded media entity, thanks to
-  // media_field_prepare_view(), but $items is keyed by delta rather than by
-  // entity id, and we need to invoke functions that require entities keyed by
-  // id. While we're in here, we also add some information to each media entity.
-  foreach ($items as $delta => $media_entity) {
-    $media_entities[$media_entity->fid] = $media_entity;
+  // Prepare the referenced file entities for viewing.
+  $files = array();
+  foreach ($items as $delta => $item) {
+    $file = $item['file'];
 
-    // Pass along formatter reference field values from the entity to the media
-    // entity.
+    // Pass along formatter reference field values from the gallery to the file.
     foreach ($formatter_reference_fields as $field_name) {
-      if (!isset($media_entity->{$field_name}) && isset($entity->{$field_name})) {
-        $media_entity->{$field_name} = $entity->{$field_name};
+      if (!isset($file->{$field_name}) && isset($entity->{$field_name})) {
+        $file->{$field_name} = $entity->{$field_name};
       }
     }
 
-    // Set a default value for the media entity's media_title field.
+    // Set a default value for the file's media_title field.
     // @todo Eventually, fix this to take into account the possibility of a
     //   multilingual media title field.
-    if (isset($media_entity->media_title) && !isset($media_entity->media_title[LANGUAGE_NONE][0]['value'])) {
-      $media_entity->media_title[LANGUAGE_NONE][0]['value'] = _media_gallery_get_media_title($media_entity);
+    if (isset($file->media_title) && !isset($file->media_title[LANGUAGE_NONE][0]['value'])) {
+      $file->media_title[LANGUAGE_NONE][0]['value'] = _media_gallery_get_media_title($file);
     }
-  }
 
-  // Get the view of each media entity. The Media module doesn't provide a
-  // media_view_multiple() function, so we invoke field_attach_prepare_view(),
-  // entity_prepare_view(), and field_attach_view() ourselves.
-  field_attach_prepare_view('media', $media_entities, $display['type']);
-  entity_prepare_view('media', $media_entities);
-  foreach ($items as $delta => $media_entity) {
-    $element[$delta] = field_attach_view('media', $media_entity, $display['type'], $langcode);
-    // Theme the resulting media entity render array, according to the chosen
-    // formatter. Add information needed by those theme functions.
+    $files[$file->fid] = $file;
+  }
+  field_attach_prepare_view('file', $files, $file_view_mode);
+  entity_prepare_view('file', $files);
+
+  // View each file. We don't use file_view_multiple(), because we need the
+  // render array indexed by $delta rather than by file id.
+  foreach ($items as $delta => $item) {
+    $element[$delta] = file_view($item['file'], $file_view_mode, $langcode);
     $element[$delta]['#media_gallery_entity_type'] = $entity_type;
     $element[$delta]['#media_gallery_entity'] = $entity;
-    $element[$delta]['#media_gallery_media_entity'] = $media_entity;
-    switch ($display['type']) {
+    switch ($file_view_mode) {
       case 'media_gallery_thumbnail':
         $element[$delta]['#theme'] = 'media_gallery_media_item_thumbnail';
         break;
@@ -130,13 +150,14 @@ function media_gallery_field_formatter_view($entity_type, $entity, $field, $inst
  * @see media_gallery_detail_page()
  * @see media_gallery_lightbox_page()
  */
-function media_gallery_item_view($gallery_node, $media_entity, $display) {
+function media_gallery_item_view($gallery_node, $file, $file_view_mode) {
+  $display = array('type' => 'media_gallery', 'settings' => array('file_view_mode' => $file_view_mode));
   $id = $gallery_node->nid;
   $field_name = 'media_gallery_media';
   $field = field_info_field($field_name);
   $instance = field_info_instance('node', $field_name, 'media_gallery');
   $langcode = key($gallery_node->{$field_name});
-  $items = array(0 => $media_entity);
+  $items = array(0 => array('fid' => $file->fid, 'file' => $file));
   $items_multi = array($id => &$items); // Taken by reference, so can't inline.
   $formatter = field_info_formatter_types($display['type']);
   // "prepare_view" function is optional.
@@ -160,9 +181,9 @@ function media_gallery_item_view($gallery_node, $media_entity, $display) {
 function media_gallery_form_field_ui_display_overview_form_alter(&$form) {
   // See formatter_reference_form_field_ui_display_overview_form_alter() for
   // more details about why this form needs to be altered. All we're doing here
-  // is allowing a gallery node's formatter reference field to format media
+  // is allowing a gallery node's formatter reference field to format file
   // entity fields.
-  if (module_exists('formatter_reference') && $form['#entity_type'] == 'media') {
+  if (module_exists('formatter_reference') && $form['#entity_type'] == 'file') {
     $gallery_field_instances = field_info_instances('node', 'media_gallery');
     $fields = field_info_fields();
     foreach ($form['#fields'] as $field_name) {
@@ -190,10 +211,10 @@ function media_gallery_form_field_ui_display_overview_form_alter(&$form) {
 /**
  * Gets the title of a media entity either from the media_title field or based on the filename.
  */
-function _media_gallery_get_media_title($media_entity) {
+function _media_gallery_get_media_title($file) {
   // If the entity has a value for the title field, use it.
-  if (isset($media_entity->media_title[LANGUAGE_NONE][0]['value'])) {
-    $title = $media_entity->media_title[LANGUAGE_NONE][0]['value'];
+  if (isset($file->media_title[LANGUAGE_NONE][0]['value'])) {
+    $title = $file->media_title[LANGUAGE_NONE][0]['value'];
   }
   // Otherwise, base it on the file's filename, but with some adjustments for
   // human-friendly display.
@@ -207,7 +228,7 @@ function _media_gallery_get_media_title($media_entity) {
     );
     // In addition to above replacements, also capitalize the first letter of
     // each word, and remove leading and trailing spaces.
-    $title = trim(ucwords(preg_replace(array_keys($replacements), array_values($replacements), $media_entity->filename)));
+    $title = trim(ucwords(preg_replace(array_keys($replacements), array_values($replacements), $file->filename)));
   }
   return $title;
 }

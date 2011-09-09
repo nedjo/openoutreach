@@ -210,7 +210,7 @@ Drupal.wysiwyg.plugins.media = {
     }
 
     sorter.sort(this.sortAttributes);
-    
+
     for (var prop in sorter) {
       mediaAttributes[sorter[prop].name] = sorter[prop].value;
     }
@@ -347,7 +347,7 @@ Drupal.wysiwyg.plugins.media = {
   },
 
   /*
-   * 
+   *
    */
   sortAttributes: function (a, b) {
     var nameA = a.name.toLowerCase();

@@ -1,5 +1,4 @@
 <?php
-// $Id: file_styles.styles.inc,v 1.1.2.8 2011/01/12 21:49:17 aaron Exp $
 
 /**
  * @file styles/contrib/file_styles/includes/styles/file_styles.styles.inc
@@ -22,13 +21,22 @@ function file_styles_styles_default_containers() {
     'file' => array(
       'admin' => array(
         'path' => 'admin/config/media/file-styles',
-        'access arguments' => array('administer file styles'),
       ),
       'filter callback' => 'file_styles_styles_filter',
       'help' => t('Each of the following containers defines a set of styles that will be applied when a file is of the specified type. For instance, if a file field allows images and videos, a specific style might be defined for \'Thumbnail\', that will display a cropped image when a JPEG is given, or a thumbnail linking to a shadowboxed video when an MPEG is stored.'),
       'containers' => $containers,
     ),
   );
+}
+
+/**
+ * Implements hook_styles_default_containers().
+ */
+function file_styles_styles_default_containers_alter(&$styles) {
+  if (module_exists('media')) {
+    $styles['media'] = $styles['file'];
+  }
+  unset($styles['media']['admin']);
 }
 
 /**
@@ -64,6 +72,15 @@ function file_styles_styles_default_styles() {
 }
 
 /**
+ * Implements hook_styles_default_styles().
+ */
+function file_styles_styles_default_styles_alter(&$styles) {
+  if (module_exists('media')) {
+    $styles['media'] = $styles['file'];
+  }
+}
+
+/**
  * Implementation of Styles module hook_styles_default_presets().
  */
 function file_styles_styles_default_presets() {
@@ -96,7 +113,7 @@ function file_styles_styles_default_presets() {
         ),
         'unlinked_thumbnail' => array(
           array(
-            'name' => 'image_style',
+            'name' => 'imageStyle',
             'settings' => array(
               'image_style' => 'thumbnail',
             ),
@@ -108,11 +125,11 @@ function file_styles_styles_default_presets() {
         ),
         'linked_thumbnail' => array(
           array(
-            'name' => 'link_to_media',
+            'name' => 'linkToMedia',
             'settings' => array(),
           ),
           array(
-            'name' => 'image_style',
+            'name' => 'imageStyle',
             'settings' => array(
               'image_style' => 'thumbnail',
             ),
@@ -124,11 +141,11 @@ function file_styles_styles_default_presets() {
         ),
         'linked_square_thumbnail' => array(
           array(
-            'name' => 'link_to_media',
+            'name' => 'linkToMedia',
             'settings' => array(),
           ),
           array(
-            'name' => 'image_style',
+            'name' => 'imageStyle',
             'settings' => array(
               'image_style' => 'square_thumbnail',
             ),
@@ -140,7 +157,7 @@ function file_styles_styles_default_presets() {
         ),
         'large' => array(
           array(
-            'name' => 'image_style',
+            'name' => 'imageStyle',
             'settings' => array(
               'image_style' => 'large',
             ),
@@ -152,7 +169,7 @@ function file_styles_styles_default_presets() {
         ),
         'medium' => array(
           array(
-            'name' => 'image_style',
+            'name' => 'imageStyle',
             'settings' => array(
               'image_style' => 'medium',
             ),
@@ -165,9 +182,34 @@ function file_styles_styles_default_presets() {
       ),
     );
   }
+  foreach (image_styles() as $style_name => $style) {
+    if (!isset($containers['image']['presets'][$style_name])) {
+      $containers['image']['presets'][$style_name] = array(
+        array(
+          'name' => 'imageStyle',
+          'settings' => array(
+            'image_style' => $style_name,
+          ),
+        ),
+        array(
+          'name' => 'thumbnail',
+          'settings' => array(),
+        ),
+      );
+    }
+  }
   return array(
     'file' => array(
       'containers' => $containers,
     ),
   );
+}
+
+/**
+ * Implements hook_styles_default_presets().
+ */
+function file_styles_styles_default_presets_alter(&$styles) {
+  if (module_exists('media')) {
+    $styles['media'] = $styles['file'];
+  }
 }

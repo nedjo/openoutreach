@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_share_info().
+ * Implements hook_share_info().
  */
 function service_links_share_share_info() {
   return array(
@@ -20,7 +20,7 @@ function service_links_share_share_info() {
 }
 
 /**
- * Implementation of hook_share_tab().
+ * Implements hook_share_tab().
  */
 function service_links_share_share_tab($op, $args, $node = NULL) {
   switch ($op) {

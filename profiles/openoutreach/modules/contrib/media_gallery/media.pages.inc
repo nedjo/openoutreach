@@ -19,8 +19,8 @@
  *
  * @see file_download()
  */
-function media_download($media) {
-  $uri = $media->uri;
+function media_download($file) {
+  $uri = $file->uri;
   $scheme = file_uri_scheme($uri);
   if (file_stream_wrapper_valid_scheme($scheme) && file_exists($uri)) {
     // Let other modules provide headers and controls access to the file.
@@ -40,11 +40,11 @@ function media_download($media) {
     }
     // Default Content-Type and Content-Length headers, in case no other
     // hook_file_download() implementation set them.
-    $name = mime_header_encode($media->filename);
-    $type = mime_header_encode($media->filemime);
+    $name = mime_header_encode($file->filename);
+    $type = mime_header_encode($file->filemime);
     $headers += array(
       'Content-Type' => $type . '; name="' . $name . '"',
-      'Content-Length' => $media->filesize,
+      'Content-Length' => $file->filesize,
     );
     // Force the Content-Disposition header, regardless of what other
     // hook_file_download() implementations normally set.

@@ -1,4 +1,3 @@
-// $Id: styles_ui.js,v 1.1.2.1 2010/01/08 23:15:05 aaron Exp $
 
 /**
  *  @file

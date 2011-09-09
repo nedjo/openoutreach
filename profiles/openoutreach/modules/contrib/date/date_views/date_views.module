@@ -17,6 +17,13 @@ function date_views_theme() {
     'date_valarm' => $base + array('variables' => array('alarm' => NULL)),
     'date_views_filter_form' => $base + array('template' => 'date-views-filter-form', 'render element' => 'form'),
     'date_calendar_day' => $base + array('variables' => array('date' => NULL)),  
+
+    'date_views_pager' => $base + array(
+      'variables' => array('plugin' => NULL, 'input' => NULL),
+      // Register a pattern so that it can work like all views templates.
+      'pattern' => 'date_views_pager__',
+      'template' => 'date-views-pager',
+    ),
   );
 }
 
@@ -144,8 +151,10 @@ function date_real_url($view, $date_type = NULL, $date_arg = NULL, $force_view_u
     $args = $view->args;
   }
   // Is this an embedded or a block view?
+  // Return the pager query value.
   if (!$force_view_url && 
   (!empty($view->preview) || !empty($view->date_info->block_identifier))) {
+
     $url = $view->get_url($args);
     $key = date_block_identifier($view);
     if (!empty($key)) {
@@ -154,12 +163,80 @@ function date_real_url($view, $date_type = NULL, $date_arg = NULL, $force_view_u
         'absolute' => TRUE));
     }
   }  
+  
   // Normal views may need querystrings appended to them
   // if they use exposed filters.
   return url($view->get_url($args), array(
     'query' => date_views_querystring($view), 
     'absolute' => TRUE));
 }
+
+/**
+ * A version of date_real_url that formats links correctly for the new Date pager.
+ */
+function date_pager_url($view, $date_type = NULL, $date_arg = NULL, $force_view_url = FALSE, $absolute = TRUE) {
+  $args = $view->args;
+  $pos = $view->date_info->date_arg_pos;
+
+  // The View arguments array is indexed numerically but is not necessarily
+  // in numerical order. Sort the arguments to ensure the correct order.
+  ksort($args);
+
+  // If there are empty arguments before the date argument, 
+  // pad them with the wildcard so the date argument will be in 
+  // the right position.
+  if (count($args) < $pos) {
+    foreach ($view->argument as $name => $argument) {
+      if ($argument->position == $pos) {
+        break;
+      }
+      $args[] = $argument->options['exception']['value'];
+    }
+  }
+
+  if (!empty($date_type)) {
+    switch ($date_type) {
+      case 'year':
+        $args[$pos] = date_pad($view->date_info->year, 4);
+        break;
+      case 'week':
+        $args[$pos] = date_pad($view->date_info->year, 4) . '-W' . date_pad($view->date_info->week);
+        break;
+      case 'day':
+        $args[$pos] = date_pad($view->date_info->year, 4) . '-' . date_pad($view->date_info->month) . '-' . date_pad($view->date_info->day);
+        break;
+      default:
+        $args[$pos] = date_pad($view->date_info->year, 4) . '-' . date_pad($view->date_info->month);
+        break;
+    }
+  }
+  elseif (!empty($date_arg)) {
+    $args[$pos] = $date_arg;
+  }
+  else {
+    $args = $view->args;
+  }
+  // Is this an embedded or a block view?
+  // Return the pager query value.
+  if (!$force_view_url && 
+  (!empty($view->preview) || !empty($view->date_info->block_identifier))) {
+
+    $url = $args[$pos];
+    $key = date_block_identifier($view);
+    if (!empty($key)) {
+      return url($_GET['q'], array(
+        'query' => date_views_querystring($view, array($key => $url)), 
+        'absolute' => $absolute));
+    }
+  }  
+  
+  // Normal views may need querystrings appended to them
+  // if they use exposed filters.
+  return url($view->get_url($args), array(
+    'query' => date_views_querystring($view), 
+    'absolute' => $absolute));
+}
+
 function date_block_identifier($view) {
   if (!empty($view->block_identifier)) {
     return $view->block_identifier;
@@ -168,73 +245,115 @@ function date_block_identifier($view) {
 }
 
 /**
- * Identify all fields in this view that use the Field Date handler.
- */
-function date_handler_fields($view) {
-  $field_names = array();
-  if (empty($view->date_info->date_fields)) {
-    $view->date_info->date_fields = array();
-  }
-  foreach ($view->field as $field) {
-    if ($field->definition['handler'] == 'date_handler_field_multiple') {
-      $name = $field->field;
-      $group = $field->options['multiple'];
-      if (substr($name, -7) == '_value2') {
-        $field_name = substr($name, 0, strlen($name) - 7);
-      }
-      elseif (substr($name, -6) == '_value') {
-        $field_name = substr($name, 0, strlen($name) - 6);
-      }
-      else {
-        $field_name = '';
-        $group = array();
-        continue;
-      }
-      foreach ($view->date_info->date_fields as $date_field) {
-        if (strstr($date_field, ' . ' . $field_name)) {
-          $delta_field = 'entity_data_' . $field_name . '_delta';
-          $field_names[$field_name] = array('options' => $group, 'delta_field' => $delta_field, 'view_field' => clone($field));
-          // Get rid of the huge view object in the field handler.
-          unset($field_names[$field_name]['view_field']->view);
-        }
-      }
-    }
-  }
-  return $field_names;
-}
-
-/**
  * Implements hook_field_views_data_alter().
  *
  * Create a Views field for each date column we care about
  * to supplement the generic 'entity_id' and 'revision_id'
  * fields that are automatically created.
+ *
+ * Also use friendlier labels to distinguish the start date
+ * and end date in listings (for fields that use both).
  */
 function date_views_field_views_data_alter(&$result, $field, $module) {
   if ($module == 'date') {
+    $has_end_date = !empty($field['settings']['todate']);
+    if ($has_end_date) {
+      $labels = field_views_field_label($field['field_name']);
+      $label = array_shift($labels);
+    }
     foreach ($result as $table => $data) {
       $additional = array();
       $field_name = $field['field_name'];
       foreach ($data as $column => $value) {
-        if (array_key_exists('argument', $value)) {
-          $result[$table][$column]['argument']['handler'] = 'date_views_argument_handler_simple';
-          $result[$table][$column]['argument']['empty field name'] = t('Undated');
-        }
-        if (array_key_exists('filter', $value)) {  
-          $result[$table][$column]['filter']['handler'] = 'date_views_filter_handler_simple';
-          $result[$table][$column]['argument']['empty field name'] = t('Undated');
-        } 
+    
         // The old 'entity_id' and 'revision_id' values got rewritten in Views.
         // The old values are still there with a 'moved to' key, so ignore them.
         if (array_key_exists('field', $value) && !array_key_exists('moved to', $value['field'])) {
+          $result[$table][$column]['field']['is date'] = TRUE;
           // Not sure yet if we still need a custom field handler in D7 now that custom formatters are available.
           // Might still need it to handle grouping of multiple value dates.
           //$result[$table][$column]['field']['handler'] = 'date_handler_field_date';
           //$result[$table][$column]['field']['add fields to query'] = TRUE;
         } 
+        
+        // For filters, arguments, and sorts, determine if this column is for 
+        // the start date ('value') or the end date ('value2').
+        $this_column = NULL;
+        foreach (array_keys($field['columns']) as $candidate_column) {
+          if ($column == $field['field_name'] . '_' . $candidate_column) {
+            $this_column = $candidate_column;
+            break;
+          }
+        }
+
+        // Only alter the date fields, not timezone, rrule, offset, etc.
+        if ($this_column != 'value' && $this_column != 'value2') {
+          continue;
+        }
+
+        // We will replace the label with a friendlier name in the case of
+        // arguments, filters, and sorts (but only if this field uses an end
+        // date).
+        $replace_label = FALSE;
+        if (array_key_exists('argument', $value)) {
+          $result[$table][$column]['argument']['handler'] = 'date_views_argument_handler_simple';
+          $result[$table][$column]['argument']['empty field name'] = t('Undated');
+          $result[$table][$column]['argument']['is date'] = TRUE;
+          $replace_label = $has_end_date;
+        }
+        if (array_key_exists('filter', $value)) {
+          $result[$table][$column]['filter']['handler'] = 'date_views_filter_handler_simple';
+          $result[$table][$column]['filter']['empty field name'] = t('Undated');
+          $result[$table][$column]['filter']['is date'] = TRUE;
+          $replace_label = $has_end_date;
+        } 
+        if (array_key_exists('sort', $value)) {
+          $result[$table][$column]['sort']['is date'] = TRUE;
+          $replace_label = $has_end_date;
+        }
+        if ($replace_label) {
+          // Determine if this column is for the start date ('value') or the
+          // end date ('value2').
+          $this_column = NULL;
+          foreach (array_keys($field['columns']) as $candidate_column) {
+            if ($column == $field['field_name'] . '_' . $candidate_column) {
+              $this_column = $candidate_column;
+              break;
+            }
+          }
+          // Insert the phrase "start date" or "end date" after the label, so
+          // users can distinguish them in listings (compared to the default
+          // behavior of field_views_field_default_views_data(), which only
+          // uses the 'value2' column name to distinguish them).
+          switch ($this_column) {
+            case 'value':
+              // Insert a deliberate double space before 'start date' in the
+              // translatable string. This is a hack to get it to appear right
+              // before 'end date' in the listing (i.e., in a non-alphabetical,
+              // but more user friendly, order).
+              $result[$table][$column]['title'] = t('@label -  start date (!name)', array('@label' => $label, '!name' => $field['field_name']));
+              $result[$table][$column]['title short'] = t('@label -  start date', array('@label' => $label));
+              break;
+            case 'value2':
+              $result[$table][$column]['title'] = t('@label - end date (!name:!column)', array('@label' => $label, '!name' => $field['field_name'], '!column' => $this_column));
+              $result[$table][$column]['title short'] = t('@label - end date:!column', array('@label' => $label, '!column' => $this_column));
+              break;
+          }
+        }
       } 
     }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function date_views_form_views_ui_edit_form_alter(&$form, &$form_state) {
+  // This CSS is needed for the configuration form provided by the Date filter
+  // (date_views_filter_handler_simple), but we have to add it here so that
+  // it's already on the edit form the first time a Date filter is being added
+  // to the View. See http://drupal.org/node/1239228#comment-4885288.
+  $form['#attached']['css'][] = drupal_get_path('module', 'date_views') . '/css/date_views.css';
 }
 
 /**

@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut media. Includes field and instance definitions.
+ * Based on approaches from media gallery.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Add "Tags", "Title", and "Description" fields to files.
+ *
+ * @see media_gallery_install().
+ */
+function debut_media_install() {
+  // Make sure the standard 'field_tags' field exists.
+  _debut_media_ensure_vocabulary_tags();
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function debut_media_requirements() {
+  $requirements = array();
+  $t = get_t();
+
+  $required_fields = _debut_media_controlled_fields();
+  // In addition to the fields we control, we also need the standard field_tags
+  // that most sites will have gotten from their install profile.
+  $required_fields['field_tags'] = array('type' => 'taxonomy_term_reference');
+  
+  foreach ($required_fields as $field_name => $field_definition) {
+    $field = field_info_field($field_name);
+    // If the field doesn't exist, we will create it on install.
+    if (!$field) {
+      continue;
+    }
+    if ($field['type'] != $field_definition['type']) {
+      $requirements['existing_field_' . $field_name] = array(
+        'description' => $t("%field_name already exists and is not of type %type. Installation cannot continue. Please remove this field or change its type.", array('%field_name' => $field_name, '%type' => $field_definition['type'])),
+        'severity' => REQUIREMENT_ERROR,
+      );
+    }
+  }
+  return $requirements;
+}
+
+/**
+ * Make sure the field_tags field exists and is of the right type.
+ */
+function _debut_media_ensure_vocabulary_tags() {
+  // Make sure the 'tags' vocabulary exists.
+  $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
+  if (!$vocabulary) {
+    $description = st('Use tags to group articles on similar topics into categories.');
+    $help = st('Enter a comma-separated list of words to describe your content.');
+    $vocabulary = (object) array(
+      'name' => 'Tags',
+      'description' => $description,
+      'machine_name' => 'tags',
+      'help' => $help,
+    );
+    taxonomy_vocabulary_save($vocabulary);
+  }
+}
+
+/**
+ * Returns definitions for fields this module both creates and deletes.
+ *
+ * @see _media_gallery_controlled_fields().
+ */
+function _debut_media_controlled_fields() {
+  $fields = array(
+    // Fields to create on media items.
+    'media_description' => array(
+      'field_name' => 'media_description',
+      'locked' => TRUE,
+      'type' => 'text_long',
+      'translatable' => TRUE,
+    ),
+    'media_title' => array(
+      'field_name' => 'media_title',
+      'locked' => TRUE,
+      'type' => 'text',
+      'translatable' => TRUE,
+    ),
+  );
+
+  return $fields;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function debut_media_uninstall() {
+  // Delete fields and instances.
+  foreach (array_keys(_debut_media_controlled_fields()) as $field) {
+    field_delete_field($field);
+  }
+}

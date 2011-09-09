@@ -29,8 +29,12 @@ function ctools_entity_field_content_type_content_type($subtype) {
  * Return all field content types available.
  */
 function ctools_entity_field_content_type_content_types() {
+  $types = &drupal_static(__FUNCTION__, array());
+  if (!empty($types)) {
+    return $types;
+  }
+
   // This will hold all the individual field content types.
-  $types = array();
   $context_types = array();
   $entities = entity_get_info();
 
@@ -49,7 +53,10 @@ function ctools_entity_field_content_type_content_types() {
             'edit form' => array(
               'ctools_entity_field_content_type_formatter_options' => array(
                 'default' => TRUE,
-                'title' => t('Formatter Options'),
+                'title' => t('Formatter options for: @widget_label (@field_name)', array(
+                  '@widget_label' => t($field['label']),
+                  '@field_name' => $field_name,
+                )),
               ),
               'ctools_entity_field_content_type_formatter_styles' => t('Formatter Styles'),
             ),
@@ -107,7 +114,7 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     'type' => $conf['formatter'],
   );
 
-  // Get the field output, and the title.\
+  // Get the field output, and the title.
   if (!empty($conf['formatter_settings'])) {
     $field_settings['settings'] = $conf['formatter_settings'];
   }

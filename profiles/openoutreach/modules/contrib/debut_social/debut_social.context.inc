@@ -30,7 +30,7 @@ function debut_social_context_default_contexts() {
           'module' => 'follow',
           'delta' => 'site',
           'region' => 'sidebar_second',
-          'weight' => 0,
+          'weight' => '-21',
         ),
       ),
     ),

@@ -1,5 +1,4 @@
 <?php
-// $Id: styles.tpl.php,v 1.1.4.4 2010/09/16 16:54:45 aaron Exp $
 
   /**
    *  @file

@@ -121,7 +121,7 @@ class ctools_export_ui {
 
     switch ($op) {
       case 'import':
-        return user_access('use PHP for block visibility');
+        return user_access('use PHP for settings');
       case 'revert':
         return ($item->export_type & EXPORT_IN_DATABASE) && ($item->export_type & EXPORT_IN_CODE);
       case 'delete':
@@ -849,7 +849,8 @@ class ctools_export_ui {
 
     // Figure out if this is a new instance of the wizard
     if (empty($form_state['step'])) {
-      $form_state['step'] = reset(array_keys($form_info['order']));
+      $order = array_keys($form_info['order']);
+      $form_state['step'] = reset($order);
     }
 
     if (empty($form_info['order'][$form_state['step']]) && empty($form_info['forms'][$form_state['step']])) {
@@ -1075,11 +1076,11 @@ class ctools_export_ui {
    */
   function edit_finish_validate(&$form, &$form_state) {
     if ($form_state['op'] != 'edit') {
-      // Validate the name. Fake an element for form_error().
+      // Validate the export key. Fake an element for form_error().
       $export_key = $this->plugin['export']['key'];
       $element = array(
         '#value' => $form_state['item']->{$export_key},
-        '#parents' => array('name'),
+        '#parents' => array($export_key),
       );
       $form_state['plugin'] = $this->plugin;
       ctools_export_ui_edit_name_validate($element, $form_state);
@@ -1310,6 +1311,10 @@ function ctools_export_ui_list_form_submit(&$form, &$form_state) {
  * This simply loads the object defined in the plugin and hands it off.
  */
 function ctools_export_ui_edit_item_form($form, &$form_state) {
+  // When called using #ajax via ajax_form_callback(), 'export' may
+  // not be included so include it here.
+  ctools_include('export');
+
   $form = array();
   $form_state['object']->edit_form($form, $form_state);
   return $form;
@@ -1400,6 +1405,10 @@ function ctools_export_ui_delete_confirm_form($form, &$form_state) {
  * This simply loads the object defined in the plugin and hands it off.
  */
 function ctools_export_ui_edit_item_wizard_form($form, &$form_state) {
+  // When called using #ajax via ajax_form_callback(), 'export' may
+  // not be included so include it here.
+  ctools_include('export');
+
   $method = 'edit_form_' . $form_state['step'];
   if (!method_exists($form_state['object'], $method)) {
     $method = 'edit_form';

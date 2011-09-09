@@ -17,10 +17,8 @@ function media_gallery_list_galleries($term) {
     drupal_add_library('system', 'ui.sortable');
     drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.dragdrop.js');
     drupal_add_css(drupal_get_path('module', 'media_gallery') . '/media_gallery.dragdrop.css');
-    drupal_add_js(array(
-        'mediaGalleryTid' => $term->tid,
-        'mediaGalleryToken' => drupal_get_token('media_gallery'),
-      ), array('type' => 'setting'));
+    $sort_collection_url = url('media-gallery/sort/collection/' . $term->tid . '/' . drupal_get_token('media_gallery'));
+    drupal_add_js(array('mediaGallerySortCollectionUrl' => $sort_collection_url), array('type' => 'setting'));
   }
   // Build breadcrumb based on the hierarchy of the term.
   $current = (object) array(
@@ -34,7 +32,7 @@ function media_gallery_list_galleries($term) {
   $breadcrumb[] = l(t('Home'), NULL);
   $breadcrumb = array_reverse($breadcrumb);
   drupal_set_breadcrumb($breadcrumb);
-  drupal_add_feed(url('taxonomy/term/' . $term->tid . '/feed'), 'RSS - ' . $term->name);
+  drupal_add_feed('taxonomy/term/' . $term->tid . '/feed', 'RSS - ' . $term->name);
 
   $build['term_heading'] = array(
     '#prefix' => '<div class="term-listing-heading">',
@@ -75,7 +73,7 @@ function media_gallery_list_galleries($term) {
 /**
  * Menu callback; view a single gallery media entity as its own page.
  */
-function media_gallery_detail_page($gallery_node, $media_entity) {
+function media_gallery_detail_page($gallery_node, $file) {
   // Set the breadcrumb.
   $node_url_arguments = entity_uri('node', $gallery_node);
   drupal_set_breadcrumb(array(
@@ -84,48 +82,20 @@ function media_gallery_detail_page($gallery_node, $media_entity) {
   ));
 
   // Set the title for the page
-  $title = _media_gallery_get_media_title($media_entity);
+  $title = _media_gallery_get_media_title($file);
   drupal_set_title($title);
 
   drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.js');
 
-  $return = media_gallery_item_view($gallery_node, $media_entity, array('type' => 'media_gallery_detail'));
+  $return = media_gallery_item_view($gallery_node, $file, 'media_gallery_detail');
   return $return;
 }
 
 /**
- * Menu callback; view a single gallery media entity as the content of a lightbox.
+ * Menu callback; view a single gallery media item as the content of a lightbox.
  */
-function media_gallery_lightbox_page($gallery_node, $media_entity) {
-  // In order for the media to be displayed properly inside the lightbox and
-  // interact correctly with the JavaScript that resizes the lightbox, it needs
-  // to have 'width' and 'height' tags. To get these, however, requires an
-  // actual media file, so for media where the derivative hasn't been
-  // generated yet, we have to create it beforehand so we can determine its
-  // width and height.
-  $instance = field_info_instance('media', 'file', 'image');
-  $display = field_get_display($instance, 'media_gallery_lightbox', $media_entity);
-  if (preg_match('@^styles_(.*?)_(.*?)$@i', $display['type'], $matches)) {
-    $style_name = $matches[2];
-    // Check if the media file already exists at its final path; if not, create
-    // the derivative.
-    $style_path = image_style_path($style_name, $media_entity->uri);
-    if (!file_exists($style_path)) {
-      $style = image_style_load($style_name);
-      image_style_create_derivative($style, $media_entity->uri, $style_path);
-    }
-    // Now that we expect the file to actually exist, we can find its width and
-    // height and pass this information on as an override so that it appears as
-    // attributes on the final rendered media.
-    $info = image_get_info($style_path);
-    $media_entity->override = array(
-      'width' => $info['width'],
-      'height' => $info['height'],
-    );
-  }
-
-  // Display the gallery media entity in lightbox format.
-  return media_gallery_item_view($gallery_node, $media_entity, array('type' => 'media_gallery_lightbox'));
+function media_gallery_lightbox_page($gallery_node, $file) {
+  return media_gallery_item_view($gallery_node, $file, 'media_gallery_lightbox');
 }
 
 /**
@@ -239,11 +209,15 @@ function media_gallery_reorder_collection($collection, $order) {
  */
 function media_gallery_reorder_gallery($gallery, $order) {
   $media_field = $gallery->media_gallery_media[LANGUAGE_NONE];
-  $keys = array_keys($media_field);
-  $keys = _media_gallery_reorder($keys, $order);
+
+  if (!empty($_POST['page'])) {
+    $page = array_pop(explode(',', $_POST['page']));
+    $num_per_page = $gallery->media_gallery_columns[LANGUAGE_NONE][0]['value'] * $gallery->media_gallery_rows[LANGUAGE_NONE][0]['value'];
+    $offset = $num_per_page * $page;
+  }
   
-  foreach ($keys as $new_delta => $old_delta) {
-    $gallery->media_gallery_media[LANGUAGE_NONE][$new_delta] = $media_field[$old_delta];
+  foreach ($order as $new_delta => $old_delta) {
+    $gallery->media_gallery_media[LANGUAGE_NONE][$new_delta + $offset] = $media_field[$old_delta + $offset];
   }
   node_save($gallery);
   return TRUE;
@@ -315,10 +289,10 @@ function media_gallery_add_images($node) {
  *
  * @param $node
  *   The gallery node object.
- * @param $media
- *   The media item object to remove from the gallery.
+ * @param $file
+ *   The file to remove from the gallery.
  */
-function media_gallery_remove_item_form($form, &$form_state, $node, $media) {
+function media_gallery_remove_item_form($form, &$form_state, $node, $file) {
   // Set the breadcrumb.
   $node_url_arguments = entity_uri('node', $node);
   drupal_set_breadcrumb(array(
@@ -332,11 +306,11 @@ function media_gallery_remove_item_form($form, &$form_state, $node, $media) {
   );
   $form['fid'] = array(
     '#type' => 'value',
-    '#value' => $media->fid,
+    '#value' => $file->fid,
   );
   return confirm_form($form,
-    t('Are you sure you want to remove %file from the gallery %gallery?', array('%file' => $media->filename, '%gallery' => $node->title)),
-    "media-gallery/detail/{$node->nid}/{$media->fid}",
+    t('Are you sure you want to remove %file from the gallery %gallery?', array('%file' => $file->filename, '%gallery' => $node->title)),
+    "media-gallery/detail/{$node->nid}/{$file->fid}",
     t('The file will still be available in the media library to use elsewhere on this site.'),
     t('Remove file')
   );
@@ -347,19 +321,19 @@ function media_gallery_remove_item_form($form, &$form_state, $node, $media) {
  */
 function media_gallery_remove_item_form_submit($form, &$form_state) {
   $node = node_load($form_state['values']['nid']);
-  $media = media_load($form_state['values']['fid']);
-  media_gallery_remove_item_from_gallery($node, $media);
-  drupal_set_message(t('The file %file was removed from the gallery.', array('%file' => $media->filename)));
+  $file = file_load($form_state['values']['fid']);
+  media_gallery_remove_item_from_gallery($node, $file);
+  drupal_set_message(t('The file %file was removed from the gallery.', array('%file' => $file->filename)));
   $form_state['redirect'] = "node/{$node->nid}";
 }
 
 /**
  * Menu callback; presents the Media editing form in the context of a gallery.
  */
-function media_gallery_media_page_edit($gallery, $media) {
+function media_gallery_media_page_edit($gallery, $file) {
   // The Media Gallery module defines titles differently than just using the
   // filename.
-  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $media->type, '@title' => _media_gallery_get_media_title($media))), PASS_THROUGH);
+  drupal_set_title(t('<em>Edit @type</em> @title', array('@type' => $file->type, '@title' => _media_gallery_get_media_title($file))), PASS_THROUGH);
 
   // Set the breadcrumb.
   $node_url_arguments = entity_uri('node', $gallery);
@@ -372,7 +346,7 @@ function media_gallery_media_page_edit($gallery, $media) {
   // include file. In addition to loading it here, we also set the include file
   // info within $form_state in case there are AJAX enabled widgets that will
   // submit to system/ajax, bypassing this menu callback.
-  module_load_include('inc', 'media', 'media.pages');
+  module_load_include('inc', 'media', 'includes/media.pages');
   $form_state['build_info']['files']['menu'] = array('type' => 'inc', 'module' => 'media', 'name' => 'media.pages');
 
   // Provide context information for form building and processing functions.
@@ -380,7 +354,7 @@ function media_gallery_media_page_edit($gallery, $media) {
 
   // Since we have a $form_state, we can't call drupal_get_form(), so pass the
   // expected arguments to drupal_build_form().
-  $form_state['build_info']['args'] = array($media);
+  $form_state['build_info']['args'] = array($file);
   return drupal_build_form('media_edit', $form_state);
 }
 
@@ -398,16 +372,16 @@ function media_gallery_media_page_multiedit($node) {
   foreach ($items as $item) {
     $fids[] = $item['fid'];
   }
-  $media_entities = media_load_multiple($fids);
+  $files = file_load_multiple($fids);
 
   // Load the Media module include file containing the form callback.
   // @todo To support AJAX enabled widgets within the form, we need to also add
   //   media.pages.inc to $form_state['build_info']['files']['menu']. Figure out
   //   how to integrate that properly with the Multiform module.
-  module_load_include('inc', 'media', 'media.pages');
+  module_load_include('inc', 'media', 'includes/media.pages');
 
   // Build and process the form.
-  $form = media_page_multiedit($media_entities);
+  $form = media_page_multiedit($files);
 
   // Override the page title set by media_page_multiedit() and return the form.
   drupal_set_title(t('<em>Edit media for</em> @title', array('@type' => $node->type, '@title' => $node->title)), PASS_THROUGH);

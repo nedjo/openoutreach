@@ -18,6 +18,7 @@ function media_browser_plus_install() {
  * Make sure the field_tags field exists and is of the right type.
  */
 function _media_browser_plus_ensure_field_tags() {
+  $t = get_t();
   // Make sure the 'tags' vocabulary exists.
   $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
   if (!$vocabulary) {
@@ -47,6 +48,25 @@ function _media_browser_plus_ensure_field_tags() {
     ),
   );
   _media_browser_plus_ensure_field($field);
+  
+  /** 
+   * This code creates a tags field on install.
+   * I'm not sure why we never had it in this module.  w/o it the module is pretty useless...
+   * Leaving it out there in the interests of BC.  With it on, the module still functions.
+   
+  $instance = array(
+    'field_name' => 'field_tags',
+    'label' => $t('Tags'),
+    'widget' => array(
+      'type' => 'taxonomy_autocomplete',
+    ),
+    'display' => array(
+      'default' => array('type' => 'hidden'),
+    )
+  );
+  _media_browser_plus_ensure_instance($instance);
+   *
+   **/
 }
 
 /**
@@ -66,8 +86,15 @@ function _media_browser_plus_ensure_field($field) {
 }
 
 function _media_browser_plus_ensure_instance($instance) {
-  $existing_instance = field_info_instance($instance['entity_type'], $instance['field_name'], $instance['bundle']);
-  if (empty($existing_instance)) {
-    field_create_instance($instance);
+  foreach (media_type_get_types() as $bundle => $type) {
+    $instance_copy = $instance;
+    $instance_copy += array(
+      'entity_type' => 'file',
+      'bundle' => $bundle,
+    );
+    $existing_instance = field_info_instance('file', $instance_copy['field_name'], $bundle);
+    if (empty($existing_instance)) {
+      field_create_instance($instance_copy);
+    }
   }
 }

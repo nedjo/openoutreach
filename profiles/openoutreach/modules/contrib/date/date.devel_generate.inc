@@ -30,7 +30,7 @@ function date_devel_generate($entity, $field, $instance, $bundle) {
   $increment = $instance['widget']['settings']['increment'];
   date_increment_round($start, $increment);
 
-  // Modify To date by 1 hour to 3 days, shorter for repeating dates
+  // Modify End date by 1 hour to 3 days, shorter for repeating dates
   // longer for others.
   $start2 = clone($start);
   $max = !empty($field['settings']['repeat']) ? 720 : 4320;

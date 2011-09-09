@@ -8,34 +8,20 @@
  *  Bind the colorpicker event to the form element
  */
 (function ($) {
-Drupal.behaviors.calendarColorpicker = {
-  attach: function (context) {
-  // do we have multiple calendar_colors?
-  if ($("div.calendar_colorpicker").size() > 0) {
-
-    // loop over each calendar_color type
-    $("div.calendar_colorpicker").each(function() {
-
-      // create the farbtastic colorpicker
-    var farb = $.farbtastic(this);
-
-    // get the id of the current matched colorpicker wrapper div
-    var id = $(this).attr("id");
-
-    // get the calendar_color_textfields associated with this calendar_color
-    $("input.calendar_colorfield").filter("." + id).each(function () {
-      // set the background colors of all of the textfields appropriately
-       farb.linkTo(this);
-
-      // when clicked, they get linked to the farbtastic colorpicker that they are associated with
-      $(this).click(function () {
-        farb.linkTo(this);
+  Drupal.behaviors.field_example_colorpicker = {
+    attach: function(context) {
+      $(".edit-calendar-colorpicker").live("focus", function(event) {
+        var edit_field = this;
+        var picker = $(this).closest('div').parent().find(".calendar-colorpicker");
+        
+        // Hide all color pickers except this one.
+        $(".calendar-colorpicker").hide();
+        $(picker).show();
+        $.farbtastic(picker, function(color) {
+          edit_field.value = color;
+        }).setColor(edit_field.value);
       });
-
-    });
-
-    });
+    }
   }
-  }
-};
 })(jQuery);
+

@@ -95,7 +95,7 @@ function date_tools_page() {
     $calendars = array();
     $node_types = node_type_get_names();
     foreach ($calendar_options as $key => $option) {
-      $bundle = str_replace('calendar_', '', $key);
+      $bundle = str_replace(array('calendar_', 'cal_'), '', $key);
       if (array_key_exists($bundle, $node_types)) {
         $type = $node_types[$bundle];
         $calendars[] = array(

@@ -117,16 +117,16 @@ function template_preprocess_media_gallery_media_item_thumbnail(&$variables) {
   }
 
   // Get the rendered file without annoying DIV wrappers.
-  $element['file']['#theme'] = 'media_gallery_file_field_inline';
+  $element['file'] = array('#theme' => 'media_gallery_file_field_inline', '0' => $element['file']);
   $image = drupal_render($element['file']);
 
   $gallery_id = $element['#media_gallery_entity']->nid;
-  $media_id = $element['#media_gallery_media_entity']->fid;
+  $media_id = $element['#file']->fid;
 
   // Add a class that is a more targeted version of what template_preprocess()
   // automatically adds for this theme hook, to enable per-type (e.g., video vs.
   // image) styling.
-  $variables['classes_array'][] = drupal_html_class('media_gallery_media_item_thumbnail_' . $element['#media_gallery_media_entity']->type);
+  $variables['classes_array'][] = drupal_html_class('media_gallery_media_item_thumbnail_' . $element['#file']->type);
 
   // Add a class for the wrapper.
   $variables['classes_array'][] = 'media-gallery-item-wrapper';
@@ -170,9 +170,24 @@ function template_preprocess_media_gallery_media_item_thumbnail(&$variables) {
 function theme_media_gallery_media_item_lightbox($variables) {
   $element = $variables['element'];
   $gallery_node = new FieldsRSIPreventor($element['#media_gallery_entity']);
-  $media_entity = $element['#media_gallery_media_entity'];
+  $file = $element['#file'];
 
-  unset($element['file']['#theme']);
+  // The lightbox JavaScript requires width and height attributes to be set on
+  // the displayed image, but if we're displaying an image derivative, we need
+  // to create it in order to know its width and height.
+  // @todo Improve the JavaScript to not require this.
+  if ($element['file']['#theme'] == 'image_style') {
+    $style_name = $element['file']['#style_name'];
+    $style_path = image_style_path($style_name, $file->uri);
+    if (!file_exists($style_path)) {
+      $style = image_style_load($style_name);
+      image_style_create_derivative($style, $file->uri, $style_path);
+    }
+    $info = image_get_info($style_path);
+    $element['file'] += array('#attributes' => array());
+    $element['file']['#attributes'] += array('width' => $info['width'], 'height' => $info['height']);
+  }
+
   $image = drupal_render($element['file']);
 
   $matches = NULL;
@@ -184,7 +199,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
   }
 
   $gallery_id = $element['#media_gallery_entity']->nid;
-  $media_id = $element['#media_gallery_media_entity']->fid;
+  $media_id = $element['#file']->fid;
 
   // Create an array of variables to be added to the main image link.
   $link_vars = array();
@@ -193,7 +208,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
   $link_vars['no_link'] = $element['#bundle'] == 'video' ? TRUE : FALSE;
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = $element['#bundle'] == 'video' ? l(t('View detail page'), $link_vars['link_path']) : theme('media_gallery_download_link', array('file' => $media_entity));
+    $download_link = $element['#bundle'] == 'video' ? l(t('View detail page'), $link_vars['link_path']) : theme('media_gallery_download_link', array('file' => $file));
   }
 
   else {
@@ -209,7 +224,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
       theme('media_gallery_item', $link_vars) .
       '<div class="media-gallery-detail-info">' .
       $download_link .
-      theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array(), 'color' => 'medium', 'media' => $media_entity)) .
+      theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array(), 'color' => 'medium', 'file' => $file)) .
       '</div></div>';
   // The license info has been themed already, keep it from being rendered as a child
   $element['field_license']['#access'] = FALSE;
@@ -241,7 +256,7 @@ function theme_media_gallery_media_item_lightbox($variables) {
 function theme_media_gallery_media_item_detail($variables) {
   $element = $variables['element'];
   $gallery_node = new FieldsRSIPreventor($element['#media_gallery_entity']);
-  $media_entity = $element['#media_gallery_media_entity'];
+  $file = $element['#file'];
   // Page number for next and previous pages and current page.
   $i_next = NULL;
   $i_previous = NULL;
@@ -260,7 +275,7 @@ function theme_media_gallery_media_item_detail($variables) {
   // text.
   $num_items = count($media_ids);
   foreach ($media_ids as $i => $id) {
-    if ($id == $media_entity->fid) {
+    if ($id == $file->fid) {
       $i_current = $i;
       break;
     }
@@ -279,7 +294,7 @@ function theme_media_gallery_media_item_detail($variables) {
   }
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = $element['#bundle'] == 'video' ? '&nbsp;' : theme('media_gallery_download_link', array('file' => $media_entity));
+    $download_link = $element['#bundle'] == 'video' ? '&nbsp;' : theme('media_gallery_download_link', array('file' => $file));
   }
   else {
     // Very ugly fix: This prevents the license info from being either hidden
@@ -298,11 +313,11 @@ function theme_media_gallery_media_item_detail($variables) {
     '<div class="media-gallery-detail">' .
       drupal_render($element['file']) .
       '<div class="media-gallery-detail-info">' . $download_link .
-        theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_detail'), 'color' => 'dark', 'media' => $media_entity)) .
+        theme('media_gallery_license', array('element' => isset($element['field_license']) ? $element['field_license'] : array('#view_mode' => 'media_gallery_detail'), 'color' => 'dark', 'file' => $file)) .
       '</div>' .
       '<div class="media-gallery-detail-info">' .
         '<span class="media-gallery-back-link">' .
-          l('« Back to gallery', 'node/' . $gallery_node->nid) .
+          l(t('« Back to gallery'), 'node/' . $gallery_node->nid) .
         '</span>' .
         '<span class="media-gallery-detail-image-info-wrapper">' .
           '<span class="media-gallery-image-count">' .
@@ -344,13 +359,13 @@ function theme_media_gallery_block_thumbnail($variables) {
   }
 
   // Get the rendered file without annoying DIV wrappers.
-  $element['file']['#theme'] = 'media_gallery_file_field_inline';
+  $element['file'] = array('#theme' => 'media_gallery_file_field_inline', '0' => $element['file']);
   $image = drupal_render($element['file']);
 
   // Create some variables to be added to the main image link
   $classes = $lightbox ? array('media-gallery-thumb', 'cbEnabled') : array('media-gallery-thumb');
   $gallery_id = $element['#media_gallery_entity']->nid;
-  $media_id = $element['#media_gallery_media_entity']->fid;
+  $media_id = $element['#file']->fid;
   $link_path = "media-gallery/detail/$gallery_id/$media_id";
 
   // Create a wrapper
@@ -367,20 +382,17 @@ function theme_media_gallery_block_thumbnail($variables) {
  * Displays a media item (entity) as a thumbnail on a Gallery collection page
  */
 function theme_media_gallery_collection_thumbnail($variables) {
-  $element = $variables['element'];
-
-  // Get the rendered file without annoying DIV wrappers.
-  $element['file']['#theme'] = 'media_gallery_file_field_inline';
-  $image = drupal_render($element['file']);
-
-  $link_vars = array();
-  $link_vars['image'] = $image;
-  $link_vars['link_path'] = 'something';
-  $link_vars['classes'] = 'media-gallery-thumb';
-
-  $output = '<div class="media-gallery-item-wrapper">' . theme('media_gallery_item', $link_vars) . '</div>';
-
-  return $output;
+  // In the default configuration of the module, the collection thumbnail
+  // display format is used for node teasers, and theme_media_gallery_teaser()
+  // bypasses calling this theme function. However, if someone configures their
+  // site differently (to use this display format in a different view mode), we
+  // need some sensible behavior here. For now, we just theme the media item
+  // the same way we theme it when it appears in a block thumbnail.
+  // @todo: Ideally, some of the code in theme_media_gallery_teaser() would
+  //   move here instead, so that people could configure their site to
+  //   reproduce the default "media gallery node teaser" style in other view
+  //   modes as well.
+  return theme('media_gallery_block_thumbnail', $variables);
 }
 
 /**
@@ -514,10 +526,10 @@ function theme_media_gallery_download_link($variables) {
 function theme_media_gallery_license($variables) {
   // Don't display license information for externally hosted media. See
   //   media_gallery_field_attach_form().
-  if (isset($variables['media'])) {
+  if (isset($variables['file'])) {
     // @todo Implement a more generic determination for when a license applies
     //   and when it doesn't.
-    if (file_uri_scheme($variables['media']->uri) == 'youtube') {
+    if (file_uri_scheme($variables['file']->uri) == 'youtube') {
       return '';
     }
   }

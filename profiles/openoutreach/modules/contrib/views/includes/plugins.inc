@@ -194,6 +194,10 @@ function views_views_plugins() {
         'title' => t('PHP Code'),
         'handler' => 'views_plugin_argument_default_php',
       ),
+      'raw' => array(
+        'title' => t('Raw value from URL'),
+        'handler' => 'views_plugin_argument_default_raw',
+      ),
     ),
     'argument validator' => array(
       'php' => array(
@@ -419,6 +423,9 @@ function views_discover_plugins() {
         if (!isset($def['parent'])) {
           $def['parent'] = 'parent';
         }
+        // Set the internal name to be able to read it out later.
+        $def['name'] = $plugin;
+
         // merge the new data in
         $cache[$type][$plugin] = $def;
       }
@@ -449,6 +456,11 @@ class views_plugin extends views_object {
   var $display = NULL;
 
   /**
+   * The plugin type of this plugin, for example style or query.
+   */
+  var $plugin_type = NULL;
+
+  /**
    * Init will be called after construct, when the plugin is attached to a
    * view and a display.
    */
@@ -456,7 +468,13 @@ class views_plugin extends views_object {
   /**
    * Provide a form to edit options for this plugin.
    */
-  function options_form(&$form, &$form_state) { }
+  function options_form(&$form, &$form_state) {
+    // Some form elements belong in a fieldset for presentation, but can't
+    // be moved into one because of the form_state['values'] hierarchy. Those
+    // elements can add a #fieldset => 'fieldset_name' property, and they'll
+    // be moved to their fieldset during pre_render.
+    $form['#pre_render'][] = 'views_ui_pre_render_add_fieldset_markup';
+  }
 
   /**
    * Validate the options form.

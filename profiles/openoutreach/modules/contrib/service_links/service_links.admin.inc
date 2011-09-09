@@ -191,7 +191,7 @@ function service_links_admin_settings() {
   );
   $form['how_to_show_the_links']['in_node']['service_links_weight_in_node'] = array(
     '#type' => 'weight',
-    '#delta' => 10,
+    '#delta' => 100,
     '#title' => t('Assign a weight'),
     '#default_value' => variable_get('service_links_weight_in_node', 10),
     '#description' => t('The weight help to place the Service Links section above or below the other elements.'),

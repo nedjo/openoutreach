@@ -29,6 +29,7 @@ function media_internet_permission() {
     ),
   );
 }
+
 /**
  * Implements hook_media_browser_plugin_view().
  */
@@ -37,7 +38,7 @@ function media_internet_media_browser_plugin_view($plugin_name, $params) {
 
   $types = isset($params['types']) ? $params['types'] : array();
   $multiselect = isset($params['multiselect']) ? $params['multiselect'] : FALSE;
-  
+
   $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
   switch ($plugin_name) {
     case 'media_internet':
@@ -52,29 +53,29 @@ function media_internet_media_browser_plugin_view($plugin_name, $params) {
       );
       break;
   }
-  
+
   return array();
 }
- 
+
 /**
- *  Provides a form for adding media items from 3rd party sources.
+ * Provides a form for adding media items from 3rd party sources.
  */
 function media_internet_add($form, &$form_state = array(), $types = NULL) {
   $form['embed_code'] = array(
     '#type' => 'textfield',
-    '#title' => 'URL or Embed code',
-    '#description' => 'Input a url or embed code from one of the listed providers.',
+    '#title' => t('URL or Embed code'),
+    '#description' => t('Input a url or embed code from one of the listed providers.'),
     '#attributes' => array('class' => array('media-add-from-url')),
     // There is no standard specifying a maximum length for a URL. Internet
     // Explorer supports upto 2083 (http://support.microsoft.com/kb/208427), so
     // we assume publicly available media URLs are within this limit.
     '#maxlength' => 2083,
   );
-  
-  
+
+
   // @todo:
   // Add live previews back (currently broken)
-  
+
   //$form['preview'] = array(
   //  '#type' => 'item',
   //  '#title' => t('Preview'),
@@ -85,14 +86,15 @@ function media_internet_add($form, &$form_state = array(), $types = NULL) {
   if ($types) {
     $form['#validators']['media_file_validate_types'] = array($types);
   }
-  
+
   $form['providers'] = array();
-  $form['providers']['header'] = array('#markup' => '<h2> Supported Providers </h2>');
+  $form['providers']['header'] = array('#markup' => '<h2>' . t('Supported Providers') . '</h2>');
   foreach (media_internet_get_providers() as $key => $provider) {
     if (empty($provider['hidden']) || $provider['hidden'] != TRUE) {
       if (isset($provider['image'])) {
         $form['providers'][$key] = array('#markup' => theme('image', array('path' => $provider['image'], 'title' => $provider['title'])));
-      } else {
+      }
+      else {
         $form['providers'][$key] = array('#markup' => $provider['title']);
       }
       // Wrap the provider in a div so we can make a nice list
@@ -111,21 +113,21 @@ function media_internet_add($form, &$form_state = array(), $types = NULL) {
 }
 
 /**
- *  Allow stream wrappers to have their chance at validation.
+ * Allow stream wrappers to have their chance at validation.
  *
- *  Any module that implements hook_media_parse will have an
- *  opportunity to validate this.
+ * Any module that implements hook_media_parse will have an
+ * opportunity to validate this.
  *
- *  @see media_parse_to_uri().
+ * @see media_parse_to_uri()
  */
 function media_internet_add_validate($form, &$form_state) {
   // Supporting providers can now claim this input.  It might be a URL, but it
   // might be an embed code as well.
   $embed_code = $form_state['values']['embed_code'];
-  
+
   try {
     $provider = media_internet_get_provider($embed_code);
-    $provider->validate();  
+    $provider->validate();
   } catch (MediaInternetNoHandlerException $e) {
     form_set_error('url', $e->getMessage());
     return;
@@ -133,7 +135,7 @@ function media_internet_add_validate($form, &$form_state) {
     form_set_error('url', $e->getMessage());
     return;
   }
-  
+
   $validators = $form['#validators'];
   $file = $provider->getFileObject();
   if ($validators) {
@@ -143,12 +145,12 @@ function media_internet_add_validate($form, &$form_state) {
       form_set_error('url', $e->getMessage());
       return;
     }
-    
+
     // Check for errors. @see media_add_upload_validate calls file_save_upload().
     // this code is ripped from file_save_upload because we just want the validation part.
     // Call the validation functions specified by this function's caller.
     $errors = file_validate($file, $validators);
-    
+
     if (!empty($errors)) {
       $message = t('%url could not be added.', array('%url' => $embed_code));
       if (count($errors) > 1) {
@@ -166,7 +168,7 @@ function media_internet_add_validate($form, &$form_state) {
   // be helpful to let the user know they passed the HTML page containing
   // the image accidentally. That would also save us from saving the file
   // in the submit step.
-  
+
   // This is kinda a hack of the same.
 
   // This should use the file_validate routines that the upload form users.
@@ -174,11 +176,12 @@ function media_internet_add_validate($form, &$form_state) {
 }
 
 /**
- *  Upload a file from a URL.
+ * Upload a file from a URL.
  *
- *  This will copy a file from a remote location and store it locally.
- *  @see media_parse_to_uri().
- *  @see media_parse_to_file().
+ * This will copy a file from a remote location and store it locally.
+ *
+ * @see media_parse_to_uri()
+ * @see media_parse_to_file()
  */
 function media_internet_add_submit($form, &$form_state) {
   $embed_code = $form_state['values']['embed_code'];
@@ -238,7 +241,7 @@ function media_internet_get_providers() {
  * each class to test and that's not right.
  */
 function media_internet_get_provider($embed_string) {
-  foreach(media_internet_get_providers() as $class_name => $nothing) {
+  foreach (media_internet_get_providers() as $class_name => $nothing) {
     $p = new $class_name($embed_string);
     if ($p->claim($embed_string)) {
       return $p;
@@ -252,7 +255,7 @@ function media_internet_get_provider($embed_string) {
  *
  * Provides a very basic handler which coppies files from remote sources to the
  * local files directory.
- */ 
+ */
 function media_internet_media_internet_providers() {
   return array(
     'MediaInternetFileHandler' => array(
@@ -265,9 +268,9 @@ function media_internet_media_internet_providers() {
 }
 
 class MediaInternetFileHandler extends MediaInternetBaseHandler {
-  
+
   public $fileObject;
-  
+
   public function preSave(&$file_obj) {
     // Coppies the remote file locally.
     $remote_uri = $file_obj->uri;
@@ -282,21 +285,21 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
     // Make the current fileObject point to the local_uri, not the remote one.
     $file_obj = file_uri_to_object($local_uri);
   }
-  
+
   public function postSave(&$file_obj) {
     $scheme = variable_get('file_default_scheme', 'public') . '://';
     $uri = file_stream_wrapper_uri_normalize($scheme . $file_obj->filename);
     // Now to its new home.
     $file_obj = file_move($file_obj, $uri, FILE_EXISTS_RENAME);
   }
-  
+
   public function getFileObject() {
     if (!$this->fileObject) {
       $this->fileObject = file_uri_to_object($this->embedCode);
     }
     return $this->fileObject;
   }
-  
+
   public function claim($embedCode) {
     $supported_schemes = media_variable_get('fromurl_supported_schemes');
     $scheme = file_uri_scheme($embedCode);
@@ -306,27 +309,24 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
   }
 }
 
-/**
- * 
- */
 abstract class MediaInternetBaseHandler {
-  
+
   public function __construct($embedCode) {
     $this->embedCode = $embedCode;
   }
-  
+
   /**
    * If required, implementors can validate the embedCode.
    */
   public function validate() {}
-  
+
   /**
    * Returns a file object which can be used for validation
    *
    * @return StdClass
    */
   abstract public function getFileObject();
-  
+
   /**
    * Saves a file to the file_managed table (with file_save)
    *
@@ -339,28 +339,28 @@ abstract class MediaInternetBaseHandler {
     $this->postSave($file_obj);
     return $file_obj;
   }
-  
+
   /**
    * After the file has been saved, implementors may do additional operations.
-   * 
+   *
    * @param $file_obj;
    */
   public function postSave(&$file_obj) {
-    
+
   }
-  
+
   /**
    * Before the file has been saved, implementors may do additional operations.
    */
   public function preSave(&$file_obj) {
-    
+
   }
 }
 
 class MediaInternetValidationException extends Exception {
-  
+
 }
 
 class MediaInternetNoHandlerException extends Exception {
-  
+
 }

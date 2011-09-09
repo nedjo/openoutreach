@@ -36,6 +36,6 @@ class service_links_handler_field_service_links extends views_handler_field {
     $node->nid = $values->{$this->aliases['nid']};
     $node->title = $values->{$this->aliases['title']};
     // Nothing to render.
-    return theme('links', service_links_render($node, TRUE));
+    return theme('links', array('links' => service_links_render($node, TRUE)));
   }
 }

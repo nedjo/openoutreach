@@ -40,7 +40,7 @@ function token_system_info_alter(&$info, $file, $type) {
  * Return an array of the core modules supported by token.module.
  */
 function _token_core_supported_modules() {
-  return array('book', 'menu', 'profile');
+  return array('book', 'field', 'menu', 'profile');
 }
 
 /**
@@ -108,7 +108,28 @@ function token_menu() {
     );
   }
 
+  // Admin menu callback to clear token caches.
+  $items['token/flush-cache'] = array(
+    'page callback' => 'token_flush_cache_callback',
+    'access arguments' => array('flush caches'),
+    'type' => MENU_CALLBACK,
+    'file' => 'token.pages.inc',
+  );
+
   return $items;
+}
+
+/**
+ * Implements hook_admin_menu_output_alter().
+ */
+function token_admin_menu_output_alter(&$content) {
+  $content['icon']['icon']['flush-cache']['token'] = array(
+    '#title' => t('Token registry'),
+    '#href' => 'token/flush-cache',
+    '#options' => array(
+      'query' => drupal_get_destination() + array('token' => drupal_get_token('token/flush-cache')),
+    ),
+  );
 }
 
 function token_type_load($token_type) {
@@ -165,10 +186,76 @@ function token_form_alter(&$form, $form_state, $form_id) {
     case 'profile_field_delete':
     // User picture form.
     case 'user_admin_settings':
+    // System date type form.
+    // @todo Remove when http://drupal.org/node/1173706 is fixed.
+    case 'system_add_date_format_type_form':
+    case 'system_delete_date_format_type_form':
       $form += array('#submit' => array());
       array_unshift($form['#submit'], 'token_clear_cache');
       break;
   }
+}
+
+/**
+ * Implements hook_field_info_alter().
+ */
+function token_field_info_alter(&$info) {
+  $defaults = array(
+    'taxonomy_term_reference' => 'taxonomy_term_reference_plain',
+    'number_integer' => 'number_unformatted',
+    'number_decimal' => 'number_unformatted',
+    'number_float' => 'number_unformatted',
+    'file' => 'file_url_plain',
+    'image' => 'file_url_plain',
+  );
+  foreach ($defaults as $field_type => $default_token_formatter) {
+    if (isset($info[$field_type])) {
+      $info[$field_type] += array('default_token_formatter' => $default_token_formatter);
+    }
+  }
+}
+
+/**
+ * Implements hook_field_display_alter().
+ */
+function token_field_display_alter(&$display, $context) {
+  if ($context['view_mode'] == 'token') {
+    $view_mode_settings = field_view_mode_settings($context['instance']['entity_type'], $context['instance']['bundle']);
+    // If the token view mode fell back to the 'default' view mode, then
+    // use the default token formatter.
+    if (empty($view_mode_settings[$context['view_mode']]['custom_settings'])) {
+      $field_type_info = field_info_field_types($context['field']['type']);
+      if (!empty($field_type_info['default_token_formatter'])) {
+        $display['type'] = $field_type_info['default_token_formatter'];
+
+        $formatter_info = field_info_formatter_types($display['type']);
+        $display['settings'] = isset($formatter_info['settings']) ? $formatter_info['settings'] : array();
+        $display['settings']['label'] = 'hidden';
+        $display['module'] = $formatter_info['module'];
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_create_instance().
+ */
+function token_field_create_instance($instance) {
+  token_clear_cache();
+}
+
+/**
+ * Implements hook_field_update_instance().
+ */
+function token_field_update_instance($instance) {
+  token_clear_cache();
+}
+
+/**
+ * Implements hook_field_delete_instance().
+ */
+function token_field_delete_instance($instance) {
+  token_clear_cache();
 }
 
 /**
@@ -178,8 +265,12 @@ function token_clear_cache() {
   cache_clear_all('*', 'cache_token', TRUE);
   drupal_static_reset('token_get_info');
   drupal_static_reset('token_get_global_token_types');
+  drupal_static_reset('token_get_entity_mapping');
   drupal_static_reset('token_build_tree');
   drupal_static_reset('_token_profile_fields');
+  drupal_static_reset('token_menu_link_load');
+  drupal_static_reset('token_book_link_load');
+  drupal_static_reset('_token_field_info');
 }
 
 /**
@@ -223,6 +314,14 @@ function token_get_entity_mapping($value_type = 'token', $value = NULL) {
  */
 function token_entity_info_alter(&$info) {
   foreach (array_keys($info) as $entity_type) {
+    // Add a token view mode if it does not already exist.
+    if (!empty($info[$entity_type]['view modes']) && !isset($info[$entity_type]['view modes']['token'])) {
+      $info[$entity_type]['view modes']['token'] = array(
+        'label' => t('Tokens'),
+        'custom settings' => FALSE,
+      );
+    }
+
     if (!empty($info[$entity_type]['token type'])) {
       // If the entity's token type is already defined, great!
       continue;
@@ -583,7 +682,7 @@ function token_form_user_admin_settings_alter(&$form, &$form_state) {
 
     // Remove the crummy default token help text.
     if (!empty($element['#description'])) {
-      $element['#description'] = trim(str_replace($email_token_help, '', $element['#description']));
+      $element['#description'] = trim(str_replace($email_token_help, t('The list of available tokens that can be used in e-mails is provided below.'), $element['#description']));
     }
 
     switch ($key) {
@@ -620,15 +719,15 @@ function token_form_user_admin_settings_alter(&$form, &$form_state) {
         $element[$sub_key] += array('#token_types' => array('user'));
       }
     }
-
-    // Add the token tree UI.
-    $element['token_tree'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('user'),
-      '#show_restricted' => TRUE,
-      '#weight' => 100,
-    );
   }
+
+  // Add the token tree UI.
+  $form['token_tree'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array('user'),
+    '#show_restricted' => TRUE,
+    '#weight' => 90,
+  );
 }
 
 /**
@@ -750,6 +849,14 @@ function _token_build_tree($token_type, array $options) {
       // parent.
       $token_parents[] = $token_type;
     }
+    elseif (in_array($token, array_slice($token_parents, 1))) {
+      // Prevent duplicate recursive tokens. For example, this will prevent
+      // the tree from generating the following tokens or deeper:
+      // [comment:parent:parent]
+      // [comment:parent:root:parent]
+      continue;
+    }
+
     $token_parents[] = $token;
     if (!empty($token_info['dynamic'])) {
       $token_parents[] = '?';
@@ -776,40 +883,6 @@ function _token_build_tree($token_type, array $options) {
   }
 
   return $tree;
-}
-
-/**
- * Find tokens that have been declared twice by different modules.
- */
-function token_find_duplicate_tokens() {
-  $all_tokens = array();
-
-  foreach (module_implements('token_info') as $module) {
-    $module_token_info = module_invoke($module, 'token_info');
-    if (in_array($module, _token_core_supported_modules())) {
-      $module = 'token';
-    }
-    if (!empty($module_token_info['types'])) {
-      foreach (array_keys($module_token_info['types']) as $type) {
-        $all_tokens['type:' . $type][] = $module;
-      }
-    }
-    if (!empty($module_token_info['tokens'])) {
-      foreach ($module_token_info['tokens'] as $type => $tokens) {
-        foreach (array_keys($tokens) as $token) {
-          $all_tokens[$type . ':' . $token][] = $module;
-        }
-      }
-    }
-  }
-
-  foreach ($all_tokens as $token => $modules) {
-    if (count($modules) < 2) {
-      unset($all_tokens[$token]);
-    }
-  }
-
-  return $all_tokens;
 }
 
 /**
@@ -967,4 +1040,40 @@ function token_render_array_value($value, array $options = array()) {
     $rendered = check_plain($rendered);
   }
   return $rendered;
+}
+
+/**
+ * Copy of drupal_render_cache_get() that does not care about request method.
+ */
+function token_render_cache_get($elements) {
+  if (!$cid = drupal_render_cid_create($elements)) {
+    return FALSE;
+  }
+  $bin = isset($elements['#cache']['bin']) ? $elements['#cache']['bin'] : 'cache';
+
+  if (!empty($cid) && $cache = cache_get($cid, $bin)) {
+    // Add additional libraries, JavaScript, CSS and other data attached
+    // to this element.
+    if (isset($cache->data['#attached'])) {
+      drupal_process_attached($cache->data);
+    }
+    // Return the rendered output.
+    return $cache->data['#markup'];
+  }
+  return FALSE;
+}
+
+/**
+ * Coyp of drupal_render_cache_set() that does not care about request method.
+ */
+function token_render_cache_set(&$markup, $elements) {
+  // This should only run of drupal_render_cache_set() did not.
+  if (in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD'))) {
+    return FALSE;
+  }
+
+  $original_method = $_SERVER['REQUEST_METHOD'];
+  $_SERVER['REQUEST_METHOD'] = 'GET';
+  drupal_render_cache_set($markup, $elements);
+  $_SERVER['REQUEST_METHOD'] = $original_method;
 }

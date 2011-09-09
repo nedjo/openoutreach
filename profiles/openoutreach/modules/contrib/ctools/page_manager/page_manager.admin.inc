@@ -203,11 +203,11 @@ function page_manager_get_pages($tasks, &$pages, $task_id = NULL) {
 
     if (!empty($task['enable callback'])) {
       if (!empty($task['disabled'])) {
-        $operations[] = array(
+        array_unshift($operations, array(
           'title' => t('Enable'),
           'href' => 'admin/structure/pages/nojs/enable/' . $task_name,
           'query' => array('token' => drupal_get_token($task_name)),
-        );
+        ));
       }
       else {
         $operations[] = array(

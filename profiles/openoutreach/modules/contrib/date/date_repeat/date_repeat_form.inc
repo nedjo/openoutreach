@@ -33,7 +33,7 @@
 /**
  * Generate the repeat setting form.
  */
-function _date_repeat_rrule_process($element, $form_state, $form) {
+function _date_repeat_rrule_process($element, &$form_state, $form) {
   module_load_include('inc', 'date_api', 'date_api_ical');
 
   if (empty($element['#date_repeat_widget'])) {
@@ -96,6 +96,7 @@ function _date_repeat_rrule_process($element, $form_state, $form) {
       '#date_text_parts'  => !empty($element['#date_text_parts']) ? $element['#date_text_parts'] : array(),
       '#date_year_range'  => !empty($element['#date_year_range']) ? $element['#date_year_range'] : '-3:+3',
       '#date_label_position' => !empty($element['#date_label_position']) ? $element['#date_label_position'] : 'within',
+      '#date_flexible' => 0,
       ),
     'tz' => array('#type' => 'hidden', '#value' => $element['#date_timezone']),
     'all_day' => array('#type' => 'hidden', '#value' => 1),
@@ -151,27 +152,40 @@ function _date_repeat_rrule_process($element, $form_state, $form) {
     '#suffix' => '</div>',
   );
 
-  if (empty($form_state['num_exceptions'])) {
-    $form_state['num_exceptions'] = count($exceptions);
+  $parents = $element['#array_parents'];
+  $instance = implode('-', $parents);
+
+  // Make sure this will work right either in the normal form or in an ajax callback from the 'Add more' button.
+  if (empty($form_state['num_exceptions'][$instance])) {
+    $form_state['num_exceptions'][$instance] = count($exceptions);
   }
-  $max = empty($form_state['num_exceptions']) ? 1 : $form_state['num_exceptions'];
+  if ($form_state['num_exceptions'][$instance] == 0) {
+    $collapsed = TRUE;
+  }
+  else {
+    $collapsed = FALSE;
+  }
+ 
   $element['exceptions'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
-    '#collapsed' => empty($form_state['num_exceptions']) ? TRUE : FALSE,
+    '#collapsed' => $collapsed,
     '#title' => t('Except'),
     '#description' => t('Dates to omit from the list of repeating dates.'),
-    '#prefix' => '<div id="date-repeat-exceptions" class="date-repeat">',
+    '#prefix' => '<div id="date-repeat-exceptions-' . $instance . '" class="date-repeat">',
     '#suffix' => '</div>',
     );  
-  for ($i = 0; $i < $max; $i++) {
+  for ($i = 0; $i < max($form_state['num_exceptions'][$instance], 1) ; $i++) {
     $EXCEPT = '';
     if (!empty($exceptions[$i]['datetime'])) {
-      $EXCEPT = $exceptions[$i]['datetime'];
+      $ex_date = new DateObject($exceptions[$i]['datetime'], $exceptions[$i]['tz']);
+      date_timezone_set($ex_date, timezone_open($timezone));
+      $EXCEPT = date_format($ex_date, DATE_FORMAT_DATETIME);
     }
     $element['exceptions']['EXDATE'][$i] = array(
       '#tree' => TRUE,
       'datetime' => array(
+        '#name' => 'exceptions|' . $instance,
         '#type' => $element['#date_repeat_widget'],
         '#default_value' => !empty($EXCEPT) ? $EXCEPT : '0000-00-00 11:59:59',
         '#date_timezone' => !empty($element['#date_timezone']) ? $element['#date_timezone'] : date_default_timezone(),
@@ -179,6 +193,7 @@ function _date_repeat_rrule_process($element, $form_state, $form) {
         '#date_text_parts'  => !empty($element['#date_text_parts']) ? $element['#date_text_parts'] : array(),
         '#date_year_range'  => !empty($element['#date_year_range']) ? $element['#date_year_range'] : '-3:+3',
         '#date_label_position' => !empty($element['#date_label_position']) ? $element['#date_label_position'] : 'within',
+        '#date_flexible' => 0,
         ),
       'tz' => array('#type' => 'hidden', '#value' => $element['#date_timezone']),
       'all_day' => array('#type' => 'hidden', '#value' => 1),
@@ -187,34 +202,43 @@ function _date_repeat_rrule_process($element, $form_state, $form) {
   }
 
   // collect additions in the same way as exceptions - implements RDATE.
-  if (empty($form_state['num_additions'])) {
-    $form_state['num_additions'] = count($additions);
+  if (empty($form_state['num_additions'][$instance])) {
+    $form_state['num_additions'][$instance] = count($additions);
   }
-  $max = empty($form_state['num_additions']) ? 1 : $form_state['num_additions'];
+  if ($form_state['num_additions'][$instance] == 0) {
+    $collapsed = TRUE;
+  }
+  else {
+    $collapsed = FALSE;
+  }
   $element['additions'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
-    '#collapsed' => empty($form_state['num_additions']) ? TRUE : FALSE,
+    '#collapsed' => $collapsed,
     '#title' => t('Additional'),
     '#description' => t('Dates to add to the list of repeating dates.'),
-    '#prefix' => '<div id="date-repeat-additions" class="date-repeat">',
+    '#prefix' => '<div id="date-repeat-additions-' . $instance . '" class="date-repeat">',
     '#suffix' => '</div>',
     );
-  for ($i = 0; $i < $max; $i++) {
+  for ($i = 0; $i < max($form_state['num_additions'][$instance], 1) ; $i++) {
     $RDATE = '';
     if (!empty($additions[$i]['datetime'])) {
-      $RDATE = $additions[$i]['datetime'];
+      $rdate = new DateObject($additions[$i]['datetime'], $additions[$i]['tz']);
+      date_timezone_set($rdate, timezone_open($timezone));
+      $RDATE = date_format($rdate, DATE_FORMAT_DATETIME);
     }
     $element['additions']['RDATE'][$i] = array(
       '#tree' => TRUE,
       'datetime' => array(
         '#type' => $element['#date_repeat_widget'],
+        '#name' => 'additions|' . $instance,
         '#default_value' => $RDATE,
         '#date_timezone' => !empty($element['#date_timezone']) ? $element['#date_timezone'] : date_default_timezone(),
         '#date_format' => !empty($element['#date_format']) ? date_limit_format($element['#date_format'], array('year', 'month', 'day')) : 'Y-m-d',
         '#date_text_parts'  => !empty($element['#date_text_parts']) ? $element['#date_text_parts'] : array(),
         '#date_year_range'  => !empty($element['#date_year_range']) ? $element['#date_year_range'] : '-3:+3',
         '#date_label_position' => !empty($element['#date_label_position']) ? $element['#date_label_position'] : 'within',
+        '#date_flexible' => 0,
         ),
       'tz' => array('#type' => 'hidden', '#value' => $element['#date_timezone']),
       'all_day' => array('#type' => 'hidden', '#value' => 1),
@@ -224,25 +248,28 @@ function _date_repeat_rrule_process($element, $form_state, $form) {
 
   $element['exceptions']['exceptions_add'] = array(
     '#type' => 'submit',
+    '#name' => 'exceptions_add|' . $instance,
     '#value' => t('Add exception'),
     '#submit' => array('date_repeat_add_exception'),
+    '#limit_validation_errors' => array(),
     '#ajax' => array(
       'callback' => 'date_repeat_add_exception_callback',
-      'wrapper' => 'date-repeat-exceptions',
+      'wrapper' => 'date-repeat-exceptions-' . $instance,
     ),
   ); 
   $element['additions']['additions_add'] = array(
     '#type' => 'submit',
+    '#name' => 'additions_add|' . $instance,
     '#value' => t('Add addition'),
     '#submit' => array('date_repeat_add_addition'),
+    '#limit_validation_errors' => array(),
     '#ajax' => array(
       'callback' => 'date_repeat_add_addition_callback',
-      'wrapper' => 'date-repeat-additions',
+      'wrapper' => 'date-repeat-additions-' . $instance,
     ),
   ); 
 
   $element['#date_repeat_collapsed'] = !empty($rrule['INTERVAL']) || !empty($rrule['FREQ']) ? 0 : (!empty($element['#date_repeat_collapsed']) ? $element['#date_repeat_collapsed'] : 0);
-
   return $element;
 }
 
@@ -261,12 +288,16 @@ function date_repeat_add_addition_callback($form, &$form_state) {
 }
 
 function date_repeat_add_exception($form, &$form_state) {
-  $form_state['num_exceptions']++;
+  $parents = $form_state['triggering_element']['#array_parents'];
+  $instance = implode('-', array_slice($parents, 0, count($parents) - 2));
+  $form_state['num_exceptions'][$instance]++;
   $form_state['rebuild'] = TRUE;
 }
 
 function date_repeat_add_addition($form, &$form_state) {
-  $form_state['num_additions']++;
+  $parents = $form_state['triggering_element']['#array_parents'];
+  $instance = implode('-', array_slice($parents, 0, count($parents) - 2));
+  $form_state['num_additions'][$instance]++;
   $form_state['rebuild'] = TRUE;
 }
 
@@ -293,7 +324,7 @@ function date_repeat_merge($form_values, $element) {
   if (array_key_exists('UNTIL', $form_values) && is_array($form_values['UNTIL']['datetime'])) {
     $function = $element['#date_repeat_widget'] . '_input_date';
     $until_element = $element;
-    $until_element['#date_format'] = date_limit_format($element['#date_format'], array('year', 'month', 'day'));
+    $until_element['#date_format'] = !empty($element['#date_format']) ? date_limit_format($element['#date_format'], array('year', 'month', 'day')) : 'Y-m-d';
     $date = $function($until_element, $form_values['UNTIL']['datetime']);
     $form_values['UNTIL']['datetime'] = is_object($date) ? $date->format(DATE_FORMAT_DATETIME) : '';
   }
@@ -302,7 +333,7 @@ function date_repeat_merge($form_values, $element) {
     $exdate_element = $element;
     foreach ($form_values['EXDATE'] as $delta => $value) {
       if (is_array($value['datetime'])) {
-        $exdate_element['#date_format'] = date_limit_format($element['#date_format'], array('year', 'month', 'day'));
+        $exdate_element['#date_format'] = !empty($element['#date_format']) ? date_limit_format($element['#date_format'], array('year', 'month', 'day')) : 'Y-m-d';
         $date = $function($exdate_element, $form_values['EXDATE'][$delta]['datetime']);
         $form_values['EXDATE'][$delta]['datetime'] = is_object($date) ? $date->format(DATE_FORMAT_DATETIME) : '';
       }
@@ -313,7 +344,7 @@ function date_repeat_merge($form_values, $element) {
     $rdate_element = $element;
     foreach ($form_values['RDATE'] as $delta => $value) {
       if (is_array($value['datetime'])) {
-        $rdate_element['#date_format'] = date_limit_format($element['#date_format'], array('year', 'month', 'day'));
+        $rdate_element['#date_format'] = !empty($element['#date_format']) ? date_limit_format($element['#date_format'], array('year', 'month', 'day')) : 'Y-m-d';
         $form_values['RDATE'][$delta]['datetime'] = $function($rdate_element, $form_values['RDATE'][$delta]['datetime']);
       }
     }
@@ -374,7 +405,7 @@ function theme_date_repeat_current_additions($rows = array()) {
  */
 function theme_date_repeat_rrule($vars) {
   $element = $vars['element'];
-  $class = $element['#date_repeat_collapsed'] ? array('collapsible', 'collapsed') : array('collapsible');
+  $class = $element['#date_repeat_collapsed'] ? array('date-no-float', 'collapsible', 'collapsed') : array('date-no-float', 'collapsible');
   $fieldset = array(
     '#title' => t('Repeat'),
     '#value' => '',
@@ -382,9 +413,6 @@ function theme_date_repeat_rrule($vars) {
     '#attributes' => array('class' => $class),
     '#children' => $element['#children'],
   );
-  // Make sure we don't get floating parts where we don't want them.
-  $element['#prefix'] = '<div class="date-clear">';
-  $element['#suffix'] = '</div>';
 
   return theme('fieldset', array('element' => $fieldset));
 }

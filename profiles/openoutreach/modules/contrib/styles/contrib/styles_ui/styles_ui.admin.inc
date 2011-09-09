@@ -1,5 +1,4 @@
 <?php
-// $Id: styles_ui.admin.inc,v 1.1.2.8.2.18 2011/01/18 22:50:33 aaron Exp $
 
 /**
  *  @file
@@ -33,7 +32,7 @@ function styles_ui_containers_overview($field_type) {
     }
     else if ($style['storage'] == STYLES_STORAGE_OVERRIDE) {
       $row[] = array('data' => l(t('edit'), $edit_path));
-      $row[] = array('data' => l(t('revert'), $field_containers['admin']['path'] . '/revert/' . $style_name));
+      $row[] = array('data' => l(t('revert'), $field_containers['admin']['path'] . '/delete/' . $style_name));
     }
     else {
       $row[] = array('data' => l(t('edit'), $edit_path), 'colspan' => 2);
@@ -304,4 +303,52 @@ function styles_ui_preview_ajax($field_type, $container_name, $preset_name) {
     'preview' => theme($containers[$container_name]['themes']['preview'], array('field_type' => $field_type, 'container_name' => $container_name, 'style_name' => $preset_name)),
   ));
   die();
+}
+
+/**
+ * Menu callback; delete a style.
+ */
+function styles_ui_delete_confirm($form, &$form_state, $field_type, $style_name) {
+  $form['field_type'] = array(
+    '#type' => 'value',
+    '#value' => $field_type,
+  );
+  $form['style_name'] = array(
+    '#type' => 'value',
+    '#value' => $style_name,
+  );
+
+  $styles = styles_default_styles($field_type);
+  $style = $styles['styles'][$style_name];
+  if ($style['storage'] == STYLES_STORAGE_OVERRIDE) {
+    $delete = 'revert';
+  }
+  else {
+    $delete = 'delete';
+  }
+
+  $caption = '<p>' . t('This action cannot be undone.') . '</p>';
+
+  $containers = styles_default_containers($field_type);
+  $cancel_path = $containers['admin']['path'];
+  $form['containers'] = array(
+    '#type' => 'value',
+    '#value' => $containers,
+  );
+
+  $message = t('Are you sure you want to @delete the %field_type style %style_name?', array('@delete' => $delete, '%field_type' => $field_type, '%style_name' => $style_name));
+
+  return confirm_form($form, $message, $cancel_path, $caption, t('@delete', array('@delete' => ucfirst($delete))));
+}
+
+/**
+ * Process style delete confirm submissions.
+ */
+function styles_ui_delete_confirm_submit($form, &$form_state) {
+  $field_type = $form_state['values']['field_type'];
+  $style_name = $form_state['values']['style_name'];
+  $containers = styles_default_containers($field_type);
+  styles_style_delete($field_type, $style_name);
+  // Redirect to this style's edit page.
+  $form_state['redirect'] = $containers['admin']['path'];
 }

@@ -26,13 +26,16 @@
 //dsm('Display: '. $display_type .': '. $min_date_formatted .' to '. $max_date_formatted);
 //dsm($rows);
 //dsm($items);
+$index = 0;
 ?>
 
 <div class="calendar-calendar"><div class="week-view">
-<table>
+<table class="full">
   <thead>
     <tr>
-      <th class="calendar-agenda-hour"><?php print $by_hour_count > 0 ? t('Time') : ''; ?></th>
+      <?php if($by_hour_count > 0 || !empty($start_times)) :?>
+      <th class="calendar-agenda-hour"><?php print t('Time')?></th>
+      <?php endif;?>
       <?php foreach ($day_names as $cell): ?>
         <th class="<?php print $cell['class']; ?>">
           <?php print $cell['data']; ?>
@@ -41,39 +44,80 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td class="<?php print $agenda_hour_class ?>">
-         <span class="calendar-hour"><?php print $by_hour_count > 0 ? t('All day', array(), array('context' => 'datetime')) : ''; ?></span>
-       </td>
-      <?php foreach ($rows as $day): ?>
-       <td class="calendar-agenda-items">
-         <?php print $day['datebox']; ?>
-         <div class="calendar">
-         <div class="inner">
-           <?php print array_key_exists('all_day', $day) && count($day['all_day']) ? implode($day['all_day']) : '&nbsp;';?>
-         </div>
-         </div>
-       </td>
-      <?php endforeach; ?>  
-    </tr>
-    <?php foreach ($items as $time): ?>
-      <tr>
-        <td class="calendar-agenda-hour">
-        <span class="calendar-hour"><?php print $time['hour']; ?></span>
-        <span class="calendar-ampm"><?php print $time['ampm']; ?></span>
+    <?php for ($i = 0; $i < $multiday_rows; $i++): ?>
+    <?php 
+      $colpos = 0; 
+      $rowclass = "all-day";
+      if( $i == 0) {
+        $rowclass .= " first";
+      }
+      if( $i == $multiday_rows - 1) {
+        $rowclass .= " last";
+      }
+    ?>
+    <tr class="<?php print $rowclass?>">
+      <?php if($i == 0 && ($by_hour_count > 0 || !empty($start_times))) :?>
+      <td class="<?php print $agenda_hour_class ?>" rowspan="<?php print $multiday_rows?>">
+        <span class="calendar-hour"><?php print t('All day', array(), array('context' => 'datetime'))?></span>
       </td>
-      <?php foreach ($columns as $column): ?>
-        <td class="calendar-agenda-items">
+      <?php endif; ?>
+      <?php for($j = 0; $j < 6; $j++): ?>
+        <?php $cell = (empty($all_day[$j][$i])) ? NULL : $all_day[$j][$i]; ?>
+        <?php if($cell != NULL && $cell['filled'] && $cell['wday'] == $j): ?>
+          <?php for($k = $colpos; $k < $cell['wday']; $k++) : ?>
+          <td class="multi-day no-entry"><div class="inner">&nbsp;</div></td>
+          <?php endfor;?>
+          <td colspan="<?php print $cell['colspan']?>" class="multi-day">
+            <div class="inner">
+            <?php print $cell['entry']?>
+            </div>
+          </td>
+          <?php $colpos = $cell['wday'] + $cell['colspan']; ?>
+        <?php endif; ?>
+      <?php endfor; ?>  
+      <?php for($j = $colpos; $j < 7; $j++) : ?>
+      <td class="multi-day no-entry"><div class="inner">&nbsp;</div></td>
+      <?php endfor;?>
+    </tr>
+    <?php endfor; ?>  
+    <?php foreach ($items as $time): ?>
+    <tr class="not-all-day">
+      <td class="calendar-agenda-hour">
+        <span class="calendar-hour"><?php print $time['hour']; ?></span>
+      <span class="calendar-ampm"><?php print $time['ampm']; ?></span>
+      </td>
+      <?php $curpos = 0; ?>
+      <?php foreach ($columns as $index => $column): ?>
+        <?php $colpos = (isset($time['values'][$column][0])) ? $time['values'][$column][0]['wday'] : $index; ?>
+        <?php for ($i = $curpos; $i < $colpos; $i++): ?>
+        <td class="calendar-agenda-items single-day">
+          <div class="calendar">
+            <div class="inner">&nbsp</div>
+          </div>
+        </td>
+        <?php endfor; ?>   
+        <?php $curpos = $colpos + 1;?>
+        <td class="calendar-agenda-items single-day">
           <div class="calendar">
           <div class="inner">
-            <?php print isset($time['values'][$column]) ? implode($time['values'][$column]) : '&nbsp;'; ?>
+            <?php if(!empty($time['values'][$column])) :?>
+              <?php foreach($time['values'][$column] as $item) :?>
+                <?php print $item['entry'] ?>
+              <?php endforeach; ?>
+            <?php endif; ?>
           </div>
           </div>
         </td>
       <?php endforeach; ?>   
+      <?php for ($i = $curpos; $i < 7; $i++): ?>
+        <td class="calendar-agenda-items single-day">
+          <div class="calendar">
+            <div class="inner">&nbsp</div>
+          </div>
+        </td>
+      <?php endfor; ?>   
     </tr>
    <?php endforeach; ?>   
-
   </tbody>
 </table>
 </div></div>

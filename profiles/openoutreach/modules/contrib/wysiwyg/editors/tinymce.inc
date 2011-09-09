@@ -178,7 +178,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
     $settings['remove_linebreaks'] = $config['remove_linebreaks'];
   }
   if (isset($config['verify_html'])) {
-    $settings['verify_html'] = $config['verify_html'];
+    $settings['verify_html'] = (bool) $config['verify_html'];
   }
 
   if (!empty($config['css_classes'])) {

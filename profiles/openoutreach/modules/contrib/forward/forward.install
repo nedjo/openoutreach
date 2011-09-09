@@ -14,7 +14,10 @@ function forward_install() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.;
   // drupal_install_schema('forward');
   variable_set('forward_theme_template', 1);
-  variable_set('mail_system', array('default-system' => 'DefaultMailSystem', 'forward' => 'ForwardMailSystem'));
+
+  $mail_systems = variable_get('mail_system', array('default-system' => 'DefaultMailSystem'));
+  $mail_systems['forward'] = 'ForwardMailSystem';
+  variable_set('mail_system', $mail_systems);
 }
 
 
@@ -36,7 +39,10 @@ function forward_uninstall() {
       variable_del($key);
     }
   }
-  variable_set('mail_system', array('default-system' => 'DefaultMailSystem'));
+
+  $mail_systems = variable_get('mail_system', array('default-system' => 'DefaultMailSystem'));
+  unset($mail_systems['forward']);
+  variable_set('mail_system', $mail_systems);
 }
 
 

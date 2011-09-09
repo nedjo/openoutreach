@@ -1,0 +1,14 @@
+.jcarousel-skin-default .jcarousel-container-horizontal {
+  width: 550px;
+  height: auto;
+}
+
+.jcarousel-skin-default .jcarousel-clip-horizontal {
+  width: 550px;
+  height: auto;
+}
+
+.jcarousel-skin-default .jcarousel-item-horizontal {
+  height: 180px;
+}
+

@@ -91,7 +91,7 @@ function german_services_service_links() {
   $links['_de_xing'] = array(
     'name' => 'Xing',
     'description' => t('Share on Xing.'),
-    'link' => 'http://www.xing.com/app/user?op=share;url=<encoded-url>?wtmc=XING;title=<encoded-title>',
+    'link' => 'https://www.xing.com/app/user?op=share&url=<raw-encoded-url>',
   );
 
   return $links;

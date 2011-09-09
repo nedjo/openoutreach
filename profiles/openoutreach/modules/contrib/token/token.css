@@ -16,3 +16,8 @@
 .js .token-group {
   font-weight: normal;
 }
+
+/* Prevent the token columns from being wrapped. */
+.token-tree td.token-key {
+  white-space: nowrap;
+}

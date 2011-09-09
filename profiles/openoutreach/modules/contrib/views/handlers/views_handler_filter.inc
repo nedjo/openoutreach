@@ -229,7 +229,7 @@ class views_handler_filter extends views_handler {
       '#attributes' => array('class' => array('js-only')),
     );
     $form['expose_button']['checkbox']['checkbox'] = array(
-      '#title' => t('Expose this filter to visitors, to allow them to change it.'),
+      '#title' => t('Expose this filter to visitors, to allow them to change it'),
       '#type' => 'checkbox',
     );
 
@@ -274,6 +274,12 @@ class views_handler_filter extends views_handler {
         '#type' => 'checkbox',
         '#title' => t('Required'),
         '#default_value' => $this->options['expose']['required'],
+      );
+    }
+    else {
+      $form['expose']['required'] = array(
+        '#type' => 'value',
+        '#value' => TRUE,
       );
     }
     $form['expose']['label'] = array(
@@ -453,6 +459,10 @@ class views_handler_filter extends views_handler {
       $any_label = variable_get('views_exposed_filter_any_label', 'new_any') == 'old_any' ? t('<Any>') : t('- Any -');
       $form['#options'] = array('All' => $any_label) + $form['#options'];
       $form['#default_value'] = 'All';
+    }
+
+    if (!empty($this->options['expose']['required'])) {
+      $form['#required'] = TRUE;
     }
   }
 

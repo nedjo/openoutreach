@@ -1,5 +1,4 @@
 <?php
-// $Id: file_styles.install,v 1.1.2.2.2.7 2011/01/12 21:49:17 aaron Exp $
 
 /**
  * @file styles/contrib/file_styles/file_styles.install
@@ -124,5 +123,33 @@ function file_styles_update_7203() {
  * Add new presets.
  */
 function file_styles_update_7206() {
+  return array();
+}
+
+/**
+ * Fix presets to use camelCase and honor links to media.
+ */
+function file_styles_update_7207() {
+  return array();
+}
+
+/**
+ * Fetch any image styles for use as new presets and register new hooks.
+ */
+function file_styles_update_7208() {
+  return array();
+}
+
+/**
+ * Fix any broken custom image styles.
+ */
+function file_styles_update_7209() {
+  return array();
+}
+
+/**
+ * Add support for media objects.
+ */
+function file_styles_update_7210() {
   return array();
 }

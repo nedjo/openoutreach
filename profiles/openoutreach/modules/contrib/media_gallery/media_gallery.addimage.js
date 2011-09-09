@@ -25,7 +25,7 @@ Drupal.media_gallery.add_media = function (mediaFiles) {
     //console.warn('Error: Media not added.');
   };
 
-  var src = Drupal.settings.basePath + 'media-gallery/add-images/' + Drupal.settings.mediaGalleryNid + '/' + Drupal.settings.mediaGalleryToken;
+  var src = Drupal.settings.mediaGalleryAddImagesUrl;
 
   var media = [];
 

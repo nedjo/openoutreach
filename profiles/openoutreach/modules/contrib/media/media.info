@@ -1,28 +1,18 @@
-
 name = Media
 description = Provides the core Media API
 package = Media
 core = 7.x
-php = 5.2
-files[] = media.install
-files[] = media.module
-files[] = includes/media.admin.inc
-files[] = includes/media.theme.inc
-files[] = includes/media.types.inc
-files[] = includes/MediaReadOnlyStreamWrapper.inc
-; Tests
-files[] = test/media.types.test
-files[] = test/media.entity.test
-files[] = test/media.filter.test
-dependencies[] = file
+dependencies[] = file_entity
 dependencies[] = image
-dependencies[] = file_styles
-
+files[] = includes/MediaReadOnlyStreamWrapper.inc
+files[] = tests/media.test
+files[] = tests/media.types.test
+files[] = tests/media.entity.test
 testing_api = 2.x
 
-; Information added by drupal.org packaging script on 2011-04-27
-version = "7.x-1.0-beta4"
+; Information added by drupal.org packaging script on 2011-08-10
+version = "7.x-2.0-unstable1"
 core = "7.x"
 project = "media"
-datestamp = "1303923717"
+datestamp = "1312988220"
 

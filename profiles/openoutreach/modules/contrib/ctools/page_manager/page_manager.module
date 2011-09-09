@@ -1128,7 +1128,7 @@ function page_manager_page_manager_pages_to_hook_code($names = array(), $name = 
       $code .= $export['export callback']($object, TRUE, '  ');
       $code .= "  \${$export['identifier']}s['" . check_plain($object->$export['key']) . "'] = \${$export['identifier']};\n\n";
     }
-    $code .= " return \${$export['identifier']}s;\n";
+    $code .= "  return \${$export['identifier']}s;\n";
     $code .= "}\n";
     return $code;
   }

@@ -346,8 +346,8 @@ class views_plugin_display_page extends views_plugin_display {
             '#type' => 'select',
             '#options' => menu_get_menus(),
             '#default_value' => $menu['name'],
-            '#description' => t('Insert item into an available menu.'), //
-            '#dependency' => array('radio:menu[type]' => array('normal')),
+            '#description' => t('Insert item into an available menu.'),
+            '#dependency' => array('radio:menu[type]' => array('normal', 'tab')),
           );
         }
         else {
@@ -521,6 +521,13 @@ class views_plugin_display_page extends views_plugin_display {
       'filter value not present' => t('When the filter value is <em>NOT</em> in the URL'),
       'filter value present' => t('When the filter value <em>IS</em> in the URL or a default is provided'),
       'description' => t('The contextual filter values is provided by the URL.'),
+    );
+  }
+
+  function get_pager_text() {
+    return array(
+      'items per page title' => t('Items per page'),
+      'items per page description' => t('The number of items to display per page. Enter 0 for no limit.')
     );
   }
 }

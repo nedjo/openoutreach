@@ -118,7 +118,19 @@ class views_plugin_argument_validate_user extends views_plugin_argument_validate
     }
 
     $this->argument->argument = $account->uid;
-    $this->argument->validated_title = check_plain($account->name);
+    $this->argument->validated_title = isset($account->name) ? check_plain($account->name) : check_plain(variable_get('anonymous', t('Anonymous')));
     return TRUE;
+  }
+
+  function process_summary_arguments(&$args) {
+    // If the validation says the input is an username, we should reverse the
+    // argument so it works for example for generation summary urls.
+    $uids_arg_keys = array_flip($args);
+    if ($this->options['type'] == 'name') {
+      $users = user_load_multiple($args);
+      foreach ($users as $uid => $account) {
+        $args[$uids_arg_keys[$uid]] = $account->name;
+      }
+    }
   }
 }

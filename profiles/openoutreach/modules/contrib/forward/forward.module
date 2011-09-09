@@ -67,7 +67,7 @@ function forward_menu() {
     'type'             => MENU_NORMAL_ITEM
   );
   $items['admin/config/user-interface/forward'] = array(
-    'description'      => t('Configure settings for forward module.'),
+    'description'      => 'Configure settings for forward module.',
     'title'            => 'Forward',
     'page callback'    => 'drupal_get_form',
     'page arguments'   => array('forward_admin_settings'),
@@ -332,16 +332,15 @@ function forward_admin_settings($form, &$form_state) {
     '#title' => t('Include full node'),
     '#return_value' => 1,
     '#default_value' => variable_get('forward_full_body', FALSE),
-    '#description' => t('If checked, Forward will include the full node instead of just the teaser'),
+    '#description' => t('If checked, Forward will include the full body of the node rather than just the teaser'),
   );
-  $form['forward_email_defaults']['forward_full_display'] = array(
+  $form['forward_email_defaults']['forward_custom_viewmode'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Include all fields from display'),
+    '#title' => t('Use custom display'),
     '#return_value' => 1,
-    '#default_value' => variable_get('forward_full_display', FALSE),
-    '#description' => t('If checked, Forward will include all fields from the display view mode (full or teaser, as set above) instead of just the body field'),
+    '#default_value' => variable_get('forward_custom_viewmode', FALSE),
+    '#description' => t('If checked, Forward will use a custom view mode named "Forward" to build the node, if available (clear cache twice after enabling this option)'),
   );
-
 
   // Forward Form Default Values
 
@@ -378,7 +377,7 @@ function forward_admin_settings($form, &$form_state) {
   );
   $form['forward_epostcard_defaults']['forward_ad_footer'] = array(
     '#type' => 'textarea',
-    '#title' => t('Oranization Ad'),
+    '#title' => t('Organization Ad'),
     '#default_value' => variable_get('forward_ad_footer', " "),
     '#cols' => 40,
     '#rows' => 10,
@@ -435,7 +434,6 @@ function forward_admin_settings_submit($form, &$form_state) {
     }
   }
   unset($form_state['values']['forward_display_types']);
-  system_settings_form_submit($form, $form_state);
 }
 
 
@@ -469,7 +467,12 @@ function forward_tracker() {
     ))
     ->execute();
 
-  drupal_goto(drupal_get_path_alias($form_state['values']['path']));
+  if (!url_is_external($form_state['values']['path'])) {
+    drupal_goto(drupal_get_path_alias($form_state['values']['path']));
+  }
+  else {
+    drupal_goto();
+  }
 }
 
 
@@ -490,6 +493,9 @@ function forward_page() {
   $nid = NULL;
   if (empty($_GET['path']) || ($_GET['path'] == 'node/0')) {
     return t('No path was selected to forward');
+  }
+  if (url_is_external($_GET['path'])) {
+    return t('You cannot forward an external URL.');
   }
 
   if (!empty($_GET['path'])) {
@@ -529,7 +535,7 @@ function forward_page() {
       $cid = '?cid=' . $_GET['cid'];
       $form_state['values']['path'] .= $cid;
     }
-		drupal_set_title(t(variable_get('forward_email_title', 'Forward this page to a friend')));
+    drupal_set_title(t(variable_get('forward_email_title', 'Forward this page to a friend')));
   }
 
   return drupal_get_form('forward_form', $form_state['values']['path'], $node->title);
@@ -560,7 +566,7 @@ function forward_form($form, &$form_state, $path = NULL, $title = NULL, $nodeapi
       '#description' => '',
       '#collapsed' => TRUE,
       '#collapsible' => TRUE,
-			'#weight' => 10,
+      '#weight' => 10,
     );
   }
   $form['message']['instructions'] = array(
@@ -633,29 +639,29 @@ function forward_form($form, &$form_state, $path = NULL, $title = NULL, $nodeapi
     '#type' => 'hidden',
     '#value' => variable_get('forward_footer', ''),
   );
-	if ($nodeapi) {
-		// When using a collapsible form on the node page, move submit button into fieldset
-		$form['message']['actions'] = array('#type' => 'actions');
-		$form['message']['actions']['submit'] = array(
-			'#type' => 'submit',
-			'#value' => t('Send Message'),
-		);
-	} else {
-		// When using a separate form page, use actions directly so Mollom knows where to place its content
-		$form['actions'] = array('#type' => 'actions');
-		$form['actions']['submit'] = array(
-			'#type' => 'submit',
-			'#value' => t('Send Message'),
-		);
-	}
+  if ($nodeapi) {
+    // When using a collapsible form on the node page, move submit button into fieldset
+    $form['message']['actions'] = array('#type' => 'actions');
+    $form['message']['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Send Message'),
+    );
+  } else {
+    // When using a separate form page, use actions directly so Mollom knows where to place its content
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Send Message'),
+    );
+  }
 
   if ($user->uid != 0) {
-    //$form['message']['email']['#default_value'] = $user->mail;
-
-    //$form['message']['email']['#disabled'] = TRUE;
-
-    $form['message']['email']['#type'] = 'hidden';
-    $form['message']['email']['#value'] = $user->mail;
+    if (user_access('override email address')) {
+      $form['message']['email']['#default_value'] = $user->mail;
+    } else {
+      $form['message']['email']['#type'] = 'hidden';
+      $form['message']['email']['#value'] = $user->mail;
+    }
     $form['message']['name']['#default_value'] = $user->name;
   }
 
@@ -810,21 +816,22 @@ function forward_form_submit($form, &$form_state) {
         return drupal_access_denied();
       }
       //dsm($content);
-      if (variable_get('forward_full_display', FALSE)) {
-        $node = $content;
-        $node->content = array();
-        $view_mode = variable_get('forward_full_body', FALSE) ? 'full' : 'teaser';
-        $langcode = $GLOBALS['language_content']->language;
+      $node = $content;
+      $node->content = array();
+      $langcode = $GLOBALS['language_content']->language;
+      if (variable_get('forward_custom_viewmode', FALSE)) {
+        $view_mode = 'forward';
         field_attach_prepare_view('node', array($node->nid => $node), $view_mode);
         entity_prepare_view('node', array($node->nid => $node));
         $node->content += field_attach_view('node', $node, $view_mode, $langcode);
         $content->teaser = render($node->content);
-      } else {
-        if (isset($content->body[LANGUAGE_NONE][0])) {
-          $content->teaser = check_markup((variable_get('forward_full_body', FALSE)) ? $content->body[LANGUAGE_NONE][0]['value'] : $content->body[LANGUAGE_NONE][0]['summary'], $content->body[LANGUAGE_NONE][0]['format'], $langcode = '' /* TODO Set this variable. */, FALSE);
-        } else {
-          $content->teaser = '';
-        }
+      }
+      if (empty($content->teaser)) {
+        $view_mode = variable_get('forward_full_body', FALSE) ? 'full' : 'teaser';
+        field_attach_prepare_view('node', array($node->nid => $node), $view_mode);
+        entity_prepare_view('node', array($node->nid => $node));
+        $node->content += field_attach_view('node', $node, $view_mode, $langcode);
+        $content->teaser = render($node->content);
       }
     }
     else {
@@ -837,13 +844,18 @@ function forward_form_submit($form, &$form_state) {
       // Adapted from index.php.
 
       $content = new stdClass();
-      $content->body = menu_execute_active_handler();
+      $content->body = menu_execute_active_handler(NULL, FALSE);
       $content->title = menu_get_active_title();
 
       // It may happen that a drupal_not_found is called in the above call
 
-      if (preg_match('/404 Not Found/', drupal_get_http_header()) == 1) {
-        return;
+      $headers = drupal_get_http_header();
+      if ($headers) {
+        foreach ($headers as $header) {
+          if (preg_match('/404 Not Found/', $header) == 1) {
+            return;
+          }
+        }
       }
 
       switch ($content->body) {
@@ -856,6 +868,7 @@ function forward_form_submit($form, &$form_state) {
       }
       $content->teaser = '';
       $content->body = '';
+      $content->type = '';
     }
   }
 
@@ -944,7 +957,7 @@ function forward_form_submit($form, &$form_state) {
       ->fields(array(
         'last_forward_timestamp' => REQUEST_TIME,
       ))
-			->expression('forward_count', 'forward_count + 1')
+      ->expression('forward_count', 'forward_count + 1')
       ->condition('nid', $nid)
       ->execute();
   }
@@ -1003,6 +1016,17 @@ function template_preprocess_forward(&$variables) {
   }
 }
 
+/**
+* Implements hook_entity_info_alter().
+*/
+function forward_entity_info_alter(&$entity_info) {
+  if (variable_get('forward_custom_viewmode', FALSE)) {
+    $entity_info['node']['view modes']['forward'] = array(
+      'label' => t('Forward'),
+      'custom settings' => TRUE,
+    );
+  }
+}
 
 /**
  * Implements hook_mollom_form_list().
@@ -1025,7 +1049,6 @@ function forward_mollom_form_info($form_id) {
         'bypass access' => array('administer forward'),
         'mail ids' => array('forward_forward_page'),
         'elements' => array(
-          'recipients' => t('Recipients'),
           'message' => t('Personal Message'),
         ),
         'mapping' => array(
@@ -1075,7 +1098,7 @@ function forward_node_view($node, $view_mode) {
   if (user_access('access forward') && variable_get('forward_display_' . $node->type, '1')) {
     if (variable_get('forward_form_type', 'link') == 'link') {
       $links = array();
-  
+
       // This var is set in the settings section under the admin/modules/forward section
 
       // It shows 'email this $nodetype' or 'email this page'
@@ -1112,7 +1135,7 @@ function forward_node_view($node, $view_mode) {
         );
       }
     }
-    else if ((variable_get('forward_form_type', 'link') == 'form') && (!isset($node->in_preview)) && ((($view_mode == 'teaser') && variable_get('forward_display_teasers', 0)) || (($view_mode == 'full') && variable_get('forward_display_nodes', 1)))) {
+    elseif ((variable_get('forward_form_type', 'link') == 'form') && (!isset($node->in_preview)) && ((($view_mode == 'teaser') && variable_get('forward_display_teasers', 0)) || (($view_mode == 'full') && variable_get('forward_display_nodes', 1)))) {
       $output = drupal_get_form('forward_form', 'node/' . $node->nid, $node->title, TRUE);
       $node->content['forward'] = $output;
     }

@@ -1,5 +1,4 @@
 <?php
-// $Id: media_youtube.variables.inc,v 1.1.4.4 2011/01/11 18:40:39 aaron Exp $
 
 /**
  * @file media_youtube/includes/media_youtube.variables.inc

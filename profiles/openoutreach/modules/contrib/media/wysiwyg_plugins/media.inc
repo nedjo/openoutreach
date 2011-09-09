@@ -1,8 +1,8 @@
 <?php
 
 /**
- *  @file
- *  Define the WYSIWYG browser plugin.
+ * @file
+ * Define the WYSIWYG browser plugin.
  */
 
 /**
@@ -19,11 +19,11 @@ function media_media_plugin() {
   $plugins['media'] = array(
     'title' => t(media_variable_get('wysiwyg_title')),
     'vendor url' => 'http://drupal.org/project/media',
-    'icon path' => drupal_get_path('module','media').'/images/',
+    'icon path' => drupal_get_path('module', 'media') . '/images',
     'icon file' => 'wysiwyg-media.gif',
     'icon title' => t(media_variable_get('wysiwyg_icon_title')),
     // @todo: move this to the plugin directory for the wysiwyg plugin.
-    'js path' => drupal_get_path('module','media').'/js/',
+    'js path' => drupal_get_path('module', 'media') . '/js',
     'js file' => 'wysiwyg-media.js',
     'css file' => NULL,
     'css path' => NULL,
@@ -33,9 +33,9 @@ function media_media_plugin() {
         'id' => 'media_wysiwyg',
       ),
     ),
-   );
+  );
 
-   return $plugins;
+  return $plugins;
 }
 
 /**
@@ -62,6 +62,6 @@ function media_include_browser_js() {
     }
   }
   // Add wysiwyg-specific settings.
-  $settings = array('blacklist' => array('src','fid','view_mode','format'));
+  $settings = array('blacklist' => array('src', 'fid', 'view_mode', 'format'));
   drupal_add_js(array('media' => $settings), 'setting');
 }

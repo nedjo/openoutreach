@@ -151,10 +151,9 @@ function page_manager_term_view_get_arguments($task, $subtask_id) {
   return array(
     array(
       'keyword' => 'term',
-      'identifier' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? t('Term(s) being viewed') : t('Term being viewed'),
+      'identifier' => page_manager_term_view_get_type() == 'multiple' ? t('Term(s) being viewed') : t('Term being viewed'),
       'id' => 1,
-      //'name' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? 'terms' : 'term',
-      'name' => variable_get('page_manager_term_view_type', 'multiple') == 'multiple' ? 'terms' : 'term',
+      'name' => page_manager_term_view_get_type() == 'multiple' ? 'terms' : 'term',
       'settings' => array('input_form' => 'tid', 'breadcrumb' => variable_get('page_manager_taxonomy_breadcrumb', TRUE)),
       'default' => '404',
     ),
@@ -208,7 +207,7 @@ function page_manager_term_view_save($subtask, $cache) {
 function page_manager_term_view_admin_settings($form, $settings = array()) {
   if (empty($settings)) {
     $settings = array(
-      'page_manager_term_view_type' => variable_get('page_manager_term_view_type', 'multiple'),
+      'page_manager_term_view_type' => page_manager_term_view_get_type(),
       'page_manager_taxonomy_breadcrumb' => variable_get('page_manager_taxonomy_breadcrumb', TRUE),
     );
   }
@@ -217,8 +216,10 @@ function page_manager_term_view_admin_settings($form, $settings = array()) {
     '#type' => 'radios',
     '#title' => t('Allow multiple terms on taxonomy/term/%term'),
     '#options' => array('single' => t('Single term'), 'multiple' => t('Multiple terms')),
-    '#description' => t('By default, Drupal allows multiple terms as an argument by separating them with commas or plus signs. If you set this to single, that feature will be disabled.'),
+    '#description' => t('By default, Drupal allows multiple terms as an argument by separating them with commas or plus signs. If you set this to single, that feature will be disabled.') . ' ' . t('This feature does not currently work and is disabled.'),
     '#default_value' => $settings['page_manager_term_view_type'],
+    // @todo -- fix this
+    '#disabled' => TRUE,
   );
   $form['page_manager_taxonomy_breadcrumb'] = array(
     '#title' => t('Inject hierarchy of first term into breadcrumb trail'),
@@ -241,6 +242,14 @@ function page_manager_term_view_enable($cache, $status) {
   if (!$status) {
     $GLOBALS['page_manager_enabling_term_view'] = TRUE;
   }
+}
+
+function page_manager_term_view_get_type() {
+//  $view_type = variable_get('page_manager_term_view_type', 'multiple');
+  // Revert to just allowing single.
+  $view_type = 'single';
+
+  return $view_type;
 }
 
 /**
@@ -270,7 +279,7 @@ function page_manager_term_view_admin_summary($task, $subtask) {
     array('class' => array('page-summary-operation'), 'data' => ''),
   );
 
-  if (variable_get('page_manager_term_view_type', 'multiple') == 'multiple') {
+  if (page_manager_term_view_get_type() == 'multiple') {
     $message = t('Multiple terms may be used, separated by , or +.');
   }
   else {
@@ -299,3 +308,4 @@ function page_manager_term_view_admin_summary($task, $subtask) {
   $output = theme('table', array(), $rows, array('id' => 'page-manager-page-summary'));
   return $output;
 }
+

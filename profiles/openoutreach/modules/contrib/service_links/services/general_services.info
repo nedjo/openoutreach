@@ -1,5 +1,5 @@
 name = General Services
-description = Provide the Services: Blinklist, Box, del.icio.us, Digg, Diigo, Facebook, Furl, Google Bookmark, Google Buzz, Icerocket, Identi.ca, Linkedin, Mister Wong, Mixx, MySpace, Newsvine, Newskicks, Phing this, Propeller, Reddit, StumbleUpon, Technorati, Technorati favorite, Twitter, Yahoo Bookmark, Yahoo Buzz
+description = Provide the Services: Blinklist, Box, del.icio.us, Digg, Diigo, Facebook, Furl, Google Bookmark, Google Buzz, Icerocket, Identi.ca, Linkedin, Mister Wong, Mixx, MySpace, Newsvine, Newskicks, Phing this, Reddit, StumbleUpon, Technorati, Technorati favorite, Twitter, Yahoo Bookmark
 core = 7.x
 package = Service Links
 dependencies[] = service_links
@@ -7,9 +7,9 @@ dependencies[] = service_links
 version = VERSION
 files[] = general_services.module
 
-; Information added by drupal.org packaging script on 2011-04-04
+; Information added by drupal.org packaging script on 2011-08-24
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "service_links"
-datestamp = "1301919206"
+datestamp = "1314189267"
 

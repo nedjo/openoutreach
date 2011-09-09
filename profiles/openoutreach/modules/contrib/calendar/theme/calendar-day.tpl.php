@@ -30,12 +30,12 @@
 //dsm('Display: '. $display_type .': '. $min_date_formatted .' to '. $max_date_formatted);
 ?>
 <div class="calendar-calendar"><div class="day-view">
-<table>
+<table class="full">
   <col width="<?php print $first_column_width?>"></col>
-  <?php foreach ($columns as $column): ?>
-  <col width="<?php print $column_width; ?>%"></col>
-  <?php endforeach; ?>
   <thead>
+    <?php foreach ($columns as $column): ?>
+    <col width="<?php print $column_width; ?>%"></col>
+    <?php endforeach; ?>
     <tr>
       <th class="calendar-dayview-hour"><?php print $by_hour_count > 0 ? t('Time') : ''; ?></th>
       <?php foreach ($columns as $column): ?>
@@ -49,7 +49,7 @@
          <span class="calendar-hour"><?php print $by_hour_count > 0 ? t('All day', array(), array('context' => 'datetime')) : ''; ?></span>
        </td>
       <?php foreach ($columns as $column): ?>
-       <td class="calendar-agenda-items">
+       <td class="calendar-agenda-items multi-day">
          <div class="calendar">
          <div class="inner">
            <?php print isset($rows['all_day'][$column]) ? implode($rows['all_day'][$column]) : '&nbsp;';?>
@@ -65,7 +65,7 @@
         <span class="calendar-ampm"><?php print $hour['ampm']; ?></span>
       </td>
       <?php foreach ($columns as $column): ?>
-        <td class="calendar-agenda-items">
+        <td class="calendar-agenda-items single-day">
           <div class="calendar">
           <div class="inner">
             <?php print isset($hour['values'][$column]) ? implode($hour['values'][$column]) : '&nbsp;'; ?>

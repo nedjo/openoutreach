@@ -1,5 +1,4 @@
 <?php
-// $Id: styles_ui.install,v 1.1.2.4 2010/10/26 15:55:26 aaron Exp $
 
 /**
  * @file styles/contrib/styles_ui/styles_ui.install
@@ -39,7 +38,7 @@ function styles_ui_update_7201() {
 /**
  * Change menu.
  */
-function styles_ui_update_7203() {
+function styles_ui_update_7206() {
   menu_rebuild();
   return array();
 }

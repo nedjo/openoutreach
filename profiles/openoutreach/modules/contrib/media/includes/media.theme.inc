@@ -80,7 +80,7 @@ function theme_media_browser_content_frame($variables) {
   $html = array();
 
   // On the first invocation, load javascript and build the browser frame
-   if ($invoke) {
+  if ($invoke) {
 
 
   }
@@ -283,8 +283,8 @@ function theme_media_thumbnail($variables) {
 
   // Arguments for the thumbnail link
   $thumb = $element['#children'];
-  $target = 'media/' . $element['#object']->fid . '/edit';
-  $options = array('query' => $destination, 'html' => true, 'attributes' => array('title' => t('Click to edit details')));
+  $target = 'media/' . $element['#file']->fid . '/edit';
+  $options = array('query' => $destination, 'html' => TRUE, 'attributes' => array('title' => t('Click to edit details')));
 
   // Element should be a field renderable array... This is a little wonky - admitted.
   if (!empty($element['#show_names']) && $element['#name']) {
@@ -310,7 +310,7 @@ function template_preprocess_media_thumbnail(&$variables) {
   // Set the name for the thumbnail to be the filename.  This is done here so
   // that other modules can hijack the name displayed if it should not be the
   // filename.
-  $variables['element']['#name'] = isset($variables['element']['#object']->filename) ? $variables['element']['#object']->filename : NULL;
+  $variables['element']['#name'] = isset($variables['element']['#file']->filename) ? $variables['element']['#file']->filename : NULL;
 }
 
 /**
@@ -320,5 +320,6 @@ function theme_media_formatter_large_icon($variables) {
   $file = $variables['file'];
   $icon_dir = media_variable_get('icon_base_directory') . '/' . media_variable_get('icon_set');
   $icon = file_icon_path((object)$file, $icon_dir);
-  return theme('image', array('path' => $icon));
+  $variables['path'] = $icon;
+  return theme('image', $variables);
 }

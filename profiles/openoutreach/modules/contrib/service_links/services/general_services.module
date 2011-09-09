@@ -30,17 +30,12 @@ function general_services_service_links() {
   $links['twitter'] = array(
     'name' => 'Twitter',
     'description' => t('Share this on Twitter'),
-    'link' => 'http://twitter.com/?status=<raw-encoded-short-url> -- <raw-encoded-title>',
+    'link' => 'http://twitter.com/share?url=<raw-encoded-short-url>&text=<raw-encoded-title>',
   );
   $links['pingthis'] = array(
     'name' => 'Ping This!',
     'link' => 'http://ping.fm/ref/?link=<encoded-url>&title=<encoded-title>&body=<encoded-teaser>',
     'description' => t('Submit to Ping.fm.'),
-  );
-  $links['propeller'] = array(
-    'name' => 'Propeller',
-    'link' => 'http://www.propeller.com/submit/?U=<encoded-url>&T=<encoded-title>',
-    'description' => t('Submit to Propeller.'),
   );
   $links['reddit'] = array(
     'name' => 'Reddit',
@@ -81,11 +76,6 @@ function general_services_service_links() {
     'name' => 'Yahoo',
     'link' => 'http://bookmarks.yahoo.com/myresults/bookmarklet?u=<encoded-url>&t=<encoded-title>',
     'description' => t('Bookmark this post on Yahoo.'),
-  );
-  $links['buzz'] = array(
-    'name' => 'Buzz Up!',
-    'link' => 'http://buzz.yahoo.com/buzz?targetUrl=<encoded-url>&headline=<encoded-title>&summary=<encoded-teaser>',
-    'description' => t('Buzz up this post on Yahoo! Buzz.'),
   );
   $links['linkedin'] = array(
     'name' => 'LinkedIn',

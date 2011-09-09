@@ -1,5 +1,4 @@
 <?php
-// $Id: comment_notify.inc,v 1.4 2010/10/11 01:31:35 greggles Exp $
 
 /**
  * @file
@@ -106,7 +105,7 @@ function comment_notify_set_user_notification_setting($uid, $node_notification =
     throw new Exception('Cannot set user preference, uid missing');
   }
   $fields = array('uid' => $uid);
-  
+
   if (!is_null($node_notification)) {
     $fields['node_notify'] = $node_notification;
   }
@@ -340,8 +339,7 @@ function comment_notify_variable_registry_get($name) {
   $variables['node_notify_default_mailtext'] = AUTHOR_MAILTEXT;
   $variables['default_registered_mailalert'] = COMMENT_NOTIFY_DISABLED;
   $variables['node_notify_default_mailalert'] = 0;
-  $variables['comment_notify_default_registered_mailalert'] = COMMENT_NOTIFY_DISABLED;
-  $variables['watcher_subject'] = '[site:name] :: new comment on [node:title]';
+  $variables['watcher_subject'] = '[site:name] :: new comment on [comment:node:title]';
   $variables['comment_notify_default_mailtext'] = DEFAULT_MAILTEXT;
   $variables['node_types'] = array('article' => 'article');
 
@@ -360,4 +358,3 @@ function comment_notify_variable_registry_get($name) {
 function comment_notify_variable_registry_set($name, $value) {
   return variable_set("comment_notify_" . $name, $value);
 }
-

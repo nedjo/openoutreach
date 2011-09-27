@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_default_page_manager_pages().
+ * Implements hook_default_page_manager_pages().
  */
 function openoutreach_front_page_default_page_manager_pages() {
   $page = new stdClass;
@@ -36,22 +36,23 @@ function openoutreach_front_page_default_page_manager_pages() {
     'no_blocks' => 0,
     'pipeline' => 'ipe',
     'css_id' => 'front-page',
-    'css' => '#mini-panel-front_page_upper_section span.file-styles.medium {
-  float: left;
+    'css' => '.view-front-page-top-stories .views-field-field-content-image img {
+  float: left; /* LTR */
   margin-right: 15px;
   margin-bottom: 15px;
+  border: 1px solid #C0C0C0;
 }
+
+.view-blog .views-row {
+  clear: both;
+}
+
 
 #mini-panel-front_page_upper_section div.view-display-id-panel_pane_1 .views-row, #mini-panel-front_page_upper_section .center-wrapper,
 #mini-panel-front_page_upper_section > .pane-title {
   clear: both;
   border-top: 1px solid #DDDDDD;
   padding-top: 10px;
-}
-
-#mini-panel-front_page_upper_section div.view-display-id-panel_pane_1 .views-field-title {
-  font-size: 150%;
-  font-weight: bold;
 }
 
 #mini-panel-front_page_upper_section div.view-display-id-panel_pane_1 .views-field-teaser {
@@ -96,7 +97,12 @@ h2.pane-title {
   border-top: 1px solid #DDDDDD; 
   padding-top: 10px;
 }
-',
+
+#front-page .view-features img {
+  float: left;
+  margin-right: 5px;
+  margin bottom: 5px;
+}',
     'contexts' => array(),
     'relationships' => array(),
   );
@@ -241,6 +247,6 @@ h2.pane-title {
   $page->default_handlers[$handler->name] = $handler;
   $pages['front_page'] = $page;
 
- return $pages;
+  return $pages;
 
 }

@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * @file
+ * Contains install, update, and uninstall functions for Skinr UI.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function skinr_ui_install() {
+  // Skinr should go before contextual module.
+  db_update('system')
+    ->fields(array('weight' => -1))
+    ->condition('name', 'skinr_ui')
+    ->execute();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function skinr_ui_uninstall() {
+  variable_del('skinr_overlay_width');
+  variable_del('skinr_overlay_height');
+}
+
+/**
+ * Delete a few unused variables.
+ *
+ * @todo This is a badly converted function it should be
+ *       skinr_ui_update_6001(). Remove this function and implement
+ *       skinr_update_last_removed() instead.
+ */
+function skinr_ui_update_7000() {
+  variable_del('skinr_overlay_autofit');
+  variable_del('skinr_overlay_draggable');
+
+  return array(array('success' => TRUE, 'query' => "Some variables that are no longer used have been deleted."));
+}

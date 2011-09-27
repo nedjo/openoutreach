@@ -13,9 +13,16 @@ function forward_services_service_links() {
 
   $links['forward'] = array(
     'name' => 'Forward',
-    'link' => '<front-page>forward&path=<encoded-query>',
+    'link' => (variable_get('clean_url', 0) == 1) ? '<front-page>forward?path=<encoded-query>' : '<front-page>forward&path=<encoded-query>',
     'description' => t('Send to a friend'),
+    'preset' => 'forward_fix_url',
   );
 
   return $links;
+}
+
+function forward_fix_url(&$service, &$settings, $node = NULL) {
+  if (isset($node->nid)) {
+    $service['link'] = str_replace('<encoded-query>', 'node/<node-id>', $service['link']);
+  }
 }

@@ -1,0 +1,38 @@
+<p>Skinr creates a variable containing your skins class that you need to print
+  inside your template files. Thankfully this will not be necessary in Drupal 7,
+  but for now you'll need to add the <code>$skinr</code> variable and all the
+  template files you plan to use yourself.
+</p>
+
+<h3>Printing the $skinr variable</h3>
+
+<p>The <code>$skinr</code> variable should be printed in the class attribute of
+  the first, or outer-most <code>&lt;div&gt;</code> in your theme's template
+  files. The variable is the same no matter which type you are dealing with, but
+  you may need to add template files to your theme. The variable is added by
+  doing:
+</p>
+
+<pre>&lt;?php print $skinr; ?&gt;</pre>
+
+<p>NOTE: Depending on how your template files are structured, you may need to add a blank space before the variable so it doesn't conflict with other classes you might have:</p>
+
+<pre>&lt;?php print ' '. $skinr; ?&gt;</pre>
+
+<h3>Template files needed in your theme</h3>
+<p>Here is a list of template files that are typically used and supported by
+  Skinr. See the link for each if you need to create these from scratch in your
+  theme. These links point to Drupal's default code for the template files.
+  You'll be able to copy/paste that code or tpl file to your theme. Then you can
+  add the <code>$skinr</code> variable and modify the code to suit your needs.
+</p>
+
+<ul>
+  <li><a href="http://api.drupal.org/api/drupal/modules--system--block.tpl.php/6/source">block.tpl.php</a></li>
+  <li><a href="http://api.drupal.org/api/drupal/modules--node--node.tpl.php/6/source">node.tpl.php</a></li>
+  <li><a href="http://api.drupal.org/api/drupal/modules--comment--comment-wrapper.tpl.php/6/source">comment-wrapper.tpl.php</a></li>
+  <li><a href="http://drupalcode.org/viewvc/drupal/contributions/modules/views/theme/views-view.tpl.php?view=markup">views-view.tpl.php</a></li>
+  <li><a href="http://drupalcode.org/viewvc/drupal/contributions/modules/panels/templates/panels-pane.tpl.php?view=markup">panels-pane.tpl.php</a></li>
+</ul>
+
+<p>Note: If you have other template files, i.e. node-blog.tpl.php make sure you print the <code>$skinr</code> variable in them, otherwise it wont work.</p>

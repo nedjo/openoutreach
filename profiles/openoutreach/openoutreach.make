@@ -2,6 +2,7 @@
 core = 7.x
 api = 2
 
+; Debut features.
 includes[debut] = "http://drupalcode.org/project/debut.git/blob_plain/refs/heads/7.x-1.x:/debut.make.inc"
 includes[debut_article] = "http://drupalcode.org/project/debut_article.git/blob_plain/refs/heads/7.x-1.x:/debut_article.make.inc"
 includes[debut_blog] = "http://drupalcode.org/project/debut_blog.git/blob_plain/refs/heads/7.x-1.x:/debut_blog.make.inc"
@@ -14,7 +15,17 @@ includes[debut_section] = "http://drupalcode.org/project/debut_section.git/blob_
 includes[debut_social] = "http://drupalcode.org/project/debut_social.git/blob_plain/refs/heads/7.x-1.x:/debut_social.make.inc"
 includes[debut_wysiwyg] = "http://drupalcode.org/project/debut_wysiwyg.git/blob_plain/refs/heads/7.x-1.x:/debut_wysiwyg.make.inc"
 
+projects[designkit][download][type] = "git"
+projects[designkit][download][url] = "git://git.drupal.org/sandbox/nedjo/1289398"
+projects[designkit][type] = "module"
+projects[designkit][subdir] = contrib
+projects[fusion][subdir] = contrib
+projects[fusion][version] = 1.0-alpha2
+projects[granada][subdir] = contrib
+projects[granada][version] = 1.x-dev
 projects[panels][subdir] = contrib
 projects[panels][version] = 3.0-alpha3
+projects[skinr][subdir] = contrib
+projects[skinr][version] = 2.x-dev
 projects[subprofiles][subdir] = contrib
 projects[subprofiles][version] = 1.x-dev

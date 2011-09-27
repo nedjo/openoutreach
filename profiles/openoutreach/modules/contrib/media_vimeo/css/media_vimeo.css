@@ -1,0 +1,21 @@
+
+.media-vimeo-preview-wrapper {
+  max-width: 100%;
+  min-height: 50px;
+  position: relative;
+}
+
+.media-vimeo-preview-wrapper object,
+.media-vimeo-preview-wrapper iframe {
+  max-width: 100%;
+  position: relative;
+}
+
+.media-vimeo-preview-wrapper .js-fallback {
+  left: 0;
+  margin-top: -0.5em;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  top: 50%;
+}

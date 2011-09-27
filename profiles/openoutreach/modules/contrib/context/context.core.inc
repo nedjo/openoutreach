@@ -6,8 +6,8 @@
 function context_help($path, $arg) {
   switch ($path) {
     case 'admin/help#context':
-      $output = file_get_contents(drupal_get_path('module', 'context') .'/README.txt');
-      return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>'. check_plain($output) .'</pre>';
+      $output = file_get_contents(drupal_get_path('module', 'context') . '/README.txt');
+      return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>' . check_plain($output) . '</pre>';
   }
 }
 
@@ -85,7 +85,7 @@ function context_ctools_render_alter($info, $page, $data) {
   extract($data);
   if ($page && in_array($task['name'], array('node_view', 'node_edit'), TRUE)) {
     foreach ($contexts as $ctools_context) {
-      if ($ctools_context->type === 'node' && !empty($ctools_context->data)) {
+      if (in_array('node', $ctools_context->type) && !empty($ctools_context->data)) {
         context_node_condition($ctools_context->data, $task['name'] === 'node_view' ? 'view' : 'form');
         break;
       }
@@ -125,11 +125,18 @@ function context_form_alter(&$form, $form_state, $form_id) {
   if (!empty($form['#node_edit_form']) && arg(0) != 'admin') {
     context_node_condition($form['#node'], 'form');
   }
-  // Clear out block info cache when an admin area form is submitted.
-  if (arg(0) === 'admin' && !empty($form_state['input']) && isset($form_state['method']) && $form_state['method'] === 'post') {
-    if ($plugin = context_get_plugin('reaction', 'block')) {
-      $plugin->rebuild_needed(TRUE);
-    }
+  // If the form is an admin for, flag it so that we can force a rebuild if needed.
+  if (path_is_admin($_GET['q'])) {
+    $form['#submit'][] = 'context_admin_form_submit';
+  }
+}
+
+/**
+ * Clear out block info cache when an admin area form is submitted.
+ */
+function context_admin_form_submit(&$form, $form_state) {
+  if ($plugin = context_get_plugin('reaction', 'block')) {
+    $plugin->rebuild_needed(TRUE);
   }
 }
 
@@ -272,7 +279,7 @@ function context_links($reset = FALSE) {
     if (!empty($active_types)) {
       // Iterate over active contexts
       foreach ($active_types as $type) {
-        $add_url = 'node/add/'. str_replace('_', '-', $type);
+        $add_url = 'node/add/' . str_replace('_', '-', $type);
         $item = menu_get_item($add_url);
         if ($item && $item['access'] && strpos($_GET['q'], $add_url) !== 0) {
           $links[$type] = array('title' => t('Add @type', array('@type' => node_type_get_name($type))), 'href' => $add_url);

@@ -1,0 +1,413 @@
+<?php
+
+/**
+ * @file
+ * Enhances file adminstration by adding published, promote, and sticky fields.
+ */
+
+/**
+ * Media item is not published.
+ */
+define('FILE_NOT_PUBLISHED', 0);
+
+/**
+ * Media item is published.
+ */
+define('FILE_PUBLISHED', 1);
+
+/**
+ * Media item is not promoted.
+ */
+define('FILE_NOT_PROMOTED', 0);
+
+/**
+ * Media item is promoted.
+ */
+define('FILE_PROMOTED', 1);
+
+/**
+ * Media item is not sticky at top of a list.
+ */
+define('FILE_NOT_STICKY', 0);
+
+/**
+ * Media item is sticky at top of a list.
+ */
+define('FILE_STICKY', 1);
+
+/**
+ * Implements hook_permission().
+ */
+function file_admin_permission() {
+  $perms = array(
+    'view own unpublished media' => array(
+      'title' => t('View own unpublished media'),
+    ),
+  );
+
+  return $perms;
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * Set created timestamp when entity is created.
+ */
+function file_admin_entity_presave($entity, $type) {
+  if ($type == 'file' && !isset($entity->fid)) {
+    $entity->created = REQUEST_TIME;
+  }
+}
+
+/**
+ * Implements hook_form_media_admin_alter().
+ *
+ * Add a published field to the media adminstration form.
+ */
+function file_admin_form_media_admin_alter(&$form, &$form_state) {
+  // Only act if we're in a list display mode.
+  // TODO: find a less awkward way to determine the mode.
+  if (arg(3) == 'list') {
+    $limit = variable_get('media_admin_limit', 50);
+
+    $operations_header = array_pop($form['admin']['files']['#header']);
+    $form['admin']['files']['#header']['published'] = array('data' => t('Published'), 'field' => 'f.published');
+    $form['admin']['files']['#header']['operations'] = $operations_header;
+    $files = $form['admin']['files']['#options'];
+
+    $query = db_select('file_managed', 'f')->extend('PagerDefault')->extend('TableSort');
+
+    $result = $query
+     ->fields('f', array('fid', 'published'))
+     ->condition('f.status', FILE_STATUS_PERMANENT)
+     ->limit($limit)
+     ->orderByHeader($form['admin']['files']['#header'])
+     ->execute();
+
+    foreach ($result as $file) {
+      $operations_row = array_pop($form['admin']['files']['#options'][$file->fid]);
+      $form['admin']['files']['#options'][$file->fid]['published'] = $file->published ? t('published') : t('not published');
+      $form['admin']['files']['#options'][$file->fid]['operations'] = $operations_row;
+    }
+  }
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function file_admin_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'file_admin') . '/includes',
+  );
+}
+
+/**
+ * Implements hook_form_media_edit_alter().
+ */
+function file_admin_form_media_edit_alter(&$form, &$form_state) {
+  $file = file_load($form['fid']['#value']);
+  $user = user_load($file->uid);
+  $file->name = $user->name;
+  $file->date = format_date($file->created, 'custom', 'Y-m-d H:i:s O');
+  if ($help = variable_get('file_admin_help_' . $form['#bundle'], '')) {
+    $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . '<p>' . $help . '</p>';
+  }
+
+  // Basic file information.
+  // These elements are just values so they are not even sent to the client.
+  foreach (array('created', 'uid') as $key) {
+    $form[$key] = array(
+      '#type' => 'value',
+      '#value' => isset($file->$key) ? $file->$key : NULL,
+    );
+  }
+
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#weight' => 99,
+  );
+  // Media author information for administrators
+  $form['author'] = array(
+    '#type' => 'fieldset',
+    '#access' => user_access('administer media'),
+    '#title' => t('Authoring information'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#attributes' => array(
+      'class' => array('media-form-author'),
+    ),
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'file_admin') . '/media.js',
+        array(
+          'type' => 'setting',
+          'data' => array('anonymous' => variable_get('anonymous', t('Anonymous'))),
+        ),
+      ),
+    ),
+    '#weight' => 90,
+  );
+  $form['author']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Authored by'),
+    '#maxlength' => 60,
+    '#autocomplete_path' => 'user/autocomplete',
+    '#default_value' => !empty($file->name) ? $file->name : '',
+    '#weight' => -1,
+    '#description' => t('Leave blank for %anonymous.', array('%anonymous' => variable_get('anonymous', t('Anonymous')))),
+  );
+  $form['author']['date'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Posted on'),
+    '#maxlength' => 25,
+    '#description' => t('Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to use the time of form submission.', array('%time' => !empty($file->date) ? date_format(date_create($file->date), 'Y-m-d H:i:s O') : format_date($file->created, 'custom', 'Y-m-d H:i:s O'), '%timezone' => !empty($file->date) ? date_format(date_create($file->date), 'O') : format_date($file->created, 'custom', 'O'))),
+    '#default_value' => !empty($file->date) ? $file->date : '',
+  );
+  $form['author']['date'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Authored on'),
+    '#maxlength' => 25,
+    '#description' => t('Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to use the time of form submission.', array('%time' => !empty($file->date) ? date_format(date_create($file->date), 'Y-m-d H:i:s O') : format_date($file->created, 'custom', 'Y-m-d H:i:s O'), '%timezone' => !empty($file->date) ? date_format(date_create($file->date), 'O') : format_date($file->created, 'custom', 'O'))),
+    '#default_value' => !empty($file->date) ? $file->date : '',
+  );
+  // Media options for administrators
+  $form['options'] = array(
+    '#type' => 'fieldset',
+    '#access' => user_access('administer media'),
+    '#title' => t('Publishing options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+    '#attributes' => array(
+      'class' => array('media-form-options'),
+    ),
+    '#weight' => 95,
+  );
+  $form['options']['published'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Published'),
+    '#default_value' => $file->published,
+  );
+  $form['options']['promote'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Promoted'),
+    '#default_value' => $file->promote,
+  );
+  $form['options']['sticky'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Sticky at the top of lists'),
+    '#default_value' => $file->sticky,
+  );
+  $form['#validate'][] = 'file_admin_media_edit_validate';
+}
+
+/**
+ * Validate handler for media_edit form.
+ *
+ * Prepare additional fields' data for saving to the file entity. Actual saving
+ * is handled by media_edit_submit().
+ */
+function file_admin_media_edit_validate($form, &$form_state) {
+  // Validate the "posted on" field.
+  if (!empty($form_state['values']['date']) && strtotime($form_state['values']['date']) === FALSE) {
+    form_set_error('date', t('You have to specify a valid date.'));
+  }
+  $name = trim($form_state['values']['name']);
+  if (!empty($name) && $user = user_load_by_name($name)) {
+    form_set_value($form['uid'], $user->uid, $form_state);
+  }
+  elseif (empty($name)) {
+    form_set_value($form['uid'], 0, $form_state);
+  }
+  $created = !empty($form_state['values']['date']) ? strtotime($form_state['values']['date']) : time();
+  form_set_value($form['created'], $created, $form_state);
+}
+
+/**
+ * Implements hook_form_media_admin_type_manage_form_alter().
+ */
+function file_admin_form_media_admin_type_manage_form_alter(&$form, &$form_state) {
+  $type = $form['media_type']['#value'];
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'file_admin') . '/media_types.js'),
+    ),
+  );
+  $form['submission'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Submission form settings'),
+    '#collapsible' => TRUE,
+    '#group' => 'additional_settings',
+  );
+  $form['submission']['help']  = array(
+    '#type' => 'textarea',
+    '#title' => t('Explanation or submission guidelines'),
+    '#default_value' => variable_get('file_admin_help_' . $type, ''),
+    '#description' => t('This text will be displayed at the top of the page when creating or editing content of this type.'),
+  );
+  $form['workflow'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+  );
+  $form['workflow']['media_options'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Default options'),
+    '#default_value' => variable_get('file_admin_media_options_' . $type, array('published')),
+    '#options' => array(
+      'published' => t('Published'),
+      'promote' => t('Promoted'),
+      'sticky' => t('Sticky at top of lists'),
+    ),
+    '#description' => t('Users with the <em>Administer media</em> permission will be able to override these options.'),
+  );
+  $form['#submit'][] = 'file_admin_media_admin_type_manage_form_submit';
+}
+
+/**
+ * Submit handler for media_admin_type_manage_form form.
+ */
+function file_admin_media_admin_type_manage_form_submit($form, &$form_state) {
+  $type = $form_state['values']['media_type'];
+  foreach (array('help', 'media_options') as $variable) {
+    variable_set('file_admin_' . $variable . '_' . $type, $form_state['values'][$variable]);
+  }
+}
+
+/**
+ * Implement hook_media_operations().
+ */
+function file_admin_media_operations() {
+  $operations = array(
+    'publish' => array(
+      'label' => t('Publish'),
+      'callback' => 'file_admin_mass_update',
+      'callback arguments' => array('updates' => array('published' => FILE_NOT_PUBLISHED)),
+    ),
+    'unpublish' => array(
+      'label' => t('Unpublish'),
+      'callback' => 'file_admin_mass_update',
+      'callback arguments' => array('updates' => array('published' => FILE_NOT_PUBLISHED)),
+    ),
+    'promote' => array(
+      'label' => t('Promote selected media content'),
+      'callback' => 'file_admin_mass_update',
+      'callback arguments' => array('updates' => array('published' => FILE_PUBLISHED, 'promote' => FILE_PROMOTED)),
+    ),
+    'demote' => array(
+      'label' => t('Demote selected media content'),
+      'callback' => 'file_admin_mass_update',
+      'callback arguments' => array('updates' => array('promote' => FILE_NOT_PROMOTED)),
+    ),
+  );
+
+  return $operations;
+}
+
+/**
+ * Make mass update of files, changing all files in the $files array
+ * to update them with the field values in $updates.
+ *
+ * IMPORTANT NOTE: This function is intended to work when called
+ * from a form submit handler. Calling it outside of the form submission
+ * process may not work correctly.
+ *
+ * @param array $files
+ *   Array of file fids to update.
+ * @param array $updates
+ *   Array of key/value pairs with file field names and the
+ *   value to update that field to.
+ */
+function file_admin_mass_update($files, $updates) {
+  // We use batch processing to prevent timeout when updating a large number
+  // of files.
+  if (count($files) > 10) {
+    $batch = array(
+      'operations' => array(
+        array('_file_mass_update_batch_process', array($files, $updates))
+      ),
+      'finished' => '_file_mass_update_batch_finished',
+      'title' => t('Processing'),
+      // We use a single multi-pass operation, so the default
+      // 'Remaining x of y operations' message will be confusing here.
+      'progress_message' => '',
+      'error_message' => t('The update has encountered an error.'),
+      // The operations do not live in the .module file, so we need to
+      // tell the batch engine which file to load before calling them.
+      'file' => drupal_get_path('module', 'file_admin') . '/file.admin.inc',
+    );
+    batch_set($batch);
+  }
+  else {
+    foreach ($files as $fid) {
+      _file_mass_update_helper($fid, $updates);
+    }
+    drupal_set_message(t('The update has been performed.'));
+  }
+}
+
+/**
+ * File Mass Update - helper function.
+ */
+function _file_mass_update_helper($fid, $updates) {
+  $file = file_load($fid, NULL, TRUE);
+  // For efficiency manually save the original file before applying any changes.
+  $file->original = clone $file;
+  foreach ($updates as $name => $value) {
+    $file->$name = $value;
+  }
+  file_save($file);
+  return $file;
+}
+
+/**
+ * File Mass Update Batch operation
+ */
+function _file_mass_update_batch_process($files, $updates, &$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = count($files);
+    $context['sandbox']['files'] = $files;
+  }
+
+  // Process files by groups of 5.
+  $count = min(5, count($context['sandbox']['files']));
+  for ($i = 1; $i <= $count; $i++) {
+    // For each fid, load the file, reset the values, and save it.
+    $fid = array_shift($context['sandbox']['files']);
+    $file = _file_mass_update_helper($fid, $updates);
+
+    // Store result for post-processing in the finished callback.
+    $context['results'][] = l($file->title, 'file/' . $file->fid);
+
+    // Update our progress information.
+    $context['sandbox']['progress']++;
+  }
+
+  // Inform the batch engine that we are not finished,
+  // and provide an estimation of the completion level we reached.
+  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+}
+
+/**
+ * File Mass Update Batch 'finished' callback.
+ */
+function _file_mass_update_batch_finished($success, $results, $operations) {
+  if ($success) {
+    drupal_set_message(t('The update has been performed.'));
+  }
+  else {
+    drupal_set_message(t('An error occurred and processing did not complete.'), 'error');
+    $message = format_plural(count($results), '1 item successfully processed:', '@count items successfully processed:');
+    $message .= theme('item_list', array('items' => $results));
+    drupal_set_message($message);
+  }
+}
+

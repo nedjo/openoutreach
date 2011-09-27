@@ -1,0 +1,14 @@
+name = Skinr test subtheme
+description = Test theme which uses skinr_test_basetheme as the base theme.
+core = 7.x
+base theme = skinr_test_basetheme
+hidden = TRUE
+
+skinr[api] = 2
+
+; Information added by drupal.org packaging script on 2011-07-15
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "skinr"
+datestamp = "1310690367"
+

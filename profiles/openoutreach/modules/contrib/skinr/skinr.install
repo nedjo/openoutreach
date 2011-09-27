@@ -1,0 +1,199 @@
+<?php
+
+/**
+ * @file
+ * Contains install, update, and uninstall functions for Skinr.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function skinr_schema() {
+  $schema['skinr_skins'] = array(
+    'description' => 'Stores skinr data.',
+    'fields' => array(
+      'sid' => array(
+        'description' => 'The primary identifier for a skin configuration.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'theme' => array(
+        'description' => 'The theme this configuration applies to.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'module' => array(
+        'description' => 'The module this configuration applies to.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'element' => array(
+        'description' => 'The element this configutation applies to.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'skin' => array(
+        'description' => 'The skin that has been applied.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'options' => array(
+        'description' => 'A serialized array containing the skin options that have been applied.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+        'serialize' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'Boolean indicating whether or not this item is enabled.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+    ),
+    'primary key' => array('sid'),
+    'unique keys' => array(
+      'theme_module_element_skin' => array('theme', 'module', 'element', 'skin'),
+    ),
+    'indexes' => array(
+      'theme' => array('theme'),
+      'module' => array('theme', 'module'),
+      'element' => array('theme', 'module', 'element'),
+      'skin' => array('skin'),
+    ),
+  );
+
+  $schema['skinr_rules'] = array(
+    'description' => 'Stores skinr rule data.',
+    'fields' => array(
+      'rid' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique skinr rule ID.',
+      ),
+      'title' => array(
+        'description' => 'The administrative title for this rule.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'rule_type' => array(
+        'description' => 'The content type of this rule.',
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'node_types' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => FALSE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of node types for this record.',
+      ),
+      'roles' => array(
+        'type' => 'text',
+        'size' => 'normal',
+        'not null' => FALSE,
+        'serialize' => TRUE,
+        'description' => 'A serialized array of roles for this record.',
+      ),
+      'visibility' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Flag to indicate how to show rules on pages. (0 = Show on all pages except listed pages, 1 = Show only on listed pages, 2 = Use custom PHP code to determine visibility)',
+      ),
+      'pages' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'Contains either a list of paths on which to include/exclude the rule or PHP code, depending on "visibility" setting.',
+      ),
+    ),
+    'primary key' => array('rid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function skinr_uninstall() {
+  // Remove all skinr variables.
+  db_delete('variable')
+    ->condition('name', 'skinr_%', 'LIKE')
+    ->execute();
+}
+
+/**
+ * Implements hook_update_last_removed().
+ *
+ * Make sure any previous updates aren't skipped.
+ */
+function skinr_update_last_removed() {
+  // @todo We probably shouldn't expect people to have ever installed
+  //   Skinr version 6.x-2.x, where updates 6000 through 6003 are from.
+  return 6004;
+}
+
+/**
+ * Install new skinr tables and convert old variables to the new db system.
+ *
+ * @todo Shoud we remove this?  It was ported from skinr_update_6000(), but
+ *   shouldn't have been.
+ *
+ * Contents removed because the table added here is no longer required.
+ */
+function skinr_update_7001() {
+}
+
+/**
+ * Install a new field in {skinr_rules} table.
+ *
+ * @todo Should we remove this? It was ported from skinr_update_6001(), but
+ *   shouldn't have been.
+ */
+function skinr_update_7002() {
+  // @todo skinr_update_6001() contains additional field manipulations.
+
+  if (!db_field_exists('skinr_rules', 'rule_type')) {
+    db_add_field('skinr_rules', 'rule_type', array(
+      'description' => 'The content type of this rule.',
+      'type' => 'varchar',
+      'length' => 128,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+    db_update('skinr_rules')
+      ->fields(array('rule_type' => 'page'))
+      ->execute();
+    db_update('skinr')
+      ->fields(array('module' => 'rules'))
+      ->condition('module', 'page')
+      ->execute();
+  }
+}
+
+/**
+ * Install the new {skinr_skinsets} and {skinr_skins} tables.
+ *
+ * @todo Should we remove this? It was ported from skinr_update_6002() and
+ *   skinr_update_6003(), but should not have been.
+ *
+ * Contents removed because the tables added here are no longer required.
+ */
+function skinr_update_7003() {
+}

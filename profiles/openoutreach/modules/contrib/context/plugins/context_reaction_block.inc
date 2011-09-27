@@ -39,14 +39,15 @@ class context_reaction_block extends context_reaction {
       '#suffix' => '</div>',
     );
     foreach ($this->get_blocks() as $block) {
-      if (!isset($form['selector'][$block->module])) {
-        $form['selector'][$block->module] = array(
+      $group = isset($block->context_group) ? $block->context_group : $block->module;
+      if (!isset($form['selector'][$group])) {
+        $form['selector'][$group] = array(
           '#type' => 'checkboxes',
-          '#title' => $modules[$block->module],
+          '#title' => isset($block->context_group) ? $block->context_group : $modules[$block->module],
           '#options' => array(),
         );
       }
-      $form['selector'][$block->module]['#options'][$block->bid] = check_plain($block->info);
+      $form['selector'][$group]['#options'][$block->bid] = check_plain($block->info);
     }
     ksort($form['selector']);
 
@@ -115,9 +116,9 @@ class context_reaction_block extends context_reaction {
     $form = array();
     drupal_add_library('system', 'ui.droppable');
     drupal_add_library('system', 'ui.sortable');
-    drupal_add_js(drupal_get_path('module', 'context_ui') .'/json2.js');
-    drupal_add_js(drupal_get_path('module', 'context') .'/plugins/context_reaction_block.js');
-    drupal_add_css(drupal_get_path('module', 'context') .'/plugins/context_reaction_block.css');
+    drupal_add_js(drupal_get_path('module', 'context_ui') . '/json2.js');
+    drupal_add_js(drupal_get_path('module', 'context') . '/plugins/context_reaction_block.js');
+    drupal_add_css(drupal_get_path('module', 'context') . '/plugins/context_reaction_block.css');
 
     // We might be called multiple times so use a static to ensure this is set just once.
     static $once;
@@ -218,7 +219,9 @@ class context_reaction_block extends context_reaction {
     // Load all region content assigned via blocks.
     foreach (array_keys($all_regions) as $region) {
       if ($this->is_enabled_region($region)) {
-        $page[$region] = isset($page[$region]) ? array_merge($page[$region], $this->block_get_blocks_by_region($region)) : $this->block_get_blocks_by_region($region);
+        if ($blocks = $this->block_get_blocks_by_region($region)) {
+          $page[$region] = isset($page[$region]) ? array_merge($page[$region], $blocks) : $blocks;
+        }
       }
     }
   }
@@ -250,8 +253,8 @@ class context_reaction_block extends context_reaction {
         $requirements = TRUE;
         drupal_add_library('system', 'ui.droppable');
         drupal_add_library('system', 'ui.sortable');
-        drupal_add_js(drupal_get_path('module', 'context') .'/plugins/context_reaction_block.js');
-        drupal_add_css(drupal_get_path('module', 'context') .'/plugins/context_reaction_block.css');
+        drupal_add_js(drupal_get_path('module', 'context') . '/plugins/context_reaction_block.js');
+        drupal_add_css(drupal_get_path('module', 'context') . '/plugins/context_reaction_block.css');
       }
       else {
         $requirements = FALSE;
@@ -277,6 +280,11 @@ class context_reaction_block extends context_reaction {
         'content' => $block->content,
         'context' => array('#markup' => "<a id='context-block-{$block->module}-{$block->delta}' class='context-block editable edit-{$block->context}'></a>"),
       );
+      //Contextual links are in the wrong spot in the render array once we've nested them
+      if (isset($block->content['content']['#contextual_links'])) {
+        $block->content['#contextual_links'] = $block->content['content']['#contextual_links'];
+        unset($block->content['content']['#contextual_links']);
+      }
     }
     return $block;
   }
@@ -285,7 +293,11 @@ class context_reaction_block extends context_reaction {
    * Add markup for making a region editable.
    */
   protected function editable_region($region, $build) {
-    if ($this->is_editable_region($region) && (!empty($build) || variable_get('context_reaction_block_all_regions', FALSE))) {
+    if ($this->is_editable_region($region) &&
+        (!empty($build) ||
+         variable_get('context_reaction_block_all_regions', FALSE) ||
+         context_isset('context_ui', 'context_ui_editor_present'))
+    ) {
       global $theme;
       $regions = system_region_list($theme);
       $name = isset($regions[$region]) ? $regions[$region] : $region;
@@ -359,7 +371,6 @@ class context_reaction_block extends context_reaction {
    * needed so the save of the context inline editor does not remove the blocks with no content.
    */
   function is_editable_check($context_blocks) {
-    $context_ui_editor_present = &drupal_static('context_ui_editor_present', FALSE);
     foreach ($context_blocks as $r => $blocks) {
       if (isset($blocks['context_ui-editor'])) {
         $block = $blocks['context_ui-editor'];
@@ -371,7 +382,9 @@ class context_reaction_block extends context_reaction {
           $array = module_invoke($block->module, 'block_view', $block->delta);
           drupal_alter(array('block_view', "block_view_{$block->module}_{$block->delta}"), $array, $block);
         }
-        $context_ui_editor_present = !empty($array['content']);
+        if(!empty($array['content'])) {
+          context_set('context_ui', 'context_ui_editor_present', TRUE);
+        }
         break;
       }
     }
@@ -446,7 +459,7 @@ class context_reaction_block extends context_reaction {
       if (module_exists('block')) {
         $theme_key = variable_get('theme_default', 'garland');
         $result = db_select('block')
-          ->fields('block', array('module','weight','delta','region', 'title'))
+          ->fields('block', array('module', 'weight', 'delta', 'region', 'title'))
           ->condition('theme', $theme_key)
           ->execute();
         foreach ($result as $row) {
@@ -520,7 +533,7 @@ class context_reaction_block extends context_reaction {
    * Original author: walidator.info 2009.
    */
   static function _json_decode($json) {
-    $comment = false;
+    $comment = FALSE;
     $out = '$x = ';
     for ($i=0; $i < strlen($json); $i++) {
       if (!$comment) {
@@ -585,7 +598,7 @@ class context_reaction_block extends context_reaction {
         $rendered_blocks = _block_render_blocks(array($block)); // For E_STRICT warning
         $block = array_shift($rendered_blocks);
         if (empty($block->content['#markup'])) {
-          $block->content['#markup'] = "<div class='context-block-empty'>". t('This block appears empty when displayed on this page.') ."</div>";
+          $block->content['#markup'] = "<div class='context-block-empty'>" . t('This block appears empty when displayed on this page.') . "</div>";
         }
         $block = $this->editable_block($block);
         $renderable_block = _block_get_renderable_array(array($block)); // For E_STRICT warning

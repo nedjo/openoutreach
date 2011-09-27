@@ -1,0 +1,21 @@
+
+name = Media: Vimeo
+description = Provides Vimeo support to the Media module.
+package = "Media"
+core = 7.x
+files[] = media_vimeo.module
+files[] = includes/MediaInternetVimeoHandler.inc
+files[] = includes/MediaVimeoStreamWrapper.inc
+files[] = includes/MediaVimeoStyles.inc
+files[] = includes/media_vimeo.formatters.inc
+files[] = includes/media_vimeo.styles.inc
+files[] = includes/media_vimeo.variables.inc
+dependencies[] = media_internet
+
+
+; Information added by drupal.org packaging script on 2011-08-11
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "media_vimeo"
+datestamp = "1313022841"
+

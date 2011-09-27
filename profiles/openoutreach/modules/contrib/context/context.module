@@ -37,7 +37,7 @@ function context_context($op = CONTEXT_GET, $namespace = NULL, $attribute = NULL
         return $context;
       }
       // return entire space if set
-      else if (isset($context[(string) $namespace])) {
+      elseif (isset($context[(string) $namespace])) {
         // return val of key from space
         if (is_array($context[(string) $namespace]) && isset($context[(string) $namespace][(string) $attribute])) {
           return $context[(string) $namespace][(string) $attribute];
@@ -179,6 +179,25 @@ function context_init() {
 }
 
 /**
+ * Implementation of hook_preprocess_menu_link().
+ *
+ * This allows menus that are not primary/secondary menus to get
+ * the "active" class assigned to them. This assumes they are using
+ * theme('menu_link') for the menu rendering to html.
+ */
+function context_preprocess_menu_link(&$variables) {
+  if($contexts = context_active_contexts()){
+    foreach($contexts as $context){
+      if((isset($context->reactions['menu']))){
+        if ($variables['element']['#href'] == $context->reactions['menu']) {
+          $variables['element']['#localized_options']['attributes']['class'][] = "active";
+        }
+      }
+    }
+  }
+}
+
+/**
  * Load & crud functions ==============================================
  */
 
@@ -254,7 +273,7 @@ function context_save($context) {
  */
 function context_delete($context) {
   if (isset($context->name) && ($context->export_type & EXPORT_IN_DATABASE)) {
-    db_query("DELETE FROM {context} WHERE name = '%s'", $context->name);
+    db_query("DELETE FROM {context} WHERE name = :name", array(':name' => $context->name));
     context_invalidate_cache();
     return TRUE;
   }
@@ -513,8 +532,18 @@ function _context_registry($key = NULL, $reset = FALSE) {
  * not dropped
  */
 function context_block_view_alter(&$data, $block) {
-  $context_ui_editor_present = &drupal_static('context_ui_editor_present', FALSE);
-  if ($context_ui_editor_present && empty($data['content'])) {
-    $data['content']['#markup'] = "<div class='context-block-empty'>". t('This block appears empty when displayed on this page.') . "</div>";
+  if (context_isset('context_ui', 'context_ui_editor_present') && empty($data['content'])) {
+    $data['content']['#markup'] = "<div class='context-block-empty'>" . t('This block appears empty when displayed on this page.') . "</div>";
+  }
+}
+
+/**
+ * implement hook_page_alter()
+ *
+ * used for region context
+ */
+function context_page_alter(&$page) {
+  if ($plugin = context_get_plugin('reaction', 'region')) {
+    $plugin->execute($page);
   }
 }

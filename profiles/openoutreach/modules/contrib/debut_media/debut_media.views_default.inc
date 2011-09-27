@@ -5,14 +5,14 @@
  */
 
 /**
- * Implementation of hook_views_default_views().
+ * Implements hook_views_default_views().
  */
 function debut_media_views_default_views() {
   $export = array();
 
   $view = new view;
   $view->name = 'media';
-  $view->description = '';
+  $view->description = 'Displays of media including a page and a carousel of promoted items.';
   $view->tag = '';
   $view->base_table = 'file_managed';
   $view->human_name = 'Media';
@@ -223,12 +223,11 @@ function debut_media_views_default_views() {
   $handler->display->display_options['pager']['options']['offset'] = '0';
   $handler->display->display_options['defaults']['style_plugin'] = FALSE;
   $handler->display->display_options['style_plugin'] = 'jcarousel';
-  $handler->display->display_options['style_options']['wrap'] = 'circular';
-  $handler->display->display_options['style_options']['visible'] = '3';
-  $handler->display->display_options['style_options']['scroll'] = '3';
+  $handler->display->display_options['style_options']['wrap'] = '0';
+  $handler->display->display_options['style_options']['visible'] = '';
   $handler->display->display_options['style_options']['auto'] = '0';
   $handler->display->display_options['style_options']['autoPause'] = 1;
-  $handler->display->display_options['style_options']['easing'] = 'swing';
+  $handler->display->display_options['style_options']['easing'] = '';
   $handler->display->display_options['style_options']['vertical'] = 0;
   $handler->display->display_options['defaults']['style_options'] = FALSE;
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
@@ -311,6 +310,11 @@ function debut_media_views_default_views() {
     'image' => 'image',
     'video' => 'video',
   );
+  /* Filter criterion: File: Promoted to front page */
+  $handler->display->display_options['filters']['promote']['id'] = 'promote';
+  $handler->display->display_options['filters']['promote']['table'] = 'file_managed';
+  $handler->display->display_options['filters']['promote']['field'] = 'promote';
+  $handler->display->display_options['filters']['promote']['value'] = '1';
   $export['media'] = $view;
 
   return $export;

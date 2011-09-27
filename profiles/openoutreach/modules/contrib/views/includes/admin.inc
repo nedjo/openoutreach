@@ -128,10 +128,14 @@ function views_ui_preview($view, $display_id, $args = array()) {
 
     $view->set_exposed_input($exposed_input);
 
-    // Store the current view URL for later use:
-    $view->set_display($display_id);
+
+    if (!$view->set_display($display_id)) {
+      return t('Invalid display id @display', array('@display' => $display_id));
+    }
+
     $view->set_arguments($args);
 
+    // Store the current view URL for later use:
     if ($view->display_handler->get_option('path')) {
       $path = $view->get_url();
     }
@@ -140,6 +144,7 @@ function views_ui_preview($view, $display_id, $args = array()) {
     $view->override_path = 'admin/structure/views/nojs/preview/' . $view->name . '/' . $display_id;
 
     // Also override $_GET['q'] so we get the pager.
+    $original_path = current_path();
     $_GET['q'] = $view->override_path;
     if ($args) {
       $_GET['q'] .= '/' . implode('/', $args);
@@ -152,6 +157,10 @@ function views_ui_preview($view, $display_id, $args = array()) {
     views_ui_contextual_links_suppress_push();
     $preview = $view->preview($display_id, $args);
     views_ui_contextual_links_suppress_pop();
+
+    // Reset variables.
+    unset($view->override_path);
+    $_GET['q'] = $original_path;
 
     // Prepare the query information and statistics to show either above or
     // below the view preview.
@@ -951,7 +960,11 @@ function views_ui_edit_form($form, &$form_state, $view, $display_id = NULL) {
   $form_state['no_cache'] = TRUE;
 
   if ($display_id) {
-    $view->set_display($display_id);
+    if (!$view->set_display($display_id)) {
+      $form['#markup'] = t('Invalid display id @display', array('@display' => $display_id));
+      return $form;
+    }
+
     $view->fix_missing_relationships();
   }
 
@@ -1192,7 +1205,7 @@ function views_ui_preview_form($form, &$form_state, $view, $display_id = 'defaul
  */
 function views_ui_render_display_top($view, $display_id) {
   $element['#theme_wrappers'] = array('views_container');
-  $element['#attributes']['class'] = array('views-display-top');
+  $element['#attributes']['class'] = array('views-display-top', 'clearfix');
   $element['#attributes']['id'] = array('views-display-top');
 
   // Extra actions for the display
@@ -1310,6 +1323,10 @@ function views_ui_edit_form_submit_duplicate_display($form, &$form_state) {
   $new_display_id = $view->add_display($display->display_plugin);
   $view->display[$new_display_id] = clone $display;
   $view->display[$new_display_id]->id = $new_display_id;
+
+  // By setting the current display the changed marker will appear on the new
+  // display.
+  $view->current_display = $new_display_id;
   views_ui_cache_set($view);
 
   // Redirect to the new display's edit page.
@@ -4493,6 +4510,13 @@ function views_ui_admin_settings_basic() {
   $form = array();
   $form['#attached']['css'] = views_ui_get_admin_css();
 
+  $options = array();
+  foreach (list_themes() as $name => $theme) {
+    if ($theme->status) {
+      $options[$name] = $theme->info['name'];
+    }
+  }
+
   // This is not currently a fieldset but we may want it to be later,
   // so this will make it easier to change if we do.
   $form['basic'] = array();
@@ -4520,6 +4544,14 @@ function views_ui_admin_settings_basic() {
     '#title' => t('Always show advanced display settings'),
     '#description' => t('Default to showing advanced display settings, such as relationships and contextual filters.'),
     '#default_value' => variable_get('views_ui_show_advanced_column', FALSE),
+  );
+
+  $form['basic']['views_ui_custom_theme'] = array(
+    '#type' => 'select',
+    '#title' => t('Custom admin theme for the Views UI'),
+    '#options' => array('_default' => t('- Use default -')) + $options,
+    '#default_value' => variable_get('views_ui_custom_theme', '_default'),
+    '#description' => t('In some cases you might want to select a different admin theme for the Views UI.')
   );
 
   $form['basic']['views_exposed_filter_any_label'] = array(

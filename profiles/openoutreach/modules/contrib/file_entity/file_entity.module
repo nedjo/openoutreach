@@ -27,9 +27,17 @@ function file_entity_help($path, $arg) {
 }
 
 /**
+ * Access callback for files.
+ */
+function file_entity_access($op) {
+  return (user_access('administer files') || user_access($op . ' file'));
+}
+
+/**
  * Implements hook_menu().
  */
 function file_entity_menu() {
+  // File Configuration
   $items['admin/config/media/file-types'] = array(
     'title' => 'File types',
     'description' => 'Manage files used on your site.',
@@ -40,6 +48,41 @@ function file_entity_menu() {
   $items['admin/config/media/file-types/manage/%'] = array(
     'title' => 'Manage file types',
     'description' => 'Manage files used on your site.',
+  );
+  // general view, edit, delete for files
+  $items['file/%file'] = array(
+    'page callback' => 'file_entity_view_page',
+    'page arguments' => array(1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('view'),
+    'file' => 'file_entity.pages.inc',
+  );
+  $items['file/%file/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['file/%file/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'file_entity_page_edit',
+    'page arguments'  => array(1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('edit'),
+    'weight' => 0,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'file_entity.pages.inc',
+  );
+  $items['file/%file/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'file_entity_page_delete',
+    'page arguments'  => array(1),
+    'access callback' => 'file_entity_access',
+    'access arguments' => array('edit'),
+    'weight' => 1,
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'file' => 'file_entity.pages.inc',
   );
 
   // Attach a "Manage file display" tab to each file type in the same way that
@@ -95,13 +138,43 @@ function file_entity_menu() {
 }
 
 /**
+ * Implement hook_permission().
+ */
+function file_entity_permission() {
+  return array(
+    'administer files' => array(
+      'title' => t('Administer files'),
+      'description' => t('Add, edit or delete files and administer settings.'),
+    ),
+    'view file' => array(
+      'title' => t('View file'),
+      'description' => t('View all files.'),
+    ),
+    'edit file' => array(
+      'title' => t('Edit file'),
+      'description' => t('Edit all files.'),
+    ),
+  );
+}
+/**
+ * Implements hook_admin_paths().
+ */
+function file_entity_admin_paths() {
+  $paths = array(
+    'file/*/edit' => TRUE,
+    'file/*/delete' => TRUE,
+  );
+  return $paths;
+}
+
+/**
  * Implements hook_theme().
  */
 function file_entity_theme() {
   return array(
     'file_entity' => array(
       'render element' => 'elements',
-      'template' => 'file',
+      'template' => 'file_entity',
     ),
     'file_entity_file_type_overview' => array(
       'variables' => array('label' => NULL, 'description' => NULL),
@@ -426,13 +499,13 @@ function file_is_page($file) {
 }
 
 /**
- * Process variables for file.tpl.php
+ * Process variables for file_entity.tpl.php
  *
  * The $variables array contains the following arguments:
  * - $file
  * - $view_mode
  *
- * @see file.tpl.php
+ * @see file_entity.tpl.php
  */
 function template_preprocess_file_entity(&$variables) {
   $view_mode = $variables['view_mode'] = $variables['elements']['#view_mode'];
@@ -545,4 +618,29 @@ function file_type_get_names() {
  */
 function file_entity_file_mimetype_mapping_alter(&$mapping) {
   $mapping['extensions']['ogg'] = 189;
+}
+
+/**
+ * Return an array of available view modes for file entities.
+ */
+function file_entity_view_mode_labels() {
+  $labels = &drupal_static(__FUNCTION__);
+
+  if (!isset($options)) {
+    $entity_info = entity_get_info('file');
+    $labels = array('default' => t('Default'));
+    foreach ($entity_info['view modes'] as $machine_name => $mode) {
+      $labels[$machine_name] = $mode['label'];
+    }
+  }
+
+  return $labels;
+}
+
+/**
+ * Return the label for a specific file entity view mode.
+ */
+function file_entity_view_mode_label($view_mode, $default = FALSE) {
+  $labels = file_entity_view_mode_labels();
+  return isset($labels[$view_mode]) ? $labels[$view_mode] : $default;
 }

@@ -54,6 +54,30 @@ function hook_context_registry() {
 }
 
 /**
+ * Execute Context page conditions
+ *
+ * Allows modules to hook into Context's hook_page_build to execute their
+ * conditions at an appropriate time before the firing of reactions.
+ */
+function hook_context_page_condition() {
+  if ($plugin = context_get_plugin('condition', 'bar')) {
+    $plugin->execute();
+  }
+}
+
+/**
+ * Execute Context page reactions
+ *
+ * Allows modules to hook into Context's hook_page_build to execute their
+ * reactions at an appropriate time after the firing of conditions.
+ */
+function hook_context_page_reaction() {
+  if ($plugin = context_get_plugin('reaction', 'baz')) {
+    $plugin->execute();
+  }
+}
+
+/**
  * Alter the registry.
  *
  * Allows modules to alter the registry. Default plugins can be replaced by

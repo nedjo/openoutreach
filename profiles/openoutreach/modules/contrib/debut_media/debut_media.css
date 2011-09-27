@@ -10,5 +10,25 @@
 
 .jcarousel-skin-default .jcarousel-item-horizontal {
   height: 180px;
+  width: 180px;
 }
 
+.jcarousel-skin-default .jcarousel-next-horizontal {
+  top: 90px;
+}
+
+.jcarousel-skin-default .jcarousel-prev-horizontal {
+  top: 90px;
+}
+
+/* Float imagefield images left and add margin */
+.fusion-float-imagefield-left .views-field-field-content-image img {
+  float: left; /* LTR */
+  margin: 0 15px 15px 0; /* LTR */
+}
+
+/* Float imagefield images right and add margin */
+.fusion-float-imagefield-right .views-field-field-content-image img {
+  float: right; /* LTR */
+  margin: 0 0 15px 15px; /* LTR */
+}

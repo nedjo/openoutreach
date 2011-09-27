@@ -9,11 +9,11 @@
 /**
  * Browser
  */
-div.context-block-browser div.category { display:none; }
+ .context-block-browser  .category { display:none; }
 
-div.context-block-item,
-div.context-block-browser div.draggable-placeholder,
-#admin-toolbar div.context-block-browser div.context-block-item {
+ .context-block-item,
+ .context-block-browser  .draggable-placeholder,
+#admin-toolbar  .context-block-browser  .context-block-item {
   font-size:11px;
   line-height:20px;
   height:20px;
@@ -36,7 +36,7 @@ div.context-block-browser div.draggable-placeholder,
   -webkit-user-select:none;
   }
 
-  div.context-block-item span.icon {
+   .context-block-item span.icon {
     background:url(context_reaction_block.png) 0px -80px no-repeat;
     display:block;
     width:20px;
@@ -45,26 +45,26 @@ div.context-block-browser div.draggable-placeholder,
     margin-right:5px;
     }
 
-  div.context-block-loading { max-width:none; }
+   .context-block-loading { max-width:none; }
 
-  div.context-block-loading span.icon {
+   .context-block-loading span.icon {
     background-position:-20px -80px;
     float:none;
     margin:0px auto;
     }
 
-  div.context-block-browser div.draggable-placeholder { padding:2px 1px 1px 2px; }
+   .context-block-browser  .draggable-placeholder { padding:2px 1px 1px 2px; }
 
-  #admin-toolbar.horizontal div.context-block-browser div.draggable-placeholder,
-  #admin-toolbar.horizontal div.context-block-browser div.context-block-item {
+  #admin-toolbar.horizontal  .context-block-browser  .draggable-placeholder,
+  #admin-toolbar.horizontal  .context-block-browser  .context-block-item {
     width:180px;
     margin-right:1px;
     padding-right:9px;
     float:left;
     }
 
-div.context-block-addable { cursor: move; }
-div.context-block-added { display:none !important; }
+ .context-block-addable { cursor: move; }
+ .context-block-added { display:none !important; }
 
 /**
  * Inline editing elements ============================================
@@ -72,7 +72,7 @@ div.context-block-added { display:none !important; }
 a.context-block-region { display:none; }
 a.context-block { display:none !important; }
 
-body.context-editing div.context-block-region-empty a.context-block-region {
+body.context-editing  .context-block-region-empty a.context-block-region {
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
   background:#666;
@@ -88,14 +88,14 @@ body.context-editing div.context-block-region-empty a.context-block-region {
   white-space:nowrap;
   }
 
-body.context-editing .ui-sortable div.block { opacity:.25; }
+body.context-editing .ui-sortable  .block { opacity:.25; }
 
-body.context-editing .ui-sortable div.draggable {
+body.context-editing .ui-sortable  .draggable {
   position:relative;
   opacity:1;
   }
 
-body.context-editing div.draggable-placeholder {
+body.context-editing  .draggable-placeholder {
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
 
@@ -104,8 +104,8 @@ body.context-editing div.draggable-placeholder {
   opacity:.2;
   }
 
-body.context-editing div.draggable:hover a.context-block-remove,
-body.context-editing div.draggable:hover a.context-block-handle {
+body.context-editing  .draggable:hover a.context-block-remove,
+body.context-editing  .draggable:hover a.context-block-handle {
   background:url(context_reaction_block.png) no-repeat;
   cursor:move;
   display:block;
@@ -117,15 +117,15 @@ body.context-editing div.draggable:hover a.context-block-handle {
   z-index:100;
   }
 
-body.context-editing div.draggable:hover a.context-block-remove {
+body.context-editing  .draggable:hover a.context-block-remove {
   background-position:-40px 0px;
   cursor:pointer;
   right:-5px;
   }
 
-div.context-block-hidden { display:none !important; }
+ .context-block-hidden { display:none !important; }
 
-div.block div.context-block-empty {
+ .block  .context-block-empty {
   text-align:center;
   padding:10px;
   opacity:.5;
@@ -136,7 +136,7 @@ div.block div.context-block-empty {
 /**
  * Block visibility ===================================================
  */
-#context-blockform div.context-blockform-selector {
+#context-blockform  .context-blockform-selector {
   height:20em;
   overflow:auto;
   }
@@ -150,7 +150,7 @@ div.block div.context-block-empty {
   width:50%;
   }
 
-#context-blockform td.blocks div.label,
+#context-blockform td.blocks  .label,
 #context-blockform td.blocks td,
 #context-blockform td.blocks th {
   background:#fff;
@@ -159,15 +159,15 @@ div.block div.context-block-empty {
   border-bottom:1px solid #ddd;
   }
 
-  #context-blockform td.blocks div.label { background:#eee; }
-  #context-blockform td.blocks div.label a { float:right; }
+  #context-blockform td.blocks  .label { background:#eee; }
+  #context-blockform td.blocks  .label a { float:right; }
 
 #context-ui-items #context-blockform {
   font-size:11px;
   line-height:15px;
   }
 
-#context-ui-items #context-blockform div.form-checkboxes {
+#context-ui-items #context-blockform  .form-checkboxes {
   height:auto;
   overflow:visible;
   padding:0px;
@@ -175,7 +175,7 @@ div.block div.context-block-empty {
   border:0px;
   }
 
-#context-ui-items #context-blockform div.form-item { padding:0px; }
+#context-ui-items #context-blockform  .form-item { padding:0px; }
 
 #context-ui-items #context-blockform label {
   background:#eee;

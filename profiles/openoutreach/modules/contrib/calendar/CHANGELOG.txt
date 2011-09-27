@@ -10,6 +10,8 @@ The links at the top of the calendar page have been reworked into tabs. They wil
 until you clear the caches. Use hook_calendar_links_alter() to alter the links or the titles 
 or to empty the links array if you don't want to see them.
 
+- Issue #1235180 by marleythedog, Fix broken taxonomy stripe handling in calendar row plugin.
+- Issue #704068, Add OG stripe option to calendar row plugin.
 - Issue #1265590, Fix syntax error in calendar-style-ical.tpl.php.
 - Issue #1265616, Rework the calendar display links into tabs and the Add link into an action item, and add hook_calendar_links_alter().
 - Add static to calendar_granularity_path() to speed up processing.

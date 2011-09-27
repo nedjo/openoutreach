@@ -1,0 +1,56 @@
+<p>Below are some quick side-by-side comparisons of basic Skinr syntax and
+what they translate to in the UI.</p>
+<dl>
+  <dt>
+    <h4>Single</h4>
+  </dt>
+  <dd>
+    <pre>
+skinr[example_single][title] = Single
+skinr[example_single][description] = A skin with a single option.
+skinr[example_single][options][1][label] = Foo
+skinr[example_single][options][1][class] = foo-class</pre>
+    <img src="&path&images/ui-a.png" alt="Single Example" />
+  </dd>
+  <dt>
+    <h4>Multiple</h4>
+  </dt>
+  <dd>
+    <pre>
+skinr[example_multiple][title] = Multiple (checkboxes)
+skinr[example_multiple][description] = A skin multiple options that uses a <strong>checkboxes</strong> (multiple choices).
+skinr[example_multiple][options][1][label] = Foo
+skinr[example_multiple][options][1][class] = foo-class
+skinr[example_multiple][options][2][label] = Bar
+skinr[example_multiple][options][2][class] = bar-class</pre>
+    <img src="&path&images/ui-b.png" alt="Multiple (checkboxes)" />
+  </dd>
+  <dt>
+    <h4>Multiple (radios)</h4>
+  </dt>
+  <dd>
+    <pre>
+skinr[example_multiple_radio][title] = Multiple (radios)
+skinr[example_multiple_radio][type] = radios
+skinr[example_multiple_radio][description] = A skin multiple options that uses  <strong>radios</strong> (single choice).
+skinr[example_multiple_radio][options][1][label] = Foo
+skinr[example_multiple_radio][options][1][class] = foo-class
+skinr[example_multiple_radio][options][2][label] = Bar
+skinr[example_multiple_radio][options][2][class] = bar-class</pre>
+    <img src="&path&images/ui-c.png" alt="Multiple (radios)" />
+  </dd>
+  <dt>
+    <h4>Multiple (select)</h4>
+  </dt>
+  <dd>
+    <pre>
+skinr[example_multiple_radio][title] = Multiple (select)
+skinr[example_multiple_radio][type] = select
+skinr[example_multiple_radio][description] = A skin multiple options that uses  <strong>radios</strong> (single choice).
+skinr[example_multiple_radio][options][1][label] = Foo
+skinr[example_multiple_radio][options][1][class] = foo-class
+skinr[example_multiple_radio][options][2][label] = Bar
+skinr[example_multiple_radio][options][2][class] = bar-class</pre>
+    <img src="&path&images/ui-d.png" alt="Multiple (select)" />
+  </dd>
+</dl>

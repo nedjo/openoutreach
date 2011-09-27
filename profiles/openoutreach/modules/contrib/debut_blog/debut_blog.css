@@ -1,0 +1,21 @@
+.node-blog.node-teaser .field-name-field-content-image img {
+  float: right;
+  margin-left: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #C0C0C0;
+}
+
+/* Float image field left and add margin */
+.view-blog .views-field-field-content-image img {
+  float: left; /* LTR */
+  margin-right: 15px;
+  margin-bottom: 15px;
+  border: 1px solid #C0C0C0;
+}
+
+.view-blog .views-row {
+  clear: both;
+}
+
+
+

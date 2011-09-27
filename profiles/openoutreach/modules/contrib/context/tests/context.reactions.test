@@ -138,7 +138,7 @@ class ContextReactionMenuTest extends DrupalWebTestCase {
 
     $output = $this->drupalGet('user');
     $url = url('node/add');
-    $active = $this->xpath('//li[contains(@class, "active")]/a[@href="'. $url .'"]');
+    $active = $this->xpath('//li[contains(@class, "active")]/a[@href="' . $url . '"]');
     $this->assertTrue(!empty($active), t('Active menu item found.'));
 
     // Cleanup
@@ -222,6 +222,59 @@ class ContextReactionThemeHtmlTest extends DrupalWebTestCase {
 
     $output = $this->drupalGet('node');
     $this->assertRaw('context-test-class');
+
+    // Cleanup
+    context_delete($context);
+  }
+}
+
+class ContextReactionRegionTest extends DrupalWebTestCase {
+  protected $profile = 'testing';
+
+  public static function getInfo() {
+    return array(
+      'name' => 'Reaction: Region',
+      'description' => 'Test Region disable reaction.',
+      'group' => 'Context',
+    );
+  }
+
+  function setUp() {
+    parent::setUp('context', 'ctools');
+    $admin_user = $this->drupalCreateUser(array(
+      'access administration pages',
+      'administer nodes',
+      'administer site configuration'
+    ));
+    $this->drupalLogin($admin_user);
+  }
+
+  function test() {
+    ctools_include('export');
+    theme_enable(array('bartik'));
+    variable_set('theme_default', 'bartik');
+    global $theme;
+    $context = ctools_export_new_object('context');
+    $context->name = 'testcontext';
+    $context->conditions = array('sitewide' => array('values' => array(1)));
+    $context->reactions = array(
+      'block' => array(
+        'blocks' => array(
+          'user-online' => array(
+            'module' => 'user',
+            'delta' => 'online',
+            'region' => 'sidebar_first',
+            'weight' => '-10',
+          ),
+        ),
+      ),
+      'region' => array('bartik' => array('disable' => array('sidebar_first' => 'sidebar_first')))
+    );
+    $saved = context_save($context);
+    $this->assertTrue($saved, "Context 'testcontext' saved.");
+
+    $output = $this->drupalGet('node');
+    $this->assertNoText("Who's online");
 
     // Cleanup
     context_delete($context);

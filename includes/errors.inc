@@ -24,6 +24,8 @@ define('ERROR_REPORTING_DISPLAY_ALL', 2);
  * Map PHP error constants to watchdog severity levels.
  * The error constants are documented at
  * http://php.net/manual/en/errorfunc.constants.php
+ *
+ * @ingroup logging_severity_levels
  */
 function drupal_error_levels() {
   $types = array(
@@ -172,9 +174,9 @@ function error_displayable($error = NULL) {
  * Log a PHP error or exception, display an error page in fatal cases.
  *
  * @param $error
- *   An array with the following keys: %type, !message, %function, %file, %line.
- *   All the parameters are plain-text, exception message, which needs to be
- *   a safe HTML string.
+ *   An array with the following keys: %type, !message, %function, %file, %line
+ *   and severity_level. All the parameters are plain-text, with the exception of
+ *   !message, which needs to be a safe HTML string.
  * @param $fatal
  *   TRUE if the error is fatal.
  */

@@ -95,10 +95,11 @@ function taxonomy_views_data() {
   $data['taxonomy_term_data']['table']['base'] = array(
     'field' => 'tid',
     'title' => t('Term'),
-    'entity type' => 'taxonomy_term',
     'help' => t('Taxonomy terms are attached to nodes.'),
     'access query tag' => 'term_access',
   );
+  $data['taxonomy_term_data']['table']['entity type'] = 'taxonomy_term';
+
 
 
   // The term data table
@@ -330,29 +331,6 @@ function taxonomy_views_data() {
     ),
   );
 
-  // ----------------------------------------------------------------------
-  // taxonomy_term_synonym table
-
-  $data['term_synonym']['moved to'] = 'taxonomy_term_synonym';
-  $data['taxonomy_term_synonym']['table']['group']  = t('Taxonomy term');
-
-  $data['taxonomy_term_synonym']['table']['join'] = array(
-    'taxonomy_term_data' => array(
-      // links directly to taxonomy_term_data via tid
-      'left_field' => 'tid',
-      'field' => 'tid',
-    ),
-  );
-
-  $data['taxonomy_term_synonym']['name'] = array(
-    'title' => t('Term synonym'),
-    'help' => t('Term synonyms may be used to find terms by alternate names.'),
-    'argument' => array(
-      'handler' => 'views_handler_argument_string',
-      'many to one' => TRUE,
-      'empty field name' => t('Uncategorized'),
-    ),
-  );
   return $data;
 }
 

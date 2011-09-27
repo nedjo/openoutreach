@@ -1,0 +1,116 @@
+<p>These are the basic building blocks of a Skin. If you are already familiar
+  with this, you might want to see some quick <a href="topic:skinr/examples">examples</a>.</p>
+<dl>
+  <dt>
+    <h3 id="syntax-machine-name">Machine Name</h3>
+  </dt>
+  <dd>
+    <p>Each skin begins with the prefix <code>skinr</code> in your .info file.
+      This allows Drupal and Skinr to easily identify and access information
+      about your skins. It will not show up in the UI or in any markup.
+    </p>
+    <pre>skinr[skin_system_name]</pre>
+  </dd>
+  <dt>
+    <h3 id="syntax-title">Title</h3>
+  </dt>
+  <dd>
+    <p>Every skin has one title. This title will appear in the UI as the form
+      element label, so it should be descriptive of what the Skin is/does.
+    </p>
+    <pre>skinr[skin_system_name][title] = Example</pre>
+  </dd>
+  <dt>
+    <h3 id="syntax-description">Description</h3>
+  </dt>
+  <dd>
+    <p>Descriptions are optional, but recommended. They will show in the UI just
+      as regular form item descriptions do. They may contain HTML.
+    </p>
+    <pre>skinr[skin_system_name][description] = This should be a description of my Skin.</pre>
+  </dd>
+  <dt>
+    <h3 id="syntax-type">Type</h3>
+  </dt>
+  <dd>
+    <p>There are 3 different options for displaying your Skinr styles in the UI.
+      These <strong>types</strong> correspond to Drupal's form API widgets. They
+      were created to allow you to better present your skins in the UI and to
+      allow fine-grained control over the options you provide.
+    </p>
+    <ol>
+      <li>
+        <p><em>checkboxes (default)</em> &ndash; Can be used for singular or
+          multiple options. Do not use "checkbox" as it will not work. Also
+          note: Skinr applies checkboxes by default, so it's not necessary to
+          specify if that's what you want to use.
+        </p>
+        <pre>skinr[skin_system_name][type] = checkboxes</pre>
+      </li>
+      <li>
+        <p><em>select</em> &ndash; Good for presenting many options when only
+          one can be selected. Note: multiple selects are not supported;
+          checkboxes should be used instead.
+        </p>
+        <pre>skinr[skin_system_name][type] = select</pre>
+      </li>
+      <li>
+        <p><em>radios</em> &ndash; Can be used for single options.</p>
+        <pre>skinr[skin_system_name][type] = radios</pre>
+      </li>
+    </ol>
+  </dd>
+  <dt>
+    <h3 id="syntax-options">Options</h3>
+  </dt>
+  <dd>
+    <p>After deciding upon a widget type, you'll need to define your
+      options. You'll always need to have at least one option.  Each option is
+      keyed, and consists of both a label and a class. The label will appear in
+      the UI and the class is the CSS class(es) you want to use. See <a
+      href="topic:skinr/css">CSS</a> for more information.
+    </p>
+    <h4 id="syntax-options-singular">Singular</h4>
+    <pre>
+skinr[skin_system_name][options][1][label] = Foo
+skinr[skin_system_name][options][1][class] = foo-class</pre>
+    <h4 id="syntax-options-multiple">Multiple</h4>
+    <p><em>Note:</em> Skinr will include a <code>&lt;none&gt;</code> option
+      automatically for skins that have multiple options so the skin can be
+      unselected by the user.</p>
+    <pre>
+skinr[skin_system_name][options][1][label] = Foo
+skinr[skin_system_name][options][1][class] = foo-class
+skinr[skin_system_name][options][2][label] = Bar
+skinr[skin_system_name][options][2][class] = bar-class</pre>
+    <h4>Adding files</h4>
+    <p>More information on adding files can be found <a href="topic:skinr/css-js">here</a>, but a brief overview of the syntax is below.
+    </p>
+    <pre>
+skinr[skin_system_name][options][1][stylesheets][all][] = foo.css
+skinr[skin_system_name][options][1][scripts][] = foo.js</pre>
+  </dd>
+  <dt>
+    <h3 id="syntax-groups">Groups</h3>
+  </dt>
+  <dd>
+    <p>Groups allow you to place skins inside a fieldset.  This is useful when
+      trying to present a bunch of related Skins.  You may also choose to show
+      the fieldset as collapsed by default.
+    </p>
+    <h4 id="syntax-group">Defining a group</h4>
+    <pre>
+skinr[options][groups][skin_group_name][title] = Example Group
+skinr[options][groups][skin_group_name][description] = Set font-family and size options.
+skinr[options][groups][skin_group_name][collapsible] = 1 // Defaults to 1. Options are 1 or 0.
+skinr[options][groups][skin_group_name][collapsed] = 0 //  // Defaults to 0. Options are 1 or 0.
+</pre>
+    <h4 id="syntax-group-skin">Associating a skin with a group</h4>
+    <pre>
+skinr[skin_name][title] = Example Skin
+skinr[skin_name][description] = This should be a description of my Skin.
+skinr[skin_name][group] = skin_group_name
+...</pre>
+  </dd>
+</dl>
+

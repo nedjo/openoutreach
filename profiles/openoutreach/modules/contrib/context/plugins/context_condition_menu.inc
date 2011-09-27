@@ -27,7 +27,7 @@ class context_condition_menu extends context_condition {
         }
         unset($menus[$key]);
       }
-      array_unshift($menus, "-- ". t('None') ." --");
+      array_unshift($menus, "-- " . t('None') . " --");
     }
     else {
       $menus = array();

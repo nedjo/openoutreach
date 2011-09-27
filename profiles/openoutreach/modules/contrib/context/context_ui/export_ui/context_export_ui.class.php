@@ -74,6 +74,24 @@ class context_export_ui extends ctools_export_ui {
       $this->plugin['form']['submit']($form, $form_state);
     }
   }
+
+  /**
+   * Override default final validation for ctools. With import wizard
+   * it was possible to get default ctools export ui name validation
+   * rules, this ensures we always get ours.
+   */
+  function edit_finish_validate(&$form, &$form_state) {
+    if ($form_state['op'] != 'edit') {
+      // Validate the name. Fake an element for form_error().
+      $export_key = $this->plugin['export']['key'];
+      $element = array(
+        '#value' => $form_state['item']->{$export_key},
+        '#parents' => array('name'),
+      );
+      $form_state['plugin'] = $this->plugin;
+      context_ui_edit_name_validate($element, $form_state);
+    }
+  }
 }
 
 
@@ -103,10 +121,8 @@ function context_ui_form(&$form, &$form_state) {
   $form['info']['#type'] = 'fieldset';
   $form['info']['#tree'] = FALSE;
 
-  // Swap out name validator. Allow dashes.
-  if (isset($form['info']['name']['#element_validate'])) {
-    $form['info']['name']['#element_validate'] = array('context_ui_edit_name_validate');
-  }
+
+  $form['info']['name']['#element_validate'] = array('context_ui_edit_name_validate');
 
   $form['info']['tag'] = array(
     '#title' => t('Tag'),
@@ -245,7 +261,7 @@ function _context_ui_rebuild_from_input($context, $input, $conditions, $reaction
  *   A context object
  */
 function context_ui_form_process($context, $form, $submit = TRUE) {
-  $context->name = isset($form['name']) ? $form['name'] : NULL;
+  $context->name = isset($form['name']) ? $form['name'] : $context->name;
   $context->description = isset($form['description']) ? $form['description'] : NULL;
   $context->tag = isset($form['tag']) ? $form['tag'] : NULL;
   $context->condition_mode = isset($form['condition_mode']) ? $form['condition_mode'] : NULL;
@@ -297,12 +313,12 @@ function context_ui_edit_name_validate($element, &$form_state) {
   $plugin = $form_state['plugin'];
   // Check for string identifier sanity
   if (!preg_match('!^[a-z0-9_-]+$!', $element['#value'])) {
-    form_error($element, t('The export id can only consist of lowercase letters, underscores, dashes, and numbers.'));
+    form_error($element, t('The name can only consist of lowercase letters, underscores, dashes, and numbers.'));
     return;
   }
 
   // Check for name collision
-  if (empty($form_state['item']->export_ui_allow_overwrite) && $exists = ctools_export_crud_load($plugin['schema'], $element['#value'])) {
+  if (@$form_state['item']->export_ui_allow_overwrite === 0 && $exists = ctools_export_crud_load($plugin['schema'], $element['#value'])) {
     form_error($element, t('A @plugin with this name already exists. Please choose another name or delete the existing item before creating a new one.', array('@plugin' => $plugin['title singular'])));
   }
 }

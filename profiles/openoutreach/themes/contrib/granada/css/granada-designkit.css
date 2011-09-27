@@ -1,0 +1,121 @@
+/* These styles provide defaults that are overridden in designkit.tpl.php. */
+
+body {
+  background-color: #ccddee;
+  background-image: URL(../img/shells_background.jpg);
+  background-repeat: no-repeat;
+  background-attachment:fixed;
+  background-position:center;
+}
+
+#block-system-main-menu {
+  background-color: #AA5303;
+}
+
+.region-main-menu ul li a:hover {
+  background-color: #d4a981;
+}
+
+h1.title, h2.title, h3.title {
+  color: #013565;
+}
+
+#site-name > a {
+  color: #013565;
+}
+
+#slogan {
+  color: #552901;
+}
+
+/* Style for individual dropdown menu items, add border-bottom for separators */
+.region-main-menu ul.sf-menu li li {
+  background-color: #552901;
+}
+
+#postscript-bottom-wrapper {
+  border-top: 5px solid #AA5303;
+}
+
+#content-tabs ul.tabs.primary {
+  border-bottom: 3px solid #AA5303;
+}
+
+#content-tabs ul.primary li a.active,
+#content-tabs ul.secondary li a.active,
+#content-tabs ul.primary li a.active:hover,
+#content-tabs ul.secondary li a.active:hover,
+#content-tabs ul.primary li.active a {
+  background-color: #AA5303;
+}
+
+#content-tabs ul.primary li a:hover,
+#content-tabs ul.secondary li a:hover {
+  background-color: #d4a981;
+} 
+
+div.comment {
+  border:1px solid #d4a981;
+}
+
+.comments div.odd {
+  background-color:#ffffff;
+}
+
+.comments div.even {
+  background-color:#faf6f2;
+}
+
+.block ul.links {
+  background-color:#faf6f2;
+  border:1px solid #d4a981;
+}
+
+.fusion-border .inner {
+  background: #faf6f2;
+  border:1px solid #c3864e;
+}
+
+body #space-tools .block-title { background-color:#773a02; }
+
+body #header .block-widget .block-content,
+body #header .block .block-title { background-color:#904602; }
+
+ul.pager a,
+ul.pager li.pager-current {
+  border-color: #773a02;
+}
+
+ul.pager li.pager-current {
+  background-color: #AA5303;
+  color: #ffffff;
+}
+
+ul.pager a:hover,
+ul.pager a:active,
+ul.pager a:focus {
+  background-color: #AA5303;
+  border-color: #773a02;
+  color: #ffffff;
+}
+
+.calendar-calendar tr td.today, .calendar-calendar tr.odd td.today, .calendar-calendar tr.even td.today {
+  background-color: #e5cbb3;
+}
+
+body .page-region .block .block-title {
+  background-color:#e0cfbf;
+  border-color:#d2c1b1;
+  border-bottom-color:#c5b3a3;
+}
+
+form input.form-submit:hover,
+form input.form-submit.hover,
+form input.form-submit:focus {
+  background-color: #d4a981;
+}
+
+.search-box-inner input#edit-search-theme-form-header { 
+  border:1px solid #c3864e;
+}
+

@@ -1,0 +1,68 @@
+<p>The main advantage of using Skinr is that it provides a means of easily
+  reusing CSS classes. How you set up those classes and the code you provide
+  is up to you. This page is meant to inform you about your options.
+</p>
+
+<h3 id="css-js-classes">CSS classes in Skins</h3>
+<p>Classes in Skinr are typically defined in the <a
+  href="topic:skinr/syntax#syntax-options">skin options</a>. A single class is
+  all that is necessary, but multiple classes can easily be added.
+</p>
+<h4 id="css-js-classes-single">Single Class</h4>
+<pre>skinr[skin_system_name][options][1][class] = foo-class</pre>
+<h4 id="css-js-classes-multiple">Multiple Classses</h4>
+<p>Multiple classes should be separated by a single space.</p>
+<pre>skinr[skin_system_name][options][1][class] = foo-class bar-class</pre>
+
+
+<h3 id="css-js-external">External CSS &amp; JavaScript files</h3>
+<p>CSS can be stored in external files, or the files can simply be added to
+  your theme's existing CSS file. Personally, I like to create a separate CSS
+  file that stores the bulk of Skinr CSS. The same can be done with JavaScript
+  files. If your skins require CSS &amp; Javascript that is used site wide, the
+  best approach is to load the files normally via the theme. This will ensure
+  your files are loaded on all pages and therefore always available.</p>
+<pre>
+stylesheets[all][] = css/skinr.css
+scripts[] = js/skinr.js
+</pre>
+<h4>Adding files to skins</h4>
+<p>There are cases where it makes sense to handle loading the CSS/JavaScript
+  files in the skin itself. This can be done by by adding the following line(s)
+  to your skin.
+</p>
+<pre>
+skinr[skin_system_name][scripts][] = css/dropdown.js
+skinr[skin_system_name][stylesheets][all][] = css/dropdown.css
+</pre>
+<h4>Adding files to skin options</h4>
+<p>This can be taken a step further by including files per option. Below is a
+  detailed example of what a use case for this might look like:</p>
+<pre>
+skinr[dropdowns][title] = Dropdown Menus
+skinr[dropdowns][type] = select
+skinr[dropdowns][description] = Select a vertical or horizontal dropdown menu. 
+skinr[dropdowns][features][] = block_menu_block
+skinr[dropdowns][stylesheets][all][] = css/dropdown.css
+skinr[dropdowns][scripts][] = js/hoverIntent.js
+
+skinr[dropdowns][options][1][label] = Horizontal
+skinr[dropdowns][options][1][class] = dd-vertical
+skinr[dropdowns][options][1][stylesheets][all][] = css/dropdown-vertical.css
+skinr[dropdowns][options][1][scripts][] = js/dropdown-vertical.js
+
+skinr[dropdowns][options][2][label] = Vertical
+skinr[dropdowns][options][2][class] = dd-horizontal
+skinr[dropdowns][options][2][stylesheets][all][] = css/dropdown-horizontal.css
+skinr[dropdowns][options][2][scripts][] = js/dropdown-horizontal.js
+</pre>
+<p>The syntax for adding these files is the same as Drupal. See <a
+  href="http://drupal.org/node/171205">Structure of the .info file</a> for full
+  details.</p>
+<h3 id="css-js-ui-classes">Defining classes in the UI</h3>
+<p>In addition to defining CSS classes in the .info file, you can also add
+  classes directly into the UI. Under "Advanced Options" there is a text field
+  where you can add a class or classes manually. The syntax for adding classes
+  the same as the <a href="#css-js-classes">above examples</a>, with multiple classes separated by a space.
+</p>
+<p><img src="&path&images/ui-e.png" alt="Adding classes in the UI" /></p>

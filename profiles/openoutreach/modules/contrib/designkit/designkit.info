@@ -1,0 +1,6 @@
+name = "DesignKit"
+description = "Provides design customization options that can be utilized by themes."
+package = "User interface"
+dependencies[] = "image"
+dependencies[] = "color"
+core = "7.x"

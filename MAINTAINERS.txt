@@ -54,7 +54,7 @@ Database system
     - Károly Négyesi 'chx' <http://drupal.org/user/9446>
 
 Database update system
-- ?
+- Károly Négyesi 'chx' <http://drupal.org/user/9446>
 
 Entity system
 - Nathaniel Catchpole 'catch' <http://drupal.org/user/35733>
@@ -190,7 +190,7 @@ Filter module
 - Daniel F. Kudwien 'sun' <http://drupal.org/user/54136>
 
 Forum module
-- ?
+- Lee Rowlands 'larowlan' <http://drupal.org/user/395439>
 
 Help module
 - ?
@@ -209,6 +209,7 @@ Node module
 - David Strauss 'David Strauss' <http://drupal.org/user/93254>
 
 OpenID module
+- Vojtech Kusy 'wojtha' <http://drupal.org/user/56154>
 - Heine Deelstra 'Heine' <http://drupal.org/user/17943>
 - Christian Schmidt 'c960657' <http://drupal.org/user/216078>
 - Damien Tournoud 'DamZ' <http://drupal.org/user/22211>
@@ -236,6 +237,7 @@ Search module
 
 Shortcut module
 - David Rothstein 'David_Rothstein' <http://drupal.org/user/124982>
+- Kristof De Jaeger 'swentel' <http://drupal.org/user/107403>
 
 Simpletest module
 - Jimmy Berry 'boombatower' <http://drupal.org/user/214218>

@@ -19,8 +19,8 @@ function template_preprocess_context_ui_editor(&$vars) {
  * Preprocessor for theme('context_ui_plugins').
  */
 function template_preprocess_context_ui_plugins(&$vars) {
-  drupal_add_css(drupal_get_path("module", "context_ui") ."/context_ui.css");
-  drupal_add_js(drupal_get_path("module", "context_ui") ."/context_ui.js");
+  drupal_add_css(drupal_get_path("module", "context_ui") . "/context_ui.css");
+  drupal_add_js(drupal_get_path("module", "context_ui") . "/context_ui.js");
   drupal_add_js(drupal_get_path('module', 'context_ui') . '/jquery.pageEditor.js');
 
   // Provide title & desc.
@@ -32,7 +32,7 @@ function template_preprocess_context_ui_plugins(&$vars) {
   $vars['plugins'] = array();
   foreach (element_children($vars['form']['plugins']) as $plugin) {
     $link = array(
-      'title' => $vars['form']['plugins'][$plugin]['#plugin']->title . "<span class='remove'>". t('Remove') ."</span>",
+      'title' => $vars['form']['plugins'][$plugin]['#plugin']->title . "<span class='remove'>" . t('Remove') . "</span>",
       'href' => $_GET['q'],
       'html' => TRUE,
       'fragment' => "context-plugin-form-{$plugin}",
@@ -46,8 +46,8 @@ function template_preprocess_context_ui_plugins(&$vars) {
  * Preprocessor for theme('context_ui_form').
  */
 function template_preprocess_context_ui_form(&$vars) {
-  drupal_add_css(drupal_get_path("module", "context_ui") ."/context_ui.css");
-  drupal_add_js(drupal_get_path("module", "context_ui") ."/context_ui.js");
+  drupal_add_css(drupal_get_path("module", "context_ui") . "/context_ui.css");
+  drupal_add_js(drupal_get_path("module", "context_ui") . "/context_ui.js");
   drupal_add_js(drupal_get_path('module', 'context_ui') . '/jquery.pageEditor.js');
   $vars['buttons'] = $vars['form']['buttons'];
   unset($vars['form']['buttons']);

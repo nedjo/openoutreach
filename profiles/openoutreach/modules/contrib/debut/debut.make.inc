@@ -7,4 +7,4 @@ api = 2
 projects[debut][subdir] = contrib
 projects[debut][version] = 1.x-dev
 projects[features][subdir] = contrib
-projects[features][version] = 1.0-beta3
+projects[features][version] = 1.0-beta4

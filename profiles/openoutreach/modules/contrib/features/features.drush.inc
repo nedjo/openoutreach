@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_drush_command().
+ * Implements hook_drush_command().
  * 
  * @See drush_parse_command() for a list of recognized keys.
  *
@@ -26,6 +26,9 @@ function features_drush_command() {
     'arguments' => array(
       'feature' => 'Feature name to export or a single component.',
       'components' => '(optional) List of components to include, like source:component [source2:component2]...'
+    ),
+    'options' => array(
+      '--destination' => "Destination path (from Drupal root) of the exported feature. Defaults to 'sites/all/modules'",
     ),
     'drupal dependencies' => array('features'),
     'aliases' => array('fe'),
@@ -81,14 +84,14 @@ function features_drush_command() {
 }
 
 /**
- * Implementation of hook_drush_help().
+ * Implements hook_drush_help().
  */
 function features_drush_help($section) {
   switch ($section) {
     case 'drush:features':
       return dt("List all the available features for your site.");
     case 'drush:features-export':
-      return dt("Export a feature from your site into a module. If called with no arguments, display a list of available components. If called with a single argument, attempt to create a feature including the given component with the same name.");
+      return dt("Export a feature from your site into a module. If called with no arguments, display a list of available components. If called with a single argument, attempt to create a feature including the given component with the same name. The option '--destination=foo' may be used to specify the path (from Drupal root) where the feature should be created. The default destination is 'sites/all/modules'.");
     case 'drush:features-update':
       return dt("Update a feature module on your site.");
     case 'drush:features-update-all':
@@ -238,7 +241,8 @@ function drush_features_update_all() {
 function _drush_features_export($stub, $dependencies, $module_name = NULL, $directory = NULL) {
   $root = drush_get_option(array('r', 'root'), drush_locate_root());
   if ($root) {
-    $directory = isset($directory) ? $directory : 'sites/all/modules/' . $module_name;
+    $destination = drush_get_option(array('destination'), 'sites/all/modules');
+    $directory = isset($directory) ? $directory : $destination . '/' . $module_name;
     if (is_dir($directory)) {
       drush_print(dt('Module appears to already exist in !dir', array('!dir' => $directory)));
       if (!drush_confirm(dt('Do you really want to continue?'))) {
@@ -341,6 +345,7 @@ function drush_features_revert() {
 function drush_features_revert_all() {
   $features_to_revert = array();
   $features_to_exclude = func_get_args();
+  $force = drush_get_option('force');
   foreach (features_get_features() as $module) {
     if ($module->status && !in_array($module->name, $features_to_exclude)) {
       $features_to_revert[] = $module->name;
@@ -349,7 +354,7 @@ function drush_features_revert_all() {
   drush_print(dt('The following modules will be reverted: !modules', array('!modules' => implode(', ', $features_to_revert))));
   if (drush_confirm(dt('Do you really want to continue?'))) {
     foreach ($features_to_revert as $module_name) {
-      drush_backend_invoke('features-revert '. $module_name);
+      drush_backend_invoke('features-revert '. $module_name, array('force' => $force));
     }
   }
   else {
@@ -403,18 +408,25 @@ function drush_features_diff() {
   $formatter->trailing_context_lines = 2;
   $formatter->show_header = FALSE;
 
+  if (drush_get_context('DRUSH_NOCOLOR')) {
+    $red = $green = "%s";
+  }
+  else {
+    $red = "\033[31;40m\033[1m%s\033[0m";
+    $green = "\033[0;32;40m\033[1m%s\033[0m";
+  }
+
+  // Print key for colors
+  drush_print(dt('Legend: '));
+  drush_print(sprintf($red,   dt('Code:       drush features-revert will remove the overrides.')));
+  drush_print(sprintf($green, dt('Overrides:  drush features-update will update the exported feature with the displayed overrides')));
+  drush_print();
+
   foreach ($overrides as $component => $items) {
     $diff = new Diff(explode("\n", $items['default']), explode("\n", $items['normal']));
     drush_print();
     drush_print(dt("Component: !component", array('!component' => $component)));
     $rows = explode("\n", $formatter->format($diff));
-    if (drush_get_context('DRUSH_NOCOLOR')) {
-      $red = $green = "%s";
-    }
-    else {
-      $red = "\033[31;40m\033[1m%s\033[0m";
-      $green = "\033[0;32;40m\033[1m%s\033[0m";
-    }
     foreach ($rows as $row) {
       if (strpos($row, '>') === 0) {
         drush_print(sprintf($green, $row));

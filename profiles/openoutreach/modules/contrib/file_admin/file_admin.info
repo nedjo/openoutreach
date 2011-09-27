@@ -1,0 +1,7 @@
+core = 7.x
+name = File administration options
+description = "Adds file administration options to media items."
+package = Media
+dependencies[] = media
+
+files[] = includes/views_handler_filter_file_admin.inc

@@ -16,12 +16,12 @@ function comment_notify_install() {
   $comments_select->addField('c', 'cid');
   $comments_select->addExpression('0', 'notify');
   // Mix in a random string to all values.
-  $salt = uniqid(mt_rand, TRUE);
+  $salt = uniqid(mt_rand(), TRUE);
   if (db_driver() == 'pgsql') {
-    $comments_select->addExpression("md5('" . $salt . "' || c.mail || coalesce(u.mail, u.init) || c.uid || c.name || c.nid || c.hostname)", 'notify_hash');
+    $comments_select->addExpression("MD5(:salt || c.mail || COALESCE(u.mail, u.init) || c.uid || c.name || c.nid || c.hostname || c.cid)", 'notify_hash', array(':salt' => $salt));
   }
   else {
-    $comments_select->addExpression("md5(concat('" . $salt . "', c.mail, ifnull(u.mail, u.init), c.uid, c.name, c.nid, c.hostname))", 'notify_hash');
+    $comments_select->addExpression("MD5(CONCAT(:salt, c.mail, COALESCE(u.mail, u.init), c.uid, c.name, c.nid, c.hostname, c.cid))", 'notify_hash', array(':salt' => $salt));
   }
 
   // Set module weight low so that other modules act on the comment first.

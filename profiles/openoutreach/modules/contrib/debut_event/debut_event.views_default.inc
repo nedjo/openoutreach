@@ -197,7 +197,7 @@ function debut_event_views_default_views() {
     'multiple_to' => '',
     'show_repeat_rule' => 'hide',
   );
-  $handler->display->display_options['fields']['field_event_date']['group_rows'] = 0;
+  $handler->display->display_options['fields']['field_event_date']['group_rows'] = 1;
   $handler->display->display_options['fields']['field_event_date']['delta_offset'] = '0';
   $handler->display->display_options['fields']['field_event_date']['delta_reversed'] = 0;
   $handler->display->display_options['fields']['field_event_date']['separator'] = '';

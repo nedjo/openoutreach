@@ -88,6 +88,11 @@ function _context_context_registry() {
       'description' => t('Control block visibility using context.'),
       'plugin' => 'context_reaction_block',
     ),
+    'region' => array(
+      'title' => t('Regions'),
+      'description' => t('Control Region visiblity using context.'),
+      'plugin' => 'context_reaction_region',
+    ),
     'breadcrumb' => array(
       'title' => t('Breadcrumb'),
       'description' => t('Set the breadcrumb trail to the selected menu item.'),
@@ -137,14 +142,14 @@ function _context_context_plugins() {
    */
   $plugins['context_condition'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition.inc',
       'class' => 'context_condition',
     ),
   );
   $plugins['context_condition_context'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_context.inc',
       'class' => 'context_condition_context',
       'parent' => 'context_condition_path',
@@ -152,7 +157,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_node'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_node.inc',
       'class' => 'context_condition_node',
       'parent' => 'context_condition',
@@ -160,7 +165,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_sitewide'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_sitewide.inc',
       'class' => 'context_condition_sitewide',
       'parent' => 'context_condition',
@@ -168,7 +173,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_path'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_path.inc',
       'class' => 'context_condition_path',
       'parent' => 'context_condition',
@@ -176,7 +181,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_user'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_user.inc',
       'class' => 'context_condition_user',
       'parent' => 'context_condition',
@@ -184,7 +189,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_user_page'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_user_page.inc',
       'class' => 'context_condition_user_page',
       'parent' => 'context_condition',
@@ -192,7 +197,7 @@ function _context_context_plugins() {
   );
   $plugins['context_condition_menu'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_condition_menu.inc',
       'class' => 'context_condition_menu',
       'parent' => 'context_condition',
@@ -201,7 +206,7 @@ function _context_context_plugins() {
   if (module_exists('taxonomy')) {
     $plugins['context_condition_node_taxonomy'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_node_taxonomy.inc',
         'class' => 'context_condition_node_taxonomy',
         'parent' => 'context_condition_node',
@@ -209,7 +214,7 @@ function _context_context_plugins() {
     );
     $plugins['context_condition_taxonomy_term'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_taxonomy_term.inc',
         'class' => 'context_condition_taxonomy_term',
         'parent' => 'context_condition',
@@ -219,7 +224,7 @@ function _context_context_plugins() {
   if (module_exists('locale')) {
     $plugins['context_condition_language'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_language.inc',
         'class' => 'context_condition_language',
         'parent' => 'context_condition',
@@ -229,7 +234,7 @@ function _context_context_plugins() {
   if (module_exists('book')) {
     $plugins['context_condition_book'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_book.inc',
         'class' => 'context_condition_book',
         'parent' => 'context_condition',
@@ -237,7 +242,7 @@ function _context_context_plugins() {
     );
     $plugins['context_condition_bookroot'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_bookroot.inc',
         'class' => 'context_condition_bookroot',
         'parent' => 'context_condition_node',
@@ -247,7 +252,7 @@ function _context_context_plugins() {
   if (module_exists('views')) {
     $plugins['context_condition_views'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_condition_views.inc',
         'class' => 'context_condition_views',
         'parent' => 'context_condition',
@@ -260,22 +265,30 @@ function _context_context_plugins() {
    */
   $plugins['context_reaction'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction.inc',
       'class' => 'context_reaction',
     ),
   );
   $plugins['context_reaction_block'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_block.inc',
       'class' => 'context_reaction_block',
       'parent' => 'context_reaction',
     ),
   );
+  $plugins['context_reaction_region'] = array(
+    'handler' => array(
+      'path' => drupal_get_path('module', 'context') . '/plugins',
+      'file' => 'context_reaction_region.inc',
+      'class' => 'context_reaction_region',
+      'parent' => 'context_reaction',
+    ),
+  );
   $plugins['context_reaction_breadcrumb'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_breadcrumb.inc',
       'class' => 'context_reaction_breadcrumb',
       'parent' => 'context_reaction_menu',
@@ -283,7 +296,7 @@ function _context_context_plugins() {
   );
   $plugins['context_reaction_menu'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_menu.inc',
       'class' => 'context_reaction_menu',
       'parent' => 'context_reaction',
@@ -291,7 +304,7 @@ function _context_context_plugins() {
   );
   $plugins['context_reaction_theme'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_theme.inc',
       'class' => 'context_reaction_theme',
       'parent' => 'context_reaction',
@@ -299,7 +312,7 @@ function _context_context_plugins() {
   );
   $plugins['context_reaction_theme_html'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_theme_html.inc',
       'class' => 'context_reaction_theme_html',
       'parent' => 'context_reaction_theme',
@@ -307,7 +320,7 @@ function _context_context_plugins() {
   );
   $plugins['context_reaction_debug'] = array(
     'handler' => array(
-      'path' => drupal_get_path('module', 'context') .'/plugins',
+      'path' => drupal_get_path('module', 'context') . '/plugins',
       'file' => 'context_reaction_debug.inc',
       'class' => 'context_reaction_debug',
       'parent' => 'context_reaction',
@@ -316,7 +329,7 @@ function _context_context_plugins() {
   if (module_exists('css_injector')) {
     $plugins['context_reaction_css_injector'] = array(
       'handler' => array(
-        'path' => drupal_get_path('module', 'context') .'/plugins',
+        'path' => drupal_get_path('module', 'context') . '/plugins',
         'file' => 'context_reaction_css_injector.inc',
         'class' => 'context_reaction_css_injector',
         'parent' => 'context_reaction',

@@ -27,7 +27,7 @@ class context_reaction_menu extends context_reaction {
         }
         unset($menus[$key]);
       }
-      array_unshift($menus, "-- ". t('None') ." --");
+      array_unshift($menus, "-- " . t('None') . " --");
     }
     else {
       $menus = array();
@@ -98,7 +98,7 @@ class context_reaction_menu extends context_reaction {
           $link['attributes']['class'][] = 'active';
 
           if (strpos(' active', $key) === FALSE) {
-            $new_links[$key .' active'] = $link;
+            $new_links[$key . ' active'] = $link;
           }
         }
         else {

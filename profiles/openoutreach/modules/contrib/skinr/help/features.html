@@ -1,0 +1,53 @@
+<p><code>[features]</code> are an optional Skinr setting. They do not need to be
+  specified. By default Skinr will assume that your styles can be used anywhere
+  Skinr is available on your site, i.e. nodes, blocks, etc. If you want to
+  reduce UI clutter and have more fine grained control over where your skins are
+  used, you'll want to use the <code>[features]</code> option.
+</p>
+<p>The <code>[features]</code> setting is the equivalent of the high level
+  Drupal theme hook. If nothing is specified in your skin it will appear
+  everywhere by default. It may only contain underscores. By specifying a
+  <code>[features]</code> you are telling Skinr: Only show this skin when
+  editing X.
+</p>
+<p>Below is a listing of available options, by module:</p>
+
+<h3>Blocks</h3>
+<pre>
+skinr[skin_system_name][features][] = block
+skinr[skin_system_name][features][] = block_[module]
+</pre>
+
+<h3>Comments</h3>
+<pre>
+skinr[skin_system_name][features][] = comment_wrapper
+skinr[skin_system_name][features][] = comment_wrapper_[node_type]
+</pre>
+
+<h3>Nodes</h3>
+<pre>
+skinr[skin_system_name][features][] = node
+skinr[skin_system_name][features][] = node_[node_type]
+</pre>
+<em class="marker">Note: node_[node_type] is not yet implemented.</em>
+
+<h3>Page (body classes)</h3>
+<pre>
+skinr[skin_system_name][features][] = page
+</pre>
+
+<h3>Panels</h3>
+<pre>
+skinr[skin_system_name][features][] = panels_pane
+skinr[skin_system_name][features][] = panels_panel
+</pre>
+
+<h3>Views</h3>
+<pre>
+skinr[skin_system_name][features][] = views_view
+skinr[skin_system_name][features][] = views_view__[style_name]
+skinr[skin_system_name][features][] = views_view__[display_name]
+skinr[skin_system_name][features][] = views_view__[view_name]
+skinr[skin_system_name][features][] = views_view__[view_name]__[display_name]
+</pre>
+<em class="marker">Note: views_view__[style_name] is not yet implemented.</em>

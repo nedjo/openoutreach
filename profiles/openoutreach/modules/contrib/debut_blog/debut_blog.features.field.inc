@@ -84,69 +84,79 @@ function debut_blog_field_default_fields() {
           'summary_rows' => 5,
         ),
         'type' => 'text_textarea_with_summary',
-        'weight' => '2',
+        'weight' => '3',
       ),
       'widget_type' => 'text_textarea_with_summary',
     ),
   );
 
-  // Exported field: 'node-blog-field_image'
-  $fields['node-blog-field_image'] = array(
+  // Exported field: 'node-blog-field_content_image'
+  $fields['node-blog-field_content_image'] = array(
     'field_config' => array(
       'active' => '1',
       'cardinality' => '1',
       'deleted' => '0',
       'entity_types' => array(),
-      'field_name' => 'field_image',
-      'foreign keys' => array(),
+      'field_name' => 'field_content_image',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid',
+          ),
+          'table' => 'file_managed',
+        ),
+      ),
       'indexes' => array(
         'fid' => array(
           0 => 'fid',
         ),
       ),
-      'module' => 'media',
-      'settings' => array(),
+      'module' => 'image',
+      'settings' => array(
+        'default_image' => 0,
+        'uri_scheme' => 'public',
+      ),
       'translatable' => '1',
-      'type' => 'media',
+      'type' => 'image',
     ),
     'field_instance' => array(
       'bundle' => 'blog',
       'deleted' => '0',
-      'description' => '',
+      'description' => 'Select an image to be displayed in association with this piece of content.  The maximum allowed image size is 1000 x 1000 pixels.',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
-          'module' => 'media',
+          'module' => 'image',
           'settings' => array(
-            'file_view_mode' => 'media_large',
+            'image_link' => '',
+            'image_style' => 'large',
           ),
-          'type' => 'media',
-          'weight' => '0',
-        ),
-        'rss' => array(
-          'label' => 'hidden',
-          'module' => 'media',
-          'settings' => array(
-            'file_view_mode' => 'media_large',
-          ),
-          'type' => 'media',
+          'type' => 'image',
           'weight' => '0',
         ),
         'teaser' => array(
           'label' => 'hidden',
-          'module' => 'media',
+          'module' => 'image',
           'settings' => array(
-            'file_view_mode' => 'media_preview',
+            'image_link' => 'content',
+            'image_style' => 'medium',
           ),
-          'type' => 'media',
+          'type' => 'image',
           'weight' => '0',
         ),
       ),
       'entity_type' => 'node',
-      'field_name' => 'field_image',
+      'field_name' => 'field_content_image',
       'label' => 'Image',
       'required' => 0,
       'settings' => array(
+        'alt_field' => 1,
+        'file_directory' => '',
+        'file_extensions' => 'png gif jpg jpeg',
+        'max_filesize' => '',
+        'max_resolution' => '1000x1000',
+        'min_resolution' => '',
+        'title_field' => 0,
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -154,15 +164,13 @@ function debut_blog_field_default_fields() {
         'module' => 'media',
         'settings' => array(
           'allowed_schemes' => array(
-            'public' => 'public',
-            'youtube' => 0,
+            0 => 'public',
+            1 => 'private',
           ),
           'allowed_types' => array(
-            'audio' => 0,
-            'default' => 0,
-            'image' => 'image',
-            'video' => 0,
+            0 => 'image',
           ),
+          'preview_image_style' => 'thumbnail',
           'progress_indicator' => 'throbber',
         ),
         'type' => 'media_generic',
@@ -217,7 +225,7 @@ function debut_blog_field_default_fields() {
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '2',
+          'weight' => '3',
         ),
       ),
       'entity_type' => 'node',
@@ -244,7 +252,7 @@ function debut_blog_field_default_fields() {
           'progress_indicator' => 'throbber',
         ),
         'type' => 'media_generic',
-        'weight' => '3',
+        'weight' => '4',
       ),
     ),
   );
@@ -299,7 +307,7 @@ function debut_blog_field_default_fields() {
           'label' => 'above',
           'settings' => array(),
           'type' => 'hidden',
-          'weight' => '2',
+          'weight' => '4',
         ),
       ),
       'entity_type' => 'node',
@@ -327,6 +335,7 @@ function debut_blog_field_default_fields() {
   t('Enter a comma-separated list of words to describe your content.');
   t('Image');
   t('Media');
+  t('Select an image to be displayed in association with this piece of content.  The maximum allowed image size is 1000 x 1000 pixels.');
   t('Tags');
 
   return $fields;

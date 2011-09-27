@@ -10,7 +10,7 @@ description = "A link content type and associated displays"
 features[ctools][] = "strongarm:strongarm:1"
 features[ctools][] = "views:views_default:3.0"
 features[field][] = "node-link-body"
-features[field][] = "node-link-field_image"
+features[field][] = "node-link-field_content_image"
 features[field][] = "node-link-field_link"
 features[field][] = "node-link-field_link_term"
 features[node][] = "link"
@@ -34,9 +34,9 @@ name = "Debut Link"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-08
+; Information added by drupal.org packaging script on 2011-09-24
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "debut_link"
-datestamp = "1315440713"
+datestamp = "1316823148"
 

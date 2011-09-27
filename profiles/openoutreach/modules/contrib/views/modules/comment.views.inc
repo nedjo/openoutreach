@@ -26,10 +26,10 @@ function comment_views_data() {
   $data['comment']['table']['base'] = array(
     'field' => 'cid',
     'title' => t('Comment'),
-    'entity type' => 'comment',
     'help' => t("Comments are responses to node content."),
     'access query tag' => 'comment_access',
   );
+  $data['comment']['table']['entity type'] = 'comment';
 
   // Provide a "default relationship" to keep older views from choking.
   $data['comment']['table']['default_relationship'] = array(
@@ -291,6 +291,16 @@ function comment_views_data() {
       'title' => t('Delete link'),
       'help' => t('Provide a simple link to delete the comment.'),
       'handler' => 'views_handler_field_comment_link_delete',
+    ),
+  );
+
+
+  // link to approve comment
+  $data['comment']['approve_comment'] = array(
+    'field' => array(
+      'title' => t('Approve link'),
+      'help' => t('Provide a simple link to approve the comment.'),
+      'handler' => 'views_handler_field_comment_link_approve',
     ),
   );
 

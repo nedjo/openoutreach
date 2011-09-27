@@ -114,6 +114,12 @@ function file_entity_install() {
     ->expression('type', "SUBSTRING_INDEX(filemime, '/', 1)")
     ->condition('type', '')
     ->execute();
+
+  // Set permissions.
+  $roles = user_roles();
+  foreach ($roles as $rid => $role) {
+    user_role_grant_permissions($rid, array('view file'));
+  }
 }
 
 /**
@@ -219,3 +225,24 @@ function file_entity_update_7101() {
  * Empty update function to trigger an entity cache rebuild.
  */
 function file_entity_update_7102() { }
+
+/**
+ * Intentionally left blank.
+ */
+function file_entity_update_7103() { }
+
+/**
+ * Assign view file permission when updating without the Media module.
+ */
+function file_entity_update_7104() {
+  if (!module_exists('media')) {
+    $roles = user_roles(FALSE, 'view file');
+    if (empty($roles)) {
+      // Set permissions.
+      $roles = user_roles();
+      foreach ($roles as $rid => $role) {
+        user_role_grant_permissions($rid, array('view file'));
+      }
+    }
+  }
+}

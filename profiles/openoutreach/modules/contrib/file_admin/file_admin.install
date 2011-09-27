@@ -1,0 +1,67 @@
+<?php
+
+/**
+ * @file
+ * Installation file for file_admin module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function file_admin_install() {
+  $table = 'file_managed';
+  $file_admin_schema = array();
+  file_admin_schema_alter($file_admin_schema);
+  $fields = array_keys($file_admin_schema[$table]['fields']);
+  $schema = drupal_get_schema($table, TRUE);
+  foreach ($fields as $field) {
+    if (!empty($schema['fields'][$field]) && !db_field_exists($table, $field)) {
+      db_add_field($table, $field, $schema['fields'][$field]);
+    }
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function file_admin_uninstall() {
+  $file_admin_schema = array();
+  file_admin_schema_alter($file_admin_schema);
+  $fields = array_keys($file_admin_schema['file_managed']['fields']);
+  foreach ($fields as $field) {
+    db_drop_field('file_managed', $field);
+  }
+  // TODO: delete variables.
+}
+
+/**
+ * Implements hook_schema_alter().
+ *
+ * Add file_managed table published and promote fields.
+ */
+function file_admin_schema_alter(&$schema) {
+  $schema['file_managed']['fields']['created'] = array(
+    'description' => 'The Unix timestamp when the file record was created.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  $schema['file_managed']['fields']['published'] = array(
+    'description' => 'Boolean indicating whether the media item is published (visible to non-administrators).',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+  );
+  $schema['file_managed']['fields']['promote'] = array(
+    'description' => 'Boolean indicating whether the media item should be displayed on the front page or similar lists of promoted content.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  $schema['file_managed']['fields']['sticky'] = array(
+    'description' => 'Boolean indicating whether the media item should be displayed at the top of lists in which it appears.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+}

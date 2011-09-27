@@ -49,6 +49,13 @@ Whenever a particular context is active, all of its reactions will be run.
 Like conditions, reactions can be added or removed and have settings that can
 be configured.
 
+- **Reaction Block Groupings**: You can influence what "group" a block appears
+  in when listing all blocks available to be added to a region.  This is done
+  by specifying $block->context_group via hook_block_info.  If no group is
+  specified it will default to the module name, but if a group is specified
+  it will be grouped under that group name.
+
+
 
 Using the inline editor
 -----------------------

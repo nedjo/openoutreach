@@ -70,6 +70,7 @@ files[] = modules/comment/views_handler_argument_comment_user_uid.inc
 files[] = modules/comment/views_handler_field_comment.inc
 files[] = modules/comment/views_handler_field_comment_depth.inc
 files[] = modules/comment/views_handler_field_comment_link.inc
+files[] = modules/comment/views_handler_field_comment_link_approve.inc
 files[] = modules/comment/views_handler_field_comment_link_delete.inc
 files[] = modules/comment/views_handler_field_comment_link_edit.inc
 files[] = modules/comment/views_handler_field_comment_link_reply.inc
@@ -280,9 +281,9 @@ files[] = tests/user/views_user.test
 files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
-; Information added by drupal.org packaging script on 2011-09-08
+; Information added by drupal.org packaging script on 2011-09-27
 version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1315443796"
+datestamp = "1317084536"
 

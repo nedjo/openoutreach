@@ -1,0 +1,90 @@
+Skinr 7.x-2.x, xxxx-xx-xx
+-------------------------
+Issue #1218786 by moonray: Fixed skinr_rule_is_visible() doesn't work properly
+  for node/add/[type] when limiting by content type.
+Issue #1183954 by moonray: Fixed inability to register a skin under specific
+  theme hooks.
+Issues #1127434 by moonray: Fixed previous widget displaying twice if skin type
+  is invalid in skin plugin.
+Issue #1199972 by sun: Cleaned up tests.
+by moonray: Organized testing related modules into their own sub-directories.
+Issue #1185224 by moonray: Added tests for functionality plugins. Update.
+Issue #1185224 by moonray: Added tests for functionality plugins. Fixed a small
+  inconsistency with panels plugin.
+Issue #1044222 by sun, moonray: Removed left-over junk code.
+Issue #1044222 by sun, moonray: Fixed tests.
+Issue #1044222 by sun, moonray: Removed skin configuration functionality from
+  third-party forms.
+by moonray: Fixed typo in skinr_get_config_info() that prevented skipping
+  re-loading of cached data.
+#1148092 by moonray: Fixed PDOException on Skinr installation when using UTF8
+  character set in DB.
+#891942 by Vraja, moonray: Tests for class lost when editing block and user doesn't
+  have "access skinr classes" permission. Bug already fixed by previous patch.
+#1082842 by moonray: Update storage of skin configurations to give more
+  granular control.
+#1050064 by moonray | Hari: Fixed Skinr failing to load CSS files when added at
+  the option level of a Skin.
+#1053738 by moonray: Fixed Simpletest for Skinr UI fails.
+#1051456 by moonray: Fixed $theme_registry() has no value in skinr_ui_preprocess().
+#1040108 by sun, moonray: Fixed Default groups don't register.
+#977118 by sun: Fixed Skins in disabled basetheme cannot be enabled for
+  basetheme (to appear in subtheme).
+#1029058 by sun: Added first Skinr UI tests applying skin settings.
+#1015614 by sun: Added tests ensuring skins of disabled themes aren't collected.
+#1028334 by Jacine: Changed the 'default_status()" property to "default status".
+#1015614 by Jacine: Fixing previous commit.
+#1015614 by sun: Subtheme can collect skin information from disabled parent
+  themes.
+#1015614 by sun, Jacine: Added normal themes (no skins) for testing purposes.
+#1015614 by sun: Added a subtheme for testing.
+#956994 by moonray, sun: Fixing an issue where JS and CSS files weren't loading
+  due to incorrect path information.
+#1027294 by Jacine: Changed API Documentation.
+#956994 by sun: Fixed plugin .inc files can be located in sub-directories.
+#956994 by sun: Revert debugging code in skinr.test.
+#956994 by sun, moonray, coltrane: Fixed Write load and parse code for Skinr
+  include files in PHP format.
+#956932 and #956932 by Jacine, moonray, sun: Added new API documentation.
+#977110 by moonray: Fixed typos in the default group implementation.
+#995080 by Jacine: Fixed Permissions are confusing.
+#956990 by sun: Renaming docs/docs.php to skinr.api.php.
+#977110 by Jacine: Fixed Create the default group implementation.
+#956990 by coltrane, Removed function_exists() call from
+  skinr_module_load_all_includes().
+#995794 by coltrane, pillarsdotnet: Fixed Prevent 'invalid argument for
+  foreach()" error.
+#999124 by sun, coltrane: Remove workaround due to fix in core issue #985578.
+#999124 by coltrane: Fixed installation simpletest.
+#995080 by moonray: Fixed admin/appearance/skinr/edit/%skinr_js()/%/% has wrong permission.
+#948550 by moonray: Fixed a few views_object_cache() calls to use
+  ctools_object_cache_get().
+#956990 by moonray: Fixing module_load_all_includes() which was broken by a
+  previous commit.
+#956994 by jacine: Adding a Test skin module.
+#956990 by moonray, sun: Round 2 of clean up in #956990.
+#942950 by moonray, Jacine, sun: Fixed Rule creation form is broken and
+  confusing.
+#956990 by moonray, sun: Changed function and variable names to follow Drupal
+  core.
+#957070 by moonray, sun: Fixed code documentation.
+#957388 by Jacine, sun, Jeff Burnz: Fixed theme_skinr_ui_filters() still uses
+  dl.multiselect markup/styling.
+#948550 by nomonstersinme, moonray: Updated Views integration for 7.x.
+#960548 by moonray, Vraja, Jacine: Removed support for template files.
+#906764 by Vraja, DamienMcKenna: Fixed logic error in skinr_submit_handler().
+#796780 by moonray, sun, ericduran, neochief: Fixed problems with other modules
+  during hook_init().
+#949746 by sun, nomonstersinme: Fixed Skins page broken.
+#947790 by moonray, Jacine: Updated Panels integration for 7.x.
+#954874 by moonray, sun: Removed .info file handling.
+#943064 by moonray, Jacine: Fixed rules settings fieldset for region editing.
+#947738 by moonray, nomonstersinme: Fixed region handling for skins.
+#945086 by yettyn, ezra-g: Fixed PDOException in skinr_update_7002().
+#908946 by sun: Fixed hook_menu() is invoked for disabled modules.
+#908946 by sun: Fixed module update functions.
+#943008 by moonray: Fixed block_skinr_preprocess_hook_callback() never returning
+  alternate block hooks.
+#942292 by Jacine: Added Advanced Help support files.
+#917540 by Jacine: Added support for Form API #weight attribute.
+#908946 by sun: Partial clean up of Drupal 7 port.

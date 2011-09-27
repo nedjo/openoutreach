@@ -218,8 +218,8 @@ function hook_features_export_rebuild($module_name) {
  */
 function hook_features_export_alter(&$export, $module_name) {
   // Example: do not allow the page content type to be exported, ever.
-  if (!empty($export['node']['page'])) {
-    unset($export['node']['page']);
+  if (!empty($export['features']['node']['page'])) {
+    unset($export['features']['node']['page']);
   }
 }
 

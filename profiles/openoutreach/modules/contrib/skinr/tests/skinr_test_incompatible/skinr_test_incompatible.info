@@ -1,0 +1,13 @@
+name = Skinr Incompatible Testing
+description = A test module used for testing incompatible Skinr API implementations.
+package = Testing
+core = 7.x
+hidden = TRUE
+dependencies[] = skinr
+
+; Information added by drupal.org packaging script on 2011-07-15
+version = "7.x-2.x-dev"
+core = "7.x"
+project = "skinr"
+datestamp = "1310690367"
+

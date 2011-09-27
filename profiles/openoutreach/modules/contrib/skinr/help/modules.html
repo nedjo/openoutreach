@@ -1,0 +1,63 @@
+<p>
+  While skins can be provided in a theme, doing so has the potential
+  disadvantage of making the skin available only to users of that theme (or
+  themes based off of it). Many skins may be useful in any theme, or may provide
+  building blocks that a particular theme could customize. When producing skins,
+  please consider first whether you can make your work generic enough to provide
+  in a module, thereby making it available to all Drupal users.
+</p>
+<p>The good news is that providing a skin in a module rather than a theme is
+  quick and easy, even if you've never used PHP. In the steps below, we outline
+  how to create a module for your skins. When creating your module, simply
+  substitute occurrences of "block_skins" with a "machine name" (a name suitable
+  for computers to read) of your choosing and change the description accordingly.
+  Drupal module names typically are all lower case with no spaces and no
+  punctuation except underscores (which are used to separate words).
+</p>
+<ol>
+  <li>
+    <p>Create a new folder in your modules directory using the machine name:</p>
+      <pre>sites/all/modules/block_skins</pre>
+  </li>
+  <li>
+    <p>
+      Create a <code>block_skins.info</code> file inside the
+      <code>block_skins</code> folder and include following code inside the
+      file:
+    </p>
+      <pre>
+name = "Block Skins"
+description = "A set of skins providing configurable layout options for blocks."
+package = "Skinr"
+core = 6.x</pre>
+  </li>
+  <li>
+  <p>
+    Create a <code>block_skins.module</code> file inside the
+    <code>block_skins</code> folder and include the following code inside the
+    file:
+  </p>
+    <pre>
+&lt;?php
+/**
+* Implementation of hook_skinr_api().
+*/
+function block_skins_skinr_api() {
+  return array(
+    'api' => 1,
+    'path' => drupal_get_path('module', 'block_skins'),
+    'skins' => TRUE,
+  );
+}</pre>
+<li>
+  <p>
+    Put your skins in a folder called <code>skins</code> inside your module's
+    folder.
+  </p>
+</li>
+</ol>
+<p>
+  And that's it! You're ready to use and contribute your module, just like you
+  would a theme. See the Drupal handbook documentation on
+  <a href="http://drupal.org/node/7765">maintaining a project on drupal.org</a>.
+</p>

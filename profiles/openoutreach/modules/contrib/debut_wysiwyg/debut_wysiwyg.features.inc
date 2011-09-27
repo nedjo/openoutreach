@@ -41,8 +41,8 @@ function debut_wysiwyg_default_wysiwyg_profile() {
       "remove_linebreaks" : 1,
       "apply_source_formatting" : 0,
       "paste_auto_cleanup_on_paste" : 0,
-      "block_formats" : "h2,h3,h4,",
-      "css_setting" : "theme",
+      "block_formats" : "p,h2,h3,h4",
+      "css_setting" : "none",
       "css_path" : "",
       "css_classes" : ""
     },
@@ -84,8 +84,8 @@ function debut_wysiwyg_default_wysiwyg_profile() {
       "remove_linebreaks" : 1,
       "apply_source_formatting" : 0,
       "paste_auto_cleanup_on_paste" : 0,
-      "block_formats" : "h2,h3,h4,",
-      "css_setting" : "theme",
+      "block_formats" : "p,h2,h3,h4",
+      "css_setting" : "none",
       "css_path" : "",
       "css_classes" : ""
     },
@@ -118,8 +118,8 @@ function debut_wysiwyg_default_wysiwyg_profile() {
       "remove_linebreaks" : 1,
       "apply_source_formatting" : 0,
       "paste_auto_cleanup_on_paste" : 0,
-      "block_formats" : "p,address,pre,h2,h3,h4,h5,h6,div",
-      "css_setting" : "theme",
+      "block_formats" : "",
+      "css_setting" : "none",
       "css_path" : "",
       "css_classes" : ""
     },

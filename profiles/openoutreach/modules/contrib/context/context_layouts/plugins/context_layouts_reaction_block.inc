@@ -52,7 +52,7 @@ class context_layouts_reaction_block extends context_reaction_block {
   function add_layout_stylesheet() {
     if ($layout = $this->get_active_layout()) {
       if (!empty($layout['stylesheet'])) {
-        drupal_add_css(drupal_get_path('theme', $layout['theme']) .'/'. $layout['stylesheet']);
+        drupal_add_css(drupal_get_path('theme', $layout['theme']) . '/' . $layout['stylesheet']);
       }
     }
   }
@@ -61,7 +61,7 @@ class context_layouts_reaction_block extends context_reaction_block {
    * Override of editor form.
    */
   function editor_form($context) {
-    drupal_add_css(drupal_get_path('module', 'context_layouts') .'/plugins/context_layouts_reaction_block.css');
+    drupal_add_css(drupal_get_path('module', 'context_layouts') . '/plugins/context_layouts_reaction_block.css');
 
     $form = parent::editor_form($context);
 
@@ -81,7 +81,7 @@ class context_layouts_reaction_block extends context_reaction_block {
           '#default_value' => isset($options['layout']) ? $options['layout'] : NULL,
           '#required' => FALSE,
           '#empty_value' => 0,
-          '#empty_option' => '- '. t('Site default') .' -',
+          '#empty_option' => '- ' . t('Site default') . ' -',
         ),
         'update' => array(
           '#value' => t('Change layout'),
@@ -134,13 +134,13 @@ class context_layouts_reaction_block extends context_reaction_block {
         '#attributes' => array('class' => array('context-blockform-layout')),
         '#required' => FALSE,
         '#empty_value' => 0,
-        '#empty_option' => '- '. t('Site default') .' -',
+        '#empty_option' => '- ' . t('Site default') . ' -',
       );
 
       // Add js.
       // @TODO: Move this to a theme function or somewhere that will get called even
       // if the form is using a cached version of itself (e.g. when validate fails).
-      drupal_add_js(drupal_get_path('module', 'context_layouts') .'/plugins/context_layouts_reaction_block.js');
+      drupal_add_js(drupal_get_path('module', 'context_layouts') . '/plugins/context_layouts_reaction_block.js');
       drupal_add_js(array('contextLayouts' => array('layouts' => $this->get_layout_regions())), 'setting');
     }
     return $form;

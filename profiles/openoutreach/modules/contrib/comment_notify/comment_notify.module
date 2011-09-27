@@ -392,6 +392,31 @@ function comment_notify_user_cancel(&$edit, $account, $method) {
 }
 
 /**
+ * Implements hook_comment_load().
+ */
+function comment_notify_comment_load($comments) {
+  // Load some comment_notify specific information into the comment object.
+  $query = db_select('comment_notify', 'cn');
+  $query->join('comment', 'c', 'c.cid = cn.cid');
+  $query->leftJoin('users', 'u', 'c.uid = u.uid');
+  $query->condition('c.cid', array_keys($comments));
+  $query->fields('cn', array('cid', 'notify', 'notify_hash', 'notified'));
+  $query->addField('c', 'mail', 'cmail');
+  $query->addField('u', 'init', 'uinit');
+  $query->addField('u', 'mail', 'umail');
+
+  $records = $query->execute()->fetchAllAssoc('cid');
+  foreach ($records as $cid => $record) {
+    $comments[$cid]->notify = $record->notify;
+    $comments[$cid]->notify_hash = $record->notify_hash;
+    $comments[$cid]->notified = $record->notified;
+    $comments[$cid]->cmail = $record->cmail;
+    $comments[$cid]->uinit = $record->uinit;
+    $comments[$cid]->umail = $record->umail;
+  }
+}
+
+/**
  * Private function to send the notifications.
  *
  * @param $comment
@@ -412,7 +437,7 @@ function _comment_notify_mailalert($comment) {
   // Check to see if a notification has already been sent for this
   // comment so that edits to a comment don't trigger an additional
   // notification.
-  if (comment_notify_is_notification_already_sent($cid)) {
+  if (!empty($comment->notified)) {
     return;
   }
 
@@ -452,7 +477,7 @@ function _comment_notify_mailalert($comment) {
   }
 
   // For "reply to my comments" notifications, figure out what thread this is.
-  $thread = comment_notify_get_thread($cid);
+  $thread = $comment->thread;
 
   // Get the list of commenters to notify.
   $watchers = comment_notify_get_watchers($nid);
@@ -685,13 +710,11 @@ function comment_notify_settings_validate($form, &$form_state) {
  * @return
  *   A string with the internal path to the unsubscribe link, ready to be
  *   passed to the url() function.
- *
- * @see comment_notify_get_notify_hash().
  */
 function comment_notify_get_unsubscribe_url($comment) {
   module_load_include('inc', 'comment_notify', 'comment_notify');
-  if ($hash = comment_notify_get_notify_hash($comment->cid)) {
-    return 'comment_notify/disable/' . $hash;
+  if (!empty($comment->notify_hash)) {
+    return 'comment_notify/disable/' . $comment->notify_hash;
   }
 }
 /**

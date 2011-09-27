@@ -31,7 +31,7 @@ class views_content_plugin_style_ctools_context extends views_plugin_style {
     // Some engines like solr key results on ids, but rendering really expects
     // things to be keyed exclusively by row index. Using array_values()
     // guarantees that.
-    $result = array_values($this->view->result);
+    $this->view->result = array_values($this->view->result);
 
     // Group the rows according to the grouping field, if specified.
     $sets = $this->render_grouping($this->view->result, $this->options['grouping']);

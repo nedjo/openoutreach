@@ -393,7 +393,7 @@ function service_links_get_links($services = NULL, $reset = FALSE) {
     $services = array_combine($services, array_fill(0, count($services), 1));
   }
 
-  return isset($services) ? array_intersect_key($links, $services) : $links;
+  return isset($services) ? array_merge($services, array_intersect_key($links, $services)) : $links;
 }
 
 /**
@@ -481,7 +481,7 @@ function service_links_render($node, $nodelink = FALSE, $options = NULL) {
     $links['weight'][] = isset($settings['link_weight'][$service_id]) ? $settings['link_weight'][$service_id] : 0;
 
     // Render the Service.
-    $links['link'] += _service_links_render($service_id, $service, $settings, $nodelink);
+    $links['link'] += _service_links_render($service_id, $service, $settings, $nodelink, $node);
   }
 
   if (!empty($links['link'])) {
@@ -544,7 +544,7 @@ function service_links_render_some($service_ids, $node = NULL, $nodelink = FALSE
 
   $links = array();
   foreach ($services as $service_id => $service) {
-    $links += _service_links_render($service_id, $service, $settings, $nodelink);
+    $links += _service_links_render($service_id, $service, $settings, $nodelink, $node);
   }
 
   return $links;
@@ -553,7 +553,15 @@ function service_links_render_some($service_ids, $node = NULL, $nodelink = FALSE
 /**
  * The common render function used privately.
  */
-function _service_links_render($service_id, $service, $settings, $nodelink) {
+function _service_links_render($service_id, $service, $settings, $nodelink, $node = NULL) {
+  if (isset($service['preset'])) {
+    if (function_exists($function = $service['preset'])) {
+      $function($service, $settings, $node);
+    }
+  }
+
+  // On Drupal 7 this tag should be filled before the split otherwise will be lost.
+  $service['link'] = str_replace('<front-page>', $settings['subst']['front-page'], $service['link']);
   $service['url'] = preg_split('/\?/', $service['link']);
   if (count($service['url']) > 1) {
     $service['url'][1] = service_links_get_query($service['url'][1]);

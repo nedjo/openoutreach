@@ -171,35 +171,6 @@ function comment_notify_update_notification($cid, $notify) {
 }
 
 /**
- * Returns TRUE if the owner of this comment notification has already been notified.
- *
- * @param integer $cid
- * @return boolean
- */
-function comment_notify_is_notification_already_sent($cid) {
-  return (bool) db_select('comment_notify', 'cn')
-    ->fields('cn', array('cid'))
-    ->condition('cid', $cid)
-    ->condition('notified', 1)
-    ->execute()
-    ->fetchField();
-}
-
-/**
- * Get the unique identification hash for a comment notification record.
- *
- * @param integer $cid
- * @return string
- */
-function comment_notify_get_notify_hash($cid) {
-  return db_select('comment_notify', 'cn')
-    ->fields('cn', array('notify_hash'))
-    ->condition('cid', $cid)
-    ->execute()
-    ->fetchField();
-}
-
-/**
  * Get the type of notification for a comment notification record.
  *
  * @param integer $cid
@@ -214,46 +185,18 @@ function comment_notify_get_notification_type($cid) {
 }
 
 /**
- * Returns the thread which a comment belongs to.
- *
- * @param integer $cid
- * @return string
- *  The thread identifier.
- */
-function comment_notify_get_thread($cid) {
-  return db_select('comment', 'c')
-    ->fields('c', array('thread'))
-    ->condition('cid', $cid)
-    ->execute()
-    ->fetchField();
-}
-
-/**
  * Get a list of mails which need to be contacted for a node.
  *
  * @param integer $nid
  * @return QueryStatement
  */
 function comment_notify_get_watchers($nid) {
-  $query = db_select('comment', 'c');
-  $query->join('comment_notify', 'cn', 'c.cid = cn.cid');
-  $query->leftJoin('users', 'u', 'c.uid = u.uid');
-  $query
-    ->condition('nid', $nid)
-    ->condition('notify', COMMENT_NOTIFY_DISABLED, '<>')
-    ->condition('c.status', COMMENT_PUBLISHED)
-    ->condition(
-      db_or()
-        ->condition('u.uid', 0)
-        ->condition('u.status', 1)
-    )
-    ->fields('c', array('cid', 'nid', 'uid', 'name', 'thread'))
-    ->fields('cn', array('notify', 'notify_hash'));
-  $query->addField('c', 'mail', 'cmail');
-  $query->addField('u', 'init', 'uinit');
-  $query->addField('u', 'mail', 'umail');
-
-  return $query->execute();
+  $cids = db_query("SELECT c.cid FROM {comment} c INNER JOIN {comment_notify} cn ON c.cid = cn.cid LEFT JOIN {users} u ON c.uid = u.uid WHERE c.nid = :nid AND c.status = :status AND cn.notify <> :notify AND (u.uid = 0 OR u.status = 1)", array(
+    ':nid' => $nid,
+    ':status' => COMMENT_PUBLISHED,
+    ':notify' => COMMENT_NOTIFY_DISABLED,
+  ))->fetchCol();
+  return comment_load_multiple($cids);
 }
 
 /**

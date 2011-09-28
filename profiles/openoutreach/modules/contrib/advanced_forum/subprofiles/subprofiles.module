@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * @file
+ * Provides ability for installation profiles to provide subprofiles--
+ * variations of the main profile.
+ *
+ * Subprofiles are defined in the profile's .info file in the following format:
+ * <code>
+ * // Name and description of the subprofile. A "standard" subprofile is
+ * // required and is used by default if no subprofile is selected.
+ * subprofiles[standard][name] = My Profile standard
+ * subprofiles[standard][description] = Install a full version of My Profile with all commonly needed features enabled.
+ * // A feature called feature_x that should be enabled by default.
+ * subprofiles[standard][features][feature_x] = TRUE
+ * subprofiles[standard][features][feature_y] = TRUE
+ * // A feature called feature_z that should be available but disabled by
+ * // default.
+ * subprofiles[standard][features][feature_z] = FALSE
+ * </code>
+ *
+ * For interactive installs, the subprofile can be selected on the site
+ * information page. For automated installs, the subprofile can be passed in
+ * as a parameter along with the profile. If no subprofile is specified,
+ * the 'standard' one is used.
+ *
+ * Subprofiles also provides a drush command, subprofiles-install-site, which
+ * can be used to install a site with a specified profile and subprofile.
+ */
+
+// Include only when in install mode. MAINTENANCE_MODE is defined in
+// install.php and in drush_core_site_install().
+if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install') {
+  include_once('subprofiles.install.inc');
+}
+

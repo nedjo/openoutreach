@@ -34,9 +34,9 @@ name = "Debut Link"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-24
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2011-09-28
+version = "7.x-1.0-beta1"
 core = "7.x"
 project = "debut_link"
-datestamp = "1316823148"
+datestamp = "1317240404"
 

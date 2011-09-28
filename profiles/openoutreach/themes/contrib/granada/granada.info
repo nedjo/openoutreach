@@ -109,9 +109,9 @@ designkit[image][background_image][description] = "Background image."
 designkit[image][background_image][effect] = "image_scale:1600x1200"
 
 
-; Information added by drupal.org packaging script on 2011-09-22
+; Information added by drupal.org packaging script on 2011-09-28
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "granada"
-datestamp = "1316650995"
+datestamp = "1317169096"
 

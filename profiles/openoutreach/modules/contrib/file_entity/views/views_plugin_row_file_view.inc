@@ -43,7 +43,7 @@ class views_plugin_row_file_view extends views_plugin_row {
   }
 
   function summary_title() {
-    $view_mode_label = file_entity_view_mode_label($settings['file_view_mode'], t('Unknown'));
+    $view_mode_label = file_entity_view_mode_label($this->options['view_mode'], t('Unknown'));
     return check_plain($view_mode_label);
   }
 

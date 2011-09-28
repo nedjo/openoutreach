@@ -151,12 +151,17 @@ class views_plugin_display extends views_plugin {
   function construct() {
     // Load extenders as soon as possible
     $this->extender = array();
-    $extenders = array_filter(variable_get('views_display_extenders', array()));
+    $extenders = views_get_enabled_display_extenders();
     // If you update to the dev version the registry might not be loaded yet.
     if (!empty($extenders) && class_exists('views_plugin_display_extender')) {
       foreach ($extenders as $extender) {
         $data = views_fetch_plugin_data('display_extender', $extender);
-        $this->extender[$extender] = new $data['handler']($view, $this);
+        if (isset($data['handler']) && class_exists($data['handler'])) {
+          $this->extender[$extender] = new $data['handler']($view, $this);
+        }
+        else {
+          vpr('Invalid display extender @extender', array('@handler' => $extender));
+        }
       }
     }
     parent::construct();

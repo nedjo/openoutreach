@@ -353,13 +353,15 @@ function user_views_data() {
       'left_field' => 'uid',
       'field' => 'uid',
     ),
+  );
+  
+  $data['users_roles']['table']['default_relationship'] = array(
     'node' => array(
-      'left_field' => 'uid',
+      'table' => 'node',
       'field' => 'uid',
     ),
     'node_revision' => array(
-      'left_table' => 'node',
-      'left_field' => 'uid',
+      'table' => 'node_revision',
       'field' => 'uid',
     ),
   );
@@ -400,15 +402,39 @@ function user_views_data() {
       'left_field' => 'rid',
       'field' => 'rid',
     ),
+  );
+  
+  $data['role']['table']['default_relationship'] = array(
     'node' => array(
+      'table' => 'node',
+      'field' => 'uid',
+    ),
+    'node_revision' => array(
+      'table' => 'node_revision',
+      'field' => 'uid',
+    ),
+  );
+
+  // permission table
+  $data['role_permission']['table']['group']  = t('User');
+  $data['role_permission']['table']['join'] = array(
+     // Directly links to users table.
+    'users' => array(
       'left_table' => 'users_roles',
       'left_field' => 'rid',
       'field' => 'rid',
     ),
-    'node_revision' => array(
-      'left_table' => 'users_roles',
-      'left_field' => 'rid',
-      'field' => 'rid',
+  );
+
+  $data['role_permission']['permission'] = array(
+    'title' => t('Permission'),
+    'help' => t('The user permissions.'),
+    'field' => array(
+      'handler' => 'views_handler_field_user_permissions',
+      'no group by' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_user_permissions',
     ),
   );
 

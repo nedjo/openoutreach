@@ -13,11 +13,11 @@ projects[captcha][patch][http://drupal.org/files/issues/825088-19-captcha_ctools
 projects[ctools][subdir] = contrib
 projects[ctools][version] = 1.x-dev
 projects[debut][subdir] = contrib
-projects[debut][version] = 1.x-dev
+projects[debut][version] = 1.0-beta3
 projects[debut_comment][subdir] = contrib
-projects[debut_comment][version] = 1.x-dev
+projects[debut_comment][version] = 1.0-beta3
 projects[debut_forum][subdir] = contrib
-projects[debut_forum][version] = 1.x-dev
+projects[debut_forum][version] = 1.0-beta2
 projects[features][subdir] = contrib
 projects[features][version] = 1.0-beta4
 projects[pathauto][subdir] = contrib

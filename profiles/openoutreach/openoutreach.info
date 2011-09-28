@@ -39,13 +39,14 @@ recommends[] = "advanced_help"
 recommends[] = "contextual"
 recommends[] = "context_ui"
 recommends[] = "dashboard"
+recommends[] = "designkit"
 recommends[] = "field_ui"
-recommends[] = "openoutreach_front_page"
 recommends[] = "overlay"
 recommends[] = "pathauto"
 recommends[] = "rdf"
 recommends[] = "search"
 recommends[] = "shortcut"
+recommends[] = "skinr_ui"
 recommends[] = "toolbar"
 recommends[] = "views_ui"
 required = TRUE
@@ -62,6 +63,7 @@ subprofiles[standard][features][debut_media] = TRUE
 subprofiles[standard][features][debut_section] = TRUE
 subprofiles[standard][features][debut_social] = TRUE
 subprofiles[standard][features][debut_wysiwyg] = TRUE
+subprofiles[standard][features][openoutreach_front_page] = TRUE
 subprofiles[minimal][name] = "Openoutreach minimal"
 subprofiles[minimal][description] = "Install a minimal Open Outreach site with article and comment functionality."
 subprofiles[minimal][features][debut] = TRUE
@@ -69,10 +71,19 @@ subprofiles[minimal][features][debut_article] = TRUE
 subprofiles[minimal][features][debut_blog] = FALSE
 subprofiles[minimal][features][debut_comment] = TRUE
 subprofiles[minimal][features][debut_event] = FALSE
-subprofiles[standard][features][debut_forum] = FALSE
-subprofiles[standard][features][debut_link] = FALSE
+subprofiles[minimal][features][debut_forum] = FALSE
+subprofiles[minimal][features][debut_link] = FALSE
 subprofiles[minimal][features][debut_media] = FALSE
 subprofiles[minimal][features][debut_section] = FALSE
 subprofiles[minimal][features][debut_social] = FALSE
 subprofiles[minimal][features][debut_wysiwyg] = FALSE
+subprofiles[minimal][features][openoutreach_front_page] = FALSE
+
+
+
+; Information added by drupal.org packaging script on 2011-09-28
+version = "7.x-1.0-beta4"
+core = "7.x"
+project = "openoutreach"
+datestamp = "1317229007"
 

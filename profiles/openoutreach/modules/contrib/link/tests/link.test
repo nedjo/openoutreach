@@ -16,9 +16,9 @@ class LinkBaseTestClass extends DrupalWebTestCase {
     'access administration pages',
     'create page content',
   );
-  
+
   public $account;
-  
+
   function setUp($modules = array()) {
     if ($modules) {
       parent::setUp($modules);
@@ -29,7 +29,7 @@ class LinkBaseTestClass extends DrupalWebTestCase {
     $this->account = $this->drupalCreateUser($this->permissions);
     $this->drupalLogin($this->account);
   }
-  
+
   function createLinkField($node_type = 'page',
                            $settings = array()) {
     $name = strtolower($this->randomName());
@@ -48,7 +48,7 @@ class LinkBaseTestClass extends DrupalWebTestCase {
     $this->assertRaw(t('Saved %label configuration', array('%label' => $name)), 'Field added');
     node_types_rebuild();
     menu_rebuild();
-    
+
     return $field_name;
   }
 }

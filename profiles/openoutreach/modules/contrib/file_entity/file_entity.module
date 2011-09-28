@@ -40,14 +40,27 @@ function file_entity_menu() {
   // File Configuration
   $items['admin/config/media/file-types'] = array(
     'title' => 'File types',
-    'description' => 'Manage files used on your site.',
+    'description' => 'Manage settings for the type of files used on your site.',
     'page callback' => 'file_entity_list_types_page',
     'access arguments' => array('administer site configuration'),
     'file' => 'file_entity.admin.inc',
   );
   $items['admin/config/media/file-types/manage/%'] = array(
     'title' => 'Manage file types',
+    'description' => 'Manage settings for the type of files used on your site.',
+  );
+  $items['admin/content/file'] = array(
+    'title' => 'Files',
     'description' => 'Manage files used on your site.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('file_entity_admin_files'),
+    'access arguments' => array('administer files'),
+    'type' => MENU_LOCAL_TASK | MENU_NORMAL_ITEM,
+    'file' => 'file_entity.admin.inc',
+  );
+  $items['admin/content/file/list'] = array(
+    'title' => 'List',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   // general view, edit, delete for files
   $items['file/%file'] = array(
@@ -184,6 +197,9 @@ function file_entity_theme() {
       'render element' => 'element',
       'file' => 'file_entity.admin.inc',
     ),
+    'file_entity_file_link' => array(
+      'variables' => array('file' => NULL, 'icon_directory' => NULL),
+    )
   );
 }
 
@@ -198,6 +214,10 @@ function file_entity_entity_info_alter(&$entity_info) {
   $entity_info['file']['fieldable'] = TRUE;
   $entity_info['file']['entity keys']['bundle'] = 'type';
   $entity_info['file']['bundles'] = array();
+  $entity_info['file']['view modes']['full'] = array(
+    'label' => t('File view page'),
+    'custom settings' => FALSE,
+  );
   foreach (file_info_file_types() as $type => $info) {
     $info += array(
       // Provide a default administration path for Field UI, but not if 'admin'
@@ -610,14 +630,31 @@ function file_type_get_names() {
 
 /**
  * Implements hook_file_mimetype_mapping_alter().
- *
- * Fix the mimetype assocation for .ogg files to 'audio/ogg' rather than
- * 'application/ogg' as per http://en.wikipedia.org/wiki/Ogg.
- *
- * @todo Remove when http://drupal.org/node/1239376 is fixed in core.
  */
 function file_entity_file_mimetype_mapping_alter(&$mapping) {
-  $mapping['extensions']['ogg'] = 189;
+  // Fix the mime type mapping for ogg.
+  // @todo Remove when http://drupal.org/node/1239376 is fixed in core.
+  $new_mappings['ogg'] = 'audio/ogg';
+
+  // Add support for m4v.
+  // @todo Remove when http://drupal.org/node/1290486 is fixed in core.
+  $new_mappings['m4v'] = 'video/x-m4v';
+
+  // Add support for mka and mkv.
+  // @todo Remove when http://drupal.org/node/1293140 is fixed in core.
+  $new_mappings['mka'] = 'audio/x-matroska';
+  $new_mappings['mkv'] = 'video/x-matroska';
+
+  foreach ($new_mappings as $extension => $mime_type) {
+    if (!in_array($mime_type, $mapping['mimetypes'])) {
+      // If the mime type does not already exist, add it.
+      $mapping['mimetypes'][] = $mime_type;
+    }
+
+    // Get the index of the mime type and assign the extension to that key.
+    $index = array_search($mime_type, $mapping['mimetypes']);
+    $mapping['extensions'][$extension] = $index;
+  }
 }
 
 /**
@@ -643,4 +680,79 @@ function file_entity_view_mode_labels() {
 function file_entity_view_mode_label($view_mode, $default = FALSE) {
   $labels = file_entity_view_mode_labels();
   return isset($labels[$view_mode]) ? $labels[$view_mode] : $default;
+}
+
+/**
+ * Implements hook_file_operations_info().
+ */
+function file_entity_file_operations_info() {
+  $operations = array(
+    'delete' => array(
+      'label' => t('Delete selected files'),
+      'callback' => 'file_entity_multiple_delete_confirm_operation',
+      'confirm' => TRUE,
+    ),
+  );
+  return $operations;
+}
+
+/**
+ * File operation to show a confirm form for file deletion.
+ *
+ * @param array $files
+ *   An array of file_ids to delete.
+ * @return type
+ */
+function file_entity_multiple_delete_confirm_operation($files) {
+  // This function is a form generation function.
+  $form = array();
+  $form_state = array();
+  // Set the submit handler explicitly because this form is being built
+  // under a different form_id.
+  $form['#submit'] = array();
+  $form['#submit'][] = 'file_entity_multiple_delete_confirm_submit';
+  return file_entity_multiple_delete_confirm($form, $form_state, $files);
+}
+
+/**
+ * Helper function to get a list of hidden stream wrappers.
+ *
+ * This is used in several places to filter queries for media so that files in
+ * temporary:// don't show up.
+ */
+function file_entity_get_hidden_stream_wrappers() {
+  return array_diff_key(file_get_stream_wrappers(STREAM_WRAPPERS_ALL), file_get_stream_wrappers(STREAM_WRAPPERS_VISIBLE));
+}
+
+/**
+ * @see theme_file_file_link.
+ * This is a copy of it, except we make the url file/$fid.
+ *
+ * @return type
+ */
+function theme_file_entity_file_link($variables) {
+  $file = $variables['file'];
+  $icon_directory = $variables['icon_directory'];
+
+  $url = 'file/' . $file->fid;
+  $icon = theme('file_icon', array('file' => $file, 'icon_directory' => $icon_directory));
+
+  // Set options as per anchor format described at
+  // http://microformats.org/wiki/file-format-examples
+  $options = array(
+    'attributes' => array(
+      'type' => $file->filemime . '; length=' . $file->filesize,
+    ),
+  );
+
+  // Use the description as the link text if available.
+  if (empty($file->description)) {
+    $link_text = $file->filename;
+  }
+  else {
+    $link_text = $file->description;
+    $options['attributes']['title'] = check_plain($file->filename);
+  }
+
+  return '<span class="file">' . $icon . ' ' . l($link_text, $url, $options) . '</span>';
 }

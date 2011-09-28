@@ -15,8 +15,29 @@
  */
 function openoutreach_install() {
   // Enable some standard blocks.
+  $default_theme = 'granada';
   $admin_theme = 'seven';
   $values = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main-menu',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'main_menu',
+      'pages' => '',
+      'cache' => -1,
+    ),
     array(
       'module' => 'node',
       'delta' => 'recent',
@@ -114,13 +135,15 @@ function openoutreach_install() {
   // Update the menu router information.
   menu_rebuild();
 
-  // Enable the admin theme.
+  // Enable the admin theme, fusion engine, and the default theme.
+  $themes = array($admin_theme, 'fusion_core', $default_theme);
   db_update('system')
     ->fields(array('status' => 1))
     ->condition('type', 'theme')
-    ->condition('name', 'seven')
+    ->condition('name', $themes, 'IN')
     ->execute();
-  variable_set('admin_theme', 'seven');
+  variable_set('theme_default', $default_theme);
+  variable_set('admin_theme', $admin_theme);
   variable_set('node_admin_theme', '1');
 
 }

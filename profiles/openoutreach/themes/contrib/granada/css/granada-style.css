@@ -700,6 +700,15 @@ ul.pager a:focus {
   color: #fff;
 }
 
+/* Fix calendar navigation links. */
+.view .date-nav-wrapper .date-prev {
+  right: 70px;
+  background: none;
+}
+.view .date-nav-wrapper .date-next {
+  background: none;
+}
+
 /* Forms
 /-------------------------------------------------------------- */
 /* Typography and backgrounds for all form buttons */

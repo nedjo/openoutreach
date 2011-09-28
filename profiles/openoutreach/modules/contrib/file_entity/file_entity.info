@@ -3,6 +3,7 @@ description = "Extends Drupal file entities to be fieldable and viewable."
 package = Media
 core = 7.x
 dependencies[] = field
+dependencies[] = file
 dependencies[] = ctools
 files[] = views/views_handler_field_file_rendered.inc
 files[] = views/views_handler_argument_file_type.inc
@@ -11,9 +12,9 @@ files[] = views/views_handler_filter_file_type.inc
 files[] = views/views_plugin_row_file_view.inc
 files[] = tests/file_entity.test
 
-; Information added by drupal.org packaging script on 2011-09-27
+; Information added by drupal.org packaging script on 2011-09-28
 version = "7.x-1.x-dev"
 core = "7.x"
 project = "file_entity"
-datestamp = "1317082471"
+datestamp = "1317211758"
 

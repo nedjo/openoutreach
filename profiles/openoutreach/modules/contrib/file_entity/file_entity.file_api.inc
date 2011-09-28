@@ -113,7 +113,7 @@ function file_info_cache_clear() {
  * @return
  *   An array in the format expected by drupal_render().
  */
-function file_view_multiple($files, $view_mode = 'default', $weight = 0, $langcode = NULL) {
+function file_view_multiple($files, $view_mode = 'full', $weight = 0, $langcode = NULL) {
   field_attach_prepare_view('file', $files, $view_mode, $langcode);
   entity_prepare_view('file', $files, $langcode);
   $build = array('#sorted' => TRUE);
@@ -138,7 +138,7 @@ function file_view_multiple($files, $view_mode = 'default', $weight = 0, $langco
  * @return
  *   An array as expected by drupal_render().
  */
-function file_view($file, $view_mode = 'default', $langcode = NULL) {
+function file_view($file, $view_mode = 'full', $langcode = NULL) {
   if (!isset($langcode)) {
     $langcode = $GLOBALS['language_content']->language;
   }
@@ -183,7 +183,7 @@ function file_view($file, $view_mode = 'default', $langcode = NULL) {
  *   (optional) A language code to use for rendering. Defaults to the global
  *   content language of the current request.
  */
-function file_build_content($file, $view_mode = 'default', $langcode = NULL) {
+function file_build_content($file, $view_mode = 'full', $langcode = NULL) {
   if (!isset($langcode)) {
     $langcode = $GLOBALS['language_content']->language;
   }
@@ -195,7 +195,7 @@ function file_build_content($file, $view_mode = 'default', $langcode = NULL) {
   // @todo Figure out how to clean this crap up.
   $file->content['file'] = file_view_file($file, $view_mode, $langcode);
   if (isset($file->content['file'])) {
-    unset($file->content['file']['#file']);
+    if ($file->content['file']['#theme'] != 'file_link') unset($file->content['file']['#file']);
     unset($file->content['file']['#view_mode']);
     unset($file->content['file']['#language']);
   }
@@ -244,7 +244,7 @@ function file_build_content($file, $view_mode = 'default', $langcode = NULL) {
  * @return
  *   An array as expected by drupal_render().
  */
-function file_view_file($file, $displays = 'default', $langcode = NULL) {
+function file_view_file($file, $displays = 'full', $langcode = NULL) {
   if (!isset($langcode)) {
     $langcode = $GLOBALS['language_content']->language;
   }
@@ -344,7 +344,7 @@ function file_view_file($file, $displays = 'default', $langcode = NULL) {
  * @see hook_file_formatter_info()
  * @see file_view_file()
  */
-function file_displays($file_type, $view_mode = 'default') {
+function file_displays($file_type, $view_mode) {
   // If the requested view mode isn't configured to use a custom display for its
   // fields, then don't use a custom display for its file either.
   $view_mode_settings = field_view_mode_settings('file', $file_type);
@@ -486,4 +486,27 @@ function file_uri_to_object($uri, $use_existing = TRUE) {
   }
 
   return $file;
+}
+
+/**
+ * A list of operations which can be called on files.
+ *
+ * @return
+ *  An associave array of operations keyed by a system name.
+ *    - label: A string to show in the operations dropdown.
+ *    - callback (string): A callback function to call for the operation. This
+ *        function will be passed an array of file_ids which were selected.
+ *    - confirm (boolean): Whether or not this operation requires a confirm form
+ *        In the case where confirm is set to true, callback should be a function
+ *        which can return a confirm form.
+ */
+function hook_file_operations_info() {
+  $operations = array(
+    'archive_and_email' => array(
+      'label' => t('Archive the selected files and email them'),
+      'callback' => 'file_archiver_confirm_form',
+      'confirm' => TRUE,
+    ),
+  );
+  return $operations;
 }

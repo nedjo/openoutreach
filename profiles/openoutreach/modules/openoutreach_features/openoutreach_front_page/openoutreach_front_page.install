@@ -1,0 +1,19 @@
+<?php
+/**
+ * @file
+ * Install functions for the Open Outreach Front Page feature.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Override the page and mini-panel supplied by the feature. This is needed for
+ * compatibility with Skinr. See http://drupal.org/node/1292662.
+ */
+function openoutreach_front_page_install() {
+  ctools_include('page', 'page_manager', 'plugins/tasks');
+  $page = page_manager_page_load('front_page');
+  page_manager_page_save($page);
+  $mini = panels_mini_load('front_page_upper_section');
+  panels_mini_save($mini);
+}

@@ -20,7 +20,7 @@ function file_entity_view_page($file) {
   }
 
   drupal_set_title($file->filename);
-  return file_view($file, 'media_original');
+  return file_view($file, 'full');
 }
 
 /**
@@ -38,8 +38,10 @@ function file_entity_edit($form, $form_state, $file) {
   $form_state['file'] = $file;
   field_attach_form('file', $file, $form, $form_state);
 
-  $form['preview'] = file_view_file($file, 'media_preview');
-  $form['preview']['#weight'] = -10;
+  $form['preview'] = array(
+    '#theme' => 'file_link',
+    '#file' => $file,
+  );
 
   // Add the buttons.
   $form['actions'] = array('#type' => 'actions');
@@ -94,8 +96,64 @@ function file_entity_page_delete($file) {
     return t('The file %title is in use and cannot be deleted.', array('%title' => $file->filename));
   }
   else {
-    $files = array($file->fid => $file);
-    return drupal_get_form('file_entity_multiple_delete_confirm', $files, '<front>', 'media/' . $file->fid);
+    $files = array($file->fid => $file->fid);
+    return drupal_get_form('file_entity_multiple_delete_confirm', $files, 'file/' . $file->fid);
+  }
+}
+
+/**
+ * Confirm form for the request to delete files.
+ *
+ * @param array $files
+ *   An array of file_ids to delete.
+ */
+function file_entity_multiple_delete_confirm($form, &$form_state, $files, $redirect_path = NULL) {
+  $form['files'] = array('#tree' => TRUE);
+  $form['file_titles'] = array('#theme' => 'item_list');
+
+  $files = file_load_multiple($files);
+  foreach ($files as $fid => $file) {
+    $form['files'][$fid] = array(
+      '#type' => 'value',
+      '#value' => $fid,
+    );
+    $form['file_titles']['#items'][] = check_plain($file->filename);
+  }
+  $form['operation'] = array('#type' => 'hidden', '#value' => 'delete');
+
+  $confirm_question = format_plural(count($files),
+                                  'Are you sure you want to delete this file?',
+                                  'Are you sure you want to delete these files?');
+
+  return confirm_form($form,
+    $confirm_question,
+    $redirect_path,
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel'));
+}
+
+/**
+ * Attempt to delete files and notify the user of the result.
+ */
+function file_entity_multiple_delete_confirm_submit($form, &$form_state) {
+  if ($form_state['values']['confirm']) {
+    $files = file_load_multiple(array_keys($form_state['values']['files']));
+    foreach ($files as $fid => $file) {
+      $result = file_delete($file);
+      if (is_array($result)) {
+        drupal_set_message(t('The file @title is in use and cannot be deleted.', array('@title' => $file->filename)), 'warning');
+      }
+      elseif (!$result) {
+        drupal_set_message(t('The file @title was not deleted due to an error.', array('@title' => $file->filename)), 'error');
+      }
+      else {
+        $message = t('File @title was deleted', array('@title' => $file->filename));
+        $form_state['redirect'] = user_access('administer files') ? 'admin/content/file' : '<front>';
+        watchdog('file', $message);
+        drupal_set_message($message);
+      }
+    }
   }
 }
 
@@ -110,71 +168,4 @@ function file_entity_delete_submit($form, &$form_state) {
     unset($_GET['destination']);
   }
   $form_state['redirect'] = array('file/' . $fid . '/delete', array('query' => $destination));
-}
-
-/**
- * Confirm the request to delete files.
- */
-function file_entity_multiple_delete_confirm($form, &$form_state, $files, $redirect_on_success = NULL, $redirect_on_cancel = NULL) {
-  $form['files'] = array('#tree' => TRUE);
-  $form['file_titles'] = array('#theme' => 'item_list');
-  foreach ($files as $fid => $value) {
-    $title = db_query('SELECT filename FROM {file_managed} WHERE fid = :fid', array(':fid' => $fid))->fetchField();
-    $form['files'][$fid] = array(
-      '#type' => 'value',
-      '#value' => $fid,
-    );
-    $form['file_titles']['#items'][] = check_plain($title);
-  }
-  $form['operation'] = array('#type' => 'hidden', '#value' => 'delete');
-  if (isset($redirect_on_success)) {
-    $form['redirect_on_success'] = array(
-      '#type' => 'value',
-      '#value' => $redirect_on_success,
-    );
-  }
-  $form['#submit'][] = 'file_entity_multiple_delete_confirm_submit';
-
-  $confirm_question = format_plural(count($files),
-                                  'Are you sure you want to delete this item?',
-                                  'Are you sure you want to delete these items?');
-
-  return confirm_form($form,
-    $confirm_question,
-    isset($redirect_on_cancel) ? $redirect_on_cancel : current_path(),
-    t('This action cannot be undone.'),
-    t('Delete'),
-    t('Cancel'));
-}
-
-/**
- * Attempt to delete files and notify the user of the result.
- */
-function file_entity_multiple_delete_confirm_submit($form, &$form_state) {
-  if ($form_state['values']['confirm']) {
-    $results = array();
-    $files = array_keys($form_state['values']['files']);
-    foreach ($files as $fid) {
-      $file = file_load($fid);
-      $files[$fid] = $file;
-      $results[$fid] = file_delete($file);
-    }
-    // The result of file_delete can be an array if the file is in use, or TRUE/FALSE.
-    foreach ($results as $fid => $result) {
-      if (is_array($result)) {
-        drupal_set_message(t('The file @title is in use and cannot be deleted.', array('@title' => $files[$fid]->filename)), 'warning');
-      }
-      elseif (!$result) {
-        drupal_set_message(t('The file @title was not deleted due to an error.', array('@title' => $files[$fid]->filename)), 'error');
-      }
-      else {
-        $message = t('File @title was deleted', array('@title' => $files[$fid]->filename));
-        watchdog('media', $message);
-        drupal_set_message($message);
-      }
-    }
-    if (isset($form_state['values']['redirect_on_success'])) {
-      $form_state['redirect'] = $form_state['values']['redirect_on_success'];
-    }
-  }
 }

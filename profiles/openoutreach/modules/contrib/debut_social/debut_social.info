@@ -33,9 +33,9 @@ name = "Debut Social"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-24
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2011-09-28
+version = "7.x-1.0-beta3"
 core = "7.x"
 project = "debut_social"
-datestamp = "1316823153"
+datestamp = "1317241002"
 

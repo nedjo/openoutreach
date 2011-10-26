@@ -1,5 +1,4 @@
 <?php
-// $Id: xc5.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'sseum', 'sseub', 'sseubs', 'sseus', 'sseuss', 'sseung', 'sseuj', 'sseuc', 'sseuk', 'sseut', 'sseup', 'sseuh', 'ssyi', 'ssyig', 'ssyigg', 'ssyigs',

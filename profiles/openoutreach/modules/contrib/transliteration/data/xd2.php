@@ -1,5 +1,4 @@
 <?php
-// $Id: xd2.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'toels', 'toelt', 'toelp', 'toelh', 'toem', 'toeb', 'toebs', 'toes', 'toess', 'toeng', 'toej', 'toec', 'toek', 'toet', 'toep', 'toeh',

@@ -1,5 +1,4 @@
 <?php
-// $Id: xd6.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'hyeo', 'hyeog', 'hyeogg', 'hyeogs', 'hyeon', 'hyeonj', 'hyeonh', 'hyeod', 'hyeol', 'hyeolg', 'hyeolm', 'hyeolb', 'hyeols', 'hyeolt', 'hyeolp', 'hyeolh',

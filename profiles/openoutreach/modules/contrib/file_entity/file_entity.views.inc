@@ -16,7 +16,7 @@ function file_entity_views_data() {
     'field' => array(
       'handler' => 'views_handler_field_file_type',
       'click sortable' => TRUE,
-     ),
+    ),
     'sort' => array(
       'handler' => 'views_handler_sort',
     ),
@@ -25,20 +25,6 @@ function file_entity_views_data() {
     ),
     'argument' => array(
       'handler' => 'views_handler_argument_file_type',
-    ),
-  );
-  // File rendered
-  $data['file_managed']['rendered'] = array(
-    'title' => t('File'),
-    'title_short' => t('File:Rendered'),
-    'help' => t('Display the file in a specific view mode.'),
-    'field' => array(
-      'handler' => 'views_handler_field_file_rendered',
-      'click sortable' => TRUE,
-      'real field' => 'fid',
-      'additional fields' => array(
-        'fid',
-      ),
     ),
   );
 

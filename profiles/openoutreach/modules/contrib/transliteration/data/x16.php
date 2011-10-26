@@ -1,5 +1,4 @@
 <?php
-// $Id: x16.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'kka', 'kk', 'nu', 'no', 'ne', 'nee', 'ni', 'na', 'mu', 'mo', 'me', 'mee', 'mi', 'ma', 'yu', 'yo',

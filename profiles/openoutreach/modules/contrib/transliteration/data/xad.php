@@ -1,5 +1,4 @@
 <?php
-// $Id: xad.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'gwan', 'gwanj', 'gwanh', 'gwad', 'gwal', 'gwalg', 'gwalm', 'gwalb', 'gwals', 'gwalt', 'gwalp', 'gwalh', 'gwam', 'gwab', 'gwabs', 'gwas',

@@ -1,5 +1,4 @@
 <?php
-// $Id: x12.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'ha', 'hu', 'hi', 'haa', 'hee', 'he', 'ho', NULL, 'la', 'lu', 'li', 'laa', 'lee', 'le', 'lo', 'lwa',

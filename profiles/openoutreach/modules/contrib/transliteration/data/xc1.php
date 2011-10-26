@@ -1,5 +1,4 @@
 <?php
-// $Id: xc1.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'syae', 'syaeg', 'syaegg', 'syaegs', 'syaen', 'syaenj', 'syaenh', 'syaed', 'syael', 'syaelg', 'syaelm', 'syaelb', 'syaels', 'syaelt', 'syaelp', 'syaelh',

@@ -1023,7 +1023,11 @@ function token_clean_token_name($name) {
  * Do not use this function yet. Its API has not been finalized.
  */
 function token_render_array(array $array, array $options = array()) {
-  $rendered = array_map('render', $array);
+  $rendered = array();
+  foreach (element_children($array) as $key) {
+    $value = $array[$key];
+    $rendered[] = is_array($value) ? render($value) : (string) $value;
+  }
   if (!empty($options['sanitize'])) {
     $rendered = array_map('check_plain', $rendered);
   }
@@ -1035,7 +1039,7 @@ function token_render_array(array $array, array $options = array()) {
  * Do not use this function yet. Its API has not been finalized.
  */
 function token_render_array_value($value, array $options = array()) {
-  $rendered = render($value);
+  $rendered = is_array($value) ? render($value) : (string) $value;
   if (!empty($options['sanitize'])) {
     $rendered = check_plain($rendered);
   }

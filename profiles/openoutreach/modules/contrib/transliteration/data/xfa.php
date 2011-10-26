@@ -1,5 +1,4 @@
 <?php
-// $Id: xfa.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Chey ', 'Thak ', 'Thak ', 'Thang ', 'Thayk ', 'Thong ', 'Pho ', 'Phok ', 'Hang ', 'Hang ', 'Hyen ', 'Hwak ', 'Wu ', 'Huo ', NULL, NULL,

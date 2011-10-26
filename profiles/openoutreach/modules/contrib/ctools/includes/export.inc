@@ -806,7 +806,7 @@ function _ctools_export_unpack_object($schema, $data, $object = 'stdClass') {
       $object->$field = empty($info['serialize']) ? $data->$field : unserialize($data->$field);
     }
     else {
-      $data->$field = NULL;
+      $object->$field = NULL;
     }
   }
 

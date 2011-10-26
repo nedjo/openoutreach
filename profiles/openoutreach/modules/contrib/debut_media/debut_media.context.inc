@@ -19,15 +19,15 @@ function debut_media_context_default_contexts() {
   $context->conditions = array(
     'path' => array(
       'values' => array(
-        'media/*' => 'media/*',
-        '~media/images' => '~media/images',
-        '~media/video' => '~media/video',
+        'media/*' => 'file/*',
+        '~media/images' => '~file/images',
+        '~media/video' => '~file/video',
       ),
     ),
   );
   $context->reactions = array(
-    'breadcrumb' => 'media',
-    'menu' => 'media',
+    'breadcrumb' => 'file',
+    'menu' => 'file',
   );
   $context->condition_mode = 0;
 

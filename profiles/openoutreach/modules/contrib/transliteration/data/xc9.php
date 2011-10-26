@@ -1,5 +1,4 @@
 <?php
-// $Id: xc9.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'jun', 'junj', 'junh', 'jud', 'jul', 'julg', 'julm', 'julb', 'juls', 'jult', 'julp', 'julh', 'jum', 'jub', 'jubs', 'jus',

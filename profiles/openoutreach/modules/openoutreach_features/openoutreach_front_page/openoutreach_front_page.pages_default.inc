@@ -15,7 +15,7 @@ function openoutreach_front_page_default_page_manager_pages() {
   $page->task = 'page';
   $page->admin_title = 'Front page';
   $page->admin_description = 'Front page panel that uses mini panels for displaying views content panes.';
-  $page->path = 'front-page';
+  $page->path = 'home';
   $page->access = array();
   $page->menu = array();
   $page->arguments = array();
@@ -151,6 +151,7 @@ h2.pane-title {
     $pane->cache = array();
     $pane->style = array(
       'settings' => NULL,
+      'style' => 'block',
     );
     $pane->css = array();
     $pane->extras = array();
@@ -183,6 +184,7 @@ h2.pane-title {
     $pane->cache = array();
     $pane->style = array(
       'settings' => NULL,
+      'style' => 'block',
     );
     $pane->css = array();
     $pane->extras = array();
@@ -215,6 +217,7 @@ h2.pane-title {
     $pane->cache = array();
     $pane->style = array(
       'settings' => NULL,
+      'style' => 'block',
     );
     $pane->css = array();
     $pane->extras = array();

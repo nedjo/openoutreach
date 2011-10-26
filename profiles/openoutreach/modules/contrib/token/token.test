@@ -16,31 +16,41 @@ class TokenTestHelper extends DrupalWebTestCase {
   }
 
   function assertTokens($type, array $data, array $tokens, array $options = array()) {
-    $token_input = drupal_map_assoc(array_keys($tokens));
-    $values = token_generate($type, $token_input, $data, $options);
-    foreach ($tokens as $token => $expected) {
+    $input = $this->mapTokenNames($type, array_keys($tokens));
+    $replacements = token_generate($type, $input, $data, $options);
+    foreach ($tokens as $name => $expected) {
+      $token = $input[$name];
       if (!isset($expected)) {
-        $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+        $this->assertTrue(!isset($values[$token]), t("Token value for @token was not generated.", array('@type' => $type, '@token' => $token)));
       }
-      elseif (!isset($values[$token])) {
-        $this->fail(t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+      elseif (!isset($replacements[$token])) {
+        $this->fail(t("Token value for @token was not generated.", array('@type' => $type, '@token' => $token)));
       }
       elseif (!empty($options['regex'])) {
-        $this->assertTrue(preg_match('/^' . $expected . '$/', $values[$token]), t("Token value for [@type:@token] was '@actual', matching regular expression pattern '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+        $this->assertTrue(preg_match('/^' . $expected . '$/', $replacements[$token]), t("Token value for @token was '@actual', matching regular expression pattern '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $replacements[$token], '@expected' => $expected)));
       }
       else {
-        $this->assertIdentical($values[$token], $expected, t("Token value for [@type:@token] was '@actual', expected value '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $values[$token], '@expected' => $expected)));
+        $this->assertIdentical($replacements[$token], $expected, t("Token value for @token was '@actual', expected value '@expected'.", array('@type' => $type, '@token' => $token, '@actual' => $replacements[$token], '@expected' => $expected)));
       }
     }
 
-    return $values;
+    return $replacements;
+  }
+
+  function mapTokenNames($type, array $tokens = array()) {
+    $return = array();
+    foreach ($tokens as $token) {
+      $return[$token] = "[$type:$token]";
+    }
+    return $return;
   }
 
   function assertNoTokens($type, array $data, array $tokens, array $options = array()) {
-    $token_input = drupal_map_assoc($tokens);
-    $values = token_generate($type, $token_input, $data, $options);
-    foreach ($tokens as $token) {
-      $this->assertTrue(!isset($values[$token]), t("Token value for [@type:@token] was not generated.", array('@type' => $type, '@token' => $token)));
+    $input = $this->mapTokenNames($type, $tokens);
+    $replacements = token_generate($type, $input, $data, $options);
+    foreach ($tokens as $name) {
+      $token = $input[$name];
+      $this->assertTrue(!isset($replacements[$token]), t("Token value for @token was not generated.", array('@type' => $type, '@token' => $token)));
     }
     return $values;
   }
@@ -551,6 +561,8 @@ class TokenUserTestCase extends TokenTestHelper {
       'picture:fid' => $this->account->picture->fid,
       'picture:size-raw' => 125,
       'ip-address' => NULL,
+      'roles' => implode(', ', $this->account->roles),
+      'roles:keys' => implode(', ', array_keys($this->account->roles)),
     );
     $this->assertTokens('user', array('user' => $this->account), $user_tokens);
 
@@ -558,10 +570,16 @@ class TokenUserTestCase extends TokenTestHelper {
     $this->drupalPost('admin/config/people/accounts', $edit, 'Save configuration');
     $this->assertText('The configuration options have been saved.');
 
+    // Remove the simpletest-created user role.
+    user_role_delete(end($this->account->roles));
+    $this->account = user_load($this->account->uid, TRUE);
+
     $user_tokens = array(
       'picture' => NULL,
       'picture:fid' => NULL,
       'ip-address' => NULL,
+      'roles' => 'authenticated user',
+      'roles:keys' => (string) DRUPAL_AUTHENTICATED_RID,
     );
     $this->assertTokens('user', array('user' => $this->account), $user_tokens);
 
@@ -570,6 +588,12 @@ class TokenUserTestCase extends TokenTestHelper {
       'ip-address' => ip_address(),
     );
     $this->assertTokens('current-user', array(), $tokens);
+
+    $tokens = array(
+      'roles' => 'anonymous user',
+      'roles:keys' => (string) DRUPAL_ANONYMOUS_RID,
+    );
+    $this->assertTokens('user', array('user' => drupal_anonymous_user()), $tokens);
   }
 }
 
@@ -816,9 +840,8 @@ class TokenArrayTestCase extends TokenTestHelper {
   }
 
   function testArrayTokens() {
+    // Test a simple array.
     $array = array(0 => 'a', 1 => 'b', 2 => 'c', 4 => 'd');
-
-    // Test the profile token values.
     $tokens = array(
       'first' => 'a',
       'last' => 'd',
@@ -834,6 +857,33 @@ class TokenArrayTestCase extends TokenTestHelper {
       'join' => 'abcd',
       'join:, ' => 'a, b, c, d',
       'join: ' => 'a b c d',
+    );
+    $this->assertTokens('array', array('array' => $array), $tokens);
+
+    // Test a mixed simple and render array.
+    // 2 => c, 0 => a, 4 => d, 1 => b
+    $array = array(
+      '#property' => 'value',
+      0 => 'a',
+      1 => array('#markup' => 'b', '#weight' => 0.01),
+      2 => array('#markup' => 'c', '#weight' => -10),
+      4 => array('#markup' => 'd', '#weight' => 0),
+    );
+    $tokens = array(
+      'first' => 'c',
+      'last' => 'b',
+      'value:0' => 'a',
+      'value:2' => 'c',
+      'count' => 4,
+      'keys' => '2, 0, 4, 1',
+      'keys:value:3' => '1',
+      'keys:join' => '2041',
+      'reversed' => 'b, d, a, c',
+      'reversed:keys' => '1, 4, 0, 2',
+      'join:/' => 'c/a/d/b',
+      'join' => 'cadb',
+      'join:, ' => 'c, a, d, b',
+      'join: ' => 'c a d b',
     );
     $this->assertTokens('array', array('array' => $array), $tokens);
   }

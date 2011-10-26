@@ -1,4 +1,5 @@
 core = "7.x"
+debut[media][node_types][section] = "section"
 dependencies[] = "book"
 dependencies[] = "eva"
 dependencies[] = "features"
@@ -11,7 +12,6 @@ features[ctools][] = "strongarm:strongarm:1"
 features[ctools][] = "views:views_default:3.0"
 features[field][] = "node-section-body"
 features[field][] = "node-section-field_content_image"
-features[field][] = "node-section-field_media"
 features[node][] = "section"
 features[user_permission][] = "access printer-friendly version"
 features[user_permission][] = "add content to books"
@@ -36,9 +36,9 @@ name = "Debut Section"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-28
-version = "7.x-1.0-beta3"
+; Information added by drupal.org packaging script on 2011-10-26
+version = "7.x-1.0-beta4"
 core = "7.x"
 project = "debut_section"
-datestamp = "1317240702"
+datestamp = "1319652630"
 

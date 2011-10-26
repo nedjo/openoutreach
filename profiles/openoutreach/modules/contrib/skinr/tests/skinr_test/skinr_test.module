@@ -10,6 +10,31 @@
  */
 
 /**
+ * Implements hook_menu().
+ */
+function skinr_test_menu() {
+  $items['skinr-test/hook-dynamic-loading'] = array(
+    'title' => 'Test hook dynamic loading (skinr_hook)',
+    'page callback' => 'skinr_test_hook_dynamic_loading',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * Page callback for 'hook dynamic loading' test.
+ *
+ * If the hook is dynamically loaded correctly, the menu callback should
+ * return 'success!'.
+ */
+function skinr_test_hook_dynamic_loading() {
+  if (skinr_hook('skinr_test', 'skinr_group_info') && function_exists('skinr_test_skinr_group_info')) {
+    return 'success!';
+  }
+  return 'failed!';
+}
+
+/**
  * Implements hook_system_theme_info().
  *
  * @see http://drupal.org/node/953336

@@ -14,7 +14,7 @@ function openoutreach_front_page_strongarm() {
   $strongarm->disabled = FALSE; /* Edit this to true to make a default strongarm disabled initially */
   $strongarm->api_version = 1;
   $strongarm->name = 'site_frontpage';
-  $strongarm->value = 'front-page';
+  $strongarm->value = 'home';
   $export['site_frontpage'] = $strongarm;
 
   return $export;

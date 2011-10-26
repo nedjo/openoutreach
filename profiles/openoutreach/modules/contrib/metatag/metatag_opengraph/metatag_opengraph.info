@@ -1,0 +1,12 @@
+name = Open Graph meta tags
+description = Provides support for open graph meta tags.
+package = Meta tags
+core = 7.x
+dependencies[] = metatag
+
+; Information added by drupal.org packaging script on 2011-09-30
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "metatag"
+datestamp = "1317392208"
+

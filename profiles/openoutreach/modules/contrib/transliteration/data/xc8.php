@@ -1,5 +1,4 @@
 <?php
-// $Id: xc8.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'jeo', 'jeog', 'jeogg', 'jeogs', 'jeon', 'jeonj', 'jeonh', 'jeod', 'jeol', 'jeolg', 'jeolm', 'jeolb', 'jeols', 'jeolt', 'jeolp', 'jeolh',

@@ -64,16 +64,16 @@ function file_admin_entity_presave($entity, $type) {
  *
  * Add a published field to the media adminstration form.
  */
-function file_admin_form_media_admin_alter(&$form, &$form_state) {
+function file_admin_form_file_entity_admin_files_alter(&$form, &$form_state) {
   // Only act if we're in a list display mode.
   // TODO: find a less awkward way to determine the mode.
-  if (arg(3) == 'list') {
+  if (is_null(arg(3))) {
     $limit = variable_get('media_admin_limit', 50);
 
-    $operations_header = array_pop($form['admin']['files']['#header']);
-    $form['admin']['files']['#header']['published'] = array('data' => t('Published'), 'field' => 'f.published');
-    $form['admin']['files']['#header']['operations'] = $operations_header;
-    $files = $form['admin']['files']['#options'];
+    $operations_header = array_pop($form['files']['#header']);
+    $form['files']['#header']['published'] = array('data' => t('Published'), 'field' => 'f.published');
+    $form['files']['#header']['operations'] = $operations_header;
+    $files = $form['files']['#options'];
 
     $query = db_select('file_managed', 'f')->extend('PagerDefault')->extend('TableSort');
 
@@ -81,13 +81,13 @@ function file_admin_form_media_admin_alter(&$form, &$form_state) {
      ->fields('f', array('fid', 'published'))
      ->condition('f.status', FILE_STATUS_PERMANENT)
      ->limit($limit)
-     ->orderByHeader($form['admin']['files']['#header'])
+     ->orderByHeader($form['files']['#header'])
      ->execute();
 
     foreach ($result as $file) {
-      $operations_row = array_pop($form['admin']['files']['#options'][$file->fid]);
-      $form['admin']['files']['#options'][$file->fid]['published'] = $file->published ? t('published') : t('not published');
-      $form['admin']['files']['#options'][$file->fid]['operations'] = $operations_row;
+      $operations_row = array_pop($form['files']['#options'][$file->fid]);
+      $form['files']['#options'][$file->fid]['published'] = $file->published ? t('published') : t('not published');
+      $form['files']['#options'][$file->fid]['operations'] = $operations_row;
     }
   }
 }
@@ -255,10 +255,10 @@ function file_admin_form_media_admin_type_manage_form_alter(&$form, &$form_state
     '#collapsed' => TRUE,
     '#group' => 'additional_settings',
   );
-  $form['workflow']['media_options'] = array(
+  $form['workflow']['file_options'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Default options'),
-    '#default_value' => variable_get('file_admin_media_options_' . $type, array('published')),
+    '#default_value' => variable_get('file_admin_file_options_' . $type, array('published')),
     '#options' => array(
       'published' => t('Published'),
       'promote' => t('Promoted'),
@@ -274,15 +274,15 @@ function file_admin_form_media_admin_type_manage_form_alter(&$form, &$form_state
  */
 function file_admin_media_admin_type_manage_form_submit($form, &$form_state) {
   $type = $form_state['values']['media_type'];
-  foreach (array('help', 'media_options') as $variable) {
+  foreach (array('help', 'file_options') as $variable) {
     variable_set('file_admin_' . $variable . '_' . $type, $form_state['values'][$variable]);
   }
 }
 
 /**
- * Implement hook_media_operations().
+ * Implement hook_file_operations_info().
  */
-function file_admin_media_operations() {
+function file_admin_file_operations_info() {
   $operations = array(
     'publish' => array(
       'label' => t('Publish'),
@@ -295,12 +295,12 @@ function file_admin_media_operations() {
       'callback arguments' => array('updates' => array('published' => FILE_NOT_PUBLISHED)),
     ),
     'promote' => array(
-      'label' => t('Promote selected media content'),
+      'label' => t('Promote selected files'),
       'callback' => 'file_admin_mass_update',
       'callback arguments' => array('updates' => array('published' => FILE_PUBLISHED, 'promote' => FILE_PROMOTED)),
     ),
     'demote' => array(
-      'label' => t('Demote selected media content'),
+      'label' => t('Demote selected files'),
       'callback' => 'file_admin_mass_update',
       'callback arguments' => array('updates' => array('promote' => FILE_NOT_PROMOTED)),
     ),

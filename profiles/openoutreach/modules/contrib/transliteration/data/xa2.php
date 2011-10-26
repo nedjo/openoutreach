@@ -1,5 +1,4 @@
 <?php
-// $Id: xa2.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'kax', 'ka', 'kap', 'kuox', 'kuo', 'kuop', 'kot', 'kox', 'ko', 'kop', 'ket', 'kex', 'ke', 'kep', 'kut', 'kux',

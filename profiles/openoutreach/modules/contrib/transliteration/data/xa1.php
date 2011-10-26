@@ -1,5 +1,4 @@
 <?php
-// $Id: xa1.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'dit', 'dix', 'di', 'dip', 'diex', 'die', 'diep', 'dat', 'dax', 'da', 'dap', 'duox', 'duo', 'dot', 'dox', 'do',

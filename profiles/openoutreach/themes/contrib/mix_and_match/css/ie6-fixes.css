@@ -1,0 +1,19 @@
+/* $Id */
+
+/* Alpha transparency png fix */
+/* To use: uncomment & change path to match your Fusion Core location*/
+/*
+div.pngfix,
+#logo img {
+  behavior: url(/sites/all/themes/fusion/fusion_core/js/iepngfix.htc);
+}
+*/
+
+/* ------------------------- PRIMARY MENU ------------------------- */
+/* When use a white background, primary menu is wider than rest of
+ * body.  Still not perfect with all layouts; may need to be
+ * adjusted for a specific site configuration.
+ */
+.primary-menu {
+  width: 99%;
+}

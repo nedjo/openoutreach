@@ -1,5 +1,4 @@
 <?php
-// $Id: x52.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Dao ', 'Diao ', 'Dao ', 'Ren ', 'Ren ', 'Chuang ', 'Fen ', 'Qie ', 'Yi ', 'Ji ', 'Kan ', 'Qian ', 'Cun ', 'Chu ', 'Wen ', 'Ji ',

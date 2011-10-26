@@ -1,5 +1,4 @@
 <?php
-// $Id: xce.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'cwik', 'cwit', 'cwip', 'cwih', 'cyu', 'cyug', 'cyugg', 'cyugs', 'cyun', 'cyunj', 'cyunh', 'cyud', 'cyul', 'cyulg', 'cyulm', 'cyulb',

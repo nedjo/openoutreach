@@ -1,5 +1,4 @@
 <?php
-// $Id: xc0.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'bbweok', 'bbweot', 'bbweop', 'bbweoh', 'bbwe', 'bbweg', 'bbwegg', 'bbwegs', 'bbwen', 'bbwenj', 'bbwenh', 'bbwed', 'bbwel', 'bbwelg', 'bbwelm', 'bbwelb',

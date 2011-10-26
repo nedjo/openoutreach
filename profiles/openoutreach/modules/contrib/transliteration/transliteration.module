@@ -1,5 +1,4 @@
 <?php
-// $Id: transliteration.module,v 1.11 2010/03/15 06:45:57 smk Exp $
 
 /**
  * @file
@@ -62,9 +61,11 @@ function transliteration_form_system_file_system_settings_alter(&$form, &$form_s
  *
  * The resulting file name has white space replaced with underscores, consists
  * of only US-ASCII characters, and is converted to lowercase (if configured).
+ * If multiple files have been submitted as an array, the names will be
+ * processed recursively.
  *
  * @param $filename
- *   A file name.
+ *   A file name, or an array of file names.
  * @param $source_langcode
  *   Optional ISO 639 language code that denotes the language of the input and
  *   is used to apply language-specific variations. If the source language is
@@ -72,11 +73,17 @@ function transliteration_form_system_file_system_settings_alter(&$form, &$form_s
  *   argument to the site default language to produce consistent results.
  *   Otherwise the current display language will be used.
  * @return
- *   Sanitized file name.
+ *   Sanitized file name, or array of sanitized file names.
  *
  * @see language_default()
  */
 function transliteration_clean_filename($filename, $source_langcode = NULL) {
+  if (is_array($filename)) {
+    foreach ($filename as $key => $value) {
+      $filename[$key] = transliteration_clean_filename($value, $source_langcode);
+    }
+    return $filename;
+  }
   $filename = transliteration_get($filename, '', $source_langcode);
   // Replace whitespace.
   $filename = str_replace(' ', '_', $filename);
@@ -113,12 +120,10 @@ function transliteration_clean_filename($filename, $source_langcode = NULL) {
  * @see language_default()
  */
 function transliteration_get($text, $unknown = '?', $source_langcode = NULL) {
-  static $loaded = FALSE;
-  if (!$loaded) {
+  if (!function_exists('_transliteration_process')) {
     module_load_include('inc', 'transliteration');
-    $loaded = TRUE;
   }
-  return transliteration_process($text, $unknown, $source_langcode);
+  return _transliteration_process($text, $unknown, $source_langcode);
 }
 
 /**
@@ -144,4 +149,3 @@ function transliteration_init() {
     }
   }
 }
-

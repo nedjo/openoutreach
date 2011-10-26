@@ -1,5 +1,4 @@
 <?php
-// $Id: x13.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'ja', 'ju', 'ji', 'jaa', 'jee', 'je', 'jo', 'jwa', 'ga', 'gu', 'gi', 'gaa', 'gee', 'ge', 'go', NULL,

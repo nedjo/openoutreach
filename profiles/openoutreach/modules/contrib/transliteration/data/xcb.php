@@ -1,5 +1,4 @@
 <?php
-// $Id: xcb.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'jjwaels', 'jjwaelt', 'jjwaelp', 'jjwaelh', 'jjwaem', 'jjwaeb', 'jjwaebs', 'jjwaes', 'jjwaess', 'jjwaeng', 'jjwaej', 'jjwaec', 'jjwaek', 'jjwaet', 'jjwaep', 'jjwaeh',

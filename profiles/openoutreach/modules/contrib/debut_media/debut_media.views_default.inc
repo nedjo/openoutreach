@@ -60,7 +60,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['rendered']['label'] = '';
   $handler->display->display_options['fields']['rendered']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['rendered']['alter']['path'] = 'media/[fid]';
+  $handler->display->display_options['fields']['rendered']['alter']['path'] = 'file/[fid]';
   $handler->display->display_options['fields']['rendered']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['external'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['replace_spaces'] = 0;
@@ -85,7 +85,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['media_title']['label'] = '';
   $handler->display->display_options['fields']['media_title']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['media_title']['alter']['path'] = 'media/[fid] ';
+  $handler->display->display_options['fields']['media_title']['alter']['path'] = 'file/[fid] ';
   $handler->display->display_options['fields']['media_title']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['external'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['replace_spaces'] = 0;
@@ -160,7 +160,7 @@ function debut_media_views_default_views() {
     'video' => 'video',
   );
   $handler->display->display_options['filters']['type']['group'] = 0;
-  $handler->display->display_options['path'] = 'media';
+  $handler->display->display_options['path'] = 'file';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
 
@@ -185,7 +185,7 @@ function debut_media_views_default_views() {
     'image' => 'image',
   );
   $handler->display->display_options['filters']['type']['group'] = 0;
-  $handler->display->display_options['path'] = 'media/image';
+  $handler->display->display_options['path'] = 'file/image';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
 
@@ -209,7 +209,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'video' => 'video',
   );
-  $handler->display->display_options['path'] = 'media/video';
+  $handler->display->display_options['path'] = 'file/video';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
 
@@ -260,7 +260,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['rendered']['label'] = '';
   $handler->display->display_options['fields']['rendered']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['rendered']['alter']['path'] = 'media/[fid]';
+  $handler->display->display_options['fields']['rendered']['alter']['path'] = 'file/[fid]';
   $handler->display->display_options['fields']['rendered']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['external'] = 0;
   $handler->display->display_options['fields']['rendered']['alter']['replace_spaces'] = 0;
@@ -285,7 +285,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['media_title']['label'] = '';
   $handler->display->display_options['fields']['media_title']['alter']['alter_text'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['make_link'] = 1;
-  $handler->display->display_options['fields']['media_title']['alter']['path'] = 'media/[fid] ';
+  $handler->display->display_options['fields']['media_title']['alter']['path'] = 'file/[fid] ';
   $handler->display->display_options['fields']['media_title']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['external'] = 0;
   $handler->display->display_options['fields']['media_title']['alter']['replace_spaces'] = 0;

@@ -53,19 +53,17 @@ function file_entity_admin_files($form, &$form_state) {
     'type' => array('data' => t('Type'), 'field' => 'f.filemime'),
     'size' => array('data' => t('Size'), 'field' => 'f.filesize'),
     'author' => array('data' => t('Author'), 'field' => 'u.name'),
-    'timestamp' => array('data' => t('Updated'), 'field' => 'f.timestamp', 'sort' => 'asc'),
+    'timestamp' => array('data' => t('Updated'), 'field' => 'f.timestamp', 'sort' => 'desc'),
     'operations' => array('data' => t('Operations')),
   );
 
-  $query = db_select('file_managed', 'f');
+  $query = db_select('file_managed', 'f')->extend('PagerDefault')->extend('TableSort');
   $query->join('users', 'u', 'f.uid = u.uid');
-  $query->extend('PagerDefault')
-    ->extend('TableSort')
-    ->fields('f', array('fid'))
-    ->fields('u', array('uid'))
-    ->condition('f.status', FILE_STATUS_PERMANENT)
-    ->limit($limit)
-    ->orderByHeader($header);
+  $query->fields('f', array('fid'));
+  $query->fields('u', array('uid'));
+  $query->condition('f.status', FILE_STATUS_PERMANENT);
+  $query->limit($limit);
+  $query->orderByHeader($header);
 
   foreach (array_keys(file_entity_get_hidden_stream_wrappers()) as $name) {
     $query->condition('f.uri', $name . '%', 'NOT LIKE');
@@ -98,13 +96,13 @@ function file_entity_admin_files($form, &$form_state) {
     );
 
     $options[$file->fid]['operations']['data']['#links']['edit'] = array(
-      'title' => t('edit'),
+      'title' => t('Edit'),
       'href' => 'file/' . $file->fid . '/edit',
       'query' => $destination,
     );
 
     $options[$file->fid]['operations']['data']['#links']['delete'] = array(
-      'title' => t('delete'),
+      'title' => t('Delete'),
       'href' => 'file/' . $file->fid . '/delete',
       'query' => $destination,
     );
@@ -213,7 +211,7 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
   $formatters = file_info_formatter_types();
   foreach ($formatters as $name => $formatter) {
     if (isset($formatter['file types']) && !in_array($file_type, $formatter['file types'])) {
-      unset ($formatters[$name]);
+      unset($formatters[$name]);
     }
   }
   $current_displays = file_displays_load($file_type, $view_mode, TRUE);
@@ -232,9 +230,9 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
   foreach ($formatters as $name => $formatter) {
     $form['displays']['status'][$name] = array(
       '#type' => 'checkbox',
-      '#title' => $formatter['label'],
+      '#title' => check_plain($formatter['label']),
       '#default_value' => !empty($current_displays[$name]['status']),
-      '#description' => isset($formatter['description']) ? $formatter['description'] : NULL,
+      '#description' => isset($formatter['description']) ? filter_xss($formatter['description']) : NULL,
       '#parents' => array('displays', $name, 'status'),
       '#weight' => (isset($formatter['weight']) ? $formatter['weight'] : 0) + ($i / 1000),
     );
@@ -280,7 +278,7 @@ function file_entity_file_display_form($form, &$form_state, $file_type, $view_mo
       if (!empty($settings_form)) {
         $form['displays']['settings'][$name] = array(
           '#type' => 'fieldset',
-          '#title' => $formatter['label'],
+          '#title' => check_plain($formatter['label']),
           '#parents' => array('displays', $name, 'settings'),
           '#group' => 'display_settings',
           '#weight' => (isset($formatter['weight']) ? $formatter['weight'] : 0) + ($i / 1000),

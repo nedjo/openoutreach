@@ -14,7 +14,9 @@ function debut_wysiwyg_user_default_permissions() {
   $permissions['use text format wysiwyg_contributor'] = array(
     'name' => 'use text format wysiwyg_contributor',
     'roles' => array(
-      0 => 'contributor',
+      0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
     ),
     'module' => 'filter',
   );

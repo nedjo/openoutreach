@@ -1,5 +1,4 @@
 <?php
-// $Id: x6d.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Zhou ', 'Ji ', 'Yi ', 'Hui ', 'Hui ', 'Zui ', 'Cheng ', 'Yin ', 'Wei ', 'Hou ', 'Jian ', 'Yang ', 'Lie ', 'Si ', 'Ji ', 'Er ',

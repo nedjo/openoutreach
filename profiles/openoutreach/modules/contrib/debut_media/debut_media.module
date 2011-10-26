@@ -8,7 +8,7 @@ include_once('debut_media.features.inc');
  * Add javascript and css required for the media browser link.
  */
 function debut_media_init() {
-  if (arg(0) == 'media' && is_null(arg(1))) {
+  if (arg(0) == 'file' && is_null(arg(1))) {
     $path = drupal_get_path('module', 'media');
     $element['#attached'] = array(
       'js' => array($path . '/js/media.admin.js'),
@@ -34,6 +34,35 @@ function debut_media_menu_alter(&$items) {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ *
+ * Enable custom settings for the 'full' file view mode.
+ * See http://drupal.org/node/1291428.
+ */
+function debut_media_entity_info_alter(&$entity_info) {
+  $entity_info['file']['view modes']['full']['custom settings'] = TRUE;
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Extends the core file entity to be fieldable. Modules can define file types
+ * via hook_file_type_info(). For each defined type, create a bundle, so that
+ * fields can be configured per file type.
+ */
+function debut_media_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'entity_info_alter') {
+    // Move debut_media_entity_info_alter() to the end of the list.
+    // module_implements() iterates through $implementations with a foreach
+    // loop which PHP iterates in the order that the items were added, so to
+    // move an item to the end of the array, we remove it and then add it.
+    $group = $implementations['debut_media'];
+    unset($implementations['debut_media']);
+    $implementations['debut_media'] = $group;
+  }
+}
+
+/**
  * Implements hook_views_data_alter().
  *
  * Use the media_title field for the file fid argument's name field.
@@ -52,7 +81,7 @@ function debut_media_views_data_alter(&$data) {
  * Set the page title for media items to the title of the item.
  */
 function debut_media_page_alter(&$variables) {
-  if (arg(0) == 'media' && $file = menu_get_object('file')) {
+  if (arg(0) == 'file' && $file = menu_get_object('file')) {
     if (!empty($file->media_title['und'][0]['safe_value'])) {
       drupal_set_title($file->media_title['und'][0]['safe_value']);
     }
@@ -83,12 +112,11 @@ function debut_media_styles_default_styles() {
 
 /**
  * Implementation of Styles module hook_styles_default_presets_alter().
- *
  */
 function debut_media_styles_default_presets_alter(&$presets) {
   foreach (array_keys(debut_media_image_default_styles()) as $image_style) {
     // Cover the containers defined by file_styles and media_youtube.
-    foreach (array('image', 'audio', 'video', 'default', 'media_youtube') as $type) {
+    foreach (array('application', 'image', 'audio', 'video', 'default', 'media_youtube', 'media_vimeo') as $type) {
       // Ensure another module hasn't removed the container.
       if (isset($presets['file']['containers'][$type])) {
         $presets['file']['containers'][$type]['styles'][$image_style] = array(
@@ -105,6 +133,190 @@ function debut_media_styles_default_presets_alter(&$presets) {
             'name' => 'thumbnail',
             'settings' => array(),
           ),
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_field_default_fields_alter().
+ *
+ * Selectively add media fields to content types provided by features. To
+ * receive a media_field instance, the feature should include the following in
+ * its .info file:
+ * debut[media][node_types][my_content_type] = my_content_type
+ * where my_content_type is the name of a feature-provided content type.
+ *
+ * The media field status of a feature's content type can be altered by using
+ * hook_system_info_alter(). Example:
+ * %code
+ * function example_system_info_alter(&$info, $module, $type) {
+ *   if ($type == $module && $module->name == 'debut_article') {
+ *     unset($info['debut']['media']['article']);
+ *   }
+ * }
+ * %endcode
+ */
+function debut_media_field_default_fields_alter(&$items) {
+  // Get features modules and determine which if claim media.
+  $features = features_get_features();
+  $node_types = array();
+  foreach ($features as $feature) {
+    $info = $feature->info;
+    if (isset($info['debut']) && isset($info['debut']['media']) && isset($info['debut']['media']['node_types'])) {
+      // Key the array by node type to match the format of the 'service_links_node_types' variable.
+      $node_types = array_merge($node_types, array_combine($info['debut']['media']['node_types'], $info['debut']['media']['node_types']));
+    }
+  }
+  // Add media fields to the designated node types.
+  if (!empty($node_types)) {
+    $field = debut_media_media_field();
+    foreach ($node_types as $type) {
+      // Don't override an existing field. This allows features to provide
+      // their own version of the field.
+      if (!isset($items["node-$type-field_media"])) {
+        $field['field_instance']['bundle'] = $type;
+        $items["node-$type-field_media"] = $field;
+      }
+    }
+  }
+}
+
+/**
+ * Return the structure of the media field.
+ *
+ * The instance bundle is marked as 'placeholder'. It should be converted to
+ * the appropriate node type before being used.
+ */
+function debut_media_media_field() {
+  $field = array(
+    'field_config' => array(
+      'active' => '1',
+      'cardinality' => '-1',
+      'deleted' => '0',
+      'entity_types' => array(),
+      'field_name' => 'field_media',
+      'foreign keys' => array(
+        'fid' => array(
+          'columns' => array(
+            'fid' => 'fid',
+          ),
+          'table' => 'file_managed',
+        ),
+      ),
+      'indexes' => array(
+        'fid' => array(
+          0 => 'fid',
+        ),
+      ),
+      'module' => 'file',
+      'settings' => array(
+        'display_default' => 0,
+        'display_field' => 0,
+        'uri_scheme' => 'public',
+      ),
+      'translatable' => '0',
+      'type' => 'file',
+    ),
+    'field_instance' => array(
+      'bundle' => 'placeholder',
+      'deleted' => '0',
+      'description' => '',
+      'display' => array(
+        'default' => array(
+          'label' => 'hidden',
+          'module' => 'file_entity',
+          'settings' => array(
+            'file_view_mode' => 'media_large',
+          ),
+          'type' => 'file_rendered',
+          'weight' => '4',
+        ),
+        'teaser' => array(
+          'label' => 'above',
+          'settings' => array(),
+          'type' => 'hidden',
+          'weight' => 0,
+        ),
+      ),
+      'entity_type' => 'node',
+      'field_name' => 'field_media',
+      'label' => 'Media',
+      'required' => 0,
+      'settings' => array(
+        'description_field' => 0,
+        'file_directory' => '',
+        'file_extensions' => 'jpg jpeg gif png txt doc xls pdf ppt pps odt ods odp',
+        'max_filesize' => '',
+        'user_register_form' => FALSE,
+      ),
+      'widget' => array(
+        'active' => 1,
+        'module' => 'media',
+        'settings' => array(
+          'allowed_schemes' => array(
+            'public' => 'public',
+            'vimeo' => 'vimeo',
+            'youtube' => 'youtube',
+          ),
+          'allowed_types' => array(
+            'audio' => 0,
+            'default' => 'default',
+            'image' => 'image',
+            'video' => 'video',
+          ),
+          'browser_plugins' => array(
+            'library' => 0,
+            'media_default--media_browser_1' => 0,
+            'media_internet' => 0,
+            'upload' => 0,
+          ),
+          'progress_indicator' => 'throbber',
+        ),
+        'type' => 'media_generic',
+        'weight' => '10',
+      ),
+    ),
+  );
+
+  return $field;
+}
+
+/**
+ * Implements hook_file_default_displays_alter().
+ *
+ * Clone settings for 'media_large' to new 'full' view mode. Add a generic file
+ * fallback for each view mode + file type combo.
+ *
+ * @todo: remove 'media_large' to 'full' cloning once media provider modules
+ * catch up. See http://drupal.org/node/1291428.
+ */
+function debut_media_file_default_displays_alter(&$items) {
+  $info = entity_get_info('file');
+  $bundles = array_keys($info['bundles']);
+  $view_modes = array_keys($info['view modes']);
+
+  foreach ($items as $key => $data) {
+    list($file_type, $view_mode, $formatter_name) = explode('__', $key);
+    if ($view_mode == 'media_large') {
+      $display_name = implode('__', array($file_type, 'full', $formatter_name));
+      if (!isset($items[$display_name])) {
+        $items[$display_name] = clone($data);
+        $items[$display_name]->name = $display_name;
+      }
+    }
+  }
+  foreach ($bundles as $file_type) {
+    foreach ($view_modes as $view_mode) {
+      $display_name = implode('__', array($file_type, $view_mode, 'file_field_file_default'));
+      if (!isset($items[$display_name])) {
+        $items[$display_name] = (object) array(
+          'api_version' => 1,
+          'name' => $display_name,
+          'status' => 1,
+          'weight' => 35,
+          'settings' => array(),
         );
       }
     }

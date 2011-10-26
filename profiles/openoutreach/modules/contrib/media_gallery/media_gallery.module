@@ -239,17 +239,21 @@ function media_gallery_view($node, $view_mode) {
       // @todo Drupal could really use a theme_menu_local_actions() function...
       '#prefix' => '<ul class="field action-links">',
       '#suffix' => '</ul>',
-      // Add front-end resources related to this link, only when it is actually
-      // being rendered.
-      '#pre_render' => array('media_gallery_add_images_link_pre_render'),
     );
 
-    // These JS settings are used by the "add media" link but are also shared
-    // by the drag-and-drop code below.
+    // Enable the "Add media" link to launch the media browser.
+    module_load_include('inc', 'media', 'includes/media.browser');
+    media_attach_browser_js($node->content['add_media_link']);
+    $node->content['add_media_link']['#attached']['js'][] = drupal_get_path('module', 'media_gallery') . '/media_gallery.addimage.js';
+
+    // These JS settings are used by the "add media" link but some are also
+    // shared by the drag-and-drop code below.
+    $instance = field_info_instance('node', 'media_gallery_media', $node->type);
     $token = drupal_get_token('media_gallery');
     $gallery_js_settings = array(
       'mediaGalleryAddImagesUrl' => url('media-gallery/add-images/' . $node->nid . '/' . $token),
       'mediaGallerySortGalleryUrl' => url('media-gallery/sort/gallery/' . $node->nid . '/' . $token),
+      'mediaGalleryAllowedMediaTypes' => array_filter($instance['widget']['settings']['allowed_types']),
     );
 
     // When viewing the full node, add front-end resources for drag-and-drop
@@ -365,27 +369,6 @@ function media_gallery_view($node, $view_mode) {
     }
   }
   return $node;
-}
-
-/**
- * Prerender function to add front-end resources for the "Add media" link.
- */
-function media_gallery_add_images_link_pre_render($elements) {
-  drupal_add_library('media', 'media_browser');
-  module_load_include('inc', 'media', 'includes/media.browser');
-  // The correct function to call here switched between Media 7.x-1.0-beta3 and
-  // the latest Media 7.x-1.x code, and calling the wrong function in either
-  // case leads to a PHP fatal error. So for now, we have to support both.
-  // @todo: After we require the next release of Media and no longer support
-  //   7.x-1.0-beta3, switch to using media_attach_browser_js() for everyone.
-  if (function_exists('media_attach_browser_js')) {
-    media_attach_browser_js($elements);
-  }
-  else {
-    media_include_browser_js();
-  }
-  drupal_add_js(drupal_get_path('module', 'media_gallery') . '/media_gallery.addimage.js');
-  return $elements;
 }
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id: xb5.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'dyil', 'dyilg', 'dyilm', 'dyilb', 'dyils', 'dyilt', 'dyilp', 'dyilh', 'dyim', 'dyib', 'dyibs', 'dyis', 'dyiss', 'dying', 'dyij', 'dyic',

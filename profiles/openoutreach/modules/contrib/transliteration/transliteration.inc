@@ -1,5 +1,4 @@
 <?php
-// $Id: transliteration.inc,v 1.12 2010/03/15 06:45:57 smk Exp $
 
 /**
  * @file
@@ -25,7 +24,7 @@
  * @return
  *   Transliterated text.
  */
-function transliteration_process($string, $unknown = '?', $source_langcode = NULL) {
+function _transliteration_process($string, $unknown = '?', $source_langcode = NULL) {
   // ASCII is always valid NFC! If we're only ever given plain ASCII, we can
   // avoid the overhead of initializing the decomposition tables by skipping
   // out early.
@@ -33,11 +32,11 @@ function transliteration_process($string, $unknown = '?', $source_langcode = NUL
     return $string;
   }
 
-  static $tailBytes;
+  static $tail_bytes;
 
-  if (!isset($tailBytes)) {
+  if (!isset($tail_bytes)) {
     // Each UTF-8 head byte is followed by a certain number of tail bytes.
-    $tailBytes = array();
+    $tail_bytes = array();
     for ($n = 0; $n < 256; $n++) {
       if ($n < 0xc0) {
         $remaining = 0;
@@ -60,7 +59,7 @@ function transliteration_process($string, $unknown = '?', $source_langcode = NUL
       else {
         $remaining = 0;
       }
-      $tailBytes[chr($n)] = $remaining;
+      $tail_bytes[chr($n)] = $remaining;
     }
   }
 
@@ -92,7 +91,7 @@ function transliteration_process($string, $unknown = '?', $source_langcode = NUL
 
     for ($i = -1; --$len; ) {
       $c = $str[++$i];
-      if ($remaining = $tailBytes[$c]) {
+      if ($remaining = $tail_bytes[$c]) {
         // UTF-8 head byte!
         $sequence = $head = $c;
         do {
@@ -206,4 +205,3 @@ function _transliteration_replace($ord, $unknown = '?', $langcode = NULL) {
 
   return isset($map[$bank][$langcode][$ord]) ? $map[$bank][$langcode][$ord] : $unknown;
 }
-

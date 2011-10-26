@@ -30,17 +30,31 @@ function token_token_info_alter(&$info) {
   unset($info['tokens']['node']['type']);
   unset($info['tokens']['node']['type-name']);
 
-  // Add [token:path] tokens for any URI-able entities.
+  // Support 'url' type tokens for core tokens.
+  if (isset($info['tokens']['comment']['url']) && module_exists('comment')) {
+    $info['tokens']['comment']['url']['type'] = 'url';
+  }
+  $info['tokens']['node']['url']['type'] = 'url';
+  if (isset($info['tokens']['term']['url']) && module_exists('taxonomy')) {
+    $info['tokens']['term']['url']['type'] = 'url';
+  }
+  $info['tokens']['user']['url']['type'] = 'url';
+
+  // Add [token:url] tokens for any URI-able entities.
   $entities = entity_get_info();
   foreach ($entities as $entity => $entity_info) {
     if (!isset($entity_info['token type'])) {
       continue;
     }
+
     $token_type = $entity_info['token type'];
+    if (!isset($info['types'][$token_type]) || !isset($info['tokens'][$token_type])) {
+      continue;
+    }
 
     // Add [entity:url] tokens if they do not already exist.
     // @todo Support entity:label
-    if (!isset($info['tokens'][$token_type]['url']) && (!empty($entity_info['uri callback']) || !empty($entity_info['bundles'][$entity]['uri callback']))) {
+    if (!isset($info['tokens'][$token_type]['url']) && !empty($entity_info['uri callback'])) {
       $info['tokens'][$token_type]['url'] = array(
         'name' => t('URL'),
         'description' => t('The URL of the @entity.', array('@entity' => drupal_strtolower($entity_info['label']))),
@@ -49,13 +63,6 @@ function token_token_info_alter(&$info) {
       );
     }
   }
-
-  $info['tokens']['comment']['url']['type'] = 'url';
-  //$info['tokens']['file']['url']['type'] = 'url';
-  $info['tokens']['node']['url']['type'] = 'url';
-  $info['tokens']['term']['url']['type'] = 'url';
-  $info['tokens']['user']['url']['type'] = 'url';
-  // @todo Support other tokens not named 'url'
 
   // Add support for custom date formats.
   // @todo Remove when http://drupal.org/node/1173706 is fixed.
@@ -602,7 +609,8 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'title':
-          $replacements[$original] = drupal_get_title();
+          $title = drupal_get_title();
+          $replacements[$original] = $sanitize ? $title : decode_entities($title);
           break;
         case 'url':
           $replacements[$original] = url($current_path, $url_options);
@@ -678,7 +686,7 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
           break;
         case 'args':
           $value = empty($url_options['alias']) ? drupal_get_path_alias($path, $language_code) : $path;
-          $replacements[$original] = token_render_array(arg(NULL, $args), $options);
+          $replacements[$original] = token_render_array(arg(NULL, $value), $options);
           break;
       }
     }
@@ -737,23 +745,25 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
   if ($type == 'array' && !empty($data['array']) && is_array($data['array'])) {
     $array = $data['array'];
 
+    $sort = isset($options['array sort']) ? $options['array sort'] : TRUE;
+    $keys = element_children($array, $sort);
+
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'first':
-          $first = reset($array);
-          $replacements[$original] = token_render_array_value($first, $options);
-          reset($array);
+          $value = $array[$keys[0]];
+          $value = is_array($value) ? render($value) : (string) $value;
+          $replacements[$original] = $sanitize ? check_plain($value) : $value;
           break;
         case 'last':
-          $last = end($array);
-          $replacements[$original] = token_render_array_value($last, $options);
-          reset($array);
+          $value = $array[$keys[count($keys) - 1]];
+          $value = is_array($value) ? render($value) : (string) $value;
+          $replacements[$original] = $sanitize ? check_plain($value) : $value;
           break;
         case 'count':
-          $replacements[$original] = count($array);
+          $replacements[$original] = count($keys);
           break;
         case 'keys':
-          $keys = array_keys($array);
           $replacements[$original] = token_render_array($keys, $options);
           break;
         case 'reversed':
@@ -769,7 +779,7 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
     // [array:value:*] dynamic tokens.
     if ($value_tokens = token_find_with_prefix($tokens, 'value')) {
       foreach ($value_tokens as $key => $original) {
-        if (isset($array[$key])) {
+        if ($key[0] !== '#' && isset($array[$key])) {
           $replacements[$original] = token_render_array_value($array[$key], $options);
         }
       }
@@ -782,12 +792,14 @@ function token_tokens($type, $tokens, array $data = array(), array $options = ar
       }
     }
 
-    // Chained token relationships.
+    // [array:keys:*] chained tokens.
     if ($key_tokens = token_find_with_prefix($tokens, 'keys')) {
-      $replacements += token_generate('array', $key_tokens, array('array' => array_keys($array)), $options);
+      $replacements += token_generate('array', $key_tokens, array('array' => $keys), $options);
     }
+
+    // [array:reversed:*] chained tokens.
     if ($reversed_tokens = token_find_with_prefix($tokens, 'reversed')) {
-      $replacements += token_generate('array', $reversed_tokens, array('array' => array_reverse($array, TRUE)), $options);
+      $replacements += token_generate('array', $reversed_tokens, array('array' => array_reverse($array, TRUE)), array('array sort' => FALSE) + $options);
     }
 
     // @todo Handle if the array values are not strings and could be chained.
@@ -1233,8 +1245,7 @@ function _token_field_info($field_name = NULL) {
             }
 
             $info[$key]['token types'][] = $token_type;
-            $info[$key]['labels'] = array();
-            $info[$key]['bundles'] = array();
+            $info[$key] += array('labels' => array(), 'bundles' => array());
 
             // Find which label is most commonly used.
             foreach ($field['bundles'][$entity] as $bundle) {
@@ -1249,20 +1260,24 @@ function _token_field_info($field_name = NULL) {
               $info[$key]['labels'][] = $instances[$entity][$bundle][$key]['label'];
               $info[$key]['bundles'][$token_type][$bundle] = $entity_info[$entity]['bundles'][$bundle]['label'];
             }
-            $labels = array_count_values($info[$key]['labels']);
-            arsort($labels);
-            $info[$key]['label'] = key($labels);
+          }
+        }
 
-            // Generate a description for the token.
-            $info[$key]['description'] = t('@type field.', array('@type' => $type_info[$field['type']]['label']));
-            if ($also_known_as = array_unique(array_diff($info[$key]['labels'], array($info[$key]['label'])))) {
-              $info[$key]['description'] .= ' ' . t('Also known as %labels.', array('%labels' => implode(', ', $also_known_as)));
-            }
+        if (isset($info[$key])) {
+          $labels = array_count_values($info[$key]['labels']);
+          arsort($labels);
+          $info[$key]['label'] = key($labels);
+
+          // Generate a description for the token.
+          $info[$key]['description'] = t('@type field.', array('@type' => $type_info[$field['type']]['label']));
+          if ($also_known_as = array_unique(array_diff($info[$key]['labels'], array($info[$key]['label'])))) {
+            $info[$key]['description'] .= ' ' . t('Also known as %labels.', array('%labels' => implode(', ', $also_known_as)));
           }
         }
       }
 
       drupal_alter('token_field_info', $info);
+      cache_set('field:info', $info, 'cache_token');
     }
   }
 
@@ -1287,6 +1302,11 @@ function field_token_info_alter(&$info) {
     foreach (array_keys($field['bundles']) as $token_type) {
       // If a token already exists for this field, then don't add it.
       if (isset($info['tokens'][$token_type][$field_name])) {
+        continue;
+      }
+
+      // Ensure the tokens exist.
+      if (!isset($info['types'][$token_type]) || !isset($info['tokens'][$token_type])) {
         continue;
       }
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: xbf.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'bbess', 'bbeng', 'bbej', 'bbec', 'bbek', 'bbet', 'bbep', 'bbeh', 'bbyeo', 'bbyeog', 'bbyeogg', 'bbyeogs', 'bbyeon', 'bbyeonj', 'bbyeonh', 'bbyeod',

@@ -1,0 +1,35 @@
+/* $Id */
+
+/****************************/
+/* LOCAL CSS                */
+/****************************/
+
+/* Put your custom CSS and CSS overrides in this file and  */
+/* rename it local.css.  By restricting your CSS changes   */
+/* to local.css, your changes will not be overwritten when */
+/* upgrading to a new version of this theme.  You can also */
+/* use a local-rtl.css file for the equivalent in RTL.     */
+
+/* Steps to activate local.css:                       */
+/* 1. Add your custom CSS to this file                */
+/* 2. Rename this file to local.css                   */
+/* 3. Clear cached data at admin/settings/performance */
+
+/* HELPER CODE FOR SETTING BACKGROUND IMAGES */
+
+/* Add a custom header background (above navbar) here */
+#header-group {
+}
+
+/* Add background image to preface top region (right below the navbar)  */
+
+/* IMPORTANT: If there are no blocks in the preface top region, set     */
+/* an image here, and set a height for the region.  Also, if you are    */
+/* using a fluid width layout of less than 100%, you will need to set   */
+/* a width.                                                             */
+#preface-top-container{
+}
+/* If there are blocks in the preface top region, use the following instead */
+#preface-top {
+}
+

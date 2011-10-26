@@ -1,5 +1,4 @@
 <?php
-// $Id: xac.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'ga', 'gag', 'gagg', 'gags', 'gan', 'ganj', 'ganh', 'gad', 'gal', 'galg', 'galm', 'galb', 'gals', 'galt', 'galp', 'galh',

@@ -1,5 +1,4 @@
 <?php
-// $Id: xd1.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'tyal', 'tyalg', 'tyalm', 'tyalb', 'tyals', 'tyalt', 'tyalp', 'tyalh', 'tyam', 'tyab', 'tyabs', 'tyas', 'tyass', 'tyang', 'tyaj', 'tyac',

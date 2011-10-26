@@ -474,7 +474,7 @@ function file_uri_to_object($uri, $use_existing = TRUE) {
   }
 
   if (empty($file)) {
-    $file = new StdClass();
+    $file = new stdClass();
     $file->uid = $GLOBALS['user']->uid;
     $file->filename = basename($uri);
     $file->uri = $uri;

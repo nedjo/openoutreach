@@ -1,5 +1,4 @@
 <?php
-// $Id: xc7.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'wek', 'wet', 'wep', 'weh', 'wi', 'wig', 'wigg', 'wigs', 'win', 'winj', 'winh', 'wid', 'wil', 'wilg', 'wilm', 'wilb',

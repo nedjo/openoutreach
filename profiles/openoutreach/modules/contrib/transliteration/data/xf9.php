@@ -1,5 +1,4 @@
 <?php
-// $Id: xf9.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Kay ', 'Kayng ', 'Ke ', 'Ko ', 'Kol ', 'Koc ', 'Kwi ', 'Kwi ', 'Kyun ', 'Kul ', 'Kum ', 'Na ', 'Na ', 'Na ', 'La ', 'Na ',

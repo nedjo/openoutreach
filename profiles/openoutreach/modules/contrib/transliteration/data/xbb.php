@@ -1,5 +1,4 @@
 <?php
-// $Id: xbb.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'moen', 'moenj', 'moenh', 'moed', 'moel', 'moelg', 'moelm', 'moelb', 'moels', 'moelt', 'moelp', 'moelh', 'moem', 'moeb', 'moebs', 'moes',

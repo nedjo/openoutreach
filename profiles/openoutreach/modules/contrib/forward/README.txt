@@ -80,6 +80,15 @@ Step 6)
   links within the sent emails.
 
 
+Step 7)
+  Go to "admin/structure/block" to optionally enable and configure Forward
+  blocks for your theme.  Several blocks are available:
+
+  Forward: Form - places the forward link or forward form in a block
+  Forward: Statistics - most recently emailed or most emailed of all time
+  forward_forwards - a Views list of most popular nodes to forward
+  forward_recent - a Views list of recently forwarded nodes or pages
+
 CREDITS & SUPPORT
 
 Special thanks to Jeff Miccolis of developmentseed.org for supplying the

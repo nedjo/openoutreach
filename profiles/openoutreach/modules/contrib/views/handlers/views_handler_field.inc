@@ -230,17 +230,17 @@ class views_handler_field extends views_handler {
       $elements = variable_get('views_field_rewrite_elements', array(
         '' => t('- Use default -'),
         '0' => t('- None -'),
-        'div' => t('DIV'),
-        'span' => t('SPAN'),
-        'h1' => t('H1'),
-        'h2' => t('H2'),
-        'h3' => t('H3'),
-        'h4' => t('H4'),
-        'h5' => t('H5'),
-        'h6' => t('H6'),
-        'p' => t('P'),
-        'strong' => t('STRONG'),
-        'em' => t('EM'),
+        'div' => 'DIV',
+        'span' => 'SPAN',
+        'h1' => 'H1',
+        'h2' => 'H2',
+        'h3' => 'H3',
+        'h4' => 'H4',
+        'h5' => 'H5',
+        'h6' => 'H6',
+        'p' => 'P',
+        'strong' => 'STRONG',
+        'em' => 'EM',
       ));
     }
 
@@ -1106,7 +1106,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
     // If the path is empty do not build a link around the given text and return
     // it as is.
     // http://www.example.com URLs will not have a $url['path'], so check host as well.
-    if (empty($url['path']) && empty($url['host'])) {
+    if (empty($url['path']) && empty($url['host']) && empty($url['fragment'])) {
       return $text;
     }
 

@@ -1,0 +1,161 @@
+/* $Id */
+
+/* Add a little extra spacing on edges if have white bg */
+.white-page-bg #preface-top .block.first .inner,
+.white-page-bg #postscript-bottom .block.first .inner,
+.white-page-bg #footer .block.first .inner {
+  margin-right: 10px; 
+}
+
+.white-page-bg #preface-top .block.last .inner,
+.white-page-bg #postscript-bottom .block.last .inner,
+.white-page-bg #footer .block.last .inner {
+  margin-left: 10px; 
+}
+
+.sidebars-split .white-page-bg .sidebar-first .block .inner {
+  margin-right: 10px; 
+}
+
+.sidebars-split .white-page-bg .preface-bottom .block.last .inner,
+.sidebars-split .white-page-bg .postscript-top .block.last .inner,
+.sidebars-split .white-page-bg .sidebar-last .block .inner {
+  margin-left: 10px; 
+}
+
+.sidebars-both-first .white-page-bg .sidebar-first .block .inner {
+  margin-right: 10px; 
+}
+
+.sidebars-both-first .white-page-bg .main-content .block .inner,
+.sidebars-both-first .white-page-bg .preface-bottom .block.last .inner,
+.sidebars-both-first .white-page-bg .postscript-top .block.last .inner {
+  margin-left: 10px; 
+}
+
+.sidebars-both-first .white-page-bg .sidebar-last .block .inner {
+  margin-left: 5px;
+}
+
+.sidebars-both-last .white-page-bg .main-content .block .inner,
+.sidebars-both-last .white-page-bg .preface-bottom .block.first .inner,
+.sidebars-both-last .white-page-bg .postscript-top .block.first .inner {
+  margin-right: 10px; 
+}
+
+.sidebars-both-last .white-page-bg .sidebar-first .block .inner {
+  margin-left: 10px; 
+}
+
+.sidebars-both-last .white-page-bg .sidebar-last .block .inner {
+  margin-right: 5px; 
+}
+
+/* Navbar/button styles */
+.main-menu-inner ul {
+  border-left: 1px solid #E1E1E1; 
+}
+
+.main-menu-inner ul li {
+  border-left: 1px solid #B5B5B4;  
+  border-right: 1px solid #E1E1E1;  
+}
+
+.main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+form input.form-submit {
+  border-right: 1px solid #B5B5B4;
+  border-left: 1px solid #E1E1E1;
+}
+
+.black-accents .main-menu-inner ul {
+  border-left: 1px solid  #414140;
+}
+
+.black-accents .main-menu-inner ul li {
+  border-left: 1px solid #232323;
+  border-right: 1px solid #414140;
+}
+
+.black-accents .main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+.black-accents form input.form-submit {
+  border-left: 1px solid #232323;
+  border-right: 1px solid #414140;
+}
+
+.red-accents .main-menu-inner ul {
+  border-left: 1px solid #A4141E;
+}
+
+.red-accents .main-menu-inner ul li {
+  border-left: 1px solid #D73131;
+  border-right: 1px solid #A4141E;
+}
+
+.red-accents .main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+.red-accents form input.form-submit {
+  border-left: 1px solid #A4141E;
+  border-right: 1px solid #D73131;
+}
+
+.blue-accents .main-menu-inner ul {
+  border-left: 1px solid #4181C9;
+}
+
+.blue-accents .main-menu-inner ul li {
+  border-left: 1px solid #064287;
+  border-right: 1px solid #4181C9;
+}
+
+.blue-accents .main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+.blue-accents form input.form-submit {
+  border-left: 1px solid #064287;
+  border-right: 1px solid #4181C9;
+}
+
+.green-accents .main-menu-inner ul {
+  border-left: 1px solid #62B131;
+}
+
+.green-accents .main-menu-inner ul li {
+  border-left: 1px solid #337311;
+  border-right: 1px solid #62B131;
+}
+
+.green-accents .main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+.green-accents form input.form-submit {
+  border-left: 1px solid #337311;
+  border-right: 1px solid #62B131;
+}
+
+.orange-accents .main-menu-inner ul {
+  border-left: 1px solid #F27A47;
+}
+
+.orange-accents .main-menu-inner ul li {
+  border-left: 1px solid #D54A05;
+  border-right: 1px solid #F27A47;
+}
+
+.orange-accents .main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+.orange-accents form input.form-submit {
+  border-left: 1px solid #D54A05;
+  border-right: 1px solid #F27A47;
+}

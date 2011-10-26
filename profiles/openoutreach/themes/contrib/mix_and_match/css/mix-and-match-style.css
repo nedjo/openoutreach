@@ -1,0 +1,745 @@
+/* $Id */
+
+/**
+ * @file
+ * General styling used by all color schemes
+ * and colors for default gray base color scheme.
+ * Some of the colors are overridden in other
+ * schemes (see base-colors.css) but some are
+ * used by all.
+ */
+
+/* ---------------------- GENERAL HTML ELEMENTS ---------------------------- */
+
+body {
+  font-size: 75%;   /* also set in fusion_starter.info: settings[base-font-size] = font-size-12 */
+  font-family: "Myriad Pro", Myriad, "Trebuchet MS", Arial, Helvetica, sans-serif;
+  line-height: 140%;
+}
+
+h1 {
+  font-size: 160%;
+}
+
+h1, h2 {
+  margin: 0 0 0.5em 0;
+}
+
+h3, h4, h5, h6 {
+  margin: 0.2em 0;
+}
+
+p {
+  margin: 0.5em 0;
+}
+
+a:hover,
+a:focus,
+a:active {
+  text-decoration: underline;
+}
+
+/* ----------------------------- SITE INFO --------------------------------- */
+
+/* Wrapper around logo, site name, and slogan */
+#header-site-info span {
+  margin: 15px 0;
+}
+
+#logo {
+  float: left;  /*LTR*/
+  margin-right: 10px; /*LTR*/
+}
+
+#site-name-wrapper {
+  float: left; /*LTR*/
+}
+
+#site-name {
+  font-size: 200%;
+  font-weight: bold;
+  line-height: 100%;
+}
+
+#slogan {
+  font-size: 110%;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+/* ------------------------- LAYOUT ---------------------------------------- */
+
+/* Classes (.region-name) should always be used instead of IDs (#region-name) so
+  that Skinr styles can override them with a class later */
+
+.grid-type-960 .page {
+  width: 960px;
+}
+
+/* Main Menu
+/-------------------------------------------------------------- */
+.main-menu {
+  clear: both;
+}
+
+.main-menu-inner .block .inner .content {
+  padding: 0;
+}
+
+.main-menu-inner .block h2.block-title {
+  display: none;
+}
+
+.main-menu-inner ul.menu {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.main-menu-inner ul.menu li a,
+.main-menu-inner ul.menu li a:visited {
+  font-size: 100%;
+  font-weight: bold;
+  padding: 0;
+}
+
+.header-group-inner .main-menu-inner .block-outer ul.menu li {
+  padding: 8px 15px;
+  list-style-image: none;
+}
+
+/* Add border-right: 0; here to remove separator on last menu item */
+.main-menu-inner ul li.first {
+  border-left: 0; /* LTR */
+}
+
+/*--------------- Search block -------------------------*/
+#block-search-form.block .inner .content {
+  padding-top: 0;
+}
+
+.block-search .form-item input.form-text {
+  padding: 0 5px;
+  height: 21px;
+}
+
+/* Temporary; remove when have Skinr block positioning? */
+#page #header-group .block-search {
+  float: right;
+  width: 240px;
+  margin: 30px 0 10px 0;
+}
+
+#header-group .block-search .form-item input.form-text  {
+  width: 160px;
+}
+
+.block-search form input.form-submit {
+  background: transparent url(../images/search-gray-accents.png) top left no-repeat;
+  border: none;
+  height: 24px;
+  margin: 0 4px 0 -3px;
+  text-indent: -999em;
+  width: 24px;
+  z-index: 1;
+  position: absolute;
+  top: 1;
+}
+
+.block-search .form-submit:hover,
+.block-search .form-submit:focus,
+.block-search .form-submit:active {
+  cursor: pointer;
+}
+
+/* ------------------------------- REGIONS ----------------------------- */
+
+#main {
+  padding-top: 5px;
+}
+
+#content {
+  margin: 0;
+}
+
+#content-content .inner {
+}
+
+.main-menu-wrapper,
+.preface-top-wrapper,
+.main-wrapper,
+.postscript-bottom-wrapper,
+.footer-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+#postscript-bottom {
+  padding-bottom: 5px;
+}
+
+#footer {
+  margin-bottom: 10px;
+}
+
+/* ---------------------------- BLOCKS ------------------------------------- */
+
+h2.block-title {
+  font-size: 145%;
+  font-weight: normal;
+  padding: 10px 10px 0 10px;
+  margin-bottom: 0;
+}
+
+.block .inner .content {
+  padding: 10px;
+}
+
+.content-region-inner .block .inner .content {
+  padding: 0;
+}
+
+.main-wrapper .block .inner,
+.preface-top-wrapper .block .inner,
+.postscript-bottom-wrapper .block .inner,
+.footer-wrapper .block .inner {
+  margin: 5px;
+}
+
+.footer-wrapper .block .inner {
+  margin-bottom: 10px;
+}
+
+.preface-top-wrapper .block .inner {
+  margin: 10px 5px 0 5px;
+}
+
+.preface-top-wrapper .block.first .inner,
+.postscript-bottom-wrapper .block.first .inner,
+.footer-wrapper .block.first .inner {
+  margin-left: 0; /* LTR */
+}
+
+.preface-top-wrapper .block.last .inner,
+.postscript-bottom-wrapper .block.last .inner,
+.footer-wrapper .block.last .inner {
+  margin-right: 0; /* LTR */
+}
+
+/* Layout specific settings */
+.sidebars-split .sidebar-first .block .inner {
+  margin-left: 0; /* LTR */
+}
+
+.sidebars-split .preface-bottom .block.last .inner,
+.sidebars-split .postscript-top .block.last .inner,
+.sidebars-split .sidebar-last .block .inner {
+  margin-right: 0; /* LTR */
+}
+
+.sidebars-both-first .sidebar-first .block .inner {
+  margin-left: 0; /* LTR */
+}
+
+.sidebars-both-first .main-content .block .inner,
+.sidebars-both-first .preface-bottom .block.last .inner,
+.sidebars-both-first .postscript-top .block.last .inner {
+  margin-right: 0; /* LTR */
+}
+
+.sidebars-both-first .sidebar-last .block .inner {
+  margin-right: 5px; /* LTR */
+}
+
+.sidebars-both-last .main-content .block .inner,
+.sidebars-both-last .preface-bottom .block.first .inner,
+.sidebars-both-last .postscript-top .block.first .inner {
+  margin-left: 0; /* LTR */
+}
+
+.sidebars-both-last .sidebar-first .block .inner {
+  margin-right: 0; /* LTR */
+}
+
+.sidebars-both-last .sidebar-last .block .inner {
+  margin-left: 5px; /* LTR */
+}
+
+.preface-top-wrapper .block .inner,
+.main-wrapper .block .inner,
+.postscript-bottom-wrapper .block .inner,
+.footer-wrapper .block .inner,
+.footer-message .block .inner {
+  padding: 0;
+}
+
+.header-group .block,
+.main-wrapper .block,
+.preface-top-wrapper .block,
+.postscript-bottom-wrapper .block,
+.footer-wrapper .block {
+  margin: 0;
+}
+
+
+/* ------------------------ NODE STYLES ------------------------------------ */
+
+/* Change unpublished and preview colors for dark background themes */
+.node-unpublished {
+  background-color: #fff4f4;
+}
+.preview .node {
+  background-color: #ffffea;
+}
+
+/* Breadcrumbs */
+.breadcrumb {
+  margin-top: 10px;
+}
+
+/* Separators and padding for node teasers */
+.teaser {
+  padding-bottom: 10px;
+}
+
+.teaser .inner .content {
+  padding: 5px 10px;
+}
+
+.teaser h2.title {
+  margin-bottom: 5px;
+}
+
+/* Author/date info */
+.submitted {
+  font-size: 85%;
+}
+
+.node .picture {
+  float: left; /* LTR */
+  margin: 5px 15px 10px 10px; /* LTR */
+}
+
+/* Links for nodes (taxonomy, commenting, read more, etc) */
+.node ul.links {
+  display: block;
+  padding: 5px 10px;
+  margin: 5px 0;
+}
+
+.node ul.links li {
+  margin-right: 10px; /* LTR */
+}
+.node ul.links a {
+  font-weight: bold;
+}
+
+.node div.terms {
+  margin: 0;
+  padding: 5px 0;
+}
+
+/* ------------------------------ DRUPAL MESSAGES -------------------------- */
+
+/* General style for all errors/messages (border, padding, etc.) */
+div.content-messages div.messages,
+div.content-help div.help {
+  border-width: 1px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  padding-left: 50px;  /* LTR */
+}
+
+/* Status messages: green */
+div.content-messages-inner div.status {
+  background-color: #B2D982;
+  border-color: #8DBF50;
+  color: #323232;
+}
+
+/* Warning messages: orange */
+div.content-messages-inner div.warning {
+  background-color: #FEB771;
+  border-color: #DF9244;
+  color: #323232;
+}
+
+/* Error messages: red */
+div.content-messages-inner div.error {
+  background-color: #E87A73;
+  border-color: #D16054;
+  color: #323232;
+}
+
+/* Help messages: blue */
+.help,
+div.content-help-inner div.help {
+  background-color: #B6D1F1;
+  border-color: #8EAACC;
+  color: #323232;
+}
+
+/* Error that appears when a required form field is not filled out */
+.form-item input.error,
+.form-item textarea.error,
+.form-item select.error {
+  border: 1px solid #aa1144;
+}
+
+/* "New" text and required form field asterisk (default = red) */
+.marker,
+.form-required {
+  color: #aa1144;
+}
+
+/* ---------------------------- ADMIN PAGES --------------------------------- */
+
+.page-admin #main-content-inner .nested,
+.page-admin #content-group,
+.page-admin #content-region,
+.page-admin #content-inner {
+  margin-bottom:0;
+}
+
+/* ---------------------- TAB MENUS ---------------------------------------- */
+
+#content-tabs {
+  background-color: transparent;
+  float: left; /* LTR */
+  margin: 10px 0;
+  padding: 0;
+  font-weight: bold;
+}
+
+#content-tabs ul.primary,
+#content-tabs ul.secondary {
+  clear: both;
+  float: left; /* LTR */
+  margin: 0;
+  width: 100%;
+}
+
+#content-tabs ul.primary {
+  border-bottom: 1px solid #A6A6A6;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+#content-tabs ul.secondary {
+  padding: 5px;
+  text-transform: lowercase;
+}
+
+#content-tabs ul.primary li,
+#content-tabs ul.secondary li {
+  background-color: #c2c2c2;
+  border: 1px solid #a6a6a6;
+  display: inline;
+  float: left; /* LTR */
+  list-style: none;
+}
+
+#content-tabs ul.primary li {
+  margin: 0 2px;
+  padding: 2px 0;
+  border-bottom: 0;
+  font-size: 95%;
+}
+
+#content-tabs ul.secondary li {
+  margin: 2px;
+  padding: 2px 4px;
+}
+
+#content-tabs ul.primary li.active,
+#content-tabs ul.secondary li.active {
+  background-color: #e3e3e3;
+}
+
+#content-tabs ul.primary li a:link,
+#content-tabs ul.primary li a:visited,
+#content-tabs ul.secondary li a:link,
+#content-tabs ul.secondary li a:visited {
+  background-color: transparent;
+  border: none;
+  color: #555;
+  float: left; /* LTR */
+  margin: 0;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+#content-tabs ul.primary li a:hover,
+#content-tabs ul.primary li a:focus,
+#content-tabs ul.secondary li a:hover,
+#content-tabs ul.secondary li a:focus {
+  color: #222;
+}
+
+/* ---------------------------- PAGERS ------------------------------------- */
+
+ul.pager a,
+ul.pager li.pager-current {
+  border-color: #333;
+}
+
+ul.pager li.pager-current {
+  background-color: #777;
+  color: #fff;
+}
+
+ul.pager a:hover,
+ul.pager a:active,
+ul.pager a:focus {
+  background-color: #777;
+  border-color: #333;
+  color: #fff;
+}
+
+/* ----------------------------- FORMS ------------------------------------- */
+
+form input.form-submit {
+  border: 1px solid #ccc;
+  padding: 1px 5px;
+  font-weight: bold;
+  font-size: 100%;
+}
+
+/* Typography, background, borders, padding for form fields */
+.form-item input,
+.form-item select,
+.form-item textarea {
+  padding: 1px 5px;
+  border: 1px solid #ccc;
+}
+
+/* Remove backgrounds and border on radios and checkboxes */
+.form-item .form-radio,
+.form-item .form-checkbox {
+  background: none;
+  border: none !important;
+}
+
+/* Fieldset wrapper around groups of form elements */
+fieldset {
+  border: 1px solid #ccc;
+}
+
+/* ----------------------------- TABLES ------------------------------------ */
+
+table {
+  margin-bottom: 15px;
+}
+
+/* Body of tables */
+tbody {
+  border-top: 1px solid #ccc;
+}
+
+/* Header of tables */
+thead th,
+th {
+  border-bottom: 3px solid #ccc;
+}
+
+tbody th {
+  border-bottom: 1px solid #ccc;
+}
+
+/* Alternating row background styles */
+tr.even,
+tr.even td {
+  border-bottom: 1px solid #ccc;
+  background-color: inherit;
+}
+
+tr.odd,
+tr.odd td {
+  border-bottom: 1px solid #ccc;
+  background-color: inherit;
+}
+
+tr.drag td,
+tr.drag-previous td {
+  color: #000;
+}
+
+/* -------------------------- ROUND CORNERS --------------------------------- */
+
+ form input.form-submit,
+.form-item input,
+.form-item select,
+.form-item textarea {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+}
+
+#content-tabs ul.primary li {
+  -moz-border-radius: 3px 3px 0px 0px;
+  -webkit-border-radius: 3px 3px 0px 0px;
+  border-radius: 3px 3px 0px 0px;
+}
+
+/* Different radii from theme config settings */
+.round-corners-3 .main-menu,
+.round-corners-3 h2.block-title {
+  -moz-border-radius: 3px 3px 0px 0px;
+  -webkit-border-radius: 3px 3px 0px 0px;
+  border-radius: 3px 3px 0px 0px;
+}
+
+.round-corners-3 .main-wrapper .block .inner,
+.round-corners-3 .preface-top-wrapper .block .inner,
+.round-corners-3 .postscript-bottom-wrapper .block .inner,
+.round-corners-3 .footer-wrapper .block .inner,
+.round-corners-3 div.comment,
+.round-corners-3 .node ul.links {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+}
+
+.round-corners-3 #footer {
+  -moz-border-radius: 0px 0px 3px 3px;
+  -webkit-border-radius: 0px 0px 3px 3px;
+  border-radius: 0px 0px 3px 3px;
+}
+
+.round-corners-7 .main-menu,
+.round-corners-7 h2.block-title {
+  -moz-border-radius: 7px 7px 0px 0px;
+  -webkit-border-radius: 7px 7px 0px 0px;
+  border-radius: 7px 7px 0px 0px;
+}
+
+.round-corners-7 .main-wrapper .block .inner,
+.round-corners-7 .preface-top-wrapper .block .inner,
+.round-corners-7 .postscript-bottom-wrapper .block .inner,
+.round-corners-7 .footer-wrapper .block .inner,
+.round-corners-7 div.comment,
+.round-corners-7 .node ul.links {
+  -moz-border-radius: 7px;
+  -webkit-border-radius: 7px;
+  border-radius: 7px;
+}
+
+.round-corners-7 #footer {
+  -moz-border-radius: 0px 0px 7px 7px;
+  -webkit-border-radius: 0px 0px 7px 7px;
+  border-radius: 0px 0px 7px 7px;
+}
+
+.round-corners-11 .main-menu,
+.round-corners-11 h2.block-title {
+  -moz-border-radius: 11px 11px 0px 0px;
+  -webkit-border-radius: 11px 11px 0px 0px;
+  border-radius: 11px 11px 0px 0px;
+}
+
+.round-corners-11 .main-wrapper .block .inner,
+.round-corners-11 .preface-top-wrapper .block .inner,
+.round-corners-11 .postscript-bottom-wrapper .block .inner,
+.round-corners-11 .footer-wrapper .block .inner,
+.round-corners-11 div.comment,
+.round-corners-11 .node ul.links {
+  -moz-border-radius: 11px;
+  -webkit-border-radius: 11px;
+  border-radius: 11px;
+}
+
+.round-corners-11 #footer {
+  -moz-border-radius: 0px 0px 11px 11px;
+  -webkit-border-radius: 0px 0px 11px 11px;
+  border-radius: 0px 0px 11px 11px;
+}
+
+/*----------------------------------------------------------------------------*/
+/* CORE MODULES
+/---------------------------------------------------------------------------- */
+
+/* ---------------------------- BOOKS --------------------------------------- */
+
+.book-navigation .menu {
+  border-top: 0;
+}
+
+.book-navigation .page-links {
+  border-top: 1px solid #ccc;
+  border-bottom: 1px solid #ccc;
+  margin: 10px 0;
+}
+
+/* ---------------------------- COMMENTS ------------------------------------ */
+
+h2.comments-header {
+  margin-left: 10px; /* LTR */
+}
+
+/* Style for each individual comment */
+div.comment {
+  margin: 10px;
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+
+/* Subject (title) of each comment */
+div.comment h3.title {
+  font-size: 130%;
+}
+
+/* Links (edit, reply, delete) for each comment */
+div.comment div.links  {
+  margin: 0 10px;
+}
+
+div.comment div.links a,
+div.comment ul.links a {
+  font-weight: bold;
+}
+
+div.comment ul.links li {
+  margin-right: 10px; /* LTR */
+}
+
+/* Comment signatures */
+.signature {
+  border-top: 1px solid #d6ddb9;
+}
+
+/* User avatars in comments */
+.comments div.picture {
+  float: left; /* LTR */
+  margin: 5px 15px 10px 10px; /* LTR */
+}
+
+/* ----------------------------------- FORUMS ------------------------------- */
+
+.forum-topic-navigation {
+  border-top: 1px solid #888;
+  border-bottom: 1px solid #888;
+}
+
+/* ---------------------------------- POLLS --------------------------------- */
+
+div.poll div.bar {
+  background-color: #ddd;
+}
+
+div.poll div.bar div.foreground {
+  background-color: #999;
+}
+
+/* ------------------------------- PROFILES --------------------------------- */
+
+.profile .picture {
+  float: left; /* LTR */
+  margin: 0 15px 15px 0; /* LTR */
+}
+
+/* Styles for sub-headings on user profiles */
+.profile dt {
+  background: none;
+}
+

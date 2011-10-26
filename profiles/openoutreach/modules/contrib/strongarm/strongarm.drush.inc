@@ -33,7 +33,7 @@ function _drush_strongarm_revert($force) {
 
   $vars = strongarm_vars_load(TRUE, TRUE);
   foreach ($vars as $name => $var) {
-    if ($force || isset($var->in_code_only)) {
+    if ($force || !empty($var->in_code_only)) {
       if (!isset($conf[$name]) || $var->value != $conf[$name]) {
         variable_set($name, $var->value);
       }

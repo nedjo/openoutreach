@@ -5,9 +5,9 @@ core = 7.x
 hidden = TRUE
 dependencies[] = skinr_ui
 
-; Information added by drupal.org packaging script on 2011-07-15
+; Information added by drupal.org packaging script on 2011-10-22
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "skinr"
-datestamp = "1310690367"
+datestamp = "1319243680"
 

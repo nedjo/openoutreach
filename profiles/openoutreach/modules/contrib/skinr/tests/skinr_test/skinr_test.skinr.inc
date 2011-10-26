@@ -10,6 +10,15 @@ function skinr_test_skinr_api_2() {
 }
 
 /**
+ * Implements hook_skinr_group_info().
+ */
+function skinr_test_skinr_group_info() {
+  $groups['skinr_test'] = array(
+    'title' => t('skinr_test'),
+  );
+}
+
+/**
  * Implements hook_skinr_skin_info().
  */
 function skinr_test_skinr_skin_info() {

@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_user_default_permissions().
+ * Implements hook_user_default_permissions().
  */
 function debut_media_user_default_permissions() {
   $permissions = array();
@@ -21,22 +21,25 @@ function debut_media_user_default_permissions() {
     'module' => 'media_internet',
   );
 
-  // Exported permission: administer media
-  $permissions['administer media'] = array(
-    'name' => 'administer media',
+  // Exported permission: administer files
+  $permissions['administer files'] = array(
+    'name' => 'administer files',
     'roles' => array(
       0 => 'administrator',
+      1 => 'editor',
     ),
-    'module' => 'media',
+    'module' => 'file_entity',
   );
 
-  // Exported permission: edit media
-  $permissions['edit media'] = array(
-    'name' => 'edit media',
+  // Exported permission: edit file
+  $permissions['edit file'] = array(
+    'name' => 'edit file',
     'roles' => array(
       0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
     ),
-    'module' => 'media',
+    'module' => 'file_entity',
   );
 
   // Exported permission: import media
@@ -44,13 +47,15 @@ function debut_media_user_default_permissions() {
     'name' => 'import media',
     'roles' => array(
       0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
     ),
     'module' => 'media',
   );
 
-  // Exported permission: view media
-  $permissions['view media'] = array(
-    'name' => 'view media',
+  // Exported permission: view file
+  $permissions['view file'] = array(
+    'name' => 'view file',
     'roles' => array(
       0 => 'administrator',
       1 => 'anonymous user',
@@ -58,7 +63,18 @@ function debut_media_user_default_permissions() {
       3 => 'contributor',
       4 => 'editor',
     ),
-    'module' => 'media',
+    'module' => 'file_entity',
+  );
+
+  // Exported permission: view own unpublished media
+  $permissions['view own unpublished media'] = array(
+    'name' => 'view own unpublished media',
+    'roles' => array(
+      0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
+    ),
+    'module' => 'file_admin',
   );
 
   return $permissions;

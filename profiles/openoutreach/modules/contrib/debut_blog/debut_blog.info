@@ -1,5 +1,6 @@
 core = "7.x"
-debut[social][node_types][] = "blog"
+debut[social][node_types][blog] = "blog"
+debut[media][node_types][blog] = "blog"
 dependencies[] = "captcha"
 dependencies[] = "context"
 dependencies[] = "features"
@@ -17,7 +18,6 @@ features[ctools][] = "strongarm:strongarm:1"
 features[ctools][] = "views:views_default:3.0"
 features[field][] = "node-blog-body"
 features[field][] = "node-blog-field_content_image"
-features[field][] = "node-blog-field_media"
 features[field][] = "node-blog-field_tags"
 features[node][] = "blog"
 features[user_permission][] = "create blog content"
@@ -39,9 +39,9 @@ name = "Debut Blog"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-28
-version = "7.x-1.0-beta3"
+; Information added by drupal.org packaging script on 2011-10-26
+version = "7.x-1.0-beta4"
 core = "7.x"
 project = "debut_blog"
-datestamp = "1317240101"
+datestamp = "1319650529"
 

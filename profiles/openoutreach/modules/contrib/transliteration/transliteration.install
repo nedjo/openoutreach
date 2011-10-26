@@ -1,5 +1,4 @@
 <?php
-// $Id: transliteration.install,v 1.6 2009/11/28 12:49:12 smk Exp $
 
 /**
  * @file
@@ -28,5 +27,6 @@ function transliteration_install() {
  * Implements hook_uninstall().
  */
 function transliteration_uninstall() {
+  variable_del('transliteration_file_uploads');
+  variable_del('transliteration_file_lowercase');
 }
-

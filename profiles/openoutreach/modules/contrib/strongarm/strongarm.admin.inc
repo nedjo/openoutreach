@@ -20,7 +20,7 @@ function strongarm_admin_form($form_state) {
         $storage = t('Hardcoded');
         $hardcoded = TRUE;
       }
-      elseif (isset($variable->in_code_only)) {
+      elseif (!empty($variable->in_code_only)) {
         $storage = t('In code');
         $restorable = TRUE;
       }

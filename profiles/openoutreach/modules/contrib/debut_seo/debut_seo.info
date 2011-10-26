@@ -1,0 +1,20 @@
+core = "7.x"
+dependencies[] = "features"
+dependencies[] = "globalredirect"
+dependencies[] = "metatag"
+dependencies[] = "metatag_ui"
+dependencies[] = "pathauto"
+description = "Enhance your site for search engines."
+features[user_permission][] = "administer meta tags"
+features[user_permission][] = "administer pathauto"
+features[user_permission][] = "create url aliases"
+features[user_permission][] = "edit meta tags"
+name = "Debut SEO"
+package = "Features"
+
+; Information added by drupal.org packaging script on 2011-10-26
+version = "7.x-1.0-beta1"
+core = "7.x"
+project = "debut_seo"
+datestamp = "1319653229"
+

@@ -2,92 +2,58 @@
 
 /**
  * @file
- * Provide skinr handling for views.module
- */
-
-/**
- * @defgroup skinr_views_module views.module handlers
- *
- * @{
+ * Implements Skinr hooks for views.module.
  */
 
 /**
  * Implements hook_skinr_config_info().
  */
 function views_skinr_config_info() {
-  $data['views']['form']['skinr_ui_form'] = array(
-    'preprocess_hook_callback' => 'views_skinr_preprocess_hook_callback',
-    'title' => t('views style settings'),
-    'collapsed' => FALSE,
-  );
-  $data['views']['preprocess']['views_view'] = array(
-    'index_handler' => 'views_skinr_preprocess_index_handler',
-  );
-  $data['views']['contextual_links']['page'] = array(
-    'contextual_links_handler' => 'views_skinr_contextual_links',
-  );
-
-  return $data;
+  return array('views');
 }
 
 /**
- * Skinr form preprocess hook callback.
- *
- * @param &$form
- *   Passes in the $form parameter from hook_form_alter().
- * @param $form_state
- *   Passes in the $form_state parameter from hook_form_alter().
- *
- * @return
- *   An array of preprocess hooks we wish to use.
+ * Implements hook_skinr_theme_hooks().
  */
-function views_skinr_preprocess_hook_callback(&$form, $form_state) {
-  $preprocess_hooks = array('views_view');
+function views_skinr_theme_hooks($module, $element) {
+  $theme_hooks = array();
 
-  if (!empty($form_state['view']) && !empty($form_state['view']->name)) {
-    $view = $form_state['view'];
-  }
-  elseif(isset($form['skinr']['element']['#value'])) {
-    list($element_info['view'], $element_info['display']) = explode('__', $form['skinr']['element']['#value'], 2);
-    if ($view = views_get_view($element_info['view'])) {
-      $view->execute_display($element_info['display']);
+  if ($module == 'views') {
+    list($name, $display_id) = explode('__', $element, 2);
+    if ($view = views_get_view($name)) {
+      $view->execute_display($display_id);
+
+      $display = $view->display[$view->current_display];
+
+      // Create list of suggested templates.
+      $theme_hooks = views_theme_functions('views_view', $view, $display);
+
+      // @todo Determine whether below code is still relevant.
+      /*
+      // Fetch additional style based suggested templates.
+      $additional_hooks = views_theme_functions($display->display_plugin, $view, $display);
+      $theme_hooks = array_merge($additional_hooks, $theme_hooks);
+      */
+    }
+    else {
+      $theme_hooks[] = 'views_view';
     }
   }
 
-  if (!empty($view)) {
-    $display = $view->display[$view->current_display];
+  return $theme_hooks;
+}
 
-    // Create list of suggested templates.
-    $preprocess_hooks = views_theme_functions('views_view', $view, $display);
-    // Fetch additional style based suggested templates.
-    $additional_hooks = views_theme_functions($display->display_plugin, $view, $display);
-
-    $preprocess_hooks = array_merge($additional_hooks, $preprocess_hooks);
+/**
+ * Implements hook_skinr_elements().
+ */
+function views_skinr_elements($variables, $hook, $op) {
+  $elements = array();
+  if ($op == 'preprocess' && $hook == 'views_view') {
+    $elements['views'] = array($variables['view']->name . '__' . $variables['view']->current_display);
   }
-
-  return $preprocess_hooks;
-}
-
-/**
- * Skinr preprocess index handler.
- */
-function views_skinr_preprocess_index_handler(&$variables) {
-  return array($variables['view']->name .'__'. $variables['view']->current_display);
-}
-
-/**
- * Skinr contextual links handler.
- */
-function views_skinr_contextual_links(&$variables) {
-  $links = array();
-  if (!empty($variables['page']['#views_contextual_links_info'])) {
-    $links['skinr-views'] = array(
-      'admin/appearance/skinr/edit/nojs', array('views', $variables['page']['#views_contextual_links_info']['views_ui']['view_name'] . '__' . $variables['page']['#views_contextual_links_info']['views_ui']['view_display_id']),
-    );
+  elseif ($op == 'contextual_links' && $hook == 'page' && isset($variables['page']['#views_contextual_links_info'])) {
+    // Contextual links for views are on 'page' hook, not 'views_view'.
+    $elements['views'] = array($variables['page']['#views_contextual_links_info']['views_ui']['view_name'] . '__' . $variables['page']['#views_contextual_links_info']['views_ui']['view_display_id']);
   }
-  return $links;
+  return $elements;
 }
-
-/**
- * @}
- */

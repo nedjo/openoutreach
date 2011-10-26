@@ -1,0 +1,54 @@
+/* $Id */
+
+/* IE8 fixes
+-------------------------------------------------------------- */
+
+/* grid mask overlay opacity fix
+-------------------------------------------------------------- */
+#grid-mask-overlay {
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)";
+}
+
+/* IE8 fixes
+-------------------------------------------------------------- */
+
+/* IE8 fixes for using CSS3 PIE */
+
+.round-corners-3 .main-wrapper .block .inner,
+.round-corners-3 .preface-top-wrapper .block .inner,
+.round-corners-3 .postscript-bottom-wrapper .block .inner,
+.round-corners-3 .footer-wrapper .block .inner,
+.round-corners-3 div.comment,
+.round-corners-3 .node div.links,
+.round-corners-3 #footer,
+.round-corners-7 .main-wrapper .block .inner,
+.round-corners-7 .preface-top-wrapper .block .inner,
+.round-corners-7 .postscript-bottom-wrapper .block .inner,
+.round-corners-7 .footer-wrapper .block .inner,
+.round-corners-7 div.comment,
+.round-corners-7 .node div.links,
+.round-corners-7 #footer,
+.round-corners-11 .main-wrapper .block .inner,
+.round-corners-11 .preface-top-wrapper .block .inner,
+.round-corners-11 .postscript-bottom-wrapper .block .inner,
+.round-corners-11 .footer-wrapper .block .inner,
+.round-corners-11 div.comment,
+.round-corners-11 .node div.links,
+.round-corners-11 #footer {
+  position: relative;
+  z-index: 0;
+}
+
+.round-corners-3 h2.block-title,
+.round-corners-7 h2.block-title,
+.round-corners-11 h2.block-title {
+  position: relative;
+  z-index: 1;
+}
+
+.round-corners-3 .primary-menu,
+.round-corners-7 .primary-menu,
+.round-corners-11 .primary-menu {
+  position: relative;
+  z-index: 100;
+}

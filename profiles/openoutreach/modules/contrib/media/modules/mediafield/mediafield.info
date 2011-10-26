@@ -1,0 +1,12 @@
+name = Media Field
+description = Provides a field type that stores media-specific data. (deprecated)
+package = Media
+core = 7.x
+dependencies[] = media
+
+; Information added by drupal.org packaging script on 2011-10-12
+version = "7.x-2.0-unstable2"
+core = "7.x"
+project = "media"
+datestamp = "1318435308"
+

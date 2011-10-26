@@ -1,0 +1,121 @@
+/* $Id */
+
+/* Tab Menus
+/-------------------------------------------------------------- */
+#content-tabs ul.primary,
+#content-tabs ul.secondary {
+  float: right;
+}
+
+#content-tabs ul.primary li,
+#content-tabs ul.secondary li {
+  float: right;
+}
+
+#content-tabs ul.primary li a:link,
+#content-tabs ul.primary li a:visited,
+#content-tabs ul.secondary li a:link,
+#content-tabs ul.secondary li a:visited {
+  float: right; /* LTR */
+}
+
+/* Site info */
+#logo {
+  float: right;
+  margin-left: 10px;
+}
+
+#site-name-wrapper {
+  float: right;
+}
+
+/* Main menu */
+/* Add border-right: 0; here to remove separator on last menu item */
+.main-menu-inner ul li.first {
+  border-right: 0;
+}
+
+/* Blocks */
+.preface-top-wrapper .block.first .inner,
+.postscript-bottom-wrapper .block.first .inner,
+.footer-wrapper .block.first .inner {
+  margin-right: 0;
+}
+
+.preface-top-wrapper .block.last .inner,
+.postscript-bottom-wrapper .block.last .inner,
+.footer-wrapper .block.last .inner {
+  margin-left: 0;
+}
+
+/* Layout specific settings */
+.sidebars-split .sidebar-first .block .inner {
+  margin-right: 0;
+}
+
+.sidebars-split .preface-bottom .block.last .inner,
+.sidebars-split .postscript-top .block.last .inner,
+.sidebars-split .sidebar-last .block .inner {
+  margin-left: 0;
+}
+
+.sidebars-both-first .sidebar-first .block .inner {
+  margin-right: 0;
+}
+
+.sidebars-both-first .main-content .block .inner,
+.sidebars-both-first .preface-bottom .block.last .inner,
+.sidebars-both-first .postscript-top .block.last .inner {
+  margin-left: 0;
+}
+
+.sidebars-both-first .sidebar-last .block .inner {
+  margin-left: 5px;
+}
+
+.sidebars-both-last .main-content .block .inner,
+.sidebars-both-last .preface-bottom .block.first .inner,
+.sidebars-both-last .postscript-top .block.first .inner {
+  margin-right: 0;
+}
+
+.sidebars-both-last .sidebar-first .block .inner {
+  margin-left: 0;
+}
+
+.sidebars-both-last .sidebar-last .block .inner {
+  margin-right: 5px;
+}
+
+/* Nodes */
+
+.node .picture {
+  float: right;
+  margin: 5px 10px 10px 15px;
+}
+
+.node ul.links li {
+  margin-left: 10px;
+}
+
+div.content-messages div.messages,
+div.content-help div.help {
+  padding-right: 50px;
+}
+
+/* Comments */
+h2.comments-header {
+  margin-right: 10px;
+}
+
+.comments div.picture {
+  float: right;
+  margin: 5px 10px 10px 15px;
+}
+
+/* Profiles */
+.profile .picture {
+  float: right;
+  margin: 0 0 15px 15px; 
+}
+

@@ -115,7 +115,7 @@ if (!function_exists('variable_features_revert')) {
 
     $vars = strongarm_vars_load(TRUE, TRUE);
     foreach ($defaults as $name => $default) {
-      if (isset($vars[$name]->in_code_only) || ($default->value !== $vars[$name]->value)) {
+      if (!empty($vars[$name]->in_code_only) || ($default->value !== $vars[$name]->value)) {
         variable_set($name, $default->value);
       }
     }
@@ -134,7 +134,7 @@ function variable_features_rebuild($module) {
 
   $vars = strongarm_vars_load(TRUE, TRUE);
   foreach ($defaults as $name => $default) {
-    if (isset($vars[$name]->in_code_only) || (drupal_installation_attempted() && $vars[$name]->export_type & EXPORT_IN_CODE)) {
+    if (!empty($vars[$name]->in_code_only) || (drupal_installation_attempted() && $vars[$name]->export_type & EXPORT_IN_CODE)) {
       variable_set($name, $default->value);
     }
   }
@@ -155,7 +155,7 @@ function variable_features_export($data, &$export, $module_name) {
   // Then remove any vars from the export that are only in code
   $vars = strongarm_vars_load(TRUE, TRUE);
   foreach ($data as $object_name) {
-    if(!isset($vars[$object_name]) || $vars[$object_name]->in_code_only) {
+    if (!isset($vars[$object_name]) || !empty($vars[$object_name]->in_code_only)) {
       unset($export['features']['variable'][$object_name]);
     }
   }

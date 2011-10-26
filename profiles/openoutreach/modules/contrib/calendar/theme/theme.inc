@@ -43,7 +43,7 @@ function calendar_preprocess_date_views_pager(&$vars) {
       // to be structured correctly for the type of display. This means you can't use
       // these links in a block or panel.
       $href = str_replace($current_path, $path, date_pager_url($view, $type, NULL, TRUE, FALSE));
-      $part_path = str_replace(base_path(), '', $href);
+      $part_path = substr($href,strlen(base_path()));
 
       // Once we have a path for the links to other displays, add it to our links array.
       $calendar_links[$current_path]['tabs'][$type] = array('title' => $title, 'path' => $part_path);

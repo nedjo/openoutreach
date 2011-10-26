@@ -1,7 +1,15 @@
-// $Id: CHANGELOG.txt,v 1.19 2010/07/16 06:51:12 smk Exp $
 
-Transliteration 7.x-3.x, xxxx-xx-xx
+Transliteration 7.x-3.0, 2011-10-14
 -----------------------------------
+#881644 by amateescu: Added support for the Redirect module to redirect from old filenames.
+#909670 by jishan, smk-ka: Fixed Vietnamese input.
+#1243974 by cyborg_572: Supporting files uploaded as an array.
+#1256416 by mariogalan: Better Spanish transliteration.
+#1215872 by yannisc and rootatwc: Better Greek transliteration.
+#1033832 by joachim: hook_uninstall doesn't clean up variables.
+#1005960 by pillarsdotnet, smk-ka: file_directory_path() removed in D7.
+#992268 by smk-ka: Renamed transliteration_process() to avoid conflict with
+  hook_process().
 #813508 by smk-ka: Fixed SelectQuery::fields() syntax.
 #788530 by jurgenhaas: Fixed database table file is now called file_managed.
 by smk-ka: More accurate detection of file names requiring retroactive

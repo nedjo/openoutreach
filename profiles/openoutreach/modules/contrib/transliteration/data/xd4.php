@@ -1,5 +1,4 @@
 <?php
-// $Id: xd4.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'poss', 'pong', 'poj', 'poc', 'pok', 'pot', 'pop', 'poh', 'pwa', 'pwag', 'pwagg', 'pwags', 'pwan', 'pwanj', 'pwanh', 'pwad',

@@ -1,5 +1,4 @@
 <?php
-// $Id: xd3.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'tim', 'tib', 'tibs', 'tis', 'tiss', 'ting', 'tij', 'tic', 'tik', 'tit', 'tip', 'tih', 'pa', 'pag', 'pagg', 'pags',

@@ -336,8 +336,8 @@ function views_ui_add_form($form, &$form_state) {
   // selected.
   $wizard_plugins = views_ui_get_wizards();
   $options = array();
-  foreach ($wizard_plugins as $key => $w) {
-    $options[$key] = $w['title'];
+  foreach ($wizard_plugins as $key => $wizard) {
+    $options[$key] = $wizard['title'];
   }
   $form['displays']['show']['wizard_key'] = array(
     '#type' => 'select',
@@ -674,10 +674,10 @@ function views_ui_nojs_submit($form, &$form_state) {
  * Validate the add view form.
  */
 function views_ui_wizard_form_validate($form, &$form_state) {
-  $w = views_ui_get_wizard($form_state['values']['show']['wizard_key']);
-  $form_state['wizard'] = $w;
-  $get_instance = $w['get_instance'];
-  $form_state['wizard_instance'] = $get_instance($w);
+  $wizard = views_ui_get_wizard($form_state['values']['show']['wizard_key']);
+  $form_state['wizard'] = $wizard;
+  $get_instance = $wizard['get_instance'];
+  $form_state['wizard_instance'] = $get_instance($wizard);
   $errors = $form_state['wizard_instance']->validate($form, $form_state);
   foreach ($errors as $name => $message) {
     form_set_error($name, $message);
@@ -1274,7 +1274,7 @@ function views_ui_render_display_top($view, $display_id) {
   }
 
   // Buttons for adding a new display.
-  foreach (views_fetch_plugin_names('display') as $type => $label) {
+  foreach (views_fetch_plugin_names('display', NULL, array($view->base_table)) as $type => $label) {
     $element['add_display'][$type] = array(
       '#type' => 'submit',
       '#value' => t('Add !display', array('!display' => $label)),
@@ -2464,24 +2464,7 @@ function views_ui_standard_submit($form, &$form_state) {
   // Determine whether the values the user entered are intended to apply to
   // the current display or the default display.
 
-  // Make sure the dropdown exists in the first place.
-  if (isset($form_state['values']['override']['dropdown'])) {
-    // #default_value is used to determine whether it was the default value or not.
-    // So the availible options are: $display and 'default', not 'defaults'.
-    $was_defaulted = (bool) ($form['override']['dropdown']['#default_value'] === 'defaults');
-    $is_defaulted = (bool) ($form_state['values']['override']['dropdown'] === 'default');
-
-    if ($was_defaulted !== $is_defaulted && isset($form['#section'])) {
-      // We're changing which display these values apply to.
-      // Update the #section so it knows what to mark changed.
-      $form['#section'] = str_replace('default-', $form_state['display_id'] . '-', $form['#section']);
-    }
-  }
-  else {
-    // The user didn't get the dropdown for overriding the default display.
-    $was_defaulted = FALSE;
-    $is_defaulted = FALSE;
-  }
+  list($was_defaulted, $is_defaulted) = views_ui_standard_override_values($form, $form_state);
 
   // Mark the changed section of the view as changed.
   // TODO: Document why we are doing this, and see if we still need it.
@@ -2516,6 +2499,32 @@ function views_ui_standard_submit($form, &$form_state) {
   if (function_exists($submit_handler)) {
     $submit_handler($form, $form_state);
   }
+}
+
+/**
+ * Return the was_defaulted and is_defaulted state of a form.
+ */
+function views_ui_standard_override_values($form, $form_state) {
+  // Make sure the dropdown exists in the first place.
+  if (isset($form_state['values']['override']['dropdown'])) {
+    // #default_value is used to determine whether it was the default value or not.
+    // So the availible options are: $display and 'default', not 'defaults'.
+    $was_defaulted = (bool) ($form['override']['dropdown']['#default_value'] === 'defaults');
+    $is_defaulted = (bool) ($form_state['values']['override']['dropdown'] === 'default');
+
+    if ($was_defaulted !== $is_defaulted && isset($form['#section'])) {
+      // We're changing which display these values apply to.
+      // Update the #section so it knows what to mark changed.
+      $form['#section'] = str_replace('default-', $form_state['display_id'] . '-', $form['#section']);
+    }
+  }
+  else {
+    // The user didn't get the dropdown for overriding the default display.
+    $was_defaulted = FALSE;
+    $is_defaulted = FALSE;
+  }
+
+  return array($was_defaulted, $is_defaulted);
 }
 
 /**
@@ -3189,7 +3198,7 @@ function views_ui_edit_display_form($form, &$form_state) {
  */
 function views_ui_edit_display_form_validate($form, &$form_state) {
   $display = &$form_state['view']->display[$form_state['display_id']];
-  $display->handler->options_validate($form, $form_state);
+  $display->handler->options_validate($form['options'], $form_state);
 
   if (form_get_errors()) {
     $form_state['rerender'] = TRUE;
@@ -4682,7 +4691,7 @@ function views_ui_admin_settings_advanced() {
   $form['locale']['views_localization_plugin'] =  array(
     '#type' => 'radios',
     '#title' => t('Translation method'),
-    '#options' => views_fetch_plugin_names('localization', NULL, array(), TRUE),
+    '#options' => views_fetch_plugin_names('localization', NULL, array()),
     '#default_value' => views_get_localization_plugin(),
     '#description' => t('Select a translation method to use for Views data like header, footer, and empty text.'),
   );

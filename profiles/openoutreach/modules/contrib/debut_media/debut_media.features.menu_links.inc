@@ -7,11 +7,11 @@ function debut_media_menu_default_menu_links() {
   $menu_links = array();
 
   if (module_exists('debut')) {
-    // Exported menu link: main-menu:media
-    $menu_links['main-menu:media'] = array(
+    // Exported menu link: main-menu:file
+    $menu_links['main-menu:file'] = array(
       'menu_name' => 'main-menu',
-      'link_path' => 'media',
-      'router_path' => 'media',
+      'link_path' => 'file',
+      'router_path' => 'file',
       'link_title' => 'Multimedia',
       'options' => array(
         'attributes' => array(
@@ -25,11 +25,11 @@ function debut_media_menu_default_menu_links() {
       'expanded' => '0',
       'weight' => '15',
     );
-    // Exported menu link: main-menu:media/images
-    $menu_links['main-menu:media/image'] = array(
+    // Exported menu link: main-menu:file/images
+    $menu_links['main-menu:file/image'] = array(
       'menu_name' => 'main-menu',
-      'link_path' => 'media/image',
-      'router_path' => 'media/image',
+      'link_path' => 'file/image',
+      'router_path' => 'file/image',
       'link_title' => 'Images',
       'options' => array(
         'attributes' => array(
@@ -42,13 +42,13 @@ function debut_media_menu_default_menu_links() {
       'has_children' => '0',
       'expanded' => '0',
       'weight' => '0',
-      'parent_path' => 'media',
+      'parent_path' => 'file',
     );
-    // Exported menu link: main-menu:media/video
-    $menu_links['main-menu:media/video'] = array(
+    // Exported menu link: main-menu:file/video
+    $menu_links['main-menu:file/video'] = array(
       'menu_name' => 'main-menu',
-      'link_path' => 'media/video',
-      'router_path' => 'media/video',
+      'link_path' => 'file/video',
+      'router_path' => 'file/video',
       'link_title' => 'Video',
       'options' => array(
         'attributes' => array(
@@ -61,7 +61,7 @@ function debut_media_menu_default_menu_links() {
       'has_children' => '0',
       'expanded' => '0',
       'weight' => '0',
-      'parent_path' => 'media',
+      'parent_path' => 'file',
     );
     // Translatables
     // Included for use with string extractors like potx.

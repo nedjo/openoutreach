@@ -1,5 +1,4 @@
 <?php
-// $Id: xc2.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'syon', 'syonj', 'syonh', 'syod', 'syol', 'syolg', 'syolm', 'syolb', 'syols', 'syolt', 'syolp', 'syolh', 'syom', 'syob', 'syobs', 'syos',

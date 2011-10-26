@@ -1,5 +1,6 @@
 core = "7.x"
-debut[social][node_types][] = "event"
+debut[media][node_types][event] = "event"
+debut[social][node_types][event] = "event"
 dependencies[] = "calendar"
 dependencies[] = "context"
 dependencies[] = "date"
@@ -18,7 +19,6 @@ features[ctools][] = "views:views_default:3.0"
 features[field][] = "node-event-body"
 features[field][] = "node-event-field_content_image"
 features[field][] = "node-event-field_event_date"
-features[field][] = "node-event-field_media"
 features[field][] = "node-event-field_tags"
 features[node][] = "event"
 features[user_permission][] = "create event content"
@@ -40,9 +40,9 @@ name = "Debut Event"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-09-28
-version = "7.x-1.0-beta3"
+; Information added by drupal.org packaging script on 2011-10-26
+version = "7.x-1.0-beta4"
 core = "7.x"
 project = "debut_event"
-datestamp = "1317240402"
+datestamp = "1319650830"
 

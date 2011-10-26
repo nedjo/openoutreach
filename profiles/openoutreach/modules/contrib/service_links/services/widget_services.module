@@ -55,7 +55,6 @@ function widget_services_service_links() {
   $links['google_plus_one'] = array(
     'name' => 'Google Plus One',
     'link' => '<url>',
-    'icon' => 'google.png',
     'description' => t('Plus it'),
     'javascript' => array(
       'https://apis.google.com/js/plusone.js',

@@ -673,8 +673,6 @@ function forward_form($form, &$form_state, $path = NULL, $title = NULL, $nodeapi
  * Implements hook_node_insert().
  */
 function forward_node_insert($node) {
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('INSERT INTO {forward_statistics} (nid, last_forward_timestamp, forward_count, clickthrough_count) VALUES (%d, 0, 0, 0)', $node->nid) */
   $id = db_insert('forward_statistics')
     ->fields(array(
       'nid' => $node->nid,
@@ -690,8 +688,6 @@ function forward_node_insert($node) {
  * Implements hook_node_delete().
  */
 function forward_node_delete($node) {
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {forward_statistics} WHERE nid = %d', $node->nid) */
   db_delete('forward_statistics')
     ->condition('nid', $node->nid)
     ->execute();
@@ -1327,9 +1323,8 @@ function forward_tracking() {
  * Implements hook_block_info().
  */
 function forward_block_info() {
-  // TODO Rename block deltas (e.g. delta-0) to readable strings.
-  $blocks['delta-0']['info'] = t('Most Emailed');
-  $blocks['delta-1']['info'] = t('Forward');
+  $blocks['stats']['info'] = t('Forward: Statistics');
+  $blocks['form']['info'] = t('Forward: Form');
   return $blocks;
 }
 
@@ -1338,7 +1333,6 @@ function forward_block_info() {
  * Implements hook_block_configure().
  */
 function forward_block_configure($delta) {
-  // TODO Rename block deltas (e.g. delta-0) to readable strings.
   switch ($delta) {
     case 'stats':
       $block_options = array(
@@ -1349,10 +1343,10 @@ function forward_block_configure($delta) {
       );
       $form['forward_block_type'] = array(
         '#type' => 'radios',
-        '#title' => t('Block Type'),
+        '#title' => t('Block type'),
         '#default_value' => variable_get('forward_block_type', ""),
         '#options' => $block_options,
-        '#description' => t('Choose the block type'),
+        '#description' => t('Choose the type of statistics to display'),
       );
       return $form;
     case 'form':
@@ -1360,7 +1354,7 @@ function forward_block_configure($delta) {
         '#type' => 'radios',
         '#title' => t('Display form in block'),
         '#default_value' => variable_get('forward_block_form', variable_get('forward_form_type', 'link')),
-        '#options' => array('form', 'link'),
+        '#options' => array('form' => 'form', 'link' => 'link'),
         '#description' => t('Choose whether to display the full form in the block or just an email this page link.'),
       );
       return $form;
@@ -1372,7 +1366,6 @@ function forward_block_configure($delta) {
  * Implements hook_block_save().
  */
 function forward_block_save($delta, $edit) {
-  // TODO Rename block deltas (e.g. delta-0) to readable strings.
   switch ($delta) {
     case 'stats':
       variable_set('forward_block_type', $edit['forward_block_type']);
@@ -1388,10 +1381,10 @@ function forward_block_save($delta, $edit) {
  * Implements hook_block_view().
  */
 function forward_block_view($delta) {
-  // TODO Rename block deltas (e.g. delta-0) to readable strings.
   switch ($delta) {
     case 'stats':
       if (user_access('access content')) {
+        $block = array();
         switch (variable_get('forward_block_type', 'allTime')) {
           case 'allTime':
             $query = "SELECT n.nid, n.title, f.* FROM {forward_statistics} f LEFT JOIN {node} n ON f.nid = n.nid WHERE forward_count > 0 ORDER BY f.forward_count DESC";
@@ -1414,14 +1407,14 @@ function forward_block_view($delta) {
           $title = check_plain(t(variable_get('forward_link_title', 'Email this !type'), array('!type' => t('page'))));
           $html = FALSE;
           switch (variable_get('forward_link_style', 0)) {
-            case 'delta-1':
+            case 1:
               $img = drupal_get_path('module', 'forward') . '/forward.gif';
-              $title = theme('image', array('path' => $img, 'alt' => $title, 'title' => '', 'attributes' => array('class' => 'forward-icon')));
+              $title = theme('image', array('path' => $img, 'alt' => $title, 'title' => '', 'attributes' => array('class' => array('forward-icon'))));
               $html = TRUE;
               break;
-            case 'delta-2':
+            case 2:
               $img = drupal_get_path('module', 'forward') . '/forward.gif';
-              $title = theme('image', array('path' => $img, 'alt' => $title, 'title' => '', 'attributes' => array('class' => 'forward-icon forward-icon-margin'))) . $title;
+              $title = theme('image', array('path' => $img, 'alt' => $title, 'title' => '', 'attributes' => array('class' => array('forward-icon', 'forward-icon-margin')))) . $title;
               $html = TRUE;
               break;
           }
@@ -1429,12 +1422,16 @@ function forward_block_view($delta) {
           $content = l($title, 'forward', array(
             'title'      => $title,
             'html'       => $html,
-            'attributes' => array('title' => t('Forward this page to a friend'), 'class' => 'forward-page'),
-            'query'      => 'path=' . $path,
+            'attributes' => array('title' => t('Forward this page to a friend'), 'class' => array('forward-page')),
+            'query'      => array('path' => $path),
           ));
-        }
-        else {
-          $content = drupal_get_form('forward_form', $_GET['q'], $node->title);
+        } else {
+          if ((arg(0) == 'node') && is_numeric(arg(1)) && !arg(2)) {
+            $node = node_load(arg(1));
+            $content = drupal_get_form('forward_form', 'node/'.$node->nid, $node->title);
+          } else {
+            $content = drupal_get_form('forward_form', $_GET['q']);
+          }
         }
         return array(
           'subject' => t('Forward'),
@@ -1446,26 +1443,7 @@ function forward_block_view($delta) {
 
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function forward_block_formbody($block_options) {
-  $form['forward_block_type'] = array(
-    '#type' => 'radios',
-    '#title' => t('Block Type'),
-    '#default_value' => variable_get('forward_block_type', ""),
-    '#options' => $block_options,
-    '#description' => t('Choose the block type'),
-    '#required' => FALSE,
-    '#attributes' => array('class' => 'forward-block-type'),
-  );
-  return $form;
-}
-
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Theme the top 5 list of users, nodes or comments
  */
 function forward_top5_list($query, $base_url, $type) {
   $items = '<ul>';

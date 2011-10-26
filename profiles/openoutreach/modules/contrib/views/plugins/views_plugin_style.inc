@@ -252,7 +252,7 @@ class views_plugin_style extends views_plugin {
           'options' => $this->options,
           'rows' => $rows,
           'title' => $title)
-        );
+      );
     }
     unset($this->view->row_index);
     return $output;

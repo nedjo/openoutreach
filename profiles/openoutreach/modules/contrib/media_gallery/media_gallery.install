@@ -46,8 +46,7 @@ function media_gallery_install() {
 
   // Enable custom display settings for gallery context view modes for file
   // types that can be in a gallery.
-  // @todo Add a hook_update() function for 'video'.
-  foreach (array('image', 'video') as $bundle) {
+  foreach (array('audio', 'image', 'video') as $bundle) {
     $bundle_settings = field_bundle_settings('file', $bundle);
     foreach (media_gallery_file_view_modes() as $view_mode => $label) {
       $bundle_settings['view_modes'][$view_mode]['custom_settings'] = TRUE;
@@ -372,7 +371,7 @@ function _media_gallery_controlled_instances($group = NULL) {
         'type' => 'media_generic',
         'settings' => array(
           // Eventually other media types will be allowed.
-          'allowed_types' => array('image' => 'image', 'video' => 'video'),
+          'allowed_types' => array('audio' => 'audio', 'image' => 'image', 'video' => 'video'),
           'allowed_schemes' => array('public' => 'public'),
         ),
       ),
@@ -1286,4 +1285,25 @@ function media_gallery_update_7009() {
       field_update_instance($instance);
     }
   }
+}
+
+/**
+ * Configure galleries to allow audio.
+ */
+function media_gallery_update_7010() {
+  drupal_load('module', 'field');
+  $bundle = 'audio';
+
+  // Enable audio for the node's media_gallery field.
+  if ($instance = field_info_instance('node', 'media_gallery_media', 'media_gallery')) {
+    $instance['widget']['settings']['allowed_types'][$bundle] = $bundle;
+    field_update_instance($instance);
+  }
+
+  // Enable gallery view modes for audio entities.
+  $bundle_settings = field_bundle_settings('file', $bundle);
+  foreach (array('media_gallery_thumbnail', 'media_gallery_lightbox', 'media_gallery_detail', 'media_gallery_block_thumbnail', 'media_gallery_collection_thumbnail') as $view_mode) {
+    $bundle_settings['view_modes'][$view_mode]['custom_settings'] = TRUE;
+  }
+  field_bundle_settings('file', $bundle, $bundle_settings);
 }

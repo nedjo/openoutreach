@@ -215,7 +215,7 @@ function file_entity_entity_info_alter(&$entity_info) {
   $entity_info['file']['entity keys']['bundle'] = 'type';
   $entity_info['file']['bundles'] = array();
   $entity_info['file']['view modes']['full'] = array(
-    'label' => t('File view page'),
+    'label' => t('Full'),
     'custom settings' => FALSE,
   );
   foreach (file_info_file_types() as $type => $info) {
@@ -587,7 +587,7 @@ function template_preprocess_file_entity(&$variables) {
 
   // Clean up name so there are no underscores.
   $variables['theme_hook_suggestions'][] = 'file__' . $file->type;
-  $variables['theme_hook_suggestions'][] = 'file__' . $file->type. '__' . $view_mode;
+  $variables['theme_hook_suggestions'][] = 'file__' . $file->type . '__' . $view_mode;
   $variables['theme_hook_suggestions'][] = 'file__' . str_replace(array('/', '-'), array('__', '_'), $file->filemime);
   $variables['theme_hook_suggestions'][] = 'file__' . str_replace(array('/', '-'), array('__', '_'), $file->filemime) . '__' . $view_mode;
   $variables['theme_hook_suggestions'][] = 'file__' . $file->fid;
@@ -725,9 +725,9 @@ function file_entity_get_hidden_stream_wrappers() {
 }
 
 /**
- * @see theme_file_file_link.
- * This is a copy of it, except we make the url file/$fid.
+ * A copy of theme_file_file_link() that makes the link point to file/[fid].
  *
+ * @see theme_file_file_link()
  * @return type
  */
 function theme_file_entity_file_link($variables) {

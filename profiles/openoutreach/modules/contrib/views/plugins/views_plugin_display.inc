@@ -53,31 +53,44 @@ class views_plugin_display extends views_plugin {
     $this->unpack_options($this->options, $options);
 
     // Translate changed settings:
-    // Check if any of the previous values now managed by
-    // pluggable pagers have been changed.
-    // If yes, perform the conversion
     $items_per_page = $this->get_option('items_per_page');
     $offset = $this->get_option('offset');
-    $type = $this->get_option('use_pager');
-    if ((!empty($items_per_page) && $items_per_page != 10) || !empty($offset) || !empty($type)) {
-      if (!$type) {
+    $use_pager = $this->get_option('use_pager');
+    $pager = $this->get_option('pager');
+    // Check if the pager options were already converted.
+    // The pager settings of a Views 2.x view specifying 10 items with an
+    // offset of 0 and no pager is the same as of a Views 3.x view with
+    // default settings. In this case, the only way to determine which case we
+    // are dealing with is checking the API version but that's only available
+    // for exported Views as it's not stored in the database.
+    // If you would like to change this code, really take care that you thought
+    // of every possibility.
+    // @TODO: Provide a way to convert the database views as well.
+    if (((!empty($items_per_page) && $items_per_page != 10) || !empty($offset) || !empty($use_pager))
+      || (!empty($view->api_version) && $view->api_version == 2)) {
+      // Find out the right pager type.
+      // If the view "use pager" it's a normal/full pager.
+      if ($use_pager) {
+        $type = 'full';
+      }
+      // If it does not use pager, but 0 items per page it should not page
+      // else it should display just a certain amount of items.
+      else {
         $type = $items_per_page ? 'some' : 'none';
       }
 
-      if ($type == 1) {
-        $type = 'full';
-      }
-
+      // Setup the pager options.
       $pager = array(
         'type' => $type,
         'options' => array(
-          'offset' => $offset
+          'offset' => intval($offset)
         ),
       );
 
       if ($items_per_page) {
         $pager['options']['items_per_page'] = $items_per_page;
       }
+      // Setup the pager element.
       if ($id = $this->get_option('pager_element')) {
         $pager['options']['id'] = $id;
       }
@@ -89,6 +102,7 @@ class views_plugin_display extends views_plugin {
       $this->set_option('use_pager', NULL);
       $this->set_option('pager', $pager);
     }
+
 
     // Plugable headers, footer and empty texts are
     // not compatible with previous version of views
@@ -1393,7 +1407,7 @@ class views_plugin_display extends views_plugin {
         $access = $this->get_option('access');
         $form['access']['type'] =  array(
           '#type' => 'radios',
-          '#options' => views_fetch_plugin_names('access'),
+          '#options' => views_fetch_plugin_names('access', NULL, array($this->view->base_table)),
           '#default_value' => $access['type'],
         );
 
@@ -1436,7 +1450,7 @@ class views_plugin_display extends views_plugin {
         $cache = $this->get_option('cache');
         $form['cache']['type'] =  array(
           '#type' => 'radios',
-          '#options' => views_fetch_plugin_names('cache'),
+          '#options' => views_fetch_plugin_names('cache', NULL, array($this->view->base_table)),
           '#default_value' => $cache['type'],
         );
 
@@ -1901,7 +1915,7 @@ class views_plugin_display extends views_plugin {
         $exposed_form = $this->get_option('exposed_form');
         $form['exposed_form']['type'] =  array(
           '#type' => 'radios',
-          '#options' => views_fetch_plugin_names('exposed_form'),
+          '#options' => views_fetch_plugin_names('exposed_form', NULL, array($this->view->base_table)),
           '#default_value' => $exposed_form['type'],
         );
 
@@ -1937,11 +1951,11 @@ class views_plugin_display extends views_plugin {
         $pager = $this->get_option('pager');
         $form['pager']['type'] =  array(
           '#type' => 'radios',
-          '#options' => views_fetch_plugin_names('pager', empty($this->definition['use pager']) ? 'basic' : NULL),
+          '#options' => views_fetch_plugin_names('pager', empty($this->definition['use pager']) ? 'basic' : NULL, array($this->view->base_table)),
           '#default_value' => $pager['type'],
         );
 
-        $pager_plugin = views_fetch_plugin_data('pager', $pager['type']);
+        $pager_plugin = views_fetch_plugin_data('pager', $pager['type'], array($this->view->base_table));
         if (!empty($pager_plugin['uses options'])) {
           $form['markup'] = array(
             '#prefix' => '<div class="form-item description">',
@@ -2005,7 +2019,7 @@ class views_plugin_display extends views_plugin {
     switch ($form_state['section']) {
       case 'display_title':
         if (empty($form_state['values']['display_title'])) {
-          form_error($form['options']['display_title'], t('Display title may not be empty.'));
+          form_error($form['display_title'], t('Display title may not be empty.'));
         }
         break;
       case 'css_class':
@@ -2016,13 +2030,13 @@ class views_plugin_display extends views_plugin {
       break;
       case 'display_id':
         if ($form_state['values']['display_id']) {
-          if (preg_match('/[^a-zA-Z0-9_]/', $form_state['values']['display_id'])) {
-            form_error($form['options']['display_id'], t('Display name must be letters, numbers, or underscores only.'));
+          if (preg_match('/[^a-z0-9_]/', $form_state['values']['display_id'])) {
+            form_error($form['display_id'], t('Display name must be letters, numbers, or underscores only.'));
           }
 
           foreach ($this->view->display as $id => $display) {
             if ($id != $this->view->current_display && ($form_state['values']['display_id'] == $id || (isset($display->new_id) && $form_state['values']['display_id'] == $display->new_id))) {
-              form_error($form['options']['display_id'], t('Display id should be unique.'));
+              form_error($form['display_id'], t('Display id should be unique.'));
             }
           }
         }
@@ -2790,7 +2804,7 @@ class views_plugin_display extends views_plugin {
       $handler = views_get_handler($info['table'], $info['field'], $handler_type);
       if ($handler) {
         $handler->init($this->view, $info);
-        $handler->unpack_translatables($translatable, array_merge($parents, array($type, $info['table'], $info['field'])));
+        $handler->unpack_translatables($translatable, array_merge($parents, array($type, $info['table'], $info['id'])));
       }
 
       // Prevent reference problems.

@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Provides Skinr integration with Panels.
+ *
+ * NOTE: When panels are stored in code, rather than DB, we run into lack of
+ *   context problems. See the below link for a workaround. This is a limitation
+ *   with the Panels module.
+ *
+ * @link http://drupal.org/node/1160924 Undefined property: stdClass::$did in panels_skinr_preprocess_index_handler() @endlink
+ * @link http://drupal.org/node/1292662 Workaround for undefined property: stdClass::$did in panels_skinr_preprocess_index_handler() @endlink
+ */
+
+/**
+ * Implements hook_skinr_api().
+ */
+function skinr_panels_skinr_api_2() {
+  return array();
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Re-order preprocess functions to prioritize skinr_ui_preprocess, which adds
+ * contextual links, over template_preprocess_HOOK functions. This fixes a
+ * problem with the way panels handles contextual links.
+ */
+function skinr_panels_theme_registry_alter(&$theme_registry) {
+  $preprocess_functions = array();
+  foreach ($theme_registry['panels_pane']['preprocess functions'] as $function) {
+    if ($function == 'skinr_ui_preprocess' || $function == 'skinr_panels_preprocess') {
+      continue;
+    }
+
+    $preprocess_functions[] = $function;
+
+    if ($function == 'template_preprocess') {
+      // Insert our preprocess function right after template_preprocess to give it priority over template_preprocess_HOOK functions.
+      $preprocess_functions[] = 'skinr_panels_preprocess';
+      $preprocess_functions[] = 'skinr_ui_preprocess';
+    }
+  }
+  $theme_registry['panels_pane']['preprocess functions'] = $preprocess_functions;
+
+  // Add a preprocess function to theme_links(). This is a total hack.
+  $theme_registry['links']['preprocess functions'][] = 'skinr_panels_preprocess_links';
+}
+
+/**
+ * Implements hook_preprocess().
+ */
+function skinr_panels_preprocess(&$variables, $hook) {
+  if ($hook == 'panels_pane' && user_access('edit skin settings')) {
+
+    // Get contextual links.
+    $contextual_links = array();
+    $counter = 0;
+    $array_elements = skinr_invoke_all('skinr_elements', $variables, $hook, 'contextual_links');
+    $module = 'panels';
+    $elements = $array_elements[$module];
+
+    foreach ($elements as $element) {
+      $contextual_links['skinr-' .  $module . '-' . $counter++] = array(
+        'admin/structure/skinr/edit/nojs', array($module, $element),
+      );
+    }
+    if (!empty($contextual_links)) {
+      // Need to set contextual links through  Skinr API so we have a valid, and
+      // consistent, link title. It's also used in our hook_preprocess_links()
+      // hack.
+      _skinr_ui_set_contextual_links($hook, $contextual_links);
+
+      // Render links.
+      $element = array(
+        '#type' => 'contextual_links',
+        '#contextual_links' => $contextual_links,
+      );
+      $element = contextual_pre_render_links($element);
+
+      // Add in the Skinr links.
+      if (isset($variables['content']->admin_links) && is_array($variables['content']->admin_links)) {
+        $variables['content']->admin_links += $element['#links'];
+      }
+      else {
+        $variables['content']->admin_links = $element['#links'];
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_links().
+ *
+ * This hack is panels on panel pages only.
+ */
+function skinr_panels_preprocess_links(&$variables, $hook) {
+  if (isset($variables['links'][0]['title']) && $variables['links'][0]['title'] == t('Edit @type', array('@type' => 'Panel')) && user_access('edit skin settings')) {
+    // Get contextual links.
+    $contextual_links = skinr_ui_get_contextual_links();
+    $contextual_links = $contextual_links['panels_pane'];
+
+    // Render links.
+    $element = array(
+      '#type' => 'contextual_links',
+      '#contextual_links' => $contextual_links,
+    );
+    $element = contextual_pre_render_links($element);
+
+    // Hack in the Skinr links.
+    $variables['links'] += $element['#links'];
+  }
+}

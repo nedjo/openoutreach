@@ -1,5 +1,4 @@
 <?php
-// $Id: x31.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => NULL, NULL, NULL, NULL, NULL, 'B', 'P', 'M', 'F', 'D', 'T', 'N', 'L', 'G', 'K', 'H',

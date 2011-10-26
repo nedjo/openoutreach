@@ -121,6 +121,7 @@ function views_content_views_row_edit($form, &$form_state) {
     return $form;
   }
 
+  $view->init_pager();
   $rows = $view->get_items_per_page();
 
   if (empty($rows)) {

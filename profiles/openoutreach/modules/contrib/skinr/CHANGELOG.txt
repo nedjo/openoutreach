@@ -1,5 +1,13 @@
 Skinr 7.x-2.x, xxxx-xx-xx
 -------------------------
+Issue #984402 by moonray: Updated Skinr admin UI.
+Issue #952610 by aquariumtap, moonray | Alan D.: Added Vertical tabs integration.
+Issue #1163618 by moonray: Fixed *.skinr.inc not auto-loading for certain hooks.
+Issue #1163618 by moonray: Removed skinr_handlers and replaced them with proper
+  hooks.
+Issue #1163618 by sun, moonray: Added dependency on panels for skinr_panels.
+Issue #1163618 by sun, moonray: Fixed errors due to default groups not loaded
+  when clearing cache on Skin settings page.
 Issue #1218786 by moonray: Fixed skinr_rule_is_visible() doesn't work properly
   for node/add/[type] when limiting by content type.
 Issue #1183954 by moonray: Fixed inability to register a skin under specific

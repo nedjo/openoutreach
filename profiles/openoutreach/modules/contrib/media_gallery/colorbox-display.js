@@ -33,7 +33,11 @@ Drupal.behaviors.mediaGalleryColorbox.attach = function (context, settings) {
         // http://groups.google.com/group/colorbox/msg/7671ae69708950bf
         title: ' ',
         transition: 'fade',
-        preloading: true
+        preloading: true,
+        fastIframe: false,
+        onComplete: function () {
+          $(this).colorbox.resize();
+        }
       });
     }
     $('a.meta-wrapper').bind('click', Drupal.mediaGalleryColorbox.metaClick);

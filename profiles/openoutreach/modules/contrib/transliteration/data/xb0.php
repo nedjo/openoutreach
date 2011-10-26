@@ -1,5 +1,4 @@
 <?php
-// $Id: xb0.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'ggwem', 'ggweb', 'ggwebs', 'ggwes', 'ggwess', 'ggweng', 'ggwej', 'ggwec', 'ggwek', 'ggwet', 'ggwep', 'ggweh', 'ggwi', 'ggwig', 'ggwigg', 'ggwigs',

@@ -1,5 +1,4 @@
 <?php
-// $Id: x95.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Xiao ', 'Suo ', 'Li ', 'Zheng ', 'Chu ', 'Guo ', 'Gao ', 'Tie ', 'Xiu ', 'Cuo ', 'Lue ', 'Feng ', 'Xin ', 'Liu ', 'Kai ', 'Jian ',

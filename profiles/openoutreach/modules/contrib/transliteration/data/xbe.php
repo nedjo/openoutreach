@@ -1,5 +1,4 @@
 <?php
-// $Id: xbe.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'byum', 'byub', 'byubs', 'byus', 'byuss', 'byung', 'byuj', 'byuc', 'byuk', 'byut', 'byup', 'byuh', 'beu', 'beug', 'beugg', 'beugs',

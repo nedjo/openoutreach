@@ -1,21 +1,53 @@
 <?php
 
 /**
+ * Implements hook_ctools_plugin_api().
+ */
+function media_internet_ctools_plugin_api($module, $api) {
+  if ($module == 'media' && $api == 'browser') {
+    return array(
+      'version' => 1,
+    );
+  }
+}
+
+/**
  * Implements hook_media_browser_plugin_info().
  */
 function media_internet_media_browser_plugin_info() {
   $plugins = array();
-  /*
-   @todo: Coming soon.
-   'search' => array(
-   ),
-  */
-  if (user_access('administer media') || user_access('add media from remote sources')) {
-    $plugins['media_internet'] = array(
-      '#weight' => -10,
+  $plugins['media_internet'] = array(
+    'title' => t('Web'),
+    'handler' => array(
+      'path' => drupal_get_path('module', 'media_internet'),
+      'file' => 'media_internet.module',
+      'class' => 'MediaBrowserInternet',
+    ),
+    'access callback' => 'media_internet_access',
+  );
+  return $plugins;
+}
+
+/**
+ * Access callback for the media_internet media browser plugin.
+ */
+function media_internet_access() {
+  return user_access('administer media') || user_access('add media from remote sources');
+}
+
+class MediaBrowserInternet extends MediaBrowserPlugin {
+
+  function view() {
+    // @todo: implement the multiselect argument here.
+    $from_web_form = drupal_get_form('media_internet_add',  $this->params['types'], $this->params['multiselect']);
+    return array(
+      'form' => array($from_web_form),
+      '#attached' => array(
+        //'js' => array($path . '/js/plugins/media.fromurl.js'),
+      ),
     );
   }
-  return $plugins;
+
 }
 
 /**
@@ -28,33 +60,6 @@ function media_internet_permission() {
       'description' => t('Add media from remote sources such as other websites, YouTube, etc'),
     ),
   );
-}
-
-/**
- * Implements hook_media_browser_plugin_view().
- */
-function media_internet_media_browser_plugin_view($plugin_name, $params) {
-  $path = drupal_get_path('module', 'media');
-
-  $types = isset($params['types']) ? $params['types'] : array();
-  $multiselect = isset($params['multiselect']) ? $params['multiselect'] : FALSE;
-
-  $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
-  switch ($plugin_name) {
-    case 'media_internet':
-      // @todo: implement the multiselect argument here.
-      $from_web_form = drupal_get_form('media_internet_add',  $types, $multiselect);
-      return array(
-        '#title' => t('Web'),
-        'form' => array($from_web_form),
-        '#attached' => array(
-          //'js' => array($path . '/js/plugins/media.fromurl.js'),
-        ),
-      );
-      break;
-  }
-
-  return array();
 }
 
 /**

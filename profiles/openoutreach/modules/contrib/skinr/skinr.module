@@ -47,6 +47,13 @@ function skinr_help($path, $arg) {
 function skinr_hook_info() {
   $hooks = array(
     'skinr_api_2',
+    'skinr_elements',
+    'skinr_group_info',
+    'skinr_group_info_alter',
+    'skinr_skin_info',
+    'skinr_skin_info_alter',
+    'skinr_theme_hooks',
+    'skinr_theme_hooks_alter',
   );
   $hooks = array_fill_keys($hooks, array(
     'group' => 'skinr',
@@ -62,28 +69,6 @@ function skinr_cache_reset() {
 }
 
 /**
- * Implements hook_module_implements_alter().
- */
-function skinr_module_implements_alter(&$implementations, $hook) {
-  // Run Skinr first to avoid issues with other modules during hook_init().
-  if ($hook == 'init') {
-    $skinr['skinr'] = $implementations['skinr'];
-    unset($implementations['skinr']);
-    $implementations = array_merge($skinr, $implementations);
-  }
-}
-
-/**
- * Implements hook_init().
- *
- * @todo Kill me. Entirely.
- */
-function skinr_init() {
-  module_load_include('inc', 'skinr', 'skinr.handlers');
-  skinr_load_includes();
-}
-
-/**
  * Implements hook_preprocess().
  *
  * @todo Optimize this function by removing dependencies on
@@ -96,82 +81,80 @@ function skinr_preprocess(&$variables, $hook) {
     return;
   }
 
-  $config = skinr_get_config_info();
   $current_theme = skinr_current_theme();
-  $theme_registry = theme_get_registry();
   $skin_info = skinr_get_skin_info();
 
+  $theme_registry = theme_get_registry();
   $original_hook = (isset($theme_registry[$hook]['original hook']) ? $theme_registry[$hook]['original hook'] : $hook);
 
-  foreach ($config as $module => $module_settings) {
-    if (!empty($module_settings['preprocess'][$original_hook])) {
-      $preprocess_settings = $module_settings['preprocess'][$original_hook];
-      $elements = skinr_handler('preprocess_index_handler', 'preprocess', $preprocess_settings['index_handler'], $variables);
-      if (empty($elements)) {
-        // We can receive empty arrays; if that happens, there's no point in continuing.
-        continue;
-      }
+  // An array of $elements based on $module and $original_hook, derived from $variables.
+  $array_elements = skinr_invoke_all('skinr_elements', $variables, $original_hook, 'preprocess');
+  foreach ($array_elements as $module => $elements) {
+    if (empty($elements)) {
+      // We can receive empty arrays; if that happens, there's no point
+      // in continuing.
+      continue;
+    }
 
-      // Get a list of skin configuration IDs to pass to
-      // skinr_skin_load_multiple().
-      $params = array(
-        'theme' => $current_theme,
-        'module' => $module,
-        'element' => $elements,
-        'status' => 1,
-      );
-      $sids = skinr_skin_get_sids($params);
-      if (empty($sids)) {
-        // Noting to apply.
-        continue;
-      }
+    // Get a list of skin configuration IDs to pass to
+    // skinr_skin_load_multiple().
+    $params = array(
+      'theme' => $current_theme,
+      'module' => $module,
+      'element' => $elements,
+      'status' => 1,
+    );
+    $sids = skinr_skin_get_sids($params);
+    if (empty($sids)) {
+      // Noting to apply.
+      continue;
+    }
 
-      $applied_skins = array();
-      foreach (skinr_skin_load_multiple($sids) as $skin) {
-        $applied_skins = array($skin->skin => $skin->options) + $applied_skins;
-      }
+    $applied_skins = array();
+    foreach (skinr_skin_load_multiple($sids) as $skin) {
+      $applied_skins = array($skin->skin => $skin->options) + $applied_skins;
+    }
 
-      // Invoke hook_skinr_preprocess_alter() in all modules.
-      // @todo Review whether this alter hook is useful or not, and if it's in
-      //   the right place or not.
-      $context = array(
-        'hook' => $hook,
-        'variables' => &$variables,
-        'theme' => $current_theme,
-        'module' => $module,
-        'elements' => $elements,
-        'options' => $applied_skins,
-      );
-      drupal_alter('skinr_preprocess', $context);
+    // Invoke hook_skinr_preprocess_alter() in all modules.
+    // @todo Review whether this alter hook is useful or not, and if it's in
+    //   the right place or not.
+    $context = array(
+      'hook' => $hook,
+      'variables' => &$variables,
+      'theme' => $current_theme,
+      'module' => $module,
+      'elements' => $elements,
+      'options' => $applied_skins,
+    );
+    drupal_alter('skinr_preprocess', $context);
 
-      // Use drupal_process_attached() to add attachements such as JS and CSS.
-      if (!empty($applied_skins)) {
-        foreach ($applied_skins as $skin_name => $skin_options) {
+    // Use drupal_process_attached() to add attachements such as JS and CSS.
+    if (!empty($applied_skins)) {
+      foreach ($applied_skins as $skin_name => $skin_options) {
 
-          // Special case for _additional.
-          if ($skin_name == '_additional') {
-            continue;
-          }
-
-          // Make sure this skin is enabled for the current theme.
-          if (isset($skin_info[$skin_name]['attached'])) {
-            $elements['#attached'] = $skin_info[$skin_name]['attached'];
-            drupal_process_attached($elements);
-          }
-
-          if (!is_array($skin_options)) {
-            $skin_options = array($skin_options);
-          }
-          foreach ($skin_options as $skin_option) {
-            if (isset($skin_info[$skin_name]['options'][$skin_option]['attached'])) {
-              $elements['#attached'] = $skin_info[$skin_name]['options'][$skin_option]['attached'];
-              drupal_process_attached($elements);
-            }
-          }
+        // Special case for _additional.
+        if ($skin_name == '_additional') {
+          continue;
         }
 
-        $variables['classes_array'] = array_merge($variables['classes_array'], skinr_flatten_skins_array($applied_skins));
+        // Make sure this skin is enabled for the current theme.
+        if (isset($skin_info[$skin_name]['attached'])) {
+          $elements['#attached'] = $skin_info[$skin_name]['attached'];
+          drupal_process_attached($elements);
+        }
+
+        if (!is_array($skin_options)) {
+          $skin_options = array($skin_options);
+        }
+        foreach ($skin_options as $skin_option) {
+          if (isset($skin_info[$skin_name]['options'][$skin_option]['attached'])) {
+            $elements['#attached'] = $skin_info[$skin_name]['options'][$skin_option]['attached'];
+            drupal_process_attached($elements);
+          }
+        }
       }
+
+      $variables['classes_array'] = array_merge($variables['classes_array'], skinr_flatten_skins_array($applied_skins));
     }
   }
 }
@@ -436,14 +419,17 @@ function skinr_rule_is_visible($rid, $path = NULL, $account = NULL) {
  *   - path: The path to the extension.
  *   - directory: (optional) The sub-directory holding Skinr plugin files.
  *   - ...: Any other properties defined by the module or theme.
- *
- * @todo Cache this.
  */
-function skinr_implements() {
+function skinr_implements_api() {
   $cache = &drupal_static(__FUNCTION__);
 
   if (!isset($cache)) {
+    if ($cached = cache_get('skinr_implements_api')) {
+      $cache = $cached->data;
+      return $cache;
+    }
     $cache = array();
+
     // Collect hook_skinr_api_VERSION() module implementations. This will also
     // auto-load $module.skinr.inc files, which may contain skin/group hook
     // implementations (when not using the plugin system).
@@ -465,9 +451,9 @@ function skinr_implements() {
       // $module.skinr.inc file and auto-load it. module_implements() only
       // auto-loads $module.skinr.inc in a module's root folder.
       if (isset($cache[$module]['path'])) {
-        $file = DRUPAL_ROOT . '/' . $cache[$module]['path'] . '/' . $module . '.skinr.inc';
-        if (file_exists($file)) {
-          require_once $file;
+        $file = $cache[$module]['path'] . '/' . $module . '.skinr.inc';
+        if (file_exists(DRUPAL_ROOT . '/' . $file)) {
+          $cache[$module]['include file'] = $file;
         }
       }
       // Populate defaults.
@@ -537,36 +523,216 @@ function skinr_implements() {
         );
         // Lastly, for API consistency with modules, check whether the theme
         // contains a $theme.skinr.inc file and auto-load it, if any.
-        $file = DRUPAL_ROOT . '/' . $cache[$name]['path'] . '/' . $name . '.skinr.inc';
-        if (file_exists($file)) {
-          require_once $file;
+        $file = $cache[$name]['path'] . '/' . $name . '.skinr.inc';
+        if (file_exists(DRUPAL_ROOT . '/' . $file)) {
+          $cache[$name]['include file'] = $file;
         }
       }
     }
+
+    cache_set('skinr_implements_api', $cache);
   }
 
   return $cache;
 }
 
 /**
- * Includes $extension.skinr.inc files of extensions compatible with this version of Skinr.
+ * Determine whether a module implements a hook.
  *
- * @todo Shoot me. Twice.
+ * Replacement for module_hook() that only invokes modules that implement
+ * the current version of Skinr API. It also supports $module.skinr.inc files
+ * in themes and custom paths.
+ *
+ * @param $module
+ *   The name of the module (without the .module extension).
+ * @param $hook
+ *   The name of the hook (e.g. "skinr_skin_info" or "skinr_theme_hooks").
+ *
+ * @return
+ *   TRUE if the module is both installed and enabled, and the hook is
+ *   implemented in that module.
  */
-function skinr_load_includes() {
-  foreach (skinr_implements() as $extension) {
-    $file = DRUPAL_ROOT . '/' . $extension['path'] . '/' . $extension['name'] . '.skinr.inc';
-    if (file_exists($file)) {
-      require_once $file;
+function skinr_hook($module, $hook) {
+  $function = $module . '_' . $hook;
+  if (function_exists($function)) {
+    return TRUE;
+  }
+  // If the hook implementation does not exist, check whether it may live in an
+  // include file in a custom path.
+  $extensions = skinr_implements_api();
+  if (isset($extensions[$module])) {
+    $extension = $extensions[$module];
+    if (isset($extension['include file'])) {
+      // The module specified a custom path. module_hook() only auto-loads
+      // $module.skinr.inc in a module's root folder.
+      skinr_load_include($extension['include file']);
+      if (function_exists($module . '_' . $hook)) {
+        return TRUE;
+      }
+    }
+    else {
+      // Run through module_hook() to auto-load $module.skinr.inc from a
+      // non-custom path.
+      if (module_hook($module, $hook)) {
+        return TRUE;
+      }
     }
   }
+  return FALSE;
+}
+
+/**
+ * Determine which modules are implementing a hook.
+ *
+ * Replacement for module_implements() that only invokes modules that implement
+ * the current version of Skinr API. It also supports $module.skinr.inc files
+ * in themes and custom paths.
+ *
+ * @param $hook
+ *   The name of the hook (e.g. "skinr_skin_info" or "skinr_theme_hooks").
+ *
+ * @return
+ *   An array with the names of the modules which are implementing this hook.
+ *
+ * @see skinr_exit()
+ */
+function skinr_implements($hook) {
+  $implementations = &drupal_static(__FUNCTION__, array());
+
+  // Fetch implementations from cache.
+  if (empty($implementations)) {
+    $implementations = cache_get('skinr_implements', 'cache_bootstrap');
+    if ($implementations === FALSE) {
+      $implementations = array();
+    }
+    else {
+      $implementations = $implementations->data;
+    }
+  }
+
+  if (!isset($implementations[$hook])) {
+    $implementations['#write_cache'] = TRUE;
+
+    $extensions = skinr_implements_api();
+    $implementations[$hook] = array();
+    foreach ($extensions as $module => $extension) {
+      if (isset($extension['include file'])) {
+        // The module specified a custom path. module_implements() and
+        // module_hook() only auto-load $module.skinr.inc in a module's
+        // root folder.
+        $include_file = skinr_load_include($extension['include file']);
+        if (function_exists($module . '_' . $hook)) {
+          $implementations[$hook][$module] = $include_file ? $extension['include file'] : FALSE;
+        }
+      }
+      else {
+        // Run through module_hook() to auto-load $module.skinr.inc from a
+        // non-custom path.
+        if (module_hook($module, $hook)) {
+          $implementations[$hook][$module] = FALSE;
+        }
+      }
+    }
+    // Allow modules to change the weight of specific implementations but avoid
+    // an infinite loop.
+    if ($hook != 'skinr_implements_alter') {
+      drupal_alter('skinr_implements', $implementations[$hook], $hook);
+    }
+  }
+  else {
+    foreach ($implementations[$hook] as $module => $file) {
+      if ($file) {
+        skinr_load_include($file);
+      }
+      else {
+        module_hook($module, $hook);
+      }
+      // It is possible that a module removed a hook implementation without the
+      // implementations cache being rebuilt yet, so we check whether the
+      // function exists on each request to avoid undefined function errors.
+      // Since module_hook() may needlessly try to load the include file again,
+      // function_exists() is used directly here.
+      if (!function_exists($module . '_' . $hook)) {
+        // Clear out the stale implementation from the cache and force a cache
+        // refresh to forget about no longer existing hook implementations.
+        unset($implementations[$hook][$module]);
+        $implementations['#write_cache'] = TRUE;
+      }
+    }
+  }
+
+  return array_keys($implementations[$hook]);
+}
+
+/**
+ * Implements hook_exit().
+ *
+ * @see module_implements_write_cache()
+ */
+function skinr_exit($destination = NULL) {
+  $implementations = &drupal_static('skinr_implements');
+  // Check whether we need to write the cache. We do not want to cache hooks
+  // which are only invoked on HTTP POST requests since these do not need to be
+  // optimized as tightly, and not doing so keeps the cache entry smaller.
+  if (isset($implementations['#write_cache']) && ($_SERVER['REQUEST_METHOD'] == 'GET' || $_SERVER['REQUEST_METHOD'] == 'HEAD')) {
+    unset($implementations['#write_cache']);
+    cache_set('skinr_implements', $implementations, 'cache_bootstrap');
+  }
+}
+
+/**
+ * Invoke a hook in all enabled modules and themes that implement it.
+ *
+ * Replacement for module_invoke_all() that only invokes modules that implement
+ * the current version of Skinr API. It also supports $module.skinr.inc files
+ * in themes and custom paths.
+ *
+ * @param $hook
+ *   The name of the hook to invoke.
+ * @param ...
+ *   Arguments to pass to the hook.
+ *
+ * @return
+ *   An array of return values of the hook implementations. If modules return
+ *   arrays from their implementations, those are merged into one array.
+ */
+function skinr_invoke_all($hook) {
+  $args = func_get_args();
+  // Remove $hook from the arguments.
+  unset($args[0]);
+  $return = array();
+  foreach (skinr_implements($hook) as $module) {
+    $function = $module . '_' . $hook;
+    if (function_exists($function)) {
+      $result = call_user_func_array($function, $args);
+      if (isset($result) && is_array($result)) {
+        $return = array_merge_recursive($return, $result);
+      }
+      elseif (isset($result)) {
+        $return[] = $result;
+      }
+    }
+  }
+
+  return $return;
+}
+
+/**
+ * Loads a $module.skinr.inc include file.
+ */
+function skinr_load_include($file) {
+  if (is_file($file)) {
+    include_once $file;
+    return $file;
+  }
+  return FALSE;
 }
 
 /**
  * Includes Skinr plugin files for an extension, if any.
  *
  * @param $extension
- *   The API information for an extension, as returned by skinr_implements().
+ *   The API information for an extension, as returned by skinr_implements_api().
  */
 function skinr_load_plugins($extension) {
   static $loaded = array();
@@ -670,7 +836,7 @@ function skinr_skin_save(&$skin) {
   // Clear internal properties.
   unset($skin->original);
   // Clear the static loading cache.
-  // @todo If we have a more granular reset for skinr_skin_load_multiple(), we
+  // @todo Once we have a more granular reset for skinr_skin_load_multiple(), we
   //   need to use it here.
   drupal_static_reset('skinr_skin_load_multiple');
 
@@ -1099,10 +1265,13 @@ function skinr_get_skin_info() {
     }
     $skin_info = array();
 
-    foreach (skinr_implements() as $name => $extension) {
-      $hooks = array(
-        "{$name}_skinr_skin_info" => $extension,
-      );
+    foreach (skinr_implements_api() as $name => $extension) {
+      $hooks = array();
+      // Run through skinr_hook to ensure the required include gets loaded.
+      if (skinr_hook($name, 'skinr_skin_info')) {
+        $hooks["{$name}_skinr_skin_info"] = $extension;
+      }
+
       // Load the extension's plugins, if any.
       if ($files = skinr_load_plugins($extension)) {
         // The base path for plugins is the directory defined by the extension.
@@ -1152,10 +1321,13 @@ function skinr_get_group_info() {
     }
     $group_info = array();
 
-    foreach (skinr_implements() as $name => $extension) {
-      $hooks = array(
-        "{$name}_skinr_group_info" => $extension,
-      );
+    foreach (skinr_implements_api() as $name => $extension) {
+      $hooks = array();
+      // Run through skinr_hook to ensure the required include gets loaded.
+      if (skinr_hook($name, 'skinr_group_info')) {
+        $hooks["{$name}_skinr_group_info"] = $extension;
+      }
+
       // Load the extension's plugins, if any.
       if ($files = skinr_load_plugins($extension)) {
         // The base path for plugins is the directory defined by the extension.
@@ -1208,17 +1380,7 @@ function skinr_get_config_info() {
       $config_info = $cached->data;
       return $config_info;
     }
-    $config_info = array();
-
-    foreach (skinr_implements() as $name => $extension) {
-      $function = "{$name}_skinr_config_info";
-      if (function_exists($function)) {
-        $extension_info = $function();
-        if (isset($extension_info) && is_array($extension_info)) {
-          $config_info = array_merge_recursive($config_info, $extension_info);
-        }
-      }
-    }
+    $config_info = skinr_invoke_all('skinr_config_info');
 
     // Allow modules to alter config info via hook_skinr_config_info_alter().
     drupal_alter('skinr_config_info', $config_info);
@@ -1230,107 +1392,26 @@ function skinr_get_config_info() {
 }
 
 /**
- * Prepare default configuration data for modules.
+ * Provide a list of all available theme hooks for a given element.
  *
- * @todo Search and destroy.
+ * @param $module
+ *   The module implementing given element.
+ * @param $element
+ *   An element.
+ *
+ * @return
+ *   An array of theme hooks.
  */
-function skinr_config_info_default() {
-  return array(
-    'access_handler' => 'skinr_access_handler',
-    'index_handler' => 'skinr_index_handler',
-    'data_handler' => 'skinr_data_handler',
-    'submit_handler' => 'skinr_submit_handler',
-    'submit_handler_attach_to' => array('#submit'),
-    'skinr_title' => t('Skinr'),
-    'skinr_weight' => 1,
-    'title' => '',
-    'description' => t('Manage which skins you want to apply to the hooks'),
-    'collapsed' => TRUE,
-    'weight' => 0,
-  );
-}
+function skinr_theme_hooks($module, $element) {
+  $theme_hooks = &drupal_static(__FUNCTION__, array());
 
-/**
- * Execute a module's data handler.
- *
- * @param $type
- *   The type of handler to execute. Possible values:
- *   - 'access_handler':
- *   - 'contextual_links':
- *   - 'data_handler':
- *   - 'form_index_handler':
- *   - 'preprocess_index_handler':
- *   - 'preprocess_hook_callback':
- *   - 'submit_handler':
- * @param $op
- *   For 'access_handler' the possible values are 'edit skin settings'
- *     and 'edit advanced skin settings'.
- *   For 'contextual_links' an empty string is passed.
- *   For 'data_handler' the possible values are 'form' and 'submit'.
- *   For 'form_index_handler' the possible values are 'form' and 'submit'.
- *   For 'preprocess_index_handler' the possible values are 'preprocess'.
- *   For 'preprocess_hook_callback' an empty string is passed.
- *   For 'submit_handler' an empty string is passed.
- * @param $handler
- *   The function name for this handler as gotten from skinr_fetch_config().
- * @param $a3
- *   For 'access_handler', passes in the $form parameter as provided to a form
- *     function.
- *   For 'contextual_links', passes in the $variables parameter from
- *     skinr_preprocess().
- *   For 'data_handler', passes in the $form parameter from hook_form_submit().
- *   For 'form_index_handler':
- *   - For $op 'form', passes in the $form parameter from hook_form_alter().
- *   - For $op 'submit', passes in the $form parameter from hook_form_submit().
- *   For 'preprocess_index_handler', passes in the $variables parameter from
- *     module_preprocess().
- *   For 'preprocess_hook_callback', passes in the $form parameter from
- *     hook_form_alter().
- *   For 'submit_handler', passes in the $form parameter from hook_form_alter().
- *
- * @param $a4
- *   For 'access_handler', passes in the $form_state array as provided to a
- *     form function.
- *   For 'data_handler', passes in the $form_state parameter form
- *     hook_form_submit().
- *   For 'form_index_handler':
- *   - For $op 'form', passes in the $form_state parameter from
- *     hook_form_alter().
- *   - For $op 'submit', passes in the $form_state parameter from
- *     hook_form_submit().
- *   For 'preprocess_hook_callback', passes in the $form_state parameter from
- *     hook_form_alter().
- *   For 'submit_handler', passes in the $form_state parameter from
- *     hook_form_alter().
- * @param $a5
- *   For 'data_handler', passes in the module that is currently being processed.
- *   For 'submit_handler', passes in the module that is currently being
- *     processed.
- * @param $a6
- *   For 'data_handler', passes in the settings from hook_skinr_config() for
- *     the form that's currently being processed.
- *   For 'submit_handler', passes in the settings from hook_skinr_config() for
- *     the form that's currently being processed.
- * @param $a7
- */
-function skinr_handler($type, $op, $handler, &$a3, $a4 = NULL, $a5 = NULL, $a6 = NULL, $a7 = NULL) {
-  if (is_callable($handler)) {
-    switch ($type) {
-      case 'contextual_links':
-      case 'preprocess_index_handler':
-        return $handler($a3);
-
-      case 'preprocess_hook_callback':
-        return $handler($a3, $a4);
-
-      case 'data_handler':
-      case 'submit_handler':
-        return $handler($a3, $a4, $a5, $a6, $a7);
-
-      default:
-        return $handler($op, $a3, $a4);
-    }
+  if (!isset($theme_hooks[$module][$element])) {
+    // Invoke hook_skinr_theme_hooks() and hook_skinr_theme_hooks_alter().
+    $theme_hooks[$module][$element] = skinr_invoke_all('skinr_theme_hooks', $module, $element);
+    drupal_alter('skinr_theme_hooks', $theme_hooks[$module][$element], $module, $element);
   }
+
+  return $theme_hooks[$module][$element];
 }
 
 /**
@@ -1359,4 +1440,29 @@ function skinr_themes_enabled() {
  */
 function skinr_themes_disabled() {
   skinr_cache_reset();
+}
+
+/**
+ * Helper function for built-in integration code.
+ */
+function skinr_skinr_api_modules() {
+  return array(
+    'path' => drupal_get_path('module', 'skinr') . '/modules',
+  );
+}
+
+function block_skinr_api_2() {
+  return skinr_skinr_api_modules();
+}
+
+function comment_skinr_api_2() {
+  return skinr_skinr_api_modules();
+}
+
+function node_skinr_api_2() {
+  return skinr_skinr_api_modules();
+}
+
+function views_skinr_api_2() {
+  return skinr_skinr_api_modules();
 }

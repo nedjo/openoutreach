@@ -1,5 +1,4 @@
 <?php
-// $Id: xa4.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'qiet', 'qiex', 'qie', 'qiep', 'quot', 'quox', 'quo', 'quop', 'qot', 'qox', 'qo', 'qop', 'qut', 'qux', 'qu', 'qup',

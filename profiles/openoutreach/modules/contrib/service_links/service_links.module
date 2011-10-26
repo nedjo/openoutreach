@@ -34,6 +34,10 @@ define('SERVICE_LINKS_TAG_TITLE_NODE', 0);
 define('SERVICE_LINKS_TAG_TITLE_OVERRIDE', 1);
 define('SERVICE_LINKS_TAG_TITLE_TOKEN', 2);
 
+define('SERVICE_LINKS_VISIBILITY_NOT_LISTED', 0);
+define('SERVICE_LINKS_VISIBILITY_ONLY_LISTED', 1);
+define('SERVICE_LINKS_VISIBILITY_PHP', 2);
+
 /**
  * Implements hook_help().
  */
@@ -69,6 +73,9 @@ function service_links_permission() {
     'access service links' => array(
       'title' => t('Access to Service Links'),
       //'description' => t('Allow users to act with the services loaded'),
+    ),
+    'use PHP for service visibility' => array(
+      'title' => t('Use PHP for Service visibility'),
     ),
   );
 }
@@ -562,7 +569,14 @@ function _service_links_render($service_id, $service, $settings, $nodelink, $nod
 
   // On Drupal 7 this tag should be filled before the split otherwise will be lost.
   $service['link'] = str_replace('<front-page>', $settings['subst']['front-page'], $service['link']);
-  $service['url'] = preg_split('/\?/', $service['link']);
+
+  if (strpos($service['link'], '=') === FALSE) {
+    $service['url'] = array($service['link']);
+  }
+  else {
+    $service['url'] = preg_split('/\?/', $service['link']);
+  }
+
   if (count($service['url']) > 1) {
     $service['url'][1] = service_links_get_query($service['url'][1]);
     $service['url'][1] = str_replace($settings['tag'], $settings['subst'], $service['url'][1]);
@@ -814,6 +828,10 @@ function service_links_show($node) {
   $category_type = FALSE;
   global $user;
 
+  if (!_service_links_match_path()) {
+    return FALSE;
+  }
+
   if (in_array(strtolower(arg(0)), array('print', 'printpdf', 'printmail'))) {
     return FALSE;
   }
@@ -840,6 +858,50 @@ function service_links_show($node) {
   }
 
   return $links_show;
+}
+
+/**
+ * Match the current path with the list or the code
+ * inserted in the configuration page.
+ */
+function _service_links_match_path() {
+  static $page_match;
+
+  if (isset($page_match)) {
+    return $page_match;
+  }
+
+  $pages = variable_get('service_links_page_match_for_node', '');
+  $visibility = variable_get('service_links_visibility_for_node', SERVICE_LINKS_VISIBILITY_NOT_LISTED);
+  if (!empty($pages)) {
+    // Convert path to lowercase. This allows comparison of the same path
+    // with different case. Ex: /Page, /page, /PAGE.
+    $pages = drupal_strtolower($pages);
+
+    if ($visibility < SERVICE_LINKS_VISIBILITY_PHP) {
+      $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+      // Compare with the internal and path alias (if any).
+      $page_match = drupal_match_path($path, $pages);
+      if ($path != $_GET['q']) {
+        $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+      }
+      // When $visibility has a value of 0, the links are displayed on
+      // all pages except those listed in $pages. When set to 1, it
+      // is displayed only on those pages listed in $pages.
+      $page_match = !($visibility xor $page_match);
+    }
+    elseif (module_exists('php')) {
+      $page_match = php_eval($pages);
+    }
+    else {
+      $page_match = FALSE;
+    }
+  }
+  else {
+    $page_match = TRUE;
+  }
+
+  return $page_match;
 }
 
 /**

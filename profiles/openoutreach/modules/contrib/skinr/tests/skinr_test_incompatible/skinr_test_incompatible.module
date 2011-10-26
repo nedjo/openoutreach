@@ -30,8 +30,5 @@ function skinr_test_incompatible_skinr_skin_info() {
  * Implements hook_skinr_config_info().
  */
 function skinr_test_incompatible_skinr_config_info() {
-  $config['skinr_test_incompatible']['preprocess']['html'] = array(
-    'index_handler' => 'rules_skinr_preprocess_index_handler',
-  );
-  return $config;
+  return array('skinr_test_incompatible');
 }

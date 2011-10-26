@@ -1,5 +1,4 @@
 <?php
-// $Id: x0d.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => NULL, NULL, 'N', 'H', NULL, 'a', 'aa', 'i', 'ii', 'u', 'uu', 'R', 'L', NULL, 'e', 'ee',

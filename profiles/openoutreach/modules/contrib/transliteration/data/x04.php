@@ -1,5 +1,4 @@
 <?php
-// $Id: x04.php,v 1.6 2009/09/05 22:31:34 smk Exp $
 
 $base = array(
   0x00 => 'Jo', 'Yo', 'Dj', 'Gj', 'Ie', 'Dz', 'I', 'Yi', 'J', 'Lj', 'Nj', 'Tsh', 'Kj', 'I', 'U', 'Dzh',

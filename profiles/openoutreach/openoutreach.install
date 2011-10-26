@@ -14,6 +14,7 @@
  *   or Open Outreach.
  */
 function openoutreach_install() {
+  $t = get_t();
   // Enable some standard blocks.
   $default_theme = 'granada';
   $admin_theme = 'seven';
@@ -146,5 +147,14 @@ function openoutreach_install() {
   variable_set('admin_theme', $admin_theme);
   variable_set('node_admin_theme', '1');
 
+  // Rename the default shortcut set and add a taxonomy admin link.
+  $shortcut_set = shortcut_set_load(SHORTCUT_DEFAULT_SET_NAME);
+  $shortcut_set->title = $t('Content');
+  $shortcut_set->links[] = array(
+    'link_path' => 'admin/structure/taxonomy',
+    'link_title' => $t('Add terms'),
+    'weight' => -18,
+  );
+  shortcut_set_save($shortcut_set);
 }
 

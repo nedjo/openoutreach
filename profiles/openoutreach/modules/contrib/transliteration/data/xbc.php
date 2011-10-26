@@ -1,5 +1,4 @@
 <?php
-// $Id: xbc.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'mil', 'milg', 'milm', 'milb', 'mils', 'milt', 'milp', 'milh', 'mim', 'mib', 'mibs', 'mis', 'miss', 'ming', 'mij', 'mic',

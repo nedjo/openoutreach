@@ -1,0 +1,153 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Skinr Panels module.
+ */
+
+/**
+ * Tests UI functionality for Panels plugin.
+ */
+class SkinrPanelsTestCase extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Plugins UI - Panels',
+      'description' => 'Tests Skinr UI functionality for functionality plugin from Panels.',
+      'dependencies' => array('ctools', 'page_manager', 'panels', 'panels_node', 'panels_mini'),
+      'group' => 'Skinr',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('block', 'page_manager', 'panels_node', 'panels_mini', 'skinr_panels_test'));
+
+    $this->admin_user = $this->drupalCreateUser(array(
+      'administer blocks',
+
+      'use page manager',
+      'administer page manager',
+
+      'create mini panels',
+      'administer mini panels',
+
+      'access contextual links',
+      'administer skinr',
+      'edit skin settings',
+      'edit advanced skin settings',
+      'bypass node access',
+    ));
+    $this->drupalLogin($this->admin_user);
+  }
+
+  /**
+   * Tests panels plugin.
+   *
+   * @todo The below test doesn't work due to CTools/Panels not passing along
+   *   enough data to create unique element ids when panels are in code. Skinr
+   *   currently doesn't support panels in code.
+   */
+  function xtestPanelsDefault() {
+    // Test panels pages.
+    // Go to panel page.
+    $this->drupalGet('skinr-panels-test-panel');
+
+    // Make sure our contextual link appears on the page.
+    $this->assertLinkByHref('admin/structure/skinr/edit/nojs/panels/pane__1__1/configure', 0, "Contexual link to edit pane's skin configuration on panel page (stored in code) was found.");
+
+
+    $this->drupalGet('admin/structure/mini-panels');
+
+    // Test mini panels.
+    // Add the mini block to the sidebar.
+    $default_theme = variable_get('theme_default', 'bartik');
+    db_merge('block')
+      ->key(array(
+        'theme' => $default_theme,
+        'module' => 'panels_mini',
+        'delta' => 'skinr_panels_test_mini_panel',
+      ))
+      ->fields(array(
+        'status' => 1,
+        'region' => 'sidebar_first',
+        'pages' => '',
+      ))
+      ->execute();
+
+    // Go front page.
+    $this->drupalGet('');
+
+    // Make sure our contextual link appears on the page.
+    // @todo Is there a better way to determine did and pid used for this panel?
+    $this->assertLinkByHref('admin/structure/skinr/edit/nojs/panels/pane__2__2/configure', 0, 'Contexual link to edit pane\'s skin configuration on mini panel (stored in code) was found.');
+  }
+
+  /**
+   * Tests panels plugin.
+   */
+  function testPanelsDatabase() {
+    // Create a simple panel node.
+    $node = $this->drupalCreateNode(array(
+      'type' => 'panel',
+      'panels_node' => array(
+        'layout' => 'onecol',
+        'css_id' => '',
+        'pipeline' => 'standard',
+      ),
+    ));
+
+    // Add a block to our panel node.
+    $display = panels_load_display($node->panels_node['did']);
+    $pane = panels_new_pane('block', 'system-user-menu', TRUE);
+    $display->add_pane($pane, 'middle');
+    $this->assertTrue(panels_save_display($display), 'Block was successfully added to panel node.');
+
+    // Go to node.
+    $uri = entity_uri('node', $node);
+    $this->drupalGet($uri['path']);
+
+    // Make sure our contextual link appears on the page.
+    // @todo Is there a better way to determine did and pid used for this panel?
+    $this->assertLinkByHref('admin/structure/skinr/edit/nojs/panels/pane__1__1/configure', 0, 'Contexual link to edit pane\'s skin configuration on panel node was found.');
+
+
+    // Test panels pages.
+    // Save page to DB.
+    $task = page_manager_get_task('page');
+    $handler = page_manager_load_task_handler($task, 'skinr_panels_test', 'page_skinr_panels_test_panel_context');
+    page_manager_save_task_handler($handler);
+
+    // Go to panel page.
+    $this->drupalGet('skinr-panels-test-panel');
+
+    // Make sure our contextual link appears on the page.
+    $this->assertLinkByHref('admin/structure/skinr/edit/nojs/panels/pane__2__2/configure', 0, "Contexual link to edit pane's skin configuration on panel page (stored in DB) was found.");
+
+
+    // Test mini panels.
+    // Save mini panel to DB.
+    $mini = panels_mini_load('skinr_panels_test_mini_panel');
+    panels_mini_save($mini);
+
+    // Add the mini block to the sidebar.
+    $default_theme = variable_get('theme_default', 'bartik');
+    db_merge('block')
+      ->key(array(
+        'theme' => $default_theme,
+        'module' => 'panels_mini',
+        'delta' => 'skinr_panels_test_mini_panel',
+      ))
+      ->fields(array(
+        'status' => 1,
+        'region' => 'sidebar_first',
+        'pages' => '',
+      ))
+      ->execute();
+
+    // Go front page.
+    $this->drupalGet('');
+
+    // Make sure our contextual link appears on the page.
+    // @todo Is there a better way to determine did and pid used for this panel?
+    $this->assertLinkByHref('admin/structure/skinr/edit/nojs/panels/pane__3__3/configure', 0, 'Contexual link to edit pane\'s skin configuration on mini panel (stored in DB) was found.');
+  }
+}

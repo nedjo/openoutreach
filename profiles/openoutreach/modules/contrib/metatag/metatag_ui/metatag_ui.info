@@ -1,0 +1,14 @@
+name = Meta tag UI
+description = User interface for the Meta tag API.
+package = Meta tags
+core = 7.x
+dependencies[] = metatag
+dependencies[] = ctools
+configure = admin/config/search/metatags
+
+; Information added by drupal.org packaging script on 2011-09-30
+version = "7.x-1.0-alpha3"
+core = "7.x"
+project = "metatag"
+datestamp = "1317392208"
+

@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function metatag_ui_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ctools' && $plugin == 'export_ui') {
+    //return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_help().
+ */
+function metatag_ui_help($path, $arg) {
+  if ($path == 'admin/config/search/metatags') {
+    // @todo Provide help text for the configuration UI.
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function metatag_ui_menu() {
+  $items['admin/config/search/metatags'] = array(
+    'title' => 'Meta tags',
+    'description' => 'Configure meta tag defaults.',
+    'page callback' => 'metatag_ui_config_overview',
+    'access arguments' => array('administer meta tags'),
+    'file' => 'metatag_ui.admin.inc',
+  );
+  $items['admin/config/search/metatags/config'] = array(
+    'title' => 'Defaults',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/search/metatags/config/add'] = array(
+    'title' => 'Add a meta tag default',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('metatag_ui_config_add_form'),
+    'access arguments' => array('administer meta tags'),
+    'file' => 'metatag_ui.admin.inc',
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['admin/config/search/metatags/config/%metatag_config'] = array(
+    'title callback' => 'metatag_ui_config_title',
+    'title arguments' => array(5),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('metatag_ui_config_edit_form', 5),
+    'access arguments' => array('administer meta tags'),
+    'file' => 'metatag_ui.admin.inc',
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/edit'] = array(
+    'title' => 'Edit',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/enable'] = array(
+    'title' => 'Enable',
+    'page callback' => 'metatag_ui_config_enable',
+    'page arguments' => array(5),
+    'access callback' => 'metatag_ui_config_access',
+    'access arguments' => array('enable', 5),
+    'file' => 'metatag_ui.admin.inc',
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/disable'] = array(
+    'title' => 'Disable',
+    'page callback' => 'metatag_ui_config_disable',
+    'page arguments' => array(5),
+    'access callback' => 'metatag_ui_config_access',
+    'access arguments' => array('disable', 5),
+    'file' => 'metatag_ui.admin.inc',
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/revert'] = array(
+    'title' => 'Revert',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('metatag_ui_config_delete_form', 5),
+    'access callback' => 'metatag_ui_config_access',
+    'access arguments' => array('revert', 5),
+    'file' => 'metatag_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('metatag_ui_config_delete_form', 5),
+    'access callback' => 'metatag_ui_config_access',
+    'access arguments' => array('delete', 5),
+    'file' => 'metatag_ui.admin.inc',
+  );
+  $items['admin/config/search/metatags/config/%metatag_config/export'] = array(
+    'title' => 'Export',
+    'page callback' => 'metatag_ui_config_export_form',
+    'page arguments' => array(5),
+    'access arguments' => array('administer meta tags'),
+    'file' => 'metatag_ui.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+
+  return $items;
+}
+
+/**
+ * Title callback for meta tag configuration instances.
+ */
+function metatag_ui_config_title($config) {
+  return metatag_config_instance_label($config->instance);
+}
+
+/**
+ * Access callback for meta tag configuration instances.
+ */
+function metatag_ui_config_access($op, $config = NULL) {
+  if (!user_access('administer meta tags')) {
+    return FALSE;
+  }
+
+  if ($op == 'enable') {
+    return !empty($config->disabled);
+  }
+  elseif ($op == 'disable') {
+    return empty($config->disabled);
+  }
+  elseif ($op == 'delete') {
+    return ($config->export_type & EXPORT_IN_DATABASE) && !($config->export_type & EXPORT_IN_CODE);
+  }
+  elseif ($op == 'revert') {
+    return ($config->export_type & EXPORT_IN_DATABASE) && ($config->export_type & EXPORT_IN_CODE);
+  }
+
+  return FALSE;
+}

@@ -1,5 +1,4 @@
 <?php
-// $Id: xb1.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'nyaess', 'nyaeng', 'nyaej', 'nyaec', 'nyaek', 'nyaet', 'nyaep', 'nyaeh', 'neo', 'neog', 'neogg', 'neogs', 'neon', 'neonj', 'neonh', 'neod',

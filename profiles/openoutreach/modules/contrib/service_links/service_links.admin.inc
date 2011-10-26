@@ -147,6 +147,57 @@ function service_links_admin_settings() {
     '#description' => t('When to display the services after the content text.'),
   );
 
+  $form['page_match'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Page specific visibility settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $access = user_access('use PHP for service visibility');
+  $visibility = variable_get('service_links_visibility_for_node', SERVICE_LINKS_VISIBILITY_NOT_LISTED);
+  $pages = variable_get('service_links_page_match_for_node', '');
+  if ($visibility == SERVICE_LINKS_VISIBILITY_PHP && !$access) {
+    $form['page_match'] = array(
+      'service_links_visibility_for_node' => array(
+        '#type' => 'value', 
+        '#value' => SERVICE_LINKS_VISIBILITY_PHP,
+      ),
+      'service_links_page_match_for_node' => array(
+        '#type' => 'value',
+        '#value' => $pages,
+      ),
+    );
+  }
+  else {
+    $options = array(
+      SERVICE_LINKS_VISIBILITY_NOT_LISTED => t('All pages except those listed'),
+      SERVICE_LINKS_VISIBILITY_ONLY_LISTED => t('Only the listed pages'),
+    );
+    $description = t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>'));
+
+    if (module_exists('php') && $access) {
+      $options += array(SERVICE_LINKS_VISIBILITY_PHP => t('Pages on which this PHP code returns <code>TRUE</code> (experts only)'));
+      $title = t('Pages or PHP code');
+      $description .= ' ' . t('If the PHP option is chosen, enter PHP code between %php. Note that executing incorrect PHP code can break your Drupal site.', array('%php' => '<?php ?>'));
+    }
+    else {
+      $title = t('Pages');
+    }
+
+    $form['page_match']['service_links_visibility_for_node'] = array(
+      '#type' => 'radios',
+      '#title' => t('Show Service Links on specific pages'),
+      '#options' => $options,
+      '#default_value' => $visibility,
+    );
+    $form['page_match']['service_links_page_match_for_node'] = array(
+      '#type' => 'textarea',
+      '#title' => $title,
+      '#default_value' => $pages,
+      '#description' => $description,
+    );
+  }
+
   $form['how_to_show_the_links'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,

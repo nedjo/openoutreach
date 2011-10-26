@@ -1,137 +1,39 @@
 <?php
 /**
  * @file
- * Provide skinr handling for comment.module
- */
-
-/**
- * @defgroup skinr_comment_module comment.module handlers
- *
- * @{
+ * Implements Skinr hooks for comment.module.
  */
 
 /**
  * Implements hook_skinr_config_info().
  */
 function comment_skinr_config_info() {
-  $data['comment']['form']['skinr_ui_form'] = array(
-    'preprocess_hook_callback' => 'comment_skinr_preprocess_hook_callback',
-    'title' => t('comment settings'),
-    'skinr_weight' => 2,
-    'collapsed' => FALSE,
-  );
-  $data['comment']['preprocess']['comment_wrapper'] = array(
-    'index_handler' => 'comment_skinr_preprocess_index_handler',
-  );
-  $data['comment']['contextual_links']['comment_wrapper'] = array(
-    'contextual_links_handler' => 'comment_skinr_contextual_links',
-  );
-
-  return $data;
+  return array('comment');
 }
 
 /**
- * Skinr form index handler.
- *
- * @param $op
- *   What kind of action is being performed. Possible values:
- *   - 'form': the form elements for Skinr are being inserted in a form.
- *   - 'submit': the form has been submitted.
- * @param &$form
- *   - For 'form', passes in the $form parameter from hook_form_alter().
- *   - For 'submit', passes in the $form parameter from hook_form_submit().
- * @param $form_state
- *   - For 'form', passes in the $form_state parameter from hook_form_alter().
- *   - For 'submit', passes in the $form_state parameter from hook_form_submit().
- *
- * @return
- *   The index where we can find our values in Skinr's data structure.
+ * Implements hook_skinr_theme_hooks().
  */
-function comment_skinr_form_index_handler($op, &$form, &$form_state) {
-  switch ($op) {
-    case 'form':
-      return $form['#node_type']->type;
+function comment_skinr_theme_hooks($module, $element) {
+  $theme_hooks = array();
 
-    case 'submit':
-      // Clear old variable before we set a new one if the node type has changed
-      if ($form_state['values']['old_type'] != $form_state['values']['type']) {
-        foreach ($form_state['values']['skinr_settings']['comment_group'] as $theme_name => $theme_data) {
-          $skinr = new stdClass();
-          $skinr->theme = $theme_name;
-          $skinr->module = 'comment';
-          $skinr->element = $form_state['values']['old_type'];
-          $skinr->skins = array();
-
-          skinr_skin_save($skinr);
-        }
-      }
-    return $form_state['values']['type'];
+  if ($module == 'comment') {
+    $theme_hooks = array(
+      'comment_wrapper__' . $element,
+      'comment_wrapper',
+    );
   }
+
+  return $theme_hooks;
 }
 
 /**
- * Skinr preprocess hook callback.
- *
- * @param &$form
- *   Passes in the $form parameter from hook_form_alter().
- * @param $form_state
- *   Passes in the $form_state parameter from hook_form_alter().
- *
- * @return
- *   An array of preprocess hooks we wish to use.
+ * Implements hook_skinr_elements().
  */
-function comment_skinr_preprocess_hook_callback(&$form, $form_state) {
-  $preprocess_hooks = array();
-
-  if (!isset($form['#node_type']->type) && !empty($form['skinr']['element']['#value'])) {
-    $preprocess_hooks[] = 'comment_wrapper__' . $form['skinr']['element']['#value'];
+function comment_skinr_elements($variables, $hook) {
+  $elements = array();
+  if ($hook == 'comment_wrapper') {
+    $elements['comment'] = array($variables['node']->type);
   }
-  else {
-    $preprocess_hooks[] = 'comment_wrapper__' . $form['#node_type']->type;
-  }
-  $preprocess_hooks[] = 'comment_wrapper';
-
-  return $preprocess_hooks;
+  return $elements;
 }
-
-/**
- * Skinr preprocess index handler.
- *
- * @param &$variables
- *   Passes in the $variables parameter from skinr_preprocess().
- *
- * @return
- *   The index where we can find our values in Skinr's data structure. If an
- *   array is returned, it will loop through each index in Skinr's data
- *   structure and merge the returned classes.
- */
-function comment_skinr_preprocess_index_handler(&$variables) {
-  return array($variables['node']->type);
-}
-
-/**
- * Skinr contextual links handler.
- *
- * @param &$variables
- *   Passes in the $variables parameter from skinr_preprocess().
- *
- * @return
- *   An array. Each value is an array that forms the function arguments for
- *   menu_contextual_links(). For example:
- *   @code
- *     array(
- *       'admin/appearance/skinr/edit', array('system', 'navigation')),
- *     )
- *   @endcode
- */
-function comment_skinr_contextual_links(&$variables) {
-  $links = array();
-  $links['skinr-comment'] = array(
-    'admin/appearance/skinr/edit/nojs', array('comment', $variables['node']->type),
-  );
-  return $links;
-}
-
-/**
- * @}
- */

@@ -205,10 +205,10 @@ function theme_media_gallery_media_item_lightbox($variables) {
   $link_vars = array();
   $link_vars['image'] = $image;
   $link_vars['link_path'] = "media-gallery/detail/$gallery_id/$media_id";
-  $link_vars['no_link'] = $element['#bundle'] == 'video' ? TRUE : FALSE;
+  $link_vars['no_link'] = $element['#bundle'] != 'image' ? TRUE : FALSE;
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = $element['#bundle'] == 'video' ? l(t('View detail page'), $link_vars['link_path']) : theme('media_gallery_download_link', array('file' => $file));
+    $download_link = $element['#bundle'] == 'image' ? theme('media_gallery_download_link', array('file' => $file)) : l(t('View detail page'), $link_vars['link_path']);
   }
 
   else {
@@ -294,7 +294,7 @@ function theme_media_gallery_media_item_detail($variables) {
   }
 
   if ($gallery_node->getValue('media_gallery_allow_download') == TRUE) {
-    $download_link = $element['#bundle'] == 'video' ? '&nbsp;' : theme('media_gallery_download_link', array('file' => $file));
+    $download_link = $element['#bundle'] == 'image' ? theme('media_gallery_download_link', array('file' => $file)) : '&nbsp;';
   }
   else {
     // Very ugly fix: This prevents the license info from being either hidden
@@ -332,10 +332,18 @@ function theme_media_gallery_media_item_detail($variables) {
       '</div>' .
     '</div>';
 
-  // Set the title and license to be #access = false so they don't get rendered as children
-  $element['media_title']['#access'] = FALSE;
-  $element['field_license']['#access'] = FALsE;
+  // The license was already output above via a direct theme() call rather
+  // than drupal_render().
+  $element['field_license']['#printed'] = TRUE;
 
+  // The file was rendered above, but due to a drupal_render() bug, might not be
+  // marked as printed.
+  // @todo Remove when http://drupal.org/node/1305220 is fixed.
+  $element['file']['#printed'] = TRUE;
+
+  // Render the remaining fields, but not the title, since that's output as
+  // part of the page title.
+  $element['media_title']['#access'] = FALSE;
   $output .=
     '<div class="no-overflow">' .
       drupal_render_children($element) .

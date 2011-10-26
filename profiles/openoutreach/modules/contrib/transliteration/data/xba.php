@@ -1,5 +1,4 @@
 <?php
-// $Id: xba.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'mya', 'myag', 'myagg', 'myags', 'myan', 'myanj', 'myanh', 'myad', 'myal', 'myalg', 'myalm', 'myalb', 'myals', 'myalt', 'myalp', 'myalh',

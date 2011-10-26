@@ -1,5 +1,4 @@
 <?php
-// $Id: xbd.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'bols', 'bolt', 'bolp', 'bolh', 'bom', 'bob', 'bobs', 'bos', 'boss', 'bong', 'boj', 'boc', 'bok', 'bot', 'bop', 'boh',

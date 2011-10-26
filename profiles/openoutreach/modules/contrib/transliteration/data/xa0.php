@@ -1,5 +1,4 @@
 <?php
-// $Id: xa0.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'it', 'ix', 'i', 'ip', 'iet', 'iex', 'ie', 'iep', 'at', 'ax', 'a', 'ap', 'uox', 'uo', 'uop', 'ot',

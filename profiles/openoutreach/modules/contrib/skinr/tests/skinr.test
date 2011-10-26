@@ -5,6 +5,46 @@
  * Tests for the Skinr module.
  */
 
+class SkinrWebTestCase extends DrupalWebTestCase {
+  /**
+   * Asserts that a class is set for the given element id.
+   *
+   * @param $id
+   *   Id of the HTML element to check.
+   * @param $class
+   *   The class name to check for.
+   * @param $message
+   *   Message to display.
+   * @return
+   *   TRUE on pass, FALSE on fail.
+   */
+  function assertSkinrClass($id, $class, $message = '') {
+    $elements = $this->xpath('//div[@id=:id and contains(@class, :class)]', array(
+      ':id' => $id,
+      ':class' => $class,
+    ));
+    $this->assertTrue(!empty($elements[0]), $message);
+  }
+
+  /**
+   * Asserts that a class is not set for the given element id.
+   *
+   * @param $id
+   *   Id of the HTML element to check.
+   * @param $class
+   *   The class name to check for.
+   * @param $message
+   *   Message to display.
+   * @return
+   *   TRUE on pass, FALSE on fail.
+   */
+  function assertNoSkinrClass($id, $class, $message = '') {
+    $elements = $this->xpath('//div[@id=:id]', array(':id' => $id));
+    $class_attr = (string) $elements[0]['class'];
+    $this->assertTrue(strpos($class_attr, $class) === FALSE, $message);
+  }
+}
+
 /**
  * Tests basic module installation.
  */
@@ -50,7 +90,7 @@ class SkinrInstallationTestCase extends DrupalWebTestCase {
     $this->drupalPost('admin/people/permissions', $edit, t('Save permissions'));
 
     // Verify that we are able to access Skinr's administration pages.
-    $this->drupalGet('admin/appearance/skinr');
+    $this->drupalGet('admin/structure/skinr');
     $this->assertResponse(200);
 
     // Uninstall the modules.
@@ -86,7 +126,7 @@ class SkinrInstallationTestCase extends DrupalWebTestCase {
  *
  * @link http://drupal.org/node/953336#comment-3738456 Make sure this patch is applied to drupal core @endlink
  */
-class SkinrApiTestCase extends DrupalWebTestCase {
+class SkinrApiTestCase extends SkinrWebTestCase {
   protected $profile = 'testing';
 
   public static function getInfo() {
@@ -127,10 +167,10 @@ class SkinrApiTestCase extends DrupalWebTestCase {
   /**
    * Tests skinr_implements().
    */
-  public function testSkinrImplements() {
+  public function testSkinrImplementsAPI() {
     // Verify that skinr_implements() only returns extensions that are
     // compatible with this version of Skinr.
-    $extensions = skinr_implements();
+    $extensions = skinr_implements_api();
 
     // The expected extensions and their specific properties, if any.
     $all_expected = array(
@@ -140,6 +180,7 @@ class SkinrApiTestCase extends DrupalWebTestCase {
       'node' => array(
         'version' => VERSION,
         'path' => drupal_get_path('module', 'skinr') . '/modules',
+        'include file' => drupal_get_path('module', 'skinr') . '/modules/node.skinr.inc',
       ),
       // skinr_test has been installed.
       'skinr_test' => array(
@@ -151,6 +192,7 @@ class SkinrApiTestCase extends DrupalWebTestCase {
         'directory' => 'skins',
         'base themes' => array(),
         'sub themes' => drupal_map_assoc(array('skinr_test_subtheme')),
+        'include file' => drupal_get_path('theme', 'skinr_test_basetheme') . '/skinr_test_basetheme.skinr.inc',
       ),
       'skinr_test_subtheme' => array(
         'type' => 'theme',
@@ -158,6 +200,7 @@ class SkinrApiTestCase extends DrupalWebTestCase {
         'directory' => 'skins',
         'base themes' => drupal_map_assoc(array('skinr_test_basetheme')),
         'sub themes' => array(),
+        'include file' => drupal_get_path('theme', 'skinr_test_subtheme') . '/skinr_test_subtheme.skinr.inc',
       ),
     );
     // When running tests on Skinr code packaged by drupal.org, all 'version'
@@ -186,6 +229,111 @@ class SkinrApiTestCase extends DrupalWebTestCase {
     $this->assertTrue(!isset($extensions['skinr_test_incompatible']), 'Incompatible extension not found.');
     // After asserting all expected, the list of extensions should be empty.
     $this->assertTrue(empty($extensions), 'No unexpected extensions found.');
+  }
+
+  /**
+   * Test module_implements().
+   */
+  function testSkinrImplements() {
+    // Test clearing cache.
+    cache_clear_all('skinr_implements', 'cache_bootstrap');
+    $this->assertFalse(cache_get('skinr_implements', 'cache_bootstrap'), t('The skinr implements cache is empty.'));
+    $this->drupalGet('');
+    $this->assertTrue(cache_get('skinr_implements', 'cache_bootstrap'), t('The skinr implements cache is populated after requesting a page.'));
+
+    // Test clearing cache with an authenticated user.
+    $this->user = $this->drupalCreateUser(array());
+    $this->drupalLogin($this->user);
+    cache_clear_all('skinr_implements', 'cache_bootstrap');
+    $this->drupalGet('');
+    $this->assertTrue(cache_get('skinr_implements', 'cache_bootstrap'), t('The skinr implements cache is populated after requesting a page.'));
+
+    // Make sure $module.skinr.inc files (both in the module root, which are
+    // auto-loaded by drupal, and in custom paths and themes, which are
+    // loaded by skinr_implements()) are loaded when the hook is called. Also
+    // ensure only module that implement the current Skinr API are loaded.
+    $modules = skinr_implements('skinr_skin_info');
+
+    // Ensure the hook is found in includes.
+    $this->assertTrue(in_array('skinr_test', $modules), 'Hook found in $module.skinr.inc file auto-loaded by module_hook().');
+    $this->assertTrue(in_array('skinr_test_subtheme', $modules), 'Hook found in $module.skinr.inc file in custom path.');
+
+    // Ensure that skinr_test_incompatible is not included.
+    $this->assertTrue(!in_array('skinr_test_incompatible', $modules), 'Hook in incompatible module not found.');
+  }
+
+  /**
+   * Tests skinr_implements() caching and auto-loading.
+   */
+  function testSkinrImplementsCache() {
+    module_enable(array('block'));
+    $this->resetAll();
+    // Enable main system block for content region and the user menu block for
+    // the first sidebar.
+    $default_theme = variable_get('theme_default', 'bartik');
+    db_merge('block')
+      ->key(array(
+        'theme' => $default_theme,
+        'module' => 'system',
+        'delta' => 'main',
+      ))
+      ->fields(array(
+        'status' => 1,
+        'region' => 'content',
+        'pages' => '',
+      ))
+      ->execute();
+    db_merge('block')
+      ->key(array(
+        'theme' => $default_theme,
+        'module' => 'system',
+        'delta' => 'powered-by',
+      ))
+      ->fields(array(
+        'status' => 1,
+        'region' => 'sidebar_first',
+        'pages' => '',
+      ))
+      ->execute();
+
+    // Enable a skin defined in an include file, which applies to a module
+    // element that is equally registered in an include file (built-in Block
+    // module integration).
+    $skin = (object) array(
+      'theme' => $default_theme,
+      'module' => 'block',
+      'element' => 'system__powered-by',
+      'skin' => 'skinr_test_font',
+      'options' => array('font_1'),
+      'status' => 1,
+    );
+    skinr_skin_save($skin);
+
+    // Verify the skin is contained in the output.
+    $this->drupalGet('');
+    $this->assertSkinrClass('block-system-powered-by', 'font-1', 'Skin found.');
+
+    // Once again, so we hit the cache.
+    $this->drupalGet('');
+    $this->assertSkinrClass('block-system-powered-by', 'font-1', 'Skin found.');
+
+    // Visit skin edit page after to test for groups, after hitting cache.
+    $this->drupalGet('skinr-test/hook-dynamic-loading');
+    $this->assertText('success!', t('$module.skinr.inc file auto-loaded.'));
+  }
+
+  /**
+   * Test that module_invoke_all() can load a hook defined in hook_hook_info().
+   */
+  function testSkinrInvokeAll() {
+    // Ensure functions from $module.skinr.inc in both module root and in
+    // custom paths are triggered.
+    $config_info = skinr_invoke_all('skinr_config_info');
+    $this->assertTrue(in_array('rules', $config_info), 'Function triggered in $module.skinr.inc file auto-loaded by module_hook().');
+    $this->assertTrue(in_array('node', $config_info), 'Function triggered in $module.skinr.inc file in custom path.');
+
+    // Ensure that skinr_test_incompatible is not included.
+    $this->assertTrue(!in_array('skinr_test_incompatible', $config_info), 'Function in incompatible module not triggered.');
   }
 
   /**
@@ -293,15 +441,24 @@ class SkinrApiTestCase extends DrupalWebTestCase {
     $config = skinr_get_config_info();
 
     // Skinr's own implementation in skinr.skinr.inc should always be found.
-    $this->assertTrue(isset($config['rules']), 'hook_skinr_config_info() in $module.skinr.inc found.');
-    unset($config['rules']);
+    $this->assertTrue(in_array('rules', $config), 'hook_skinr_config_info() in $module.skinr.inc found.');
+    foreach ($config as $key => $type) {
+      if ($type == 'rules') {
+        unset($config[$key]);
+      }
+    }
 
     // Skinr's implementation on behalf of Node module in modules/node.skinr.inc
     // should be found.
-    $this->assertTrue(isset($config['node']), 'hook_skinr_config_info() in a custom path found.');
-    unset($config['node']);
+    $this->assertTrue(in_array('node', $config), 'hook_skinr_config_info() in a custom path found.');
+    foreach ($config as $key => $type) {
+      if ($type == 'node') {
+        unset($config[$key]);
+      }
+    }
 
-    // Ensure that skinr_test_incompatible is not contained.
+    // Ensure that skinr_test_incompatible is not included.
+    $this->verbose(highlight_string('<?php ' . var_export($config, TRUE), TRUE));
     $this->assertTrue(!isset($config['skinr_test_incompatible']), 'Incompatible hook_skinr_config_info() not found.');
     // After asserting all expected, the list of skins should be empty.
     $this->assertTrue(empty($config), 'No unexpected skins found.');
@@ -422,7 +579,7 @@ class SkinrApiTestCase extends DrupalWebTestCase {
  *
  * @link http://drupal.org/node/953336#comment-3738456 Make sure this patch is applied to drupal core @endlink
  */
-class SkinrDisplayTestCase extends DrupalWebTestCase {
+class SkinrDisplayTestCase extends SkinrWebTestCase {
   protected $profile = 'testing';
 
   public static function getInfo() {
@@ -472,42 +629,6 @@ class SkinrDisplayTestCase extends DrupalWebTestCase {
 
     // Enable Garland.
     theme_enable(array('garland'));
-  }
-
-  /**
-   * Asserts that a class is set for the given element id.
-   *
-   * @param $id
-   *   Id of the HTML element to check.
-   * @param $class
-   *   The class name to check for.
-   * @param $message
-   *   Message to display.
-   * @return
-   *   TRUE on pass, FALSE on fail.
-   */
-  function assertSkinrClass($id, $class, $message = '') {
-    $elements = $this->xpath('//div[@id=:id]', array(':id' => $id));
-    $class_attr = (string) $elements[0]['class'];
-    $this->assertTrue(strpos($class_attr, ' ' . $class . ' '), $message);
-  }
-
-  /**
-   * Asserts that a class is not set for the given element id.
-   *
-   * @param $id
-   *   Id of the HTML element to check.
-   * @param $class
-   *   The class name to check for.
-   * @param $message
-   *   Message to display.
-   * @return
-   *   TRUE on pass, FALSE on fail.
-   */
-  function assertNoSkinrClass($id, $class, $message = '') {
-    $elements = $this->xpath('//div[@id=:id]', array(':id' => $id));
-    $class_attr = (string) $elements[0]['class'];
-    $this->assertFalse(strpos($class_attr, ' ' . $class . ' '), $message);
   }
 
   public function testSkinrDisplayed() {

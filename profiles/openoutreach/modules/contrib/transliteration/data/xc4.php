@@ -1,5 +1,4 @@
 <?php
-// $Id: xc4.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'sswals', 'sswalt', 'sswalp', 'sswalh', 'sswam', 'sswab', 'sswabs', 'sswas', 'sswass', 'sswang', 'sswaj', 'sswac', 'sswak', 'sswat', 'sswap', 'sswah',

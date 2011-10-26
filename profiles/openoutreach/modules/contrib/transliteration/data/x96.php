@@ -1,5 +1,4 @@
 <?php
-// $Id: x96.php,v 1.3 2009/06/09 19:07:06 smk Exp $
 
 $base = array(
   0x00 => 'Fa ', 'Ge ', 'He ', 'Kun ', 'Jiu ', 'Yue ', 'Lang ', 'Du ', 'Yu ', 'Yan ', 'Chang ', 'Xi ', 'Wen ', 'Hun ', 'Yan ', 'E ',

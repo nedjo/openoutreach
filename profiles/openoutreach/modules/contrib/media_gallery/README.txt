@@ -19,7 +19,7 @@ INSTALLATION
 
    Required:
 
-   a. Media (7.x-1.0-beta5)
+   a. Media (latest 1.x release, tested with 7.x-1.0-rc2)
       - Download from http://drupal.org/project/media and unpack it in your
         contributed modules directory (usually sites/all/modules).
    b. Multiform (7.x-1.0-beta2)

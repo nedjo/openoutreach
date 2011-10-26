@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function debut_article_field_default_fields() {
   $fields = array();
@@ -77,7 +77,7 @@ function debut_article_field_default_fields() {
           'summary_rows' => 5,
         ),
         'type' => 'text_textarea_with_summary',
-        'weight' => '3',
+        'weight' => '4',
       ),
       'widget_type' => 'text_textarea_with_summary',
     ),
@@ -115,7 +115,7 @@ function debut_article_field_default_fields() {
     'field_instance' => array(
       'bundle' => 'article',
       'deleted' => '0',
-      'description' => 'Select an image to be displayed in association with this piece of content.  The maximum allowed image size is 1000 x 1000 pixels.',
+      'description' => 'Select an image to be displayed in association with this piece of content.',
       'display' => array(
         'default' => array(
           'label' => 'hidden',
@@ -170,75 +170,6 @@ function debut_article_field_default_fields() {
         ),
         'type' => 'media_generic',
         'weight' => '1',
-      ),
-    ),
-  );
-
-  // Exported field: 'node-article-field_media'
-  $fields['node-article-field_media'] = array(
-    'field_config' => array(
-      'active' => '1',
-      'cardinality' => '-1',
-      'deleted' => '0',
-      'entity_types' => array(),
-      'field_name' => 'field_media',
-      'foreign keys' => array(),
-      'indexes' => array(
-        'fid' => array(
-          0 => 'fid',
-        ),
-      ),
-      'module' => 'media',
-      'settings' => array(),
-      'translatable' => '1',
-      'type' => 'media',
-    ),
-    'field_instance' => array(
-      'bundle' => 'article',
-      'deleted' => '0',
-      'description' => '',
-      'display' => array(
-        'default' => array(
-          'label' => 'hidden',
-          'module' => 'media',
-          'settings' => array(
-            'file_view_mode' => 'media_large',
-          ),
-          'type' => 'media',
-          'weight' => '2',
-        ),
-        'teaser' => array(
-          'label' => 'above',
-          'settings' => array(),
-          'type' => 'hidden',
-          'weight' => '2',
-        ),
-      ),
-      'entity_type' => 'node',
-      'field_name' => 'field_media',
-      'label' => 'Media',
-      'required' => 0,
-      'settings' => array(
-        'user_register_form' => FALSE,
-      ),
-      'widget' => array(
-        'active' => 1,
-        'module' => 'media',
-        'settings' => array(
-          'allowed_schemes' => array(
-            'public' => 'public',
-            'youtube' => 'youtube',
-          ),
-          'allowed_types' => array(
-            'audio' => 'audio',
-            'default' => 'default',
-            'image' => 'image',
-            'video' => 'video',
-          ),
-          'progress_indicator' => 'throbber',
-        ),
-        'type' => 'media_generic',
-        'weight' => '4',
       ),
     ),
   );
@@ -310,7 +241,7 @@ function debut_article_field_default_fields() {
           'size' => 60,
         ),
         'type' => 'taxonomy_autocomplete',
-        'weight' => '2',
+        'weight' => '3',
       ),
     ),
   );
@@ -321,7 +252,7 @@ function debut_article_field_default_fields() {
   t('Enter a comma-separated list of words to describe your content.');
   t('Image');
   t('Media');
-  t('Select an image to be displayed in association with this piece of content.  The maximum allowed image size is 1000 x 1000 pixels.');
+  t('Select an image to be displayed in association with this piece of content.');
   t('Tags');
 
   return $fields;

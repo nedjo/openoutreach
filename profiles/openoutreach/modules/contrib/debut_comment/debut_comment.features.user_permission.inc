@@ -44,6 +44,7 @@ function debut_comment_user_default_permissions() {
     'name' => 'administer comments',
     'roles' => array(
       0 => 'administrator',
+      1 => 'editor',
     ),
     'module' => 'comment',
   );

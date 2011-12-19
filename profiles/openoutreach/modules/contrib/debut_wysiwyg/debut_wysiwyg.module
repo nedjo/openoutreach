@@ -1,7 +1,5 @@
 <?php
 
-include_once('debut_wysiwyg.features.inc');
-
 /**
  * Implements hook_wysiwyg_editor_settings_alter().
  *
@@ -12,5 +10,3 @@ function debut_wysiwyg_wysiwyg_editor_settings_alter(&$settings, $context) {
     $settings['disableNativeSpellChecker'] = FALSE;
   }
 }
-
-

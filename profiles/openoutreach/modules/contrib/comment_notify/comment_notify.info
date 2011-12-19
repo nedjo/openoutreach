@@ -10,9 +10,9 @@ files[] = comment_notify.tokens.inc
 files[] = comment_notify.inc
 files[] = comment_notify.test
 
-; Information added by drupal.org packaging script on 2011-09-12
-version = "7.x-1.0-rc1"
+; Information added by drupal.org packaging script on 2011-11-02
+version = "7.x-1.0"
 core = "7.x"
 project = "comment_notify"
-datestamp = "1315852907"
+datestamp = "1320253230"
 

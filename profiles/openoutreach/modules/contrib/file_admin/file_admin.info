@@ -5,3 +5,10 @@ package = Media
 dependencies[] = media
 
 files[] = includes/views_handler_filter_file_admin.inc
+
+; Information added by drupal.org packaging script on 2011-12-07
+version = "7.x-1.0-alpha1"
+core = "7.x"
+project = "file_admin"
+datestamp = "1323216678"
+

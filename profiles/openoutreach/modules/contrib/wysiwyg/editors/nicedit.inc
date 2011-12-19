@@ -82,7 +82,7 @@ function wysiwyg_nicedit_settings($editor, $config, $theme) {
         $settings['externalCSS'] = base_path() . $css;
       }
     }
-    else if ($config['css_setting'] == 'self' && isset($config['css_path'])) {
+    elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
       $settings['externalCSS'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
     }
   }

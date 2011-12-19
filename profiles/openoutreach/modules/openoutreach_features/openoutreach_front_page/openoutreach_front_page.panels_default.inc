@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_default_panels_mini().
+ * Implements hook_default_panels_mini().
  */
 function openoutreach_front_page_default_panels_mini() {
   $export = array();

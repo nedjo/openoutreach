@@ -23,6 +23,8 @@ class jcarousel_style_plugin extends views_plugin_style {
     $options['start'] = array('default' => '1');
     $options['easing'] = array('default' => NULL);
     $options['vertical'] = array('default' => FALSE);
+    $options['navigation'] = array('default' => '');
+    $options['ajax'] = array('default' => 0);
     return $options;
   }
 
@@ -63,7 +65,7 @@ class jcarousel_style_plugin extends views_plugin_style {
       '#title' => t('Skin'),
       '#default_value' => $this->options['skin'],
       '#options' => $skins,
-      '#description' => t('Skins may be provided by other modules. Set to "None" if your theme includes carousel theming directly in style.css or another stylesheet.'),
+      '#description' => t('Skins may be provided by other modules. Set to "None" if your theme includes carousel theming directly in style.css or another stylesheet. "None" does not include any built-in navigation, arrows, or positioning at all.'),
     );
     $form['visible'] = array(
       '#type' => 'select',
@@ -87,6 +89,23 @@ class jcarousel_style_plugin extends views_plugin_style {
       '#default_value' => $this->options['auto'],
       '#field_suffix' => ' ' . t('seconds'),
       '#description' => t('Specifies how many seconds to periodically auto-scroll the content. If set to 0 (default) then autoscrolling is turned off.'),
+    );
+    $form['navigation'] = array(
+      '#type' => 'select',
+      '#title' => t('Enable navigation'),
+      '#options' => array(
+        '' => t('None'),
+        'before' => t('Before'),
+        'after' => t('After'),
+      ),
+      '#default_value' => $this->options['navigation'],
+      '#description' => t('Enable a clickable navigation list to jump straight to a given page.'),
+    );
+    $form['ajax'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('AJAX load pages'),
+      '#default_value' => $this->options['ajax'],
+      '#description' => t('The number of items set in the pager settings will be preloaded. All additional pages will be loaded by AJAX as needed.'),
     );
 
     $form['advanced'] = array(

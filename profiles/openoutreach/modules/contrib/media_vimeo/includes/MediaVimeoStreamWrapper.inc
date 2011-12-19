@@ -7,7 +7,7 @@
 
 /**
  *  Create an instance like this:
- *  $vimeo = new ResourceVimeoStreamWrapper('vimeo://?v=[video-code]');
+ *  $vimeo = new ResourceVimeoStreamWrapper('vimeo://v/[video-code]');
  */
 class MediaVimeoStreamWrapper extends MediaReadOnlyStreamWrapper {
   protected $base_url = 'http://vimeo.com/';
@@ -39,7 +39,7 @@ class MediaVimeoStreamWrapper extends MediaReadOnlyStreamWrapper {
     }
     return $local_path;
   }
-  
+
   /**
    *  Ref: http://vimeo.com/api/docs/simple-api
    *  Example of Vimeo simple API 2 request for video properties:

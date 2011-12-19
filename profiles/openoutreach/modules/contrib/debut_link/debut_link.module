@@ -7,6 +7,13 @@
 include_once('debut_link.features.inc');
 
 /**
+ * Implements hook_init().
+ */
+function debut_link_init() {
+  drupal_add_css(drupal_get_path('module', 'debut_link') . '/debut_link.css');
+}
+
+/**
  * Implements hook_menu_alter().
  *
  * Add a local action link to the link view page.

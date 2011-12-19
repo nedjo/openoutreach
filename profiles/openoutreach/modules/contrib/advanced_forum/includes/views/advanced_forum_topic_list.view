@@ -119,7 +119,7 @@ $handler->display->display_options['style_options']['info'] = array(
   ),
   'last_updated' => array(
     'sortable' => 1,
-    'default_sort_order' => 'asc',
+    'default_sort_order' => 'desc',
     'align' => '',
     'separator' => '<br />',
   ),
@@ -139,6 +139,7 @@ $handler->display->display_options['style_options']['info'] = array(
 $handler->display->display_options['style_options']['override'] = 0;
 $handler->display->display_options['style_options']['sticky'] = 1;
 $handler->display->display_options['style_options']['order'] = 'desc';
+$handler->display->display_options['style_options']['empty_table'] = 0;
 $handler->display->display_options['style_options']['tid'] = 'argument.tid';
 /* No results behavior: Global: Text area */
 $handler->display->display_options['empty']['text']['id'] = 'text';
@@ -275,37 +276,57 @@ $handler->display->display_options['fields']['created']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['created']['alter']['html'] = 0;
 $handler->display->display_options['fields']['created']['hide_empty'] = 0;
 $handler->display->display_options['fields']['created']['empty_zero'] = 0;
-/* Field: Content: Comment count */
-$handler->display->display_options['fields']['comment_count']['id'] = 'comment_count';
-$handler->display->display_options['fields']['comment_count']['table'] = 'node_comment_statistics';
-$handler->display->display_options['fields']['comment_count']['field'] = 'comment_count';
-$handler->display->display_options['fields']['comment_count']['label'] = 'Replies';
-$handler->display->display_options['fields']['comment_count']['alter']['alter_text'] = 0;
-$handler->display->display_options['fields']['comment_count']['alter']['make_link'] = 0;
-$handler->display->display_options['fields']['comment_count']['alter']['word_boundary'] = 1;
-$handler->display->display_options['fields']['comment_count']['alter']['ellipsis'] = 1;
-$handler->display->display_options['fields']['comment_count']['alter']['strip_tags'] = 0;
-$handler->display->display_options['fields']['comment_count']['alter']['trim'] = 0;
-$handler->display->display_options['fields']['comment_count']['alter']['html'] = 0;
-$handler->display->display_options['fields']['comment_count']['empty'] = '0';
-$handler->display->display_options['fields']['comment_count']['hide_empty'] = 0;
-$handler->display->display_options['fields']['comment_count']['empty_zero'] = 1;
 /* Field: Content: New comments */
 $handler->display->display_options['fields']['new_comments']['id'] = 'new_comments';
 $handler->display->display_options['fields']['new_comments']['table'] = 'node';
 $handler->display->display_options['fields']['new_comments']['field'] = 'new_comments';
+$handler->display->display_options['fields']['new_comments']['exclude'] = TRUE;
 $handler->display->display_options['fields']['new_comments']['alter']['alter_text'] = 0;
 $handler->display->display_options['fields']['new_comments']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['new_comments']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['new_comments']['alter']['external'] = 0;
+$handler->display->display_options['fields']['new_comments']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['new_comments']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['new_comments']['alter']['nl2br'] = 0;
 $handler->display->display_options['fields']['new_comments']['alter']['word_boundary'] = 1;
 $handler->display->display_options['fields']['new_comments']['alter']['ellipsis'] = 1;
 $handler->display->display_options['fields']['new_comments']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['new_comments']['alter']['trim'] = 0;
 $handler->display->display_options['fields']['new_comments']['alter']['html'] = 0;
+$handler->display->display_options['fields']['new_comments']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['new_comments']['element_default_classes'] = 1;
 $handler->display->display_options['fields']['new_comments']['hide_empty'] = 1;
 $handler->display->display_options['fields']['new_comments']['empty_zero'] = 0;
+$handler->display->display_options['fields']['new_comments']['hide_alter_empty'] = 0;
+$handler->display->display_options['fields']['new_comments']['format_plural'] = 0;
 $handler->display->display_options['fields']['new_comments']['prefix'] = 'View ';
 $handler->display->display_options['fields']['new_comments']['suffix'] = ' new';
 $handler->display->display_options['fields']['new_comments']['link_to_comment'] = 1;
+/* Field: Content: Comment count */
+$handler->display->display_options['fields']['comment_count']['id'] = 'comment_count';
+$handler->display->display_options['fields']['comment_count']['table'] = 'node_comment_statistics';
+$handler->display->display_options['fields']['comment_count']['field'] = 'comment_count';
+$handler->display->display_options['fields']['comment_count']['label'] = 'Replies';
+$handler->display->display_options['fields']['comment_count']['alter']['alter_text'] = 1;
+$handler->display->display_options['fields']['comment_count']['alter']['text'] = '[comment_count]<br />[new_comments] ';
+$handler->display->display_options['fields']['comment_count']['alter']['make_link'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['absolute'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['external'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['replace_spaces'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['trim_whitespace'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['nl2br'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['word_boundary'] = 1;
+$handler->display->display_options['fields']['comment_count']['alter']['ellipsis'] = 1;
+$handler->display->display_options['fields']['comment_count']['alter']['strip_tags'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['trim'] = 0;
+$handler->display->display_options['fields']['comment_count']['alter']['html'] = 0;
+$handler->display->display_options['fields']['comment_count']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['comment_count']['element_default_classes'] = 1;
+$handler->display->display_options['fields']['comment_count']['empty'] = '0';
+$handler->display->display_options['fields']['comment_count']['hide_empty'] = 0;
+$handler->display->display_options['fields']['comment_count']['empty_zero'] = 1;
+$handler->display->display_options['fields']['comment_count']['hide_alter_empty'] = 0;
+$handler->display->display_options['fields']['comment_count']['format_plural'] = 0;
 /* Field: Content statistics: Total views */
 $handler->display->display_options['fields']['totalcount']['id'] = 'totalcount';
 $handler->display->display_options['fields']['totalcount']['table'] = 'node_counter';
@@ -423,12 +444,13 @@ $translatables['advanced_forum_topic_list'] = array(
   t('<br /> by [name_1]'),
   t('Post date'),
   t('» [created]'),
-  t('Replies'),
+  t('New comments'),
   t('.'),
   t(','),
-  t('New comments'),
   t('View '),
   t(' new'),
+  t('Replies'),
+  t('[comment_count]<br />[new_comments] '),
   t('Views'),
   t('Last comment author'),
   t('by [last_comment_name]'),
@@ -437,6 +459,7 @@ $translatables['advanced_forum_topic_list'] = array(
   t('Comment status'),
   t('All'),
 );
+
 
 
 // Get rid of the views counter if statistics not enabled.

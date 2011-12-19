@@ -430,6 +430,14 @@ class TokenMenuTestCase extends TokenTestHelper {
       'menu-link:root:mlid' => $root_link['mlid'],
     );
     $this->assertTokens('node', array('node' => $node), $tokens);
+
+    // Reload the node which will not have $node->menu defined and re-test.
+    $loaded_node = node_load($node->nid);
+    $this->assertTokens('node', array('node' => $loaded_node), $tokens);
+
+    // Regression test for http://drupal.org/node/1317926 to ensure the
+    // original node object is not changed when calling menu_node_prepare().
+    $this->assertTrue(!isset($loaded_node->menu), t('The $node->menu property was not modified during token replacement.'), 'Regression');
   }
 }
 
@@ -589,11 +597,14 @@ class TokenUserTestCase extends TokenTestHelper {
     );
     $this->assertTokens('current-user', array(), $tokens);
 
+    $anonymous = drupal_anonymous_user();
+    // Mess with the role array to ensure we still get consistent output.
+    $anonymous->roles[DRUPAL_ANONYMOUS_RID] = DRUPAL_ANONYMOUS_RID;
     $tokens = array(
       'roles' => 'anonymous user',
       'roles:keys' => (string) DRUPAL_ANONYMOUS_RID,
     );
-    $this->assertTokens('user', array('user' => drupal_anonymous_user()), $tokens);
+    $this->assertTokens('user', array('user' => $anonymous), $tokens);
   }
 }
 

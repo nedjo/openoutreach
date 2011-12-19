@@ -1,6 +1,14 @@
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+#1155678 by james.elliott, Jody Lynn, sun: Add Drupal.detachBehaviors support.
+#624018 by smk-ka, quartsize, dagmar, nedjo, rickvug, catch, sun: Added Features support.
+#1238766 by Dave Reid: Fixed Missing cells in profile plugins table.
+#1073106 by scottrouse: Fixed 'Input Format' should be 'Text Format'.
+#1153458 by TwoD: Fixed TinyMCE 'Verify HTML' setting ignored.
+#1125582 by TwoD: Fixed TinyMCE fullscreen plugin deletes content.
+#1078834 by sun: Fixed coding standards errors.
+#1173476 by jim0203, sun: Fixed installation instructions in README.txt.
 
 
 Wysiwyg 7.x-2.1, 2011-06-19

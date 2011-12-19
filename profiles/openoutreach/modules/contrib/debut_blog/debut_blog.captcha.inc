@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_captcha_default_points().
+ * Implements hook_captcha_default_points().
  */
 function debut_blog_captcha_default_points() {
   $export = array();

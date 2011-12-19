@@ -178,6 +178,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
     $settings['remove_linebreaks'] = $config['remove_linebreaks'];
   }
   if (isset($config['verify_html'])) {
+    // TinyMCE performs a type-agnostic comparison on this particular setting.
     $settings['verify_html'] = (bool) $config['verify_html'];
   }
 
@@ -189,7 +190,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
     if ($config['css_setting'] == 'theme') {
       $settings['content_css'] = implode(',', wysiwyg_get_css());
     }
-    else if ($config['css_setting'] == 'self' && isset($config['css_path'])) {
+    elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
       $settings['content_css'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
     }
   }
@@ -229,15 +230,15 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
             $settings['extensions'][_wysiwyg_tinymce_plugin_name('add', $button)] = 1;
           }
           // Add external plugins to the list of extensions.
-          else if ($type == 'buttons' && empty($plugins[$plugin]['internal'])) {
+          elseif ($type == 'buttons' && empty($plugins[$plugin]['internal'])) {
             $settings['extensions'][_wysiwyg_tinymce_plugin_name('add', $plugin)] = 1;
           }
           // Add internal buttons that also need to be loaded as extension.
-          else if ($type == 'buttons' && !empty($plugins[$plugin]['load'])) {
+          elseif ($type == 'buttons' && !empty($plugins[$plugin]['load'])) {
             $settings['extensions'][$plugin] = 1;
           }
           // Add plain extensions.
-          else if ($type == 'extensions' && !empty($plugins[$plugin]['load'])) {
+          elseif ($type == 'extensions' && !empty($plugins[$plugin]['load'])) {
             $settings['extensions'][$plugin] = 1;
           }
           // Allow plugins to add valid HTML elements.
@@ -358,7 +359,7 @@ function _wysiwyg_tinymce_plugin_name($op, $name) {
     }
     return $name;
   }
-  else if ($op == 'remove') {
+  elseif ($op == 'remove') {
     if (strpos($name, '-') === 0) {
       return substr($name, 1);
     }

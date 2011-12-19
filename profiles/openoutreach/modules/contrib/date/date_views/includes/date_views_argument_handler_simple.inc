@@ -26,6 +26,8 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
         $this->date_handler->date_type = $field['type'];
         $this->original_table = $this->definition['table'];
       }
+      $this->date_handler->db_timezone = date_get_timezone_db($field['settings']['tz_handling']);
+      $this->date_handler->local_timezone = date_get_timezone($field['settings']['tz_handling']);
     }
     $this->date_handler->granularity = $this->options['granularity'];
     $this->format = $this->date_handler->views_formats($this->date_handler->granularity, 'display');
@@ -52,9 +54,9 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
       $granularity = $this->options['granularity'];
       if ($granularity == 'week') {
         $now = date_now();
-        $week = date_week($now);
+        $week = date_week(date_format($now, 'Y-m-d'));
         return date_format($now, 'Y') .'-W'. $week;
-      } 
+      }
       else {
         return date($this->arg_format, REQUEST_TIME);
       }
@@ -71,8 +73,10 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
     $options['year_range'] = array('default' => '-3:+3');
     $options['granularity'] = array('default' => 'month');
     $options['default_argument_type'] = array('default' => 'date');
-    $options['add_delta'] = array('default' => '');  
-    $options['use_fromto'] = array('default' => '');  
+    $options['add_delta'] = array('default' => '');
+    $options['use_fromto'] = array('default' => '');
+    $options['title_format'] = array('default' => '');
+    $options['title_format_custom'] = array('default' => '');
     return $options;
   }
 
@@ -81,6 +85,42 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
+
+    // Add an option to control the format of the summary.
+    $options = array(
+      '' => t('Default format'),
+      'custom' => t('Custom format'),
+    );
+    $example_month = date_format_date(date_example_date(), 'custom', $this->date_handler->views_formats('month', 'display'));
+    $example_day = date_format_date(date_example_date(), 'custom', $this->date_handler->views_formats('day', 'display'));
+
+    $form['title_format'] = array(
+      '#type' => 'select',
+      '#title' => t('Date format options'),
+      '#default_value' => $this->options['title_format'],
+      '#options' => $options,
+      '#description' => t('The date format used in titles and summary links for this argument. The default format is based on the granularity of the filter, i.e. month: @example_month, day: @example_day.', array('@example_month' => $example_month, '@example_day' => $example_day)),
+      '#attributes' => array('class' => array('dependent-options')),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="options[default_action]"]' => array('value' => 'summary')
+        ),
+      ),
+    );
+
+    $form['title_format_custom'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Custom summary date format'),
+      '#default_value' => $this->options['title_format_custom'],
+      '#description' => t("A custom format for the title and summary date format. Define a php date format string like 'm-d-Y H:i' (see <a href=\"@link\">http://php.net/date</a> for more details).", array('@link' => 'http://php.net/date')),
+      '#attributes' => array('class' => array('dependent-options')),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="options[title_format]"]' => array('value' => 'custom')
+        ),
+      ),
+    );
+
     $options = $this->date_handler->date_parts();
     unset($options['second'], $options['minute']);
     $options += array('week' => t('Week', array(), array('context' => 'datetime')));
@@ -137,10 +177,19 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
     elseif (empty($value)) {
       return $this->options['wildcard_substitution'];
     }
-    $format = $this->date_handler->views_formats($this->options['granularity'], 'display');
+    $format = !empty($this->options['title_format_custom']) && !empty($this->options['title_format_custom']) ? $this->options['title_format_custom'] : $this->date_handler->views_formats($this->options['granularity'], 'display');
     $range = $this->date_handler->arg_range($value);
     return date_format_date($range[0], 'custom', $format);
   }
+
+  /**
+   * Provide a title for the view based on the argument value.
+   */
+  function title() {
+    $format = !empty($this->options['title_format_custom']) && !empty($this->options['title_format_custom']) ? $this->options['title_format_custom'] : $this->date_handler->views_formats($this->options['granularity'], 'display');
+    $range = $this->date_handler->arg_range($this->argument);
+    return date_format_date($range[0], 'custom', $format);
+ }
 
   /**
    * Provide the argument to use to link from the summary to the next level;
@@ -164,9 +213,6 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
    * Inject a test for valid date range before the summary query.
    */
   function summary_query() {
-    if ($this->date_forbid()) {
-      return;
-    }
     $this->formula = $this->formula($this->real_field);
     $this->ensure_my_table();
     // Now that our table is secure, get our formula.
@@ -185,11 +231,6 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
   function formula() {
     $formula =  $this->date_handler->sql_format($this->sql_format, $this->date_handler->sql_field("***table***.$this->real_field", $this->offset));
     return $formula;
-  }
-
-  function pre_query() {
-    // Setting the offset to avoid trying to use timezone adjustments for dates that don't need it.
-    $this->offset = in_array($this->date_handler->granularity, array('hour', 'minute', 'sec')) ? NULL : 0;
   }
 
   /**
@@ -232,7 +273,7 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
     if (!empty($this->options['use_fromto'])) {
 
       // The simple case, match the field to the view range.
-      $field = $this->date_handler->sql_field($this->table_alias . '.' . $this->real_field, $this->offset);
+      $field = $this->date_handler->sql_field($this->table_alias . '.' . $this->real_field);
       $field = $this->date_handler->sql_format($format, $field);
       $this->query->add_where_expression($group, "$field >= $view_min_placeholder AND $field <= $view_max_placeholder", array($view_min_placeholder => $view_min, $view_max_placeholder => $view_max));
 
@@ -246,12 +287,12 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
       $fields = date_views_fields($this->view->base_table);
       $fields = $fields['name'];
       $fromto = $fields[$this->original_table . '.' . $this->real_field]['fromto'];
-      
+
       $value_min = str_replace($this->original_table, $this->table_alias, $fromto[0]);
       $value_max = str_replace($this->original_table, $this->table_alias, $fromto[1]);
-      $field_min = $this->date_handler->sql_field($value_min, $this->offset);
+      $field_min = $this->date_handler->sql_field($value_min);
       $field_min = $this->date_handler->sql_format($format, $field_min);
-      $field_max = $this->date_handler->sql_field($value_max, $this->offset);
+      $field_max = $this->date_handler->sql_field($value_max);
       $field_max = $this->date_handler->sql_format($format, $field_max);
       $this->query->add_where_expression($group, "$field_max >= $view_min_placeholder AND $field_min <= $view_max_placeholder", array($view_min_placeholder => $view_min, $view_max_placeholder => $view_max));
     }
@@ -267,7 +308,7 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
     $this->date_range = $this->date_handler->arg_range($this->argument);
     $this->min_date = $this->date_range[0];
     $this->max_date = $this->date_range[1];
-    $this->limit = date_range_years($this->options['year_range']); 
+    $this->limit = date_range_years($this->options['year_range']);
     $group = !empty($this->options['date_group']) ? $this->options['date_group'] : 0;
 
     // See if we're outside the allowed date range for our argument.

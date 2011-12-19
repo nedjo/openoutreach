@@ -26,106 +26,6 @@ function date_views_preprocess_views_view(&$vars) {
 }
 
 /**
- *  Preprocessor to construct back and next navigation from the date argument.
- *  @TODO Remove this in the next point release in favor of the views pager plugin.
- */
-function template_preprocess_date_navigation(&$vars) {
-  $view = $vars['view'];
-  $next_args = $view->args;
-  $prev_args = $view->args;
-  $pos = $view->date_info->date_arg_pos;
-  $min_date = $view->date_info->min_date;
-  $max_date = $view->date_info->max_date;
-
-  if (empty($view->date_info->hide_nav)) {
-    $prev_date = clone($min_date);
-    date_modify($prev_date, '-1 ' . $view->date_info->granularity);
-    $next_date = clone($min_date);
-    date_modify($next_date, '+1 ' . $view->date_info->granularity);
-    $format = array('year' => 'Y', 'month' => 'Y-m', 'day' => 'Y-m-d');
-    switch ($view->date_info->granularity) {
-      case 'week':
-        $next_week = date_week(date_format($next_date, 'Y-m-d'));
-        $prev_week = date_week(date_format($prev_date, 'Y-m-d'));
-        $next_arg = date_format($next_date, 'Y-\W') . $next_week;
-        $prev_arg = date_format($prev_date, 'Y-\W') . $prev_week;
-        break;
-      default:
-        $next_arg = date_format($next_date, $format[$view->date_info->granularity]);
-        $prev_arg = date_format($prev_date, $format[$view->date_info->granularity]);
-    }
-    $next_path = str_replace($view->date_info->date_arg, $next_arg, $view->date_info->url);
-    $prev_path = str_replace($view->date_info->date_arg, $prev_arg, $view->date_info->url);
-    $next_args[$pos] = $next_arg;
-    $prev_args[$pos] = $prev_arg;
-    $vars['next_url'] = date_real_url($view, NULL, $next_arg);
-    $vars['prev_url'] = date_real_url($view, NULL, $prev_arg);
-    $vars['next_options'] = $vars['prev_options'] = array();
-  }
-  else {
-    $next_path = '';
-    $prev_path = '';
-    $vars['next_url'] = '';
-    $vars['prev_url'] = '';
-    $vars['next_options'] = $vars['prev_options'] = array();
-  }
-
-  // Check whether navigation links would point to 
-  // a date outside the allowed range.
-  if (!empty($next_date) && !empty($vars['next_url']) && date_format($next_date, 'Y') > $view->date_info->limit[1]) {
-    $vars['next_url'] = '';    
-  }
-  if (!empty($prev_date) && !empty($vars['prev_url']) && date_format($prev_date, 'Y') < $view->date_info->limit[0]) {
-    $vars['prev_url'] = '';    
-  }
-
-  $vars['prev_options'] += array('attributes' => array());
-  $vars['next_options'] += array('attributes' => array());
-  $prev_title = '';
-  $next_title = '';
-  
-  // Build next/prev link titles.
-  switch ($view->date_info->granularity) {
-    case 'year':
-      $prev_title = t('Navigate to previous year');
-      $next_title = t('Navigate to next year');
-      break;
-    case 'month':
-      $prev_title = t('Navigate to previous month');
-      $next_title = t('Navigate to next month');
-      break;
-    case 'week':
-      $prev_title = t('Navigate to previous week');
-      $next_title = t('Navigate to next week');
-      break;      
-    case 'day':
-      $prev_title = t('Navigate to previous day');
-      $next_title = t('Navigate to next day');
-      break;
-  }
-  $vars['prev_options']['attributes'] += array('title' => $prev_title);
-  $vars['next_options']['attributes'] += array('title' => $next_title);
-
-  // Add nofollow for next/prev links.
-  $vars['prev_options']['attributes'] += array('rel' => 'nofollow');
-  $vars['next_options']['attributes'] += array('rel' => 'nofollow');
-
-  $link = FALSE;
-  // Month navigation titles are used as links in the block view.
-  if (!empty($view->date_info->block) && $view->date_info->granularity == 'month') {
-    $link = TRUE;
-  }
-  $params = array(
-    'granularity' => $view->date_info->granularity, 
-    'view' => $view, 
-    'link' => $link,
-  );
-  $nav_title = theme('date_nav_title', $params);
-  $vars['nav_title'] = $nav_title;
-  $vars['block'] = !empty($view->date_info->block);
-}
-
-/**
  * Preprocess function for Date pager template.
  */
 function template_preprocess_date_views_pager(&$vars) {
@@ -134,7 +34,7 @@ function template_preprocess_date_views_pager(&$vars) {
   $plugin = $vars['plugin'];
   $input = $vars['input'];
   $view = $plugin->view;
-  
+
   $vars['nav_title'] = '';
   $vars['next_url'] = '';
   $vars['prev_url'] = '';
@@ -199,13 +99,13 @@ function template_preprocess_date_views_pager(&$vars) {
     $vars['next_options'] = $vars['prev_options'] = array();
   }
 
-  // Check whether navigation links would point to 
+  // Check whether navigation links would point to
   // a date outside the allowed range.
   if (!empty($next_date) && !empty($vars['next_url']) && date_format($next_date, 'Y') > $date_info->limit[1]) {
-    $vars['next_url'] = '';    
+    $vars['next_url'] = '';
   }
   if (!empty($prev_date) && !empty($vars['prev_url']) && date_format($prev_date, 'Y') < $date_info->limit[0]) {
-    $vars['prev_url'] = '';    
+    $vars['prev_url'] = '';
   }
   $vars['prev_options'] += array('attributes' => array());
   $vars['next_options'] += array('attributes' => array());
@@ -225,7 +125,7 @@ function template_preprocess_date_views_pager(&$vars) {
     case 'week':
       $prev_title = t('Navigate to previous week');
       $next_title = t('Navigate to next week');
-      break;      
+      break;
     case 'day':
       $prev_title = t('Navigate to previous day');
       $next_title = t('Navigate to next day');
@@ -248,8 +148,8 @@ function template_preprocess_date_views_pager(&$vars) {
     $link = TRUE;
   }
   $params = array(
-    'granularity' => $granularity, 
-    'view' => $view, 
+    'granularity' => $granularity,
+    'view' => $view,
     'link' => $link,
   );
   $nav_title = theme('date_nav_title', $params);
@@ -282,20 +182,20 @@ function theme_date_nav_title($params) {
       $date_arg = $date_info->year .'-'. date_pad($date_info->month) .'-'. date_pad($date_info->day);
       break;
     case 'week':
-    	$format = !empty($format) ? $format : (empty($date_info->mini) ? 'F j Y' : 'F j');
+      $format = !empty($format) ? $format : (empty($date_info->mini) ? 'F j Y' : 'F j');
       $title = t('Week of @date', array('@date' => date_format_date($date_info->min_date, 'custom', $format)));
-    	$date_arg = $date_info->year .'-W'. date_pad($date_info->week);
-    	break;
+      $date_arg = $date_info->year .'-W'. date_pad($date_info->week);
+      break;
   }
   if (!empty($date_info->mini) || $link) {
-  	// Month navigation titles are used as links in the mini view.
+    // Month navigation titles are used as links in the mini view.
     $attributes = array('title' => t('View full page month'));
-  	$url = date_pager_url($view, $granularity, $date_arg, TRUE);
+    $url = date_pager_url($view, $granularity, $date_arg, TRUE);
     return l($title, $url, array('attributes' => $attributes));
   }
   else {
     return $title;
-  }  
+  }
 }
 
 /**

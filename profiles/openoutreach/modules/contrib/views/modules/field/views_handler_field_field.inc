@@ -290,7 +290,7 @@ class views_handler_field_field extends views_handler_field {
       'default' => array(),
     );
     $options['group_column'] = array(
-      'default' => in_array('value', $column_names) ? 'value' : $column_names[0],
+      'default' => $default_column,
     );
     $options['group_columns'] = array(
       'default' => array(),
@@ -345,7 +345,7 @@ class views_handler_field_field extends views_handler_field {
     if (count($field['columns']) == 1) {
       $form['click_sort_column'] = array(
         '#type' => 'value',
-        '#value' => $column_names[0],
+        '#value' => isset($column_names[0]) ? $column_names[0] : '',
       );
     }
     else {
@@ -689,7 +689,7 @@ class views_handler_field_field extends views_handler_field {
 
     // We are supposed to show only certain deltas.
     if ($this->limit_values && !empty($entity->{$this->definition['field_name']})) {
-      $all_values = $entity->{$this->definition['field_name']}[$langcode];
+      $all_values = !empty($entity->{$this->definition['field_name']}[$langcode]) ? $entity->{$this->definition['field_name']}[$langcode] : array();
       if ($this->options['delta_reversed']) {
         $all_values = array_reverse($all_values);
       }
@@ -737,7 +737,7 @@ class views_handler_field_field extends views_handler_field {
       return $entity;
     }
     else {
-      return $entity->{$this->definition['field_name']}[$langcode];
+      return !empty($entity->{$this->definition['field_name']}[$langcode]) ? $entity->{$this->definition['field_name']}[$langcode] : array();
     }
   }
 
@@ -778,7 +778,19 @@ class views_handler_field_field extends views_handler_field {
 
     foreach (element_children($render_array) as $count) {
       $items[$count]['rendered'] = $render_array[$count];
-      $items[$count]['raw'] = $render_array['#items'][$count];
+      // field_view_field() adds an #access property to the render array that
+      // determines whether or not the current user is allowed to view the
+      // field in the context of the current entity. We need to respect this
+      // parameter when we pull out the children of the field array for
+      // rendering.
+      if (isset($render_array['#access'])) {
+        $items[$count]['rendered']['#access'] = $render_array['#access'];
+      }
+      // Only add the raw field items (for use in tokens) if the curent user
+      // has access to view the field content.
+      if ((!isset($items[$count]['rendered']['#access']) || $items[$count]['rendered']['#access']) && !empty($render_array['#items'][$count])) {
+        $items[$count]['raw'] = $render_array['#items'][$count];
+      }
     }
     return $items;
   }

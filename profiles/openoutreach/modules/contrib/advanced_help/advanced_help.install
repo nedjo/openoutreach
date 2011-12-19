@@ -1,5 +1,4 @@
 <?php
-// $Id: advanced_help.install,v 1.4.2.2 2010/03/01 21:12:39 fgm Exp $
 /**
  * @file
  * Contains install and update functions for advanced_help.

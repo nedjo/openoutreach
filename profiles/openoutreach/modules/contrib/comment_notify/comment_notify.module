@@ -143,9 +143,8 @@ function comment_notify_form_comment_form_alter(&$form, &$form_state, $form_id) 
 
   // If this is an existing comment we set the default value based on their selection last time.
   if ($form['cid']['#value'] != '') {
-    module_load_include('inc', 'comment_notify', 'comment_notify');
     $notify = comment_notify_get_notification_type($form['cid']['#value']);
-    $form['notify_settings']['notify']['#default_value'] = $notify;
+    $form['notify_settings']['notify']['#default_value'] = (bool) $notify;
     if (count($available_options) > 1) {
       $form['notify_settings']['notify_type']['#default_value'] = $notify;
     }
@@ -247,9 +246,16 @@ function comment_notify_comment_publish($comment) {
 function comment_notify_comment_update($comment) {
   module_load_include('inc', 'comment_notify', 'comment_notify');
 
+  // Take the status of the "notify" checkbox if they unchecked it.
+  if (empty($comment->notify)) {
+    $status = $comment->notify;
+  }
+  else {
+    $status = $comment->notify_type;
+  }
   // In case they have changed their status, save it in the database.
-  if (isset($comment->notify_type)) {
-    comment_notify_update_notification($comment->cid, $comment->notify_type);
+  if (isset($status)) {
+    comment_notify_update_notification($comment->cid, $status);
   }
   // And send notifications - the real purpose of the module.
   if ($comment->status == COMMENT_PUBLISHED) {
@@ -267,7 +273,8 @@ function comment_notify_comment_insert($comment) {
   // potentially edit their comment / preferences if they are anonymous.
   // The string is built with token and their host and comment identifier.
   // It is stored and referenced, we really just need something unique/unguessable.
-  $notify_hash = drupal_get_token($comment->hostname . $comment->cid);
+  $hostname = isset($comment->hostname) ? $comment->hostname : (isset($user->hostname) ? $user->hostname : '');
+  $notify_hash = drupal_get_token($hostname . $comment->cid);
 
   if (!empty($comment->notify)) {
     $notify = $comment->notify_type;
@@ -451,7 +458,7 @@ function _comment_notify_mailalert($comment) {
 
   if (empty($comment->mail)) {
     $comment_account = user_load_by_name($comment->name);
-    $comment_mail = $comment_account->mail;
+    $comment_mail = isset($comment_account->mail) ? $comment_account->mail : '';
   }
   else {
     $comment_mail = $comment->mail;
@@ -477,7 +484,7 @@ function _comment_notify_mailalert($comment) {
   }
 
   // For "reply to my comments" notifications, figure out what thread this is.
-  $thread = $comment->thread;
+  $thread = isset($comment->thread) ? $comment->thread : '';
 
   // Get the list of commenters to notify.
   $watchers = comment_notify_get_watchers($nid);
@@ -540,8 +547,7 @@ function _comment_notify_mailalert($comment) {
   }
   // Record that a notification was sent for this comment so that
   // notifications aren't sent again if the comment is later edited.
-
-  comment_notify_mark_comment_as_notified($cid);
+  comment_notify_mark_comment_as_notified($comment);
 }
 
 /**
@@ -604,7 +610,7 @@ function comment_notify_settings() {
     if (isset($enabled_types[$type]) && $enabled_types[$type] && variable_get('comment_anonymous_' . $type, COMMENT_ANONYMOUS_MAYNOT_CONTACT) == COMMENT_ANONYMOUS_MAYNOT_CONTACT) {
       $account = drupal_anonymous_user();
       if (user_access('subscribe to comments', $account)) {
-        $anonymous_problems[] = l(t('@content-type', array('@content-type' => $name)), 'admin/structure/types/manage/'. $type);
+        $anonymous_problems[] = l(t('@content-type', array('@content-type' => $name)), 'admin/structure/types/manage/' . $type);
       }
     }
   }

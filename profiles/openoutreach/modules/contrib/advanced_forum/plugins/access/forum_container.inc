@@ -4,22 +4,20 @@
  * @file
  * Plugin to provide access control based upon term vocabulary
  */
-
 /**
- * Implementation of specially named hook_ctools_access().
+ * Plugins are described by creating a $plugin array which will be used
+ * by the system that includes this file.
  */
-function advanced_forum_forum_container_ctools_access() {
-  return array(
-    'title' => t("Forum: container"),
-    'description' => t('Control access by whether or not the forum is a container.'),
-    'callback' => 'advanced_forum_forum_container_ctools_access_check',
-    'default' => array('container' => 0),
-    'settings form' => 'advanced_forum_forum_container_ctools_access_settings',
-    'settings form submit' => 'advanced_forum_forum_container_ctools_access_settings_submit',
-    'summary' => 'advanced_forum_forum_container_ctools_acesss_summary',
-    'required context' => new ctools_context_required(t('Forum'), array('forum')),
-  );
-}
+$plugin = array(
+  'title' => t("Forum: container"),
+  'description' => t('Control access by whether or not the forum is a container.'),
+  'callback' => 'advanced_forum_forum_container_ctools_access_check',
+  'default' => array('container' => 0),
+  'settings form' => 'advanced_forum_forum_container_ctools_access_settings',
+  'settings form submit' => 'advanced_forum_forum_container_ctools_access_settings_submit',
+  'summary' => 'advanced_forum_forum_container_ctools_acesss_summary',
+  'required context' => new ctools_context_required(t('Forum'), array('forum')),
+);
 
 /**
  * Settings form for the 'by term_vocabulary' access plugin
@@ -40,7 +38,7 @@ function advanced_forum_forum_container_ctools_access_settings(&$form, &$form_st
  * Compress the term_vocabularys allowed to the minimum.
  */
 function advanced_forum_forum_container_ctools_access_settings_submit(&$form, &$form_state) {
-  $form_state['values']['settings']['container'] = $form_state['values']['settings']['container'];
+  $form_state['values']['settings']['rids'] = array_keys(array_filter($form_state['values']['settings']['rids']));
 }
 
 /**

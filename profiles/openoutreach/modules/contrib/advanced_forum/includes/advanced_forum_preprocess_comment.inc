@@ -152,19 +152,6 @@ function _advanced_forum_preprocess_comment(&$variables) {
       $variables['content'][$key] = $variables['elements'][$key];
   }
 
-  /* Signatures */
-  // Load the signature.
-  if (module_exists('signature_forum')) {
-    // If Signature For Forums is installed, use that
-    $variables['signature'] = signature_forum_get_signature($comment);
-  }
-  elseif (variable_get('user_signatures', 0)) {
-    if (!empty($variables['account']->signature)) {
-      // Otherwise load Drupal's built in one, if enabled.
-      $variables['signature'] = check_markup($variables['account']->signature, $variables['account']->signature_format, FALSE);
-    }
-  }
-
   // Adjust comment timestamp to match node template
   $variables['date'] = $variables['created'];
 

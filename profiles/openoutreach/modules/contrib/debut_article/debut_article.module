@@ -36,3 +36,14 @@ function debut_article_admin_paths() {
   }
 }
 
+/**
+ * Implements hook_features_export_alter().
+ *
+ * Remove the tags vocabulary, which we create at install time so as not to
+ * create a dependency on a feature providing the vocabulary.
+ */
+function debut_article_features_export_alter(&$export, $module_name) {
+  if ($module_name == 'debut_article' && isset($export['features']['taxonomy']) && isset($export['features']['taxonomy']['tags'])) {
+    unset($export['features']['taxonomy']['tags']);
+  }
+}

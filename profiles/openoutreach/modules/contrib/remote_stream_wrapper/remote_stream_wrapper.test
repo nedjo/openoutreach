@@ -111,7 +111,7 @@ class RemoteStreamWrapperTestCase extends DrupalWebTestCase {
     $this->drupalGet($elements[0]['src']);
     $this->assertResponse(200);
 
-    $this->assertTrue(file_exists($generated_uri), t('Generated file does exist after we accessed it.'));
+    $this->assertTrue(is_file($generated_uri), t('Generated file does exist after we accessed it.'));
     $this->assertRaw(file_get_contents($generated_uri), t('URL returns expected file.'));
     $generated_image_info = image_get_info($generated_uri);
     $this->assertEqual($this->drupalGetHeader('Content-Type'), $generated_image_info['mime_type'], t('Expected Content-Type was reported.'));

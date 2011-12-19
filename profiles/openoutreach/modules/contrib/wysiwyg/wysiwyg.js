@@ -38,13 +38,13 @@ Drupal.wysiwygInit = function() {
  *   A DOM element, supplied by Drupal.attachBehaviors().
  */
 Drupal.behaviors.attachWysiwyg = {
-  attach: function(context, settings) {
+  attach: function (context, settings) {
     // This breaks in Konqueror. Prevent it from running.
     if (/KDE/.test(navigator.vendor)) {
       return;
     }
 
-    $('.wysiwyg', context).once('wysiwyg', function() {
+    $('.wysiwyg', context).once('wysiwyg', function () {
       if (!this.id || typeof Drupal.settings.wysiwyg.triggers[this.id] === 'undefined') {
         return;
       }
@@ -78,6 +78,13 @@ Drupal.behaviors.attachWysiwyg = {
         }
         Drupal.wysiwygDetach(context, params[format]);
       });
+    });
+  },
+
+  detach: function (context, settings) {
+    $('.wysiwyg', context).removeOnce('wysiwyg', function () {
+      var params = Drupal.settings.wysiwyg.triggers[this.id];
+      Drupal.wysiwygDetach(context, params);
     });
   }
 };

@@ -38,11 +38,11 @@ class DateMigrateExampleUnitTest extends DrupalWebTestCase {
     $node = reset($rawnodes);
     $this->drupalGet('/node/' . $node->nid);
     $this->assertText('2011-05-12 19:43', t('Simple date field found'));
-    $this->assertText('2011-06-13 18:32 - 2011-07-23 10:32', t('Date range field found'));
+    $this->assertText('2011-06-13 18:32 to 2011-07-23 10:32', t('Date range field found'));
     $this->assertText('2011-07-22 12:13', t('Datestamp field found'));
-    $this->assertText('2011-08-01 00:00 - 2011-09-01 00:00', t('Datestamp range field found'));
+    $this->assertText('2011-08-01 00:00 to 2011-09-01 00:00', t('Datestamp range field found'));
     $this->assertText('2011-11-18 15:00', t('Datetime field with +9 timezone found'));
-    $this->assertText('2011-10-30 14:43 - 2011-12-31 17:59', t('Datetime range field with -5 timezone found'));
+    $this->assertText('2011-10-30 14:43 to 2011-12-31 17:59', t('Datetime range field with -5 timezone found'));
     $this->assertText('2011-11-25 09:01', t('First date repeat instance found'));
     $this->assertText('2011-12-09 09:01', t('Second date repeat instance found'));
     $this->assertNoText('2011-12-23 09:01', t('Skipped date repeat instance not found'));

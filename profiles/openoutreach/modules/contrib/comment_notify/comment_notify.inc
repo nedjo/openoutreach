@@ -205,12 +205,16 @@ function comment_notify_get_watchers($nid) {
  * @param integer $cid
  * @return boolean
  */
-function comment_notify_mark_comment_as_notified($cid) {
+function comment_notify_mark_comment_as_notified($comment) {
+  // First, mark the passed comment (an object, so passed by reference).
+  $comment->notified = 1;
+
+  // Next, store this fact in the DB as well.
   return (bool)db_update('comment_notify')
     ->fields(array(
       'notified' => 1,
     ))
-    ->condition('cid', $cid)
+    ->condition('cid', $comment->cid)
     ->execute();
 }
 

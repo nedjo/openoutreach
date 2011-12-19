@@ -6,20 +6,19 @@
  */
 
 /**
- * Implementation of specially named hook_ctools_access().
+ * Plugins are described by creating a $plugin array which will be used
+ * by the system that includes this file.
  */
-function advanced_forum_forum_id_ctools_access() {
-  return array(
-    'title' => t("Forum: forum"),
-    'description' => t('Control access by which forum is in use.'),
-    'callback' => 'advanced_forum_forum_id_ctools_access_check',
-    'default' => array('tids' => array()),
-    'settings form' => 'advanced_forum_forum_id_ctools_access_settings',
-    'settings form submit' => 'advanced_forum_forum_id_ctools_access_settings_submit',
-    'summary' => 'advanced_forum_forum_id_ctools_acesss_summary',
-    'required context' => new ctools_context_required(t('Forum'), array('forum')),
-  );
-}
+$plugin = array(
+  'title' => t("Forum: forum"),
+  'description' => t('Control access by which forum is in use.'),
+  'callback' => 'advanced_forum_forum_id_ctools_access_check',
+  'default' => array('tids' => array()),
+  'settings form' => 'advanced_forum_forum_id_ctools_access_settings',
+  'settings form submit' => 'advanced_forum_forum_id_ctools_access_settings_submit',
+  'summary' => 'advanced_forum_forum_id_ctools_acesss_summary',
+  'required context' => new ctools_context_required(t('Forum'), array('forum')),
+);
 
 /**
  * Settings form for the 'by term_vocabulary' access plugin
@@ -52,7 +51,7 @@ function advanced_forum_forum_id_ctools_access_settings(&$form, &$form_state, $c
  * Compress the term_vocabularys allowed to the minimum.
  */
 function advanced_forum_forum_id_ctools_access_settings_submit(&$form, &$form_state) {
-  $form_state['values']['settings']['tids'] = $form_state['values']['settings']['tids'];
+  $form_state['values']['settings']['rids'] = array_keys(array_filter($form_state['values']['settings']['rids']));
 }
 
 /**

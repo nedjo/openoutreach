@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_context_default_contexts().
+ * Implements hook_context_default_contexts().
  */
 function debut_blog_context_default_contexts() {
   $export = array();
@@ -29,17 +29,17 @@ function debut_blog_context_default_contexts() {
   $context->reactions = array(
     'block' => array(
       'blocks' => array(
-        'views-blog-block_1' => array(
-          'module' => 'views',
-          'delta' => 'blog-block_1',
-          'region' => 'sidebar_second',
-          'weight' => 0,
-        ),
         'views-blog-block_2' => array(
           'module' => 'views',
           'delta' => 'blog-block_2',
           'region' => 'sidebar_second',
-          'weight' => 1,
+          'weight' => '-18',
+        ),
+        'views-blog-block_1' => array(
+          'module' => 'views',
+          'delta' => 'blog-block_1',
+          'region' => 'sidebar_second',
+          'weight' => '-17',
         ),
       ),
     ),

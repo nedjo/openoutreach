@@ -1,5 +1,4 @@
 <?php
-// $Id: advanced-help-popup.tpl.php,v 1.2.4.1 2010/03/01 21:12:39 fgm Exp $
 /**
  * @file
  * Default theme implementation to display a help popup.

@@ -74,8 +74,8 @@ function hook_field_extra_fields() {
 function hook_field_extra_fields_alter(&$info) {
   // Force node title to always be at the top of the list by default.
   foreach (node_type_get_types() as $bundle) {
-    if (isset($info['node'][$bundle->type]['title'])) {
-      $info['node'][$bundle->type]['title']['weight'] = -20;
+    if (isset($info['node'][$bundle->type]['form']['title'])) {
+      $info['node'][$bundle->type]['form']['title']['weight'] = -20;
     }
   }
 }
@@ -2531,7 +2531,7 @@ function hook_field_purge_field($field) {
  * @param $instance
  *   The instance being purged.
  */
-function hook_field_purge_field_instance($instance) {
+function hook_field_purge_instance($instance) {
   db_delete('my_module_field_instance_info')
     ->condition('id', $instance['id'])
     ->execute();

@@ -10,9 +10,9 @@ files[] = eva.theme.inc
 files[] = eva.views.inc
 files[] = eva_plugin_display_entity.inc
 
-; Information added by drupal.org packaging script on 2011-09-13
-version = "7.x-1.1"
+; Information added by drupal.org packaging script on 2011-09-19
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "eva"
-datestamp = "1315935702"
+datestamp = "1316434020"
 

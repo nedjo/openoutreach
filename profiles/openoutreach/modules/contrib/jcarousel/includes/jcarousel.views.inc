@@ -33,7 +33,7 @@ function jcarousel_views_ajax() {
     $display_id = $_REQUEST['view_display_id'];
     $args = isset($_REQUEST['view_args']) && $_REQUEST['view_args'] !== '' ? explode('/', $_REQUEST['view_args']) : array();
     $path = isset($_REQUEST['view_path']) ? $_REQUEST['view_path'] : NULL;
-    $dom_id = isset($_REQUEST['view_dom_id']) ? intval($_REQUEST['view_dom_id']) : NULL;
+    $dom_id = isset($_REQUEST['jcarousel_dom_id']) ? intval($_REQUEST['jcarousel_dom_id']) : NULL;
     $first = isset($_REQUEST['first']) ? intval($_REQUEST['first']) : NULL;
     $last = isset($_REQUEST['last']) ? intval($_REQUEST['last']) : NULL;
     views_include('ajax');
@@ -46,6 +46,8 @@ function jcarousel_views_ajax() {
 
     // Load the view.
     if ($view = views_get_view($name)) {
+      $view->set_display($display_id);
+
       if ($view->access($display_id)) {
 
         // Fix 'q' for paging.
@@ -75,7 +77,7 @@ function jcarousel_views_ajax() {
         }
 
         // Reuse the same DOM id so it matches that in Drupal.settings.
-        $view->dom_id = $dom_id;
+        $view->jcarousel_dom_id = $dom_id;
 
         $errors = $view->validate();
         if ($errors === TRUE) {
@@ -101,21 +103,52 @@ function jcarousel_views_ajax() {
  * Adds necessary CSS and JS for Views-based carousels.
  */
 function jcarousel_views_add($view, $display_id = NULL) {
+  static $dom_counter = 0;
+
   if (!isset($display_id)) {
     $display_id = empty($view->current_display) ? 'default' : $view->current_display;
   }
 
   // Save the settings for the carousel, these will be used by the JavaScript.
   $options = array();
-  foreach ($view->style_options as $key => $option) {
+
+  // Keep track of each settings addition and give a unique ID. This can be
+  // useful when displaying the same view multiple times with different
+  // arguments (i.e. such as in a panel).
+  $options['view_options'] = array(
+    'view_args' => check_plain(implode('/', $view->args)),
+    'view_path' => check_plain($_GET['q']),
+    'view_base_path' => $view->get_path(),
+    'view_display_id' => $display_id,
+    'view_name' => $view->name,
+    'jcarousel_dom_id' => isset($view->jcarousel_dom_id) ? $view->jcarousel_dom_id : ++$dom_counter,
+  );
+
+  foreach ($view->style_plugin->options as $key => $option) {
     if ($option) {
       $options[$key] = is_numeric($option) ? (int) $option : $option;
     }
   }
 
+  // By default limit the scrolling to the same number of items as are visible
+  // to avoid display glitches.
+  if (empty($options['scroll']) && !empty($options['visible'])) {
+    $options['scroll'] = $options['visible'];
+  }
+
+  // By default limit the scrolling to the same number of items as are visible
+  // to avoid display glitches.
+  if (empty($options['scroll']) && !empty($options['visible'])) {
+    $options['scroll'] = $options['visible'];
+  }
+
   // Get the total number of items in this view.
   $count_query = $view->build_info['count_query']->countQuery();
   $count = $count_query->execute()->fetchField();
+
+  // Views may already populate total_rows later, but since we've already
+  // generated this value, we might as well make it available.
+  $view->total_rows = $count;
 
   // If there is just one item disable the auto-scroll and rotation.
   if ($count == 1) {
@@ -123,8 +156,14 @@ function jcarousel_views_add($view, $display_id = NULL) {
     $options['auto'] = 0;
   }
 
+  // Determine AJAX functionality in a backwards-compatible way. Versions prior
+  // to jCarousel 2.6 used the view-level "Use AJAX" option instead of a style
+  // setting. We check $view->style_options here intentionally instead of
+  // $view->style_plugin->options.
+  $use_ajax = isset($view->style_options['ajax']) ? $view->style_options['ajax'] : $view->use_ajax;
+
   // If using AJAX, adjust the view's positioning based on the current page.
-  if ($view->use_ajax) {
+  if ($use_ajax) {
     $options['ajax'] = TRUE;
     $options['size'] = $count;
 
@@ -169,22 +208,33 @@ function jcarousel_views_add($view, $display_id = NULL) {
     }
   }
 
-  $identifier = drupal_clean_css_identifier('jcarousel_view__' . $view->name . '__' . $display_id);
+  $identifier = drupal_clean_css_identifier('jcarousel_dom_' . $options['view_options']['jcarousel_dom_id']);
   return jcarousel_add($identifier, $options);
 }
 
+/**
+ * Preprocess function for jcarousel-view.tpl.php.
+ */
 function template_preprocess_jcarousel_view(&$variables) {
   $view = $variables['view'];
   $display_id = empty($view->current_display) ? 'default' : $view->current_display;
 
   // Add necessary JavaScript and CSS.
-  $settings = jcarousel_views_add($view, $display_id);
+  $attachments = jcarousel_views_add($view, $display_id);
+
+  // Find the JavaScript settings in the returned array.
+  foreach ($attachments['js'] as $data) {
+    if (isset($data['type']) && $data['type'] == 'setting') {
+      $settings = reset($data['data']['jcarousel']['carousels']);
+    }
+  }
 
   // Build the list of classes for the carousel.
-  $options = $view->style_options;
+  $options = $view->style_plugin->options;
   $variables['jcarousel_classes_array'] = array(
     'jcarousel',
     drupal_clean_css_identifier('jcarousel-view--' . $view->name . '--' . $display_id),
+    drupal_clean_css_identifier('jcarousel-dom-' . $settings['view_options']['jcarousel_dom_id']),
   );
   if (!empty($options['skin'])) {
     $variables['jcarousel_classes_array'][] = 'jcarousel-skin-' . $options['skin'];
@@ -196,6 +246,8 @@ function template_preprocess_jcarousel_view(&$variables) {
 
   // Give each item a class to identify where in the carousel it belongs.
   foreach ($variables['rows'] as $id => $row) {
-    $variables['row_classes'][$id] = 'jcarousel-item-' . ($id + 1 + $pager_offset);
+    $number = $id + 1 + $pager_offset;
+    $zebra = ($number % 2 == 0) ? 'even' : 'odd';
+    $variables['row_classes'][$id] = 'jcarousel-item-' . $number . ' ' . $zebra;
   }
 }

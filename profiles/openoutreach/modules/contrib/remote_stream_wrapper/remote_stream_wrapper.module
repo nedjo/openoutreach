@@ -196,38 +196,38 @@ function remote_stream_wrapper_file_create_by_uri($uri) {
  * Implements hook_media_browser_plugin_info().
  */
 function remote_stream_wrapper_media_browser_plugin_info() {
-  $plugins = array();
-  // This depends on media_internet being enabled.
-  if (user_access('administer media') || user_access('add media from remote urls')) {
-    $plugins['remote_file'] = array(
-      '#title' => t('Remote URL'),
-      '#weight' => -10,
-    );
-  }
+  $plugins['remote_file'] = array(
+    'title' => t('Remote URL'),
+    'handler' => array(
+      'path' => drupal_get_path('module', 'remote_stream_wrapper'),
+      'file' => 'RemoteStreamWrapperMediaBrowser.inc',
+      'class' => 'RemoteStreamWrapperMediaBrowser',
+    ),
+    'access callback' => 'remote_stream_wrapper_media_browser_plugin_access',
+    // Support for Media 1.x browser plugins
+    '#title' => t('Remote URL'),
+  );
   return $plugins;
+}
+
+function remote_stream_wrapper_media_browser_plugin_access() {
+  return RemoteStreamWrapperMediaBrowser::access();
 }
 
 /**
  * Implements hook_media_browser_plugin_view().
  */
 function remote_stream_wrapper_media_browser_plugin_view($plugin_name, $params) {
-  $path = drupal_get_path('module', 'media');
-
-  $types = isset($params['types']) ? $params['types'] : array();
-
-  $redirect = array('media/browser', array('query' => array('render' => 'media-popup')));
-  switch ($plugin_name) {
-    case 'remote_file':
-      // @todo: implement the multiselect argument here.
-      $from_web_form = drupal_get_form('remote_stream_wrapper_media_browser_form', $types);
+  if ($plugin_name == 'remote_file') {
+    if (user_access('administer files') || user_access('add media from remote urls')) {
+      $params += array('types' => array());
+      $form = drupal_get_form('remote_stream_wrapper_media_browser_form', $params['types']);
       return array(
         '#title' => t('Remote URL'),
-        'form' => array($from_web_form),
+        'form' => array($form),
       );
-      break;
+    }
   }
-
-  return array();
 }
 
 /**
@@ -235,15 +235,12 @@ function remote_stream_wrapper_media_browser_plugin_view($plugin_name, $params) 
  *
  * @see remote_stream_wrapper_media_browser_form_submit()
  */
-function remote_stream_wrapper_media_browser_form($form, &$form_state = array(), $types = array()) {
+function remote_stream_wrapper_media_browser_form($form, &$form_state, $types = array()) {
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => 'URL',
     '#attributes' => array('class' => array('media-add-from-remote-url')),
-    // There is no standard specifying a maximum length for a URL. Internet
-    // Explorer supports upto 2083 (http://support.microsoft.com/kb/208427), so
-    // we assume publicly available media URLs are within this limit.
-    '#maxlength' => 2083,
+    '#maxlength' => 255, // Maximum length of {file_managed}.uri
     '#element_validate' => array('remote_stream_wrapper_validate_url'),
     '#required' => TRUE,
     '#file_types' => $types,

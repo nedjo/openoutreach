@@ -22,7 +22,7 @@ function remote_stream_wrapper_image_style_deliver($style, $scheme) {
   // Don't start generating the image if the derivative already exists or if
   // generation is in progress in another thread.
   $lock_name = 'image_style_deliver:' . $style['name'] . ':' . drupal_hash_base64($image_uri);
-  if (!file_exists($derivative_uri)) {
+  if (!is_file($derivative_uri)) {
     $lock_acquired = lock_acquire($lock_name);
     if (!$lock_acquired) {
       // Tell client to retry again in 3 seconds. Currently no browsers are known
@@ -36,7 +36,7 @@ function remote_stream_wrapper_image_style_deliver($style, $scheme) {
 
   // Try to generate the image, unless another thread just did it while we were
   // acquiring the lock.
-  $success = file_exists($derivative_uri) || image_style_create_derivative($style, $image_uri, $derivative_uri);
+  $success = is_file($derivative_uri) || image_style_create_derivative($style, $image_uri, $derivative_uri);
 
   if (!empty($lock_acquired)) {
     lock_release($lock_name);

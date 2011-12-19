@@ -208,8 +208,6 @@ function captcha_element_process($element, &$form_state, $complete_form) {
   else {
     // Generate a new CAPTCHA session if we could not reuse one from a posted form.
     $captcha_sid = _captcha_generate_captcha_session($this_form_id, CAPTCHA_STATUS_UNSOLVED);
-    // Set $posted_form_id during the first rendering of the form.
-    $posted_form_id = $this_form_id;
   }
 
   // Store CAPTCHA session ID as hidden field.
@@ -286,6 +284,10 @@ function captcha_element_process($element, &$form_state, $complete_form) {
 
     // Store the solution in the #captcha_info array.
     $element['#captcha_info']['solution'] = $captcha['solution'];
+
+    // Make sure we can use a top level form value $form_state['values']['captcha_response'], even if the form has #tree=true.
+    $element['#tree'] = FALSE;
+
   }
 
   return $element;
@@ -406,6 +408,7 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
         '#title' => t('CAPTCHA'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
+        '#attributes' => array('class' => array('captcha-admin-links')),
       );
       if ($captcha_point !== NULL && $captcha_point->captcha_type) {
         $captcha_element['#title'] = t('CAPTCHA: challenge "@type" enabled', array('@type' => $captcha_point->captcha_type));
@@ -662,14 +665,6 @@ function captcha_validate($element, &$form_state) {
             '%challenge' => $captcha_info['captcha_type'], '%module' => $captcha_info['module'],
           ),
           WATCHDOG_NOTICE);
-      }
-      // If CAPTCHA was on a login form: stop validating, quit the current request
-      // and forward to the current page (like a reload) to prevent loging in.
-      // We do that because the log in procedure, which happens after
-      // captcha_validate(), does not check error conditions of extra form
-      // elements like the CAPTCHA.
-      if ($form_id == 'user_login' || $form_id == 'user_login_block') {
-        drupal_goto($_GET['q']);
       }
     }
   }

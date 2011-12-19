@@ -53,10 +53,10 @@ function logintoboggan_main_settings() {
     '#type' => 'checkbox',
     '#title' => t('Set password'),
     '#default_value' => !variable_get('user_email_verification', TRUE) ? 1 : 0,
-    '#description' => t("This will allow users to choose their initial password when registering (note that this setting is a mirror of the <a href=\"!settings\">Require e-mail verification when a visitor creates an account</a> setting, and is merely here for convenience).  If selected, users will be assigned to the role below. They will not be assigned to the 'authenticated user' role until they confirm their e-mail address by following the link in their registration e-mail. It is HIGHLY recommended that you set up a 'pre-authorized' role with limited permissions for this purpose. <br />NOTE: If you enable this feature, you should edit the <a href=\"!settings\">Welcome (no approval required)</a> text.", array('!settings' => url('admin/config/people/accounts'))) . $help_text,
+    '#description' => t("This will allow users to choose their initial password when registering (note that this setting is a mirror of the <a href=\"!settings\">Require e-mail verification when a visitor creates an account</a> setting, and is merely here for convenience). If selected, users will be assigned to the role below. They will not be assigned to the 'authenticated user' role until they confirm their e-mail address by following the link in their registration e-mail. It is HIGHLY recommended that you set up a 'pre-authorized' role with limited permissions for this purpose. <br />NOTE: If you enable this feature, you should edit the <a href=\"!settings\">Welcome (no approval required)</a> text.", array('!settings' => url('admin/config/people/accounts'))) . $help_text,
   );
 
-  // Grab the roles that can be used for pre-auth.  Remove the anon role, as it's not a valid choice.
+  // Grab the roles that can be used for pre-auth. Remove the anon role, as it's not a valid choice.
   $roles = user_roles(TRUE);
 
   $form ['registration']['logintoboggan_pre_auth_role'] = array(
@@ -166,7 +166,7 @@ function logintoboggan_main_settings() {
     '#title' => t('Minimum password length'),
     '#options' => $min_pass_options,
     '#default_value' => variable_get('logintoboggan_minimum_password_length', 0),
-    '#description' => t('LoginToboggan automatically performs basic password validation for illegal characters. If you would additionally like to have a mimimum password length requirement, select the length here, or set to \'None\' for no password length validation.')
+    '#description' => t('LoginToboggan automatically performs basic password validation for illegal characters. If you would additionally like to have a minimum password length requirement, select the length here, or set to \'None\' for no password length validation.')
   );
 
   return system_settings_form($form);

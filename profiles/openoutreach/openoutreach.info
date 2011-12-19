@@ -70,10 +70,12 @@ subprofiles[standard][name] = "Openoutreach standard"
 subprofiles[standard][description] = "Install a full version of Open Outreach with all commonly needed features enabled."
 subprofiles[standard][features][debut] = TRUE
 subprofiles[standard][features][debut_article] = TRUE
+subprofiles[standard][features][debut_bio] = TRUE
 subprofiles[standard][features][debut_blog] = TRUE
 subprofiles[standard][features][debut_comment] = TRUE
 subprofiles[standard][features][debut_event] = TRUE
 subprofiles[standard][features][debut_forum] = FALSE
+subprofiles[standard][features][debut_highlighted] = TRUE
 subprofiles[standard][features][debut_link] = TRUE
 subprofiles[standard][features][debut_media] = TRUE
 subprofiles[standard][features][debut_section] = TRUE
@@ -85,10 +87,12 @@ subprofiles[minimal][name] = "Openoutreach minimal"
 subprofiles[minimal][description] = "Install a minimal Open Outreach site with article and comment functionality."
 subprofiles[minimal][features][debut] = TRUE
 subprofiles[minimal][features][debut_article] = TRUE
+subprofiles[minimal][features][debut_bio] = FALSE
 subprofiles[minimal][features][debut_blog] = FALSE
 subprofiles[minimal][features][debut_comment] = TRUE
 subprofiles[minimal][features][debut_event] = FALSE
 subprofiles[minimal][features][debut_forum] = FALSE
+subprofiles[minimal][features][debut_highlighted] = FALSE
 subprofiles[minimal][features][debut_link] = FALSE
 subprofiles[minimal][features][debut_media] = FALSE
 subprofiles[minimal][features][debut_section] = FALSE
@@ -99,9 +103,9 @@ subprofiles[minimal][features][openoutreach_front_page] = FALSE
 
 
 
-; Information added by drupal.org packaging script on 2011-10-26
-version = "7.x-1.0-beta5"
+; Information added by drupal.org packaging script on 2011-12-17
+version = "7.x-1.x-dev"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1319654136"
+datestamp = "1324082309"
 

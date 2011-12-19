@@ -266,17 +266,12 @@ function _captcha_get_captcha_placement($form_id, $form) {
     if ($placement_map === NULL) {
       // If second level cache missed: start from a fresh placement map.
       $placement_map = array();
-      // Prefill with some hard coded default entries.
 
-      // The comment form can have a 'Preview' button, or both a 'Submit' and 'Preview' button,
-      // which is tricky for automatic placement detection. Luckily, Drupal core sets their
-      // weight (19 and 20), so we just have to specify a slightly smaller weight.
-      $placement_map['comment_form'] = array('path' => array(), 'key' => NULL, 'weight' => 18.9);
-      // Additional note: the node forms also have the posibility to only show a 'Preview' button.
-      // However, the 'Submit' button is always present, but is just not rendered ('#access' = FALSE)
-      // in those cases. The the automatic button detection should be sufficient for node forms.
+      // This is the place to (pre)fill the placement map with some hard coded default entries.
+      // However, probably all Drupal core forms are correctly handled with the best effort
+      // guess based on the 'actions' element (see below). So not much to here at the moment.
 
-      // $placement_map['user_login'] = array('path' => array(), 'key' => NULL, 'weight' => 1.9);
+      // TODO: provide a hook here so other modules can inject placements here?
       // TODO: also make the placement 'overridable' from the admin UI?
     }
   }
@@ -285,21 +280,32 @@ function _captcha_get_captcha_placement($form_id, $form) {
   if (array_key_exists($form_id, $placement_map)) {
     $placement = $placement_map[$form_id];
   }
-  // If no placement info is available in placement map:
-  // search the form for buttons and guess placement from it.
+  // If no placement info is available in placement map: make a best effort guess.
   else {
-    $buttons = _captcha_search_buttons($form);
-    if (count($buttons)) {
-      // Pick first button.
-      // TODO: make this more sofisticated? Use cases needed.
-      $placement = $buttons[0];
+    // If there is an "actions" button group, a good placement is just before that.
+    if (isset($form['actions']) && isset($form['actions']['#type']) && $form['actions']['#type'] === 'actions') {
+      $placement = array(
+        'path' => array(),
+        'key' => 'actions',
+        // #type 'actions' defaults to 100.
+        'weight' => (isset($form['actions']['#weight']) ? $form['actions']['#weight'] - 1 : 99),
+      );
     }
     else {
-      // Use NULL when no buttons were found.
-      $placement = NULL;
+      // Search the form for buttons and guess placement from it.
+      $buttons = _captcha_search_buttons($form);
+      if (count($buttons)) {
+        // Pick first button.
+        // TODO: make this more sofisticated? Use cases needed.
+        $placement = $buttons[0];
+      }
+      else {
+        // Use NULL when no buttons were found.
+        $placement = NULL;
+      }
     }
 
-    // Store calculated placement in caches.
+    // Store calculated placement in cache.
     $placement_map[$form_id] = $placement;
     variable_set('captcha_placement_map_cache', $placement_map);
   }

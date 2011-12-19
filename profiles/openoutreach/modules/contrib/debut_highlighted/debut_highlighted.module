@@ -1,0 +1,45 @@
+<?php
+/**
+ * @file
+ * Code for the Debut Highlighted feature.
+ */
+
+include_once('debut_highlighted.features.inc');
+
+/**
+ * Implements hook_init().
+ */
+function debut_highlighted_init() {
+  drupal_add_css(drupal_get_path('module', 'debut_highlighted') . '/debut_highlighted.css');
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Move debut_slideshow's implementation of
+ * hook_preprocess_views_slideshow_pager_fields() to end.
+ */
+function debut_highlighted_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'preprocess_views_slideshow_pager_fields') {
+    $group = $implementations['debut_slideshow'];
+    unset($implementations['debut_slideshow']);
+    $implementations['debut_slideshow'] = $group;
+  }
+}
+
+/**
+ * Theme pager fields.
+ *
+ * Replace rendered fields with a list.
+ */
+function debut_highlighted_preprocess_views_slideshow_pager_fields(&$vars) {
+  return;
+  if ($vars['view']->name == 'highlighted') {
+    $vars['classes_array'][] = 'views-slideshow-pager-sprite';
+    $vars['rendered_field_items'] = '';
+    if (empty($vars['settings']['hide_on_single_slide']) && count($vars['view']->result) > 1) {
+      $items = array_fill(0, count($vars['view']->result), '<span>test</span>');
+      // $vars['rendered_field_items'] = theme('item_list', array('items' => $items));
+    }
+  }
+}

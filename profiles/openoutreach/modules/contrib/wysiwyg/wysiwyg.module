@@ -12,19 +12,14 @@ function wysiwyg_entity_info() {
   $types['wysiwyg_profile'] = array(
     'label' => t('Wysiwyg profile'),
     'base table' => 'wysiwyg',
-    'controller class' => module_exists('entity') ? 'EntityAPIControllerExportable' : 'WysiwygProfileController',
+    'controller class' => 'WysiwygProfileController',
     'fieldable' => FALSE,
     // When loading all entities, DrupalDefaultEntityController::load() ignores
     // its static cache. Therefore, wysiwyg_profile_load_all() implements a
     // custom static cache.
     'static cache' => FALSE,
-    // Make exportable if the Entity API module is enabled.
-    'exportable' => TRUE,
-    'module' => 'wysiwyg',
     'entity keys' => array(
       'id' => 'format',
-      // Provides the label in e.g. features export.
-      'label' => 'format',
     ),
   );
   return $types;
@@ -122,7 +117,7 @@ function wysiwyg_theme() {
 function wysiwyg_help($path, $arg) {
   switch ($path) {
     case 'admin/config/content/wysiwyg':
-      $output = '<p>' . t('A Wysiwyg profile is associated with an input format. A Wysiwyg profile defines which client-side editor is loaded with a particular input format, what buttons or themes are enabled for the editor, how the editor is displayed, and a few other editor-specific functions.') . '</p>';
+      $output = '<p>' . t('A Wysiwyg profile is associated with a text format. A Wysiwyg profile defines which client-side editor is loaded with a particular text format, what buttons or themes are enabled for the editor, how the editor is displayed, and a few other editor-specific functions.') . '</p>';
       return $output;
   }
 }
@@ -142,23 +137,6 @@ function wysiwyg_form_alter(&$form, &$form_state) {
  */
 function wysiwyg_element_info_alter(&$types) {
   $types['text_format']['#pre_render'][] = 'wysiwyg_pre_render_text_format';
-}
-
-/**
- * Implements hook_modules_disabled().
- */
-function wysiwyg_modules_disabled($modules) {
-  if (in_array('entity', $modules)) {
-    // Since Entity API module is an optional dependency, if it is disabled,
-    // the columns it was managing must be reset to their defaults.
-    $schema = drupal_get_schema('wysiwyg');
-    db_update('wysiwyg')
-      ->fields(array(
-        'status' => $schema['fields']['status']['default'],
-        'module' => $schema['fields']['module']['default'],
-      ))->execute();
-    wysiwyg_profile_cache_clear();
-  }
 }
 
 /**
@@ -688,15 +666,9 @@ function wysiwyg_profile_load_all() {
  * Deletes a profile from the database.
  */
 function wysiwyg_profile_delete($format) {
-  if (module_exists('entity')) {
-    entity_delete('wysiwyg_profile', $format);
-  }
-  else {
-    db_delete('wysiwyg')
-      ->condition('format', $format)
-      ->execute();
-  }
-  wysiwyg_profile_cache_clear();
+  db_delete('wysiwyg')
+    ->condition('format', $format)
+    ->execute();
 }
 
 /**
@@ -1105,3 +1077,19 @@ function _wysiwyg_process_include($module, $identifier, $path, $hook) {
 /**
  * @} End of "defgroup wysiwyg_api".
  */
+
+/**
+ * Implements hook_features_api().
+ */
+function wysiwyg_features_api() {
+  return array(
+    'wysiwyg' => array(
+      'name' => t('Wysiwyg profiles'),
+      'default_hook' => 'wysiwyg_default_profiles',
+      'default_file' => FEATURES_DEFAULTS_INCLUDED,
+      'feature_source' => TRUE,
+      'file' => drupal_get_path('module', 'wysiwyg') . '/wysiwyg.features.inc',
+    ),
+  );
+}
+

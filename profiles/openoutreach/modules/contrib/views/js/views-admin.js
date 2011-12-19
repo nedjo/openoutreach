@@ -391,6 +391,11 @@ Drupal.behaviors.viewsUiPreview.attach = function (context, settings) {
   else {
     $('#preview-args').parent().hide();
   }
+
+  // Executes an initial preview.
+  if ($('#edit-displays-live-preview').once('edit-displays-live-preview').is(':checked')) {
+    $('#preview-submit').once('edit-displays-live-preview').click();
+  }
 };
 
 
@@ -860,6 +865,9 @@ Drupal.behaviors.viewsUiOverrideSelect.attach = function (context, settings) {
     $(this).bind('change', function() {
       if ($(this).val() == 'default') {
         $submit.val(Drupal.t('Apply (all displays)'));
+      }
+      else if ($(this).val() == 'default_revert') {
+        $submit.val(Drupal.t('Revert to default'));
       }
       else {
         $submit.val(Drupal.t('Apply (this display)'));

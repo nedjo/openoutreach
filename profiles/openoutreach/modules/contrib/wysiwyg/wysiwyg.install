@@ -30,22 +30,6 @@ function wysiwyg_schema() {
         'description' => 'Configuration settings for the editor.',
         'type' => 'text',
         'size' => 'normal',
-        'serialize' => TRUE,
-      ),
-      'status' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-        // Hard code the value of ENTITY_CUSTOM in case entity.module is not present.
-        'default' => 0x01,
-        'size' => 'tiny',
-        'description' => 'The exportable status of the entity.',
-      ),
-      'module' => array(
-        'description' => 'The name of the providing module if the entity has been defined in code.',
-        'type' => 'varchar',
-        'length' => 255,
-        'default' => '',
-        'not null' => FALSE,
       ),
     ),
     'primary key' => array('format'),
@@ -325,27 +309,4 @@ function wysiwyg_update_7200() {
       'not null' => FALSE,
     ));
   }
-}
-
-/**
- * Add fields used for Entity API module exportables.
- */
-function wysiwyg_update_7201() {
-  // Create a created column.
-  db_add_field('wysiwyg', 'status', array(
-    'type' => 'int',
-    'not null' => TRUE,
-    // Hard code the value of ENTITY_CUSTOM in case entity.module is not present.
-    'default' => 0x01,
-    'size' => 'tiny',
-    'description' => 'The exportable status of the entity.',
-  ));
-
-  db_add_field('wysiwyg', 'module', array(
-    'description' => 'The name of the providing module if the entity has been defined in code.',
-    'type' => 'varchar',
-    'length' => 255,
-    'default' => '',
-    'not null' => FALSE,
-  ));
 }

@@ -52,9 +52,9 @@ recommends[] = "media_browser_plus"
 recommends[] = "styles_ui"
 recommends[] = "transliteration"
 
-; Information added by drupal.org packaging script on 2011-10-26
-version = "7.x-1.0-beta5"
+; Information added by drupal.org packaging script on 2011-12-16
+version = "7.x-1.0-beta6"
 core = "7.x"
 project = "debut_media"
-datestamp = "1319651729"
+datestamp = "1324073138"
 

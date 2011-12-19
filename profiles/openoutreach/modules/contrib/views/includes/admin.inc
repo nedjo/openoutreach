@@ -31,9 +31,26 @@ function views_ui_get_admin_css() {
   $themes = list_themes();
   $theme_key = $GLOBALS['theme'];
   while ($theme_key) {
-    $list[$module_path . "/css/views-admin.$theme_key.css"] = array(
-      'group' => CSS_THEME,
-    );
+    // Try to find the admin css file for non-core themes.
+    if (!in_array($theme_key, array('garland', 'seven', 'bartik'))) {
+      $theme_path = drupal_get_path('theme', $theme_key);
+      // First search in the css directory, then in the root folder of the theme.
+      if (file_exists($theme_path . "/css/views-admin.$theme_key.css")) {
+        $list[$theme_path . "/css/views-admin.$theme_key.css"] = array(
+          'group' => CSS_THEME,
+        );
+      }
+      else if (file_exists($theme_path . "/views-admin.$theme_key.css")) {
+        $list[$theme_path . "/views-admin.$theme_key.css"] = array(
+          'group' => CSS_THEME,
+        );
+      }
+    }
+    else {
+      $list[$module_path . "/css/views-admin.$theme_key.css"] = array(
+        'group' => CSS_THEME,
+      );
+    }
     $theme_key = isset($themes[$theme_key]->base_theme) ? $themes[$theme_key]->base_theme : '';
   }
   // Views contains style overrides for the following modules
@@ -104,7 +121,7 @@ function views_ui_preview($view, $display_id, $args = array()) {
     $show_stats = variable_get('views_ui_show_sql_query_where', 'above');
   }
 
-  $combined = ($show_query === $show_stats);
+  $combined = $show_query && $show_stats;
 
   $rows = array('query' => array(), 'statistics' => array());
   $output = '';
@@ -826,7 +843,8 @@ function views_ui_break_lock_confirm($form, &$form_state, $view) {
   $form = array();
 
   if (empty($view->locked)) {
-    return t('There is no lock on view %view to break.', array('%name' => $view->name));
+    $form['#markup'] = t('There is no lock on view %view to break.', array('%name' => $view->name));
+    return $form;
   }
 
   $cancel = 'admin/structure/views/view/' . $view->name . '/edit';
@@ -860,7 +878,7 @@ function views_ui_break_lock_confirm_submit(&$form, &$form_state) {
  */
 function views_ui_edit_page_display($view, $display_id) {
   // Determine the displays available for editing.
-  if ($tabs = views_ui_edit_page_display_tabs($view)) {
+  if ($tabs = views_ui_edit_page_display_tabs($view, $display_id)) {
     // If a display isn't specified, use the first one.
     if (empty($display_id)) {
       foreach ($tabs as $id => $tab) {
@@ -892,17 +910,11 @@ function views_ui_edit_page_display($view, $display_id) {
  * Page callback for the Edit View page.
  */
 function views_ui_edit_page($view, $display_id = NULL) {
-  // If the user has enabled the master display, remove 'default' from the url.
-  // If the user hasn't enabled the master display redirect to the first other display.
-  if (arg(6) == 'default') {
-    drupal_goto("admin/structure/views/view/$view->name/edit");
-  }
-
   $display_id = views_ui_edit_page_display($view, $display_id);
   if (!in_array($display_id, array(MENU_ACCESS_DENIED, MENU_NOT_FOUND))) {
     $build = array();
     $build['edit_form'] = drupal_get_form('views_ui_edit_form', $view, $display_id);
-    $build['preview'] = views_ui_build_preview($view, $display_id);
+    $build['preview'] = views_ui_build_preview($view, $display_id, FALSE);
   }
   else {
     $build = $display_id;
@@ -911,7 +923,7 @@ function views_ui_edit_page($view, $display_id = NULL) {
   return $build;
 }
 
-function views_ui_build_preview($view, $display_id) {
+function views_ui_build_preview($view, $display_id, $render = TRUE) {
   if (isset($_POST['ajax_html_ids'])) {
     unset($_POST['ajax_html_ids']);
   }
@@ -932,7 +944,7 @@ function views_ui_build_preview($view, $display_id) {
   $build['preview'] = array(
     '#theme_wrappers' => array('container'),
     '#attributes' => array('id' => 'views-live-preview'),
-    '#markup' => views_ui_preview($view->clone_view(), $display_id, $args),
+    '#markup' => $render ? views_ui_preview($view->clone_view(), $display_id, $args) : '',
   );
 
   return $build;
@@ -1196,6 +1208,7 @@ function views_ui_preview_form($form, &$form_state, $view, $display_id = 'defaul
     //   we may need to split Preview into a separate form.
     '#process' => array_merge(array('views_ui_default_button'), element_info_property('submit', '#process', array())),
   );
+  $form['#action'] = url('admin/structure/views/view/' . $view->name .'/preview/' . $display_id);
 
   return $form;
 }
@@ -1264,7 +1277,7 @@ function views_ui_render_display_top($view, $display_id) {
   }
 
   // Determine the displays available for editing.
-  if ($tabs = views_ui_edit_page_display_tabs($view)) {
+  if ($tabs = views_ui_edit_page_display_tabs($view, $display_id)) {
     if ($display_id) {
       $tabs[$display_id]['#active'] = TRUE;
     }
@@ -1437,8 +1450,13 @@ function views_ui_edit_form_submit_delay_destination($form, &$form_state) {
  * these tabs as secondary local tasks, or it can be called from elsewhere if
  * having them as secondary local tasks isn't desired. The caller is responsible
  * for setting the active tab's #active property to TRUE.
+ *
+ * @param $view
+ *    The view which will be edited.
+ * @param $display_id
+ *    The display_id which is edited on the current request.
  */
-function views_ui_edit_page_display_tabs($view) {
+function views_ui_edit_page_display_tabs($view, $display_id = NULL) {
   $tabs = array();
 
   // Create a tab for each display.
@@ -1460,7 +1478,7 @@ function views_ui_edit_page_display_tabs($view) {
   }
 
   // If the default display isn't supposed to be shown, don't display its tab, unless it's the only display.
-  if (!views_ui_show_default_display($view) && count($tabs) > 1) {
+  if ((!views_ui_show_default_display($view) && $display_id != 'default') && count($tabs) > 1) {
     $tabs['default']['#access'] = FALSE;
   }
 
@@ -2082,6 +2100,25 @@ function views_ui_edit_view_form_submit($form, &$form_state) {
     }
   }
 
+  // Direct the user to the right url, if the path of the display has changed.
+  if (!empty($_GET['destination'])) {
+    $destination = $_GET['destination'];
+    // Find out the first display which has a changed path and redirect to this url.
+    $old_view = views_get_view($form_state['view']->name);
+    foreach ($old_view->display as $id => $display) {
+      // Only check for displays with a path.
+      if (!isset($display->display_options['path'])) {
+        continue;
+      }
+      $old_path = $display->display_options['path'];
+      if (($display->display_plugin == 'page') && ($old_path == $destination) && ($old_path != $form_state['view']->display[$id]->display_options['path'])) {
+        $destination = $form_state['view']->display[$id]->display_options['path'];
+        unset($_GET['destination']);
+      }
+    }
+    $form_state['redirect'] = $destination;
+  }
+
   $form_state['view']->save();
   drupal_set_message(t('The view %name has been saved.', array('%name' => $form_state['view']->get_human_name())));
 
@@ -2464,7 +2501,7 @@ function views_ui_standard_submit($form, &$form_state) {
   // Determine whether the values the user entered are intended to apply to
   // the current display or the default display.
 
-  list($was_defaulted, $is_defaulted) = views_ui_standard_override_values($form, $form_state);
+  list($was_defaulted, $is_defaulted, $revert) = views_ui_standard_override_values($form, $form_state);
 
   // Mark the changed section of the view as changed.
   // TODO: Document why we are doing this, and see if we still need it.
@@ -2474,7 +2511,16 @@ function views_ui_standard_submit($form, &$form_state) {
 
   // Based on the user's choice in the display dropdown, determine which display
   // these changes apply to.
-  if ($was_defaulted === $is_defaulted) {
+  if ($revert) {
+    // If it's revert just change the override and return.
+    $display = &$form_state['view']->display[$form_state['display_id']];
+    $display->handler->options_override($form, $form_state);
+
+    // Don't execute the normal submit handling but still store the changed view into cache.
+    views_ui_cache_set($form_state['view']);
+    return;
+  }
+  elseif ($was_defaulted === $is_defaulted) {
     // We're not changing which display these form values apply to.
     // Run the regular submit handler for this form.
   }
@@ -2482,6 +2528,7 @@ function views_ui_standard_submit($form, &$form_state) {
     // We were using the default display's values, but we're now overriding
     // the default display and saving values specific to this display.
     $display = &$form_state['view']->display[$form_state['display_id']];
+    // options_override toggles the override of this section.
     $display->handler->options_override($form, $form_state);
     $display->handler->options_submit($form, $form_state);
   }
@@ -2491,6 +2538,7 @@ function views_ui_standard_submit($form, &$form_state) {
     // Overwrite the default display with the current form values, and make
     // the current display use the new default values.
     $display = &$form_state['view']->display[$form_state['display_id']];
+    // options_override toggles the override of this section.
     $display->handler->options_override($form, $form_state);
     $display->handler->options_submit($form, $form_state);
   }
@@ -2502,15 +2550,16 @@ function views_ui_standard_submit($form, &$form_state) {
 }
 
 /**
- * Return the was_defaulted and is_defaulted state of a form.
+ * Return the was_defaulted, is_defaulted and revert state of a form.
  */
 function views_ui_standard_override_values($form, $form_state) {
   // Make sure the dropdown exists in the first place.
   if (isset($form_state['values']['override']['dropdown'])) {
     // #default_value is used to determine whether it was the default value or not.
-    // So the availible options are: $display and 'default', not 'defaults'.
-    $was_defaulted = (bool) ($form['override']['dropdown']['#default_value'] === 'defaults');
-    $is_defaulted = (bool) ($form_state['values']['override']['dropdown'] === 'default');
+    // So the available options are: $display, 'default' and 'default_revert', not 'defaults'.
+    $was_defaulted = ($form['override']['dropdown']['#default_value'] === 'defaults');
+    $is_defaulted = ($form_state['values']['override']['dropdown'] === 'default');
+    $revert = ($form_state['values']['override']['dropdown'] === 'default_revert');
 
     if ($was_defaulted !== $is_defaulted && isset($form['#section'])) {
       // We're changing which display these values apply to.
@@ -2522,9 +2571,10 @@ function views_ui_standard_override_values($form, $form_state) {
     // The user didn't get the dropdown for overriding the default display.
     $was_defaulted = FALSE;
     $is_defaulted = FALSE;
+    $revert = FALSE;
   }
 
-  return array($was_defaulted, $is_defaulted);
+  return array($was_defaulted, $is_defaulted, $revert);
 }
 
 /**
@@ -2564,6 +2614,7 @@ function views_ui_standard_display_dropdown(&$form, &$form_state, $section) {
 
   // Determine whether any other displays have overrides for this section.
   $section_overrides = FALSE;
+  $section_defaulted = $current_display->handler->is_defaulted($section);
   foreach ($displays as $id => $display) {
     if ($id === 'default' || $id === $display_id) {
       continue;
@@ -2575,6 +2626,10 @@ function views_ui_standard_display_dropdown(&$form, &$form_state, $section) {
 
   $display_dropdown['default'] = ($section_overrides ? t('All displays (except overridden)') : t('All displays'));
   $display_dropdown[$display_id] = t('This @display_type (override)', array('@display_type' => $current_display->display_plugin));
+  // Only display the revert option if we are in a overridden section.
+  if (!$section_defaulted) {
+    $display_dropdown['default_revert'] = t('Revert to default');
+  }
 
   $form['override'] = array(
     '#prefix' => '<div class="views-override clearfix container-inline">',
@@ -3873,6 +3928,7 @@ function views_ui_add_item_form($form, &$form_state) {
 
   $types = views_object_types();
   $ltitle = $types[$type]['ltitle'];
+  $section = $types[$type]['plural'];
 
   if (!empty($types[$type]['type'])) {
     $type = $types[$type]['type'];
@@ -3880,6 +3936,10 @@ function views_ui_add_item_form($form, &$form_state) {
 
   $form['#title'] = t('Add @type', array('@type' => $ltitle));
   $form['#section'] = $display_id . 'add-item';
+
+
+  // Add the display override dropdown.
+  views_ui_standard_display_dropdown($form, $form_state, $section);
 
   // Figure out all the base tables allowed based upon what the relationships provide.
   $base_tables = $view->get_base_tables();
@@ -3972,6 +4032,10 @@ function views_ui_add_item_form($form, &$form_state) {
   ctools_include('dependent');
   views_ui_standard_form_buttons($form, $form_state, 'views_ui_add_item_form', t('Add and configure @types', array('@types' => $ltitle)));
 
+  // Remove the default submit function.
+  $form['buttons']['submit']['#submit'] = array_diff($form['buttons']['submit']['#submit'], array('views_ui_standard_submit'));
+  $form['buttons']['submit']['#submit'][] = 'views_ui_add_item_form_submit';
+
   return $form;
 }
 
@@ -3981,6 +4045,26 @@ function views_ui_add_item_form($form, &$form_state) {
 function views_ui_add_item_form_submit($form, &$form_state) {
   $type = $form_state['type'];
   $types = views_object_types();
+  $section = $types[$type]['plural'];
+
+  // Handle the override select.
+  list($was_defaulted, $is_defaulted) = views_ui_standard_override_values($form, $form_state);
+  if ($was_defaulted && !$is_defaulted) {
+    // We were using the default display's values, but we're now overriding
+    // the default display and saving values specific to this display.
+    $display = &$form_state['view']->display[$form_state['display_id']];
+    // set_override toggles the override of this section.
+    $display->handler->set_override($section);
+  }
+  elseif (!$was_defaulted && $is_defaulted) {
+    // We used to have an override for this display, but the user now wants
+    // to go back to the default display.
+    // Overwrite the default display with the current form values, and make
+    // the current display use the new default values.
+    $display = &$form_state['view']->display[$form_state['display_id']];
+    // options_override toggles the override of this section.
+    $display->handler->set_override($section);
+  }
 
   if (!empty($form_state['values']['name']) && is_array($form_state['values']['name'])) {
     // Loop through each of the items that were checked and add them to the view.
@@ -3993,12 +4077,17 @@ function views_ui_add_item_form_submit($form, &$form_state) {
       $id = $form_state['view']->add_item($form_state['display_id'], $type, $table, $field);
 
       // check to see if we have group by settings
-      if ($form_state['view']->display_handler->use_group_by()) {
+      $key = $type;
+      // Footer,header and empty text have a different internal handler type(area).
+      if (isset($types[$type]['type'])) {
+        $key = $types[$type]['type'];
+      }
+      $handler = views_get_handler($table, $field, $key);
+      if ($form_state['view']->display_handler->use_group_by() && $handler->use_group_by()) {
         views_ui_add_form_to_stack('config-item-group', $form_state['view'], $form_state['display_id'], array($type, $id));
       }
 
       // check to see if this type has settings, if so add the settings form first
-      $handler = views_get_handler($table, $field, $type);
       if ($handler && $handler->has_extra_options()) {
         views_ui_add_form_to_stack('config-item-extra', $form_state['view'], $form_state['display_id'], array($type, $id));
       }
@@ -4136,8 +4225,9 @@ function views_ui_config_item_form($form, &$form_state) {
     }
 
     views_ui_standard_form_buttons($form, $form_state, 'views_ui_config_item_form', $name, t('Remove'), 'remove');
-    // Don't execute validations for the remove button.
-    $form['buttons']['remove']['#limit_validation_errors'] = array();
+    // Only validate the override values, because this values are required for
+    // the override selection.
+    $form['buttons']['remove']['#limit_validation_errors'] = array(array('override'));
   }
 
   return $form;
@@ -4328,6 +4418,12 @@ function views_ui_config_item_group_form_submit($form, &$form_state) {
  */
 function views_ui_config_item_form_remove($form, &$form_state) {
   // Store the item back on the view
+  list($was_defaulted, $is_defaulted) = views_ui_standard_override_values($form, $form_state);
+  // If the display selection was changed toggle the override value.
+  if ($was_defaulted != $is_defaulted) {
+    $display =& $form_state['view']->display[$form_state['display_id']];
+    $display->handler->options_override($form, $form_state);
+  }
   $form_state['view']->set_item($form_state['display_id'], $form_state['type'], $form_state['id'], NULL);
 
   // Write to cache
@@ -4678,8 +4774,8 @@ function views_ui_admin_settings_advanced() {
 
   $form['debug']['views_devel_output'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable views performance statistics via the Devel module'),
-    '#description' => t("Check this to enable some Views query and performance statistics <em>if Devel is installed</em>."),
+    '#title' => t('Enable views performance statistics/debug messages via the Devel module'),
+    '#description' => t("Check this to enable some Views query and performance statistics/debug messages <em>if Devel is installed</em>."),
     '#default_value' => variable_get('views_devel_output', FALSE),
   );
 
@@ -4698,10 +4794,14 @@ function views_ui_admin_settings_advanced() {
 
   $regions = system_region_list(variable_get('theme_default', 'garland'));
   $regions['watchdog'] = t('Watchdog');
+  if (module_exists('devel')) {
+    $regions['message'] = t('Devel message(dpm)');
+    $regions['drupal_debug'] = t('Devel logging (tmp://drupal_debug.txt)');
+  }
 
   $form['debug']['views_devel_region'] = array(
     '#type' => 'select',
-    '#title' => t('Page region to output performance statistics'),
+    '#title' => t('Page region to output performance statistics/debug messages'),
     '#default_value' => variable_get('views_devel_region', 'footer'),
     '#options' => $regions,
     '#dependency' => array('edit-views-devel-output' => array(1)),

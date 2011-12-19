@@ -13,7 +13,7 @@ function advanced_forum_page($forum_term = NULL) {
     // On the main page, display all the top-level forums.
     $forum_term = advanced_forum_forum_load(0);
   }
-
+  
   // Set tid for <root> container
   if (!isset($forum_term->tid)) {
     $forum_term->tid = 0;

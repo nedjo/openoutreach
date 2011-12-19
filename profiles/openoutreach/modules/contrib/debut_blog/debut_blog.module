@@ -36,3 +36,66 @@ function debut_blog_admin_paths() {
   }
 }
 
+/**
+ * Implements hook_features_export_alter().
+ *
+ * Remove the tags vocabulary, which we create at install time so as not to
+ * create a dependency on a feature providing the vocabulary.
+ */
+function debut_blog_features_export_alter(&$export, $module_name) {
+  if ($module_name == 'debut_blog' && isset($export['features']['taxonomy']) && isset($export['features']['taxonomy']['tags'])) {
+    unset($export['features']['taxonomy']['tags']);
+  }
+}
+
+/**
+ * Implements hook_context_default_contexts_alter().
+ *
+ * Trigger author bio display for on blog node pages.
+ */
+function debut_blog_context_default_contexts_alter(&$items) {
+  // Don't alter when recreating/updating the debut_bio feature. This ensures
+  // the context exports cleanly.
+  if (isset($items['bio_author']) && !debut_blog_is_recreating('debut_bio')) {
+    $items['bio_author']->conditions['node']['values']['blog'] = 'blog';
+  }
+}
+
+/**
+ * Implements hook_user_default_permissions_alter().
+ *
+ * Assign bio releated permissions to blogger role.
+ */
+function debut_blog_user_default_permissions_alter(&$items) {
+  // Don't alter when recreating/updating the debut_bio feature. This ensures
+  // the user permissions export cleanly.
+  $permissions = array('edit own bio profile', 'view own bio profile');
+  foreach ($permissions as $permission) {
+    if (isset($items[$permission]) && !debut_blog_is_recreating('debut_bio')) {
+      $items[$permission]['roles'][] = 'blogger';
+    }
+  }
+}
+
+/**
+ * Determine whether a feature is being recreated.
+ */
+function debut_blog_is_recreating($feature = NULL) {
+  $feature = is_null($feature) ? arg(3) : $feature;
+
+  // Test for Drush usage.
+  if (function_exists('drush_get_command') && $command = drush_get_command()) {
+    switch($command['command']) {
+      case 'features-update-all':
+        return TRUE;
+      case 'features-update':
+        return $feature && in_array($feature, $command['arguments']);
+    }
+  }
+
+  // Test for admin UI usage.
+  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
+    return TRUE;
+  }
+  return FALSE;
+}

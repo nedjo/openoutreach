@@ -334,7 +334,8 @@ function advanced_forum_process_forum($forum) {
           'image_link' => '',
         ),
       );
-      $forum->forum_image = render(field_view_value('taxonomy_term', $entity[$forum->tid], $field_name, $field[$langcode][0], $display));
+      $output = field_view_value('taxonomy_term', $entity[$forum->tid], $field_name, $field[$langcode][0], $display);
+      $forum->forum_image = render($output);
     }
   }
 

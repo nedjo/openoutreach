@@ -7,9 +7,9 @@ files[] = token.tokens.inc
 files[] = token.pages.inc
 files[] = token.test
 
-; Information added by drupal.org packaging script on 2011-09-30
-version = "7.x-1.0-beta6"
+; Information added by drupal.org packaging script on 2011-10-28
+version = "7.x-1.0-beta7"
 core = "7.x"
 project = "token"
-datestamp = "1317397307"
+datestamp = "1319825735"
 

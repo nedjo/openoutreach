@@ -261,6 +261,7 @@ files[] = tests/handlers/views_handler_sort.test
 files[] = tests/test_plugins/views_test_plugin_access_test_dynamic.inc
 files[] = tests/test_plugins/views_test_plugin_access_test_static.inc
 files[] = tests/styles/views_plugin_style_jump_menu.test
+files[] = tests/styles/views_plugin_style.test
 files[] = tests/views_access.test
 files[] = tests/views_analyze.test
 files[] = tests/views_basic.test
@@ -277,15 +278,18 @@ files[] = tests/views_translatable.test
 files[] = tests/views_query.test
 files[] = tests/views_upgrade.test
 files[] = tests/views_test.views_default.inc
+files[] = tests/comment/views_handler_argument_comment_user_uid.test
+files[] = tests/comment/views_handler_filter_comment_user_uid.test
 files[] = tests/user/views_user_argument_default.test
 files[] = tests/user/views_user_argument_validate.test
 files[] = tests/user/views_user.test
 files[] = tests/views_cache.test
 files[] = tests/views_view.test
 files[] = tests/views_ui.test
-; Information added by drupal.org packaging script on 2011-10-26
+
+; Information added by drupal.org packaging script on 2011-12-18
 version = "7.x-3.x-dev"
 core = "7.x"
 project = "views"
-datestamp = "1319632256"
+datestamp = "1324212229"
 

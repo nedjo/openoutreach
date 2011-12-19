@@ -21,6 +21,7 @@ function strongarm_enable() {
  * Transition Strongarm variables from code to the database.
  */
 function strongarm_update_7201() {
+  module_load_include('module', 'strongarm');
   $variables = strongarm_vars_load(TRUE, TRUE);
   if (!empty($variables)) {
     foreach ($variables as $var_name => $var) {

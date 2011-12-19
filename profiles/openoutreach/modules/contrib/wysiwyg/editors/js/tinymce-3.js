@@ -138,16 +138,18 @@ Drupal.wysiwyg.editor.instance.tinymce = {
 
         // Attach: Replace plain text with HTML representations.
         ed.onBeforeSetContent.add(function(ed, data) {
+          var editorId = (ed.id == 'mce_fullscreen' ? ed.getParam('fullscreen_editor_id') : ed.id);
           if (typeof Drupal.wysiwyg.plugins[plugin].attach == 'function') {
-            data.content = Drupal.wysiwyg.plugins[plugin].attach(data.content, pluginSettings, ed.id);
+            data.content = Drupal.wysiwyg.plugins[plugin].attach(data.content, pluginSettings, editorId);
             data.content = Drupal.wysiwyg.editor.instance.tinymce.prepareContent(data.content);
           }
         });
 
         // Detach: Replace HTML representations with plain text.
         ed.onGetContent.add(function(ed, data) {
+          var editorId = (ed.id == 'mce_fullscreen' ? ed.getParam('fullscreen_editor_id') : ed.id);
           if (typeof Drupal.wysiwyg.plugins[plugin].detach == 'function') {
-            data.content = Drupal.wysiwyg.plugins[plugin].detach(data.content, pluginSettings, ed.id);
+            data.content = Drupal.wysiwyg.plugins[plugin].detach(data.content, pluginSettings, editorId);
           }
         });
 

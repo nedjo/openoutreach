@@ -174,7 +174,7 @@ function wysiwyg_wymeditor_settings($editor, $config, $theme) {
       // WYMeditor only supports one CSS file currently.
       $settings['stylesheet'] = reset(wysiwyg_get_css());
     }
-    else if ($config['css_setting'] == 'self' && isset($config['css_path'])) {
+    elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
       $settings['stylesheet'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
     }
   }
@@ -212,22 +212,22 @@ function wysiwyg_wymeditor_plugins($editor) {
  */
 function _wysiwyg_wymeditor_button_info() {
   return array(
-    'Bold' => array('title'=> 'Strong', 'css'=> 'wym_tools_strong'),
-    'Italic' => array('title'=> 'Emphasis', 'css'=> 'wym_tools_emphasis'),
-    'Superscript' => array('title'=> 'Superscript', 'css'=> 'wym_tools_superscript'),
-    'Subscript' => array('title'=> 'Subscript', 'css'=> 'wym_tools_subscript'),
-    'InsertOrderedList' => array('title'=> 'Ordered_List', 'css'=> 'wym_tools_ordered_list'),
-    'InsertUnorderedList' => array('title'=> 'Unordered_List', 'css'=> 'wym_tools_unordered_list'),
-    'Indent' => array('title'=> 'Indent', 'css'=> 'wym_tools_indent'),
-    'Outdent' => array('title'=> 'Outdent', 'css'=> 'wym_tools_outdent'),
-    'Undo' => array('title'=> 'Undo', 'css'=> 'wym_tools_undo'),
-    'Redo' => array('title'=> 'Redo', 'css'=> 'wym_tools_redo'),
-    'CreateLink' => array('title'=> 'Link', 'css'=> 'wym_tools_link'),
-    'Unlink' => array('title'=> 'Unlink', 'css'=> 'wym_tools_unlink'),
-    'InsertImage' => array('title'=> 'Image', 'css'=> 'wym_tools_image'),
-    'InsertTable' => array('title'=> 'Table', 'css'=> 'wym_tools_table'),
-    'Paste' => array('title'=> 'Paste_From_Word', 'css'=> 'wym_tools_paste'),
-    'ToggleHtml' => array('title'=> 'HTML', 'css'=> 'wym_tools_html'),
-    'Preview' => array('title'=> 'Preview', 'css'=> 'wym_tools_preview'),
+    'Bold' => array('title' => 'Strong', 'css' => 'wym_tools_strong'),
+    'Italic' => array('title' => 'Emphasis', 'css' => 'wym_tools_emphasis'),
+    'Superscript' => array('title' => 'Superscript', 'css' => 'wym_tools_superscript'),
+    'Subscript' => array('title' => 'Subscript', 'css' => 'wym_tools_subscript'),
+    'InsertOrderedList' => array('title' => 'Ordered_List', 'css' => 'wym_tools_ordered_list'),
+    'InsertUnorderedList' => array('title' => 'Unordered_List', 'css' => 'wym_tools_unordered_list'),
+    'Indent' => array('title' => 'Indent', 'css' => 'wym_tools_indent'),
+    'Outdent' => array('title' => 'Outdent', 'css' => 'wym_tools_outdent'),
+    'Undo' => array('title' => 'Undo', 'css' => 'wym_tools_undo'),
+    'Redo' => array('title' => 'Redo', 'css' => 'wym_tools_redo'),
+    'CreateLink' => array('title' => 'Link', 'css' => 'wym_tools_link'),
+    'Unlink' => array('title' => 'Unlink', 'css' => 'wym_tools_unlink'),
+    'InsertImage' => array('title' => 'Image', 'css' => 'wym_tools_image'),
+    'InsertTable' => array('title' => 'Table', 'css' => 'wym_tools_table'),
+    'Paste' => array('title' => 'Paste_From_Word', 'css' => 'wym_tools_paste'),
+    'ToggleHtml' => array('title' => 'HTML', 'css' => 'wym_tools_html'),
+    'Preview' => array('title' => 'Preview', 'css' => 'wym_tools_preview'),
   );
 }

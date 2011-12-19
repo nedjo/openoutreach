@@ -1,0 +1,22 @@
+.view-link.view-display-id-page_1 td {
+  padding: 10px;
+}
+
+.view-link.view-display-id-page_1 caption {
+  font-size: 125%;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.view-link.view-display-id-page_1 tr td:first-child {
+  width: 20%;
+}
+
+.view-link.view-display-id-page_1 td {
+  vertical-align: top;
+}
+
+.view-link.view-display-id-page_1 td p {
+  margin-top: 0;
+}
+

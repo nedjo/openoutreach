@@ -29,12 +29,22 @@
   padding: 40px 20px;
 }
 
+.jcarousel-skin-tango .jcarousel-navigation-before {
+  padding-top: 30px;
+}
+
+.jcarousel-skin-tango .jcarousel-navigation-after {
+  padding-bottom: 30px;
+}
+
 .jcarousel-skin-tango .jcarousel-clip-horizontal {
   width: 440px;
+  overflow: hidden;
 }
 
 .jcarousel-skin-tango .jcarousel-clip-vertical {
   height: 440px;
+  overflow: hidden;
 }
 
 .jcarousel-skin-tango .jcarousel-item {
@@ -153,3 +163,42 @@
   background-position: -96px -96px;
 }
 
+.jcarousel-skin-tango .jcarousel-navigation {
+  margin: 0;
+  padding: 4px;
+}
+
+.jcarousel-skin-tango .jcarousel-navigation li {
+  display: inline;
+  margin: 0 -1px 0 0;
+  padding: 0;
+  background: none;
+}
+
+.jcarousel-skin-tango .jcarousel-navigation li a {
+  color: #12A698;
+  padding: 1px 5px;
+}
+
+
+.jcarousel-skin-tango .jcarousel-navigation li a:hover {
+  color: white;
+  padding: 0px 4px;
+  background-color: #A0DCD9;
+  text-decoration: none;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #4C9899;
+}
+
+.jcarousel-skin-tango .jcarousel-navigation li.active a {
+  color: white;
+  padding: 0px 4px;
+  background-color: #12A698;
+  text-decoration: none;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #1B6364;
+}

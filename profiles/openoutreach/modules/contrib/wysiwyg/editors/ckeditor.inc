@@ -184,7 +184,7 @@ function wysiwyg_ckeditor_settings($editor, $config, $theme) {
     $settings['language'] = $config['language'];
   }
   if (isset($config['resizing'])) {
-    // CKEditor tests "!== false", so ensure it is a Boolean.
+    // CKEditor performs a type-agnostic comparison on this particular setting.
     $settings['resize_enabled'] = (bool) $config['resizing'];
   }
   if (isset($config['toolbar_loc'])) {

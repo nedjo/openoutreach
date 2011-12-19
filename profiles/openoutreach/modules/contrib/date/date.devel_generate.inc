@@ -35,7 +35,7 @@ function date_devel_generate($entity, $field, $instance, $bundle) {
   $start2 = clone($start);
   $max = !empty($field['settings']['repeat']) ? 720 : 4320;
   $max = 240;
-  date_modify($start2, '+' . mt_rand(60, $max) . ' minutes');  
+  date_modify($start2, '+' . mt_rand(60, $max) . ' minutes');
   date_increment_round($start2, $increment);
 
   if ($field['settings']['tz_handling'] == 'date') {
@@ -73,11 +73,10 @@ function date_devel_generate($entity, $field, $instance, $bundle) {
   $entity_field['timezone'] = $timezone;
   $entity_field['offset'] = date_offset_get($start);
   date_timezone_set($start2, timezone_open($timezone));
-  $entity_field['offset2'] = date_offset_get($start2);          
+  $entity_field['offset2'] = date_offset_get($start2);
 
-  if (!empty($field['settings']['repeat'])) {
+  if (module_exists('date_repeat_field') && !empty($field['settings']['repeat'])) {
     module_load_include('inc', 'date_repeat', 'date_repeat_calc');
-    module_load_include('inc', 'date', 'date_repeat');
     module_load_include('inc', 'date_api', 'date_api_ical');
 
     // Create a repeating date.

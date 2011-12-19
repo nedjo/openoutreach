@@ -7,24 +7,23 @@
  */
 
 /**
- * Implementation of specially named hook_ctools_arguments().
+ * Plugins are described by creating a $plugin array which will be used
+ * by the system that includes this file.
  */
-function advanced_forum_forum_id_ctools_arguments() {
-  return array(
-    'title' => t("Forum ID"),
-    // keyword to use for %substitution
-    'keyword' => 'forum',
-    'description' => t('Creates a forum context from a forum ID argument.'),
-    'context' => 'advanced_forum_argument_forum_id_context',
-    'placeholder form' => array(
-      '#type' => 'textfield',
-      '#description' => t('Enter the forum ID of a form for this argument'),
-    ),
-    'settings form' => 'advanced_forum_forum_id_settings_form',
-    'breadcrumb' => 'advanced_forum_forum_id_breadcrumb',
-    'default' => array('breadcrumb' => TRUE),
-  );
-}
+$plugin = array(
+  'title' => t("Forum ID"),
+  // keyword to use for %substitution
+  'keyword' => 'forum',
+  'description' => t('Creates a forum context from a forum ID argument.'),
+  'context' => 'advanced_forum_argument_forum_id_context',
+  'placeholder form' => array(
+    '#type' => 'textfield',
+    '#description' => t('Enter the forum ID of a form for this argument'),
+  ),
+  'settings form' => 'advanced_forum_forum_id_settings_form',
+  'breadcrumb' => 'advanced_forum_forum_id_breadcrumb',
+  'default' => array('breadcrumb' => TRUE),
+);
 
 /**
  * Discover if this argument gives us the user we crave.

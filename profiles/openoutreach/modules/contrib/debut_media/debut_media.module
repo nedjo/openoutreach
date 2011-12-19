@@ -45,10 +45,6 @@ function debut_media_entity_info_alter(&$entity_info) {
 
 /**
  * Implements hook_module_implements_alter().
- *
- * Extends the core file entity to be fieldable. Modules can define file types
- * via hook_file_type_info(). For each defined type, create a bundle, so that
- * fields can be configured per file type.
  */
 function debut_media_module_implements_alter(&$implementations, $hook) {
   if ($hook == 'entity_info_alter') {
@@ -159,6 +155,69 @@ function debut_media_styles_default_presets_alter(&$presets) {
  * %endcode
  */
 function debut_media_field_default_fields_alter(&$items) {
+  // Only add fields if we're altering data provided by the media module.
+  // 'file-application-field_tags' is provided by debut_media.
+  if (isset($items['file-application-field_tags'])) {
+    $node_types = debut_media_get_media_types();
+    // Add media fields to the designated node types.
+    if (!empty($node_types)) {
+      $field = debut_media_media_field();
+      foreach (array_keys($node_types) as $type) {
+        // Don't override an existing field. This allows features to provide
+        // their own version of the field.
+        if (!isset($items["node-$type-field_media"])) {
+          $field['field_instance']['bundle'] = $type;
+          $items["node-$type-field_media"] = $field;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_features_export_alter().
+ *
+ * Remove incorrect dependencies on debut_media, which are assigned to modules
+ * that provide content types we've added the field_media field to.
+ */
+function debut_media_features_export_alter(&$export, $module_name) {
+  $node_types = debut_media_get_media_types();
+  if ($node_types && in_array($module_name, $node_types)) {
+    $key = array_search('debut_media', $export['dependencies']);
+    unset($export['dependencies'][$key]);
+  }
+}
+
+/**
+ * Implements hook_system_info_alter().
+ *
+ * Claim the fields that debut_media provides.
+ */
+function debut_media_system_info_alter(&$info, $file, $type) {
+  static $processing;
+  $node_types = NULL;
+
+  if ($type == 'module'  && $file->name == 'debut_media') {
+    if (!$processing) {
+      // Set a flag to prevent recursion.
+      $processing = TRUE;
+      $node_types = debut_media_get_media_types();
+      $processing = FALSE;
+    }
+
+    if ($node_types) {
+      foreach (array_keys($node_types) as $type) {
+        $info['features']['field'][] = "node-$type-field_media";
+      }
+    }
+  }
+}
+
+/**
+ * Return the feature-provided node types that take a media field and the
+ * feature that provides them.
+ */
+function debut_media_get_media_types() {
   // Get features modules and determine which if claim media.
   $features = features_get_features();
   $node_types = array();
@@ -166,21 +225,10 @@ function debut_media_field_default_fields_alter(&$items) {
     $info = $feature->info;
     if (isset($info['debut']) && isset($info['debut']['media']) && isset($info['debut']['media']['node_types'])) {
       // Key the array by node type to match the format of the 'service_links_node_types' variable.
-      $node_types = array_merge($node_types, array_combine($info['debut']['media']['node_types'], $info['debut']['media']['node_types']));
+      $node_types = array_merge($node_types, array_fill_keys($info['debut']['media']['node_types'], $feature->name));
     }
   }
-  // Add media fields to the designated node types.
-  if (!empty($node_types)) {
-    $field = debut_media_media_field();
-    foreach ($node_types as $type) {
-      // Don't override an existing field. This allows features to provide
-      // their own version of the field.
-      if (!isset($items["node-$type-field_media"])) {
-        $field['field_instance']['bundle'] = $type;
-        $items["node-$type-field_media"] = $field;
-      }
-    }
-  }
+  return $node_types;
 }
 
 /**

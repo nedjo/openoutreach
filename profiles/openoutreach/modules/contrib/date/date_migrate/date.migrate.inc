@@ -77,7 +77,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler {
       $rrule = $default_rrule;
 
       // Is the value a straight datetime value, or JSON containing a set of properties?
-      if ($from{0} == '{') {
+      if (!empty($from) && $from{0} == '{') {
         $properties = drupal_json_decode($from);
         $from = $properties['from'];
         // Properties passed in with the date override any set via arguments
@@ -95,7 +95,18 @@ class DateMigrateFieldHandler extends MigrateFieldHandler {
         }
       }
 
-      // Work from a timestamp
+      // Missing data? Create an empty value and return;
+      // Don't try to turn the empty value into a bogus
+      // timestamp for 'now'.
+      if (empty($from)) {
+        $return[$language][$delta]['value'] = NULL;
+        if (!empty($field_info['settings']['todate'])) {
+          $return[$language][$delta]['value2'] = NULL;
+        }
+        return $return;
+      }
+
+      // If we have a value, work from a timestamp
       $from = MigrationBase::timestamp($from);
       if ($to) {
         $to = MigrationBase::timestamp($to);
@@ -125,8 +136,7 @@ class DateMigrateFieldHandler extends MigrateFieldHandler {
       }
 
       // Handle repeats, coming in as RRULEs. Many field instances may be created.
-      if ($instance['widget']['type'] == 'date_text_repeat' && $rrule) {
-        include_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'date') . '/date_repeat.inc');
+      if (function_exists('date_repeat_build_dates') && !empty($field_info['settings']['repeat']) && $rrule) {
         include_once(DRUPAL_ROOT . '/' . drupal_get_path('module', 'date_api') . '/date_api_ical.inc');
         $item = array('value' => $from, 'value2' => $to, 'timezone' => $timezone);
         // Can be de-uglified when http://drupal.org/node/1159404 is committed.

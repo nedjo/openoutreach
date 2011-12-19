@@ -315,14 +315,15 @@ function pathauto_field_attach_form($entity_type, $entity, &$form, &$form_state,
 
   $form['path']['pathauto'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Automatic alias'),
+    '#title' => t('Generate automatic URL alias'),
     '#default_value' => $entity->path['pathauto'],
-    '#description' => t('An alias will be generated for you. If you wish to create your own alias below, uncheck this option.'),
+    '#description' => t('Uncheck this to create a custom alias below.'),
     '#weight' => -1,
   );
 
-  if (user_access('administer pathauto')) {
-    $form['path']['pathauto']['#description'] .= ' ' . t('To control the format of the generated aliases, see the <a href="@url-patterns">URL alias patterns</a>.', array('@url-patterns' => url('admin/config/search/path/patterns')));
+  // Add a shortcut link to configure URL alias patterns.
+  if (drupal_valid_path('admin/config/search/path/patterns')) {
+    $form['path']['pathauto']['#description'] .= ' ' . l(t('Configure URL alias patterns.'), 'admin/config/search/path/patterns');
   }
 
   if ($entity->path['pathauto'] && !empty($entity->old_alias) && empty($entity->path['alias'])) {
@@ -357,14 +358,16 @@ function pathauto_entity_presave($entity, $type) {
   }
 }
 
+if (!function_exists('path_field_extra_fields')) {
 /**
- * Implements hook_field_extra_fields_alter().
+ * Implements hook_field_extra_fields() on behalf of path.module.
  *
  * Add support for the 'URL path settings' to be re-ordered by the user on the
- * 'Manage Fields' tab of content types and vocabularies. We use the alter hook
- * so that we don't cause problems if other modules provide support for this.
+ * 'Manage Fields' tab of content types and vocabularies.
  */
-function pathauto_field_extra_fields_alter(&$info) {
+function path_field_extra_fields() {
+  $info = array();
+
   foreach (node_type_get_types() as $node_type) {
     if (!isset($info['node'][$node_type->type]['form']['path'])) {
       $info['node'][$node_type->type]['form']['path'] = array(
@@ -387,6 +390,9 @@ function pathauto_field_extra_fields_alter(&$info) {
       }
     }
   }
+
+  return $info;
+}
 }
 
 /**

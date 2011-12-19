@@ -177,7 +177,7 @@ function wysiwyg_yui_settings($editor, $config, $theme) {
             }
           }
         }
-        else if ($button == 'fontname') {
+        elseif ($button == 'fontname') {
           $extra = array('menu' => array(
             array('text' => 'Arial', 'checked' => TRUE),
             array('text' => 'Arial Black'),
@@ -202,7 +202,7 @@ function wysiwyg_yui_settings($editor, $config, $theme) {
     if ($config['css_setting'] == 'theme') {
       $settings['extracss'] = wysiwyg_get_css();
     }
-    else if ($config['css_setting'] == 'self' && isset($config['css_path'])) {
+    elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
       $settings['extracss'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
       $settings['extracss'] = explode(',', $settings['extracss']);
     }

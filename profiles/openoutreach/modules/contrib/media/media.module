@@ -1046,24 +1046,35 @@ function media_media_browser_plugin_info() {
   );
 
   // Add a plugin for each View display using the 'media_browser' display type.
-  foreach (views_get_enabled_views() as $view) {
-    foreach ($view->display as $display) {
-      if ($display->display_plugin == 'media_browser') {
-        $title = $display->display_title;
-        if (!empty($display->display_options['title'])) {
-          $title = $display->display_options['title'];
+  // Skip if we are installing a module, to prevent prematurely invoking the
+  // module's hook implementations. This test is needed because ctools loads
+  // plugin info as part of determining how the registry should be altered,
+  // a task that's invoked from module_enable() when a module's .module file
+  // has been loaded but before its schema has been installed.
+  // drupal_load_updates() is defined in install.inc so its presence can be
+  // used as a proxy test for installation tasks. We can't use
+  // drupal_installation_attempted() because we need to detect module
+  // installation after Drupal has been installed.
+  if (!function_exists('drupal_load_updates')) {
+    foreach (views_get_enabled_views() as $view) {
+      foreach ($view->display as $display) {
+        if ($display->display_plugin == 'media_browser') {
+          $title = $display->display_title;
+          if (!empty($display->display_options['title'])) {
+            $title = $display->display_options['title'];
+          }
+          $plugins["{$view->name}--{$display->id}"] = array(
+            'title' => $title,
+            'weight' => 11, // @TODO make this configurable.
+            'handler' => array(
+              'path' => drupal_get_path('module', 'media') . '/includes',
+              'file' => 'MediaBrowserView.inc',
+              'class' => 'MediaBrowserView',
+            ),
+            'view_name' => $view->name,
+            'view_display_id' => $display->id,
+          );
         }
-        $plugins["{$view->name}--{$display->id}"] = array(
-          'title' => $title,
-          'weight' => 11, // @TODO make this configurable.
-          'handler' => array(
-            'path' => drupal_get_path('module', 'media') . '/includes',
-            'file' => 'MediaBrowserView.inc',
-            'class' => 'MediaBrowserView',
-          ),
-          'view_name' => $view->name,
-          'view_display_id' => $display->id,
-        );
       }
     }
   }

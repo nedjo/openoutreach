@@ -114,7 +114,6 @@
                     <span class="forum-subforums-label"><?php print t("Subforums") ?>:</span> <?php print $item->subforums; ?>
                   </div>
                 <?php endif; ?>
-                </div>
               </td>
               <?php if (!$item->is_container): ?>
                 <td class="forum-number-topics">

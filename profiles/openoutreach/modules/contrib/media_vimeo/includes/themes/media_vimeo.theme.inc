@@ -20,7 +20,7 @@ function media_vimeo_preprocess_media_vimeo_video(&$variables) {
   $variables['height'] = isset($variables['height']) ? $variables['height'] : media_vimeo_variable_get('height');
   $variables['autoplay'] = isset($variables['autoplay']) ? $variables['autoplay'] : media_vimeo_variable_get('autoplay');
   $variables['fullscreen'] = isset($variables['fullscreen']) ? $variables['fullscreen'] : media_vimeo_variable_get('fullscreen');
-  $variables['autoplay'] = $variables['autoplay'] ? 1 : 1;
+  $variables['autoplay'] = $variables['autoplay'] ? 1 : 0;
   $variables['fullscreen'] = $variables['fullscreen'] ? 'true' : 'false';
 
   $variables['wrapper_id'] = 'media_vimeo_' . $variables['video_id'] . '_' . $variables['id'];

@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_user_default_permissions().
+ * Implements hook_user_default_permissions().
  */
 function debut_blog_user_default_permissions() {
   $permissions = array();
@@ -15,8 +15,9 @@ function debut_blog_user_default_permissions() {
     'name' => 'create blog content',
     'roles' => array(
       0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
+      1 => 'blogger',
+      2 => 'contributor',
+      3 => 'editor',
     ),
     'module' => 'node',
   );
@@ -35,7 +36,8 @@ function debut_blog_user_default_permissions() {
   $permissions['delete own blog content'] = array(
     'name' => 'delete own blog content',
     'roles' => array(
-      0 => 'contributor',
+      0 => 'blogger',
+      1 => 'contributor',
     ),
     'module' => 'node',
   );
@@ -54,7 +56,8 @@ function debut_blog_user_default_permissions() {
   $permissions['edit own blog content'] = array(
     'name' => 'edit own blog content',
     'roles' => array(
-      0 => 'contributor',
+      0 => 'blogger',
+      1 => 'contributor',
     ),
     'module' => 'node',
   );

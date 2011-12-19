@@ -20,6 +20,13 @@ class view extends views_db_object {
   var $base_table = 'node';
   var $base_field = 'nid';
 
+  /**
+   * The name of the view.
+   *
+   * @var string
+   */
+  var $name = "";
+
   // State variables
   var $built = FALSE;
   var $executed = FALSE;
@@ -100,6 +107,11 @@ class view extends views_db_object {
    * @var string
    */
   var $override_path = NULL;
+
+  /**
+   * Allow to override the used database which is used for this query.
+   */
+  var $base_database = NULL;
 
   /**
    * Constructor
@@ -659,7 +671,7 @@ class view extends views_db_object {
 
         // Add this argument's substitution
         $substitutions['%' . ($position + 1)] = $arg_title;
-        $substitutions['!' . ($position + 1)] = strip_tags(html_entity_decode($arg));
+        $substitutions['!' . ($position + 1)] = strip_tags(decode_entities($arg));
 
         // Since we're really generating the breadcrumb for the item above us,
         // check the default action of this argument.
@@ -1004,6 +1016,16 @@ class view extends views_db_object {
       // Initialize the style plugin.
       $this->init_style();
 
+      // Give field handlers the opportunity to perform additional queries
+      // using the entire resultset prior to rendering.
+      if ($this->style_plugin->uses_fields()) {
+        foreach ($this->field as $id => $handler) {
+          if (!empty($this->field[$id])) {
+            $this->field[$id]->pre_render($this->result);
+          }
+        }
+      }
+
       $this->style_plugin->pre_render($this->result);
 
       // Let modules modify the view just prior to rendering it.
@@ -1018,15 +1040,6 @@ class view extends views_db_object {
         $function($this);
       }
 
-      // Give field handlers the opportunity to perform additional queries
-      // using the entire resultset prior to rendering.
-      if ($this->style_plugin->uses_fields()) {
-        foreach ($this->field as $id => $handler) {
-          if (!empty($this->field[$id])) {
-            $this->field[$id]->pre_render($this->result);
-          }
-        }
-      }
       $this->display_handler->output = $this->display_handler->render();
       if ($cache) {
         $cache->cache_set('output');
@@ -1279,6 +1292,16 @@ class view extends views_db_object {
     }
     return $title;
   }
+
+  /**
+   * Override the view's current title.
+   *
+   * The tokens in the title get's replaced before rendering.
+   */
+  function set_title($title) {
+     $this->build_info['title'] = $title;
+     return TRUE;
+   }
 
   /**
    * Return the human readable name for a view.

@@ -86,15 +86,6 @@ function _advanced_forum_preprocess_node(&$variables) {
   // but is provided as a convenience to people who want to customize theirs.
   $variables['reply_link'] = theme('advanced_forum_reply_link', array('node' => $node));
 
-  /* Signatures */
-  if (module_exists('signature_forum')) {
-    // If Signatures for Forums is installed, use that.
-    // Note: we cannot get around the signature being cached because we would
-    // need to do a full node load to get all the info SfF needs to replace
-    // the token and that would counteract the caching.
-    $variables['signature'] = signature_forum_get_signature($node);
-  }
-
   /* Uncached variables */
   if (!$variables['top_post'] && method_exists('views_plugin_cache', 'post_render') && !$variables['node']->in_preview) {
     /* Author Pane */
@@ -108,9 +99,7 @@ function _advanced_forum_preprocess_node(&$variables) {
     }
 
     /* Signatures */
-    if (!module_exists('signature_forum') && variable_get('user_signatures', 0)) {
-      // Signature for Forums module not enabled; load Drupal's built in one,
-      // if enabled.
+    if (variable_get('user_signatures', 0)) {
       $variables['signature'] =  '<!--post:signature-core-' . $node->uid . '-->';
     }
 
@@ -138,13 +127,6 @@ function _advanced_forum_preprocess_node(&$variables) {
         'when' => $variables['revision_timestamp'],
         'why' => $variables['log']
       ));
-    }
-
-    /* Signatures */
-    if (!module_exists('signature_forum') && variable_get('user_signatures', 0)) {
-      if ($variables['account']->signature) {
-        $variables['signature'] = check_markup($variables['account']->signature, $variables['account']->signature_format, FALSE);
-      }
     }
 
     /* Viewer is poster class */

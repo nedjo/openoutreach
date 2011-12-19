@@ -82,7 +82,7 @@ function logintoboggan_help($path, $arg) {
       ", array('!url' => url('admin/config/system/logintoboggan'), '!user_settings' => url('admin/config/people/accounts')));
       $example_help_form = drupal_get_form('logintoboggan_example_help');
       $output .= drupal_render($example_help_form);
-      $output .= t("<p>Note that if you have set the 'Visitors can create accounts but administrator approval is required' option for account approval, and are also using the 'Set password' feature of LoginToboggan, the user will immediately receive the permissions of the pre-authorized user role -- you may wish to create a pre-authorized role with the exact same permissions as the anonymous user if you wish the newly created user to only have anonymous permissions.</p><p>In order for a site administrator to unblock a user who is awaiting administrator approval, they must either click on the validation link they receive in their notification e-mail, or manually remove the user from the site's pre-authorized role -- afterwards the user will then receive 'authenticated user' permissions. In either case, the user will receive an account activated e-mail if it's enabled on the user settings page -- it's recommended that you edit the default text of the activation e-mail to match LoginToboggan's workflow as described. </p><p>If you are using the 'Visitors can create accounts and no administrator approval is required' option, removal of the pre-authorized role will happen automatically when the user validates their account via e-mail.</p><p>Also be aware that LoginToboggan only affects registrations initiated by users--any user account created by an administrator will not use any LoginToboggan functionality.");
+      $output .= t("<p>Note that if you have set the 'Visitors can create accounts but administrator approval is required' option for account approval, and are also using the 'Set password' feature of LoginToboggan, the user will immediately receive the permissions of the pre-authorized user role. LoginToboggan prevents the pre-authorized role from automatically inheriting the authorized role permissions. You may wish to create a pre-authorized role with the exact same permissions as the anonymous user if you wish the newly created user to only have anonymous permissions.</p><p>In order for a site administrator to unblock a user who is awaiting administrator approval, they must either click on the validation link they receive in their notification e-mail, or manually remove the user from the site's pre-authorized role -- afterwards the user will then receive 'authenticated user' permissions. In either case, the user will receive an account activated e-mail if it's enabled on the user settings page -- it's recommended that you edit the default text of the activation e-mail to match LoginToboggan's workflow as described. </p><p>If you are using the 'Visitors can create accounts and no administrator approval is required' option, removal of the pre-authorized role will happen automatically when the user validates their account via e-mail.</p><p>Also be aware that LoginToboggan only affects registrations initiated by users--any user account created by an administrator will not use any LoginToboggan functionality.");
       return $output;
       break;
     case 'admin/config/system/logintoboggan':
@@ -92,7 +92,7 @@ function logintoboggan_help($path, $arg) {
       else {
         $help_text = '';
       }
-      $output = t("<p>Customize your login and registration system. $help_text</p>");
+      $output = "<p>" . t("Customize your login and registration system.") . " $help_text</p>";
 
       return $output;
   }
@@ -195,7 +195,7 @@ function logintoboggan_form_user_profile_form_alter(&$form, &$form_state) {
         unset($form['account']['roles'][DRUPAL_AUTHENTICATED_RID]);
 
         // This form element is necessary as a placeholder for the user's
-        // pre-auth setting on form load.  It's used to compare against the
+        // pre-auth setting on form load. It's used to compare against the
         // submitted form values to see if the pre-auth role has been unchecked.
         $form['logintoboggan_pre_auth_check'] = array(
           '#type' => 'hidden',
@@ -291,7 +291,7 @@ function logintoboggan_form_user_admin_account_alter(&$form, &$form_state) {
  */
 function logintoboggan_form_user_pass_reset_alter(&$form, &$form_state) {
   // Password resets count as validating an email address, so remove the user
-  // from the pre-auth role if they are still in it.  We only want to run this
+  // from the pre-auth role if they are still in it. We only want to run this
   // code when the user first hits the reset login form.
   if (arg(5) != 'login' && ($uid = (int) arg(2))) {
     if ($account = user_load($uid)) {
@@ -360,7 +360,7 @@ function logintoboggan_form_alter(&$form, &$form_state, $form_id) {
           // What would really be nice here is to start with a clean form, but
           // we can't really do that, because drupal_prepare_form() has already
           // been run, and we can't run it again in the _alter() hook, or we'll
-          // get into and endless loop.  Since we don't know exactly what's in
+          // get into and endless loop. Since we don't know exactly what's in
           // the form, strip out all regular form elements and the handlers.
           foreach (element_children($form) as $element) {
             unset($form[$element]);
@@ -406,7 +406,7 @@ function logintoboggan_js_alter(&$javascript) {
   if (isset($javascript['modules/user/user.permissions.js'])) {
     $id = logintoboggan_validating_id();
     // If the pre-auth user isn't the auth user, then swap out core's user
-    // permissions js with LT's custom implementation.  This is necessary to
+    // permissions js with LT's custom implementation. This is necessary to
     // prevent the pre-auth role's checkboxes from being automatically disabled
     // when the auth user's checkboxes are checked.
     if ($id != DRUPAL_AUTHENTICATED_RID) {
@@ -421,8 +421,12 @@ function logintoboggan_js_alter(&$javascript) {
 function logintoboggan_page_alter(&$page) {
   // Remove blocks on access denied pages.
   if (isset($page['#logintoboggan_denied'])) {
-    drupal_set_message(t('Access denied.  You may need to login below or register to access this page.'), 'error');
-    unset($page['sidebar_first'], $page['sidebar_second']);
+    drupal_set_message(t('Access denied. You may need to login below or register to access this page.'), 'error');
+    // Allow overriding the removal of the sidebars, since there's no way to
+    // override this in the theme.
+    if (variable_get('logintoboggan_denied_remove_sidebars', TRUE)) {
+      unset($page['sidebar_first'], $page['sidebar_second']);
+    }
   }
 }
 
@@ -495,7 +499,7 @@ function logintoboggan_user_register_submit($form, &$form_state) {
   // Add plain text password into user account to generate mail tokens.
   $account->password = $pass;
 
-  // Compose the appropriate user message.  Validation emails are only sent if:
+  // Compose the appropriate user message. Validation emails are only sent if:
   //   1. Users can set their own password.
   //   2. The pre-auth role isn't the auth user.
   //   3. Visitors can create their own accounts.
@@ -735,6 +739,9 @@ function logintoboggan_revalidate_access($account) {
 /**
  * Menu callback for user/login
  *   creates a unified login/registration form (without tabs)
+ *
+ * @param $active_form
+ *   Which form to display, should be 'login' or 'register'.
  */
 function logintoboggan_unified_login_page($active_form = 'login') {
   global $user;
@@ -743,28 +750,9 @@ function logintoboggan_unified_login_page($active_form = 'login') {
     return menu_execute_active_handler(NULL, FALSE);
   }
   else {
-    $login_form = drupal_get_form('user_login');
-    $login_form['#attached']['js'][] = drupal_get_path('module', 'logintoboggan') .'/logintoboggan.unifiedlogin.js';
-    $login_form['#attached']['js'][] = array(
-      'data' => array(
-        'LoginToboggan' => array(
-          'unifiedLoginActiveForm' => $active_form,
-        ),
-      ),
-      'type' => 'setting',
-    );
-    $register_form = drupal_get_form('user_register_form');
-    $rendered_login_form = drupal_render($login_form);
-    $rendered_register_form = drupal_render($register_form);
-    $variables = array(
-      'login_form' => $rendered_login_form,
-      'register_form' => $rendered_register_form,
-      'active_form' => $active_form,
-    );
-    $output = theme('lt_unified_login_page', $variables);
     // Title just clutters the interface...
     drupal_set_title('');
-
+    $output = logintoboggan_get_authentication_form($active_form);
     return $output;
   }
 }
@@ -888,11 +876,61 @@ function _logintoboggan_toggleboggan ($form) {
   return $form;
 }
 
+/**
+ * Builds a unified login form.
+ *
+ * @param $active_form
+ *   Which form to display, should be 'login' or 'register'.
+ */
+function logintoboggan_unified_login_form($active_form = 'login') {
+  $login_form = drupal_get_form('user_login');
+  $login_form['#attached']['js'][] = drupal_get_path('module', 'logintoboggan') .'/logintoboggan.unifiedlogin.js';
+  $login_form['#attached']['js'][] = array(
+    'data' => array(
+      'LoginToboggan' => array(
+        'unifiedLoginActiveForm' => $active_form,
+      ),
+    ),
+    'type' => 'setting',
+  );
+  $register_form = drupal_get_form('user_register_form');
+  $rendered_login_form = drupal_render($login_form);
+  $rendered_register_form = drupal_render($register_form);
+  $variables = array(
+    'login_form' => $rendered_login_form,
+    'register_form' => $rendered_register_form,
+    'active_form' => $active_form,
+  );
+  $output = theme('lt_unified_login_page', $variables);
+  return $output;
+}
+
+
+/**
+ * Returns an appropriate authentication form based on the configuration.
+ *
+ * @param $active_form
+ *   Which form to display, should be 'login' or 'register'.
+ */
+function logintoboggan_get_authentication_form($active_form = 'login') {
+  $output = '';
+  if (variable_get('logintoboggan_unified_login', 0)) {
+    $output = logintoboggan_unified_login_form($active_form);
+  }
+  elseif ($active_form == 'login') {
+    $output = drupal_get_form('user_login');
+  }
+  elseif ($active_form == 'register') {
+    $output = drupal_get_form('user_register_form');
+  }
+  return $output;
+}
+
 function logintoboggan_denied() {
   if ($GLOBALS['user']->uid == 0) {
-    // Output the user login form.
     drupal_set_title(t('Access Denied / User log in'));
-    $output = drupal_get_form('user_login');
+    // Output the user login form.
+    $output = logintoboggan_get_authentication_form('login');
     drupal_set_page_content($output);
     // Return page attributes, hide blocks.
     $page = element_info('page');
@@ -1048,7 +1086,7 @@ function logintoboggan_user_update(&$edit, $account, $category) {
       $pre_auth = !variable_get('user_email_verification', TRUE) && $validating_id != DRUPAL_AUTHENTICATED_RID;
       if ($pre_auth) {
         // Check to see if an admin has manually removed the pre-auth role from
-        // the user.  If so, send the account activation email.
+        // the user. If so, send the account activation email.
         if (!isset($edit['roles'][$validating_id]) || !$edit['roles'][$validating_id]) {
           // Mail the user, letting them know their account now has auth user perms.
           _user_mail_notify('status_activated', $account);
@@ -1103,7 +1141,7 @@ function logintoboggan_mail_alter(&$message) {
       $url_options = array('absolute' => TRUE);
       $language = $message['language'];
       $langcode = isset($language) ? $language->language : NULL;
-      $message['body'][] = t("\n\nThe user has automatically received the permissions of the LoginToboggan validating role.  To give the user full site permissions, click the link below:\n\n!validation_url/admin\n\nAlternatively, you may visit their user account listed above and remove them from the validating role.", array('!validation_url' => logintoboggan_eml_validate_url($account, $url_options)), array('langcode' => $langcode));
+      $message['body'][] = t("\n\nThe user has automatically received the permissions of the LoginToboggan validating role. To give the user full site permissions, click the link below:\n\n!validation_url/admin\n\nAlternatively, you may visit their user account listed above and remove them from the validating role.", array('!validation_url' => logintoboggan_eml_validate_url($account, $url_options)), array('langcode' => $langcode));
     }
   }
 }
@@ -1214,7 +1252,7 @@ function theme_lt_login_link($variables) {
  *   A user object representing the user being logged in.
  */
 function theme_lt_login_successful_message($variables) {
-  return t('Log in successful for %name.', array('%name' => $variables['account']->name));
+  return t('Log in successful for %name.', array('%name' => format_username($variables['account'])));
 }
 
 /**

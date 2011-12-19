@@ -145,7 +145,7 @@ function eva_get_views($type = NULL, $reset = FALSE) {
 function _eva_extract_entity_from_build($build) {
   // EntityAPI often sticks stuff in here.
   if (!empty($build['#entity'])) {
-    return $entity;
+    return $build['#entity'];
   }
   
   // Other entities stick them here!

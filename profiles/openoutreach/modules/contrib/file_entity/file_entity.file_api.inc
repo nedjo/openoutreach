@@ -195,7 +195,9 @@ function file_build_content($file, $view_mode = 'full', $langcode = NULL) {
   // @todo Figure out how to clean this crap up.
   $file->content['file'] = file_view_file($file, $view_mode, $langcode);
   if (isset($file->content['file'])) {
-    if ($file->content['file']['#theme'] != 'file_link') unset($file->content['file']['#file']);
+    if (isset($file->content['file']['#theme']) && $file->content['file']['#theme'] != 'file_link') {
+      unset($file->content['file']['#file']);
+    }
     unset($file->content['file']['#view_mode']);
     unset($file->content['file']['#language']);
   }

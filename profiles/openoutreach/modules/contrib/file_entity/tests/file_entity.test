@@ -5,7 +5,27 @@
  * Test integration for the file_entity module.
  */
 
-class FileEntityUnitTestCase extends DrupalWebTestCase {
+class FileEntityTestHelper extends DrupalWebTestCase {
+  protected $files = array();
+
+  function setUp($modules = array()) {
+    $modules[] = 'file_entity';
+    parent::setUp($modules);
+
+    $this->setUpFiles();
+  }
+
+  function setUpFiles() {
+    $types = array('text', 'image');
+    foreach ($types as $type) {
+      foreach ($this->drupalGetTestFiles($type) as $file) {
+        $this->files[$type][] = file_save($file);
+      }
+    }
+  }
+}
+
+class FileEntityUnitTestCase extends FileEntityTestHelper {
   public static function getInfo() {
     return array(
       'name' => 'File entity unit tests',
@@ -14,20 +34,36 @@ class FileEntityUnitTestCase extends DrupalWebTestCase {
     );
   }
 
-  function setUp($modules = array()) {
-    $modules[] = 'file_entity';
-    parent::setUp($modules);
-  }
-
   /**
    * Regression tests for core issue http://drupal.org/node/1239376.
    */
-  function testOggMimeTypeMapping() {
-    $this->assertEqual(file_get_mimetype('public://test.ogg'), 'audio/ogg');
+  function testMimeTypeMappings() {
+    $tests = array(
+      'public://test.ogg' => 'audio/ogg',
+      'public://test.mkv' => 'video/x-m4v',
+      'public://test.mka' => 'audio/x-matroska',
+      'public://test.mkv' => 'video/x-matroska',
+      'public://test.webp' => 'image/webp',
+    );
+    foreach ($tests as $input => $expected) {
+      $this->assertEqual(file_get_mimetype($input), $expected);
+    }
+  }
+
+  function testFileEntity() {
+    $file = reset($this->files['text']);
+
+    // Test entity ID, revision ID, and bundle.
+    $ids = entity_extract_ids('file', $file);
+    $this->assertIdentical($ids, array($file->fid, NULL, 'text'));
+
+    // Test the entity URI callback.
+    $uri = entity_uri('file', $file);
+    $this->assertEqual($uri['path'], "file/{$file->fid}");
   }
 }
 
-class FileEntityTokenTestCase extends DrupalWebTestCase {
+class FileEntityTokenTestCase extends FileEntityTestHelper {
   public static function getInfo() {
     return array(
       'name' => 'File entity tokens',
@@ -36,35 +72,22 @@ class FileEntityTokenTestCase extends DrupalWebTestCase {
     );
   }
 
-  function setUp($modules = array()) {
-    $modules[] = 'file_entity';
-    parent::setUp($modules);
-  }
-
   function testFileEntityTokens() {
-    $text_files = $this->drupalGetTestFiles('text');
-    foreach ($text_files as &$file) {
-      $files = file_save($file);
-    }
     $tokens = array(
       'type' => 'Text',
       'type:name' => 'Text',
       'type:machine-name' => 'text',
-      'type:count' => count($text_files),
+      'type:count' => count($this->files['text']),
     );
-    $this->assertTokens('file', array('file' => $text_files[0]), $tokens);
+    $this->assertTokens('file', array('file' => $this->files['text'][0]), $tokens);
 
-    $image_files = $this->drupalGetTestFiles('image');
-    foreach ($image_files as &$file) {
-      $files = file_save($file);
-    }
     $tokens = array(
       'type' => 'Image',
       'type:name' => 'Image',
       'type:machine-name' => 'image',
-      'type:count' => count($image_files),
+      'type:count' => count($this->files['image']),
     );
-    $this->assertTokens('file', array('file' => $image_files[0]), $tokens);
+    $this->assertTokens('file', array('file' => $this->files['image'][0]), $tokens);
   }
 
   function assertTokens($type, array $data, array $tokens, array $options = array()) {

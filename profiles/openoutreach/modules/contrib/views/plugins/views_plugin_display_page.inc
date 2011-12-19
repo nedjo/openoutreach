@@ -212,11 +212,14 @@ class views_plugin_display_page extends views_plugin_display {
 
     $this->view->get_breadcrumb(TRUE);
 
-    // And the title, which is much easier.
-    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
 
     // And now render the view.
-    return $this->view->render();
+    $render = $this->view->render();
+
+    // First execute the view so it's possible to get tokens for the title.
+    // And the title, which is much easier.
+    drupal_set_title(filter_xss_admin($this->view->get_title()), PASS_THROUGH);
+    return $render;
   }
 
   /**
@@ -282,6 +285,7 @@ class views_plugin_display_page extends views_plugin_display {
    * Provide the default form for setting options.
    */
   function options_form(&$form, &$form_state) {
+    parent::options_form($form, $form_state);
     // It is very important to call the parent function here:
     parent::options_form($form, $form_state);
 

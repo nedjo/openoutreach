@@ -1,30 +1,6 @@
 /* FORUM LIST ICONS *********************************************************/
 
 .forum-list-icon-wrapper {
-  border-top: 1px solid #1659AC;
-  background: #2587C4;
-  background: -webkit-gradient(linear, left top, left bottom, from(#2587C4), to(#58B3ED));
-  background: -moz-linear-gradient(top, #2587C4, #58B3ED);
-  color: #FFFFFF;
-}
-
-tr.even td.forum-folder .forum-list-icon-wrapper span,
-tr.odd td.forum-folder .forum-list-icon-wrapper span {
-  background: transparent url(images/forum_list_default.png) no-repeat center center;
-}
-
-tr.even td.forum-folder-new-posts .forum-list-icon-wrapper span,
-tr.odd td.forum-folder-new-posts .forum-list-icon-wrapper span,
-.forum-list-icon-legend .forum-list-icon-new-posts {
-  background: transparent url(images/forum_list_new_posts.png) no-repeat center center;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border-radius: 5px;
-  -webkit-box-shadow: rgba(0,0,0,1) 0 1px 0;
-  -moz-box-shadow: rgba(0,0,0,1) 0 1px 0;
-  box-shadow: rgba(0,0,0,1) 0 1px 0;
-  text-shadow: rgba(0,0,0,.4) 0 1px 0;
-  color: #FFFFFF;
   font-family: Helvetica, Arial, Sans-Serif;
   text-decoration: none;
   vertical-align: middle;
@@ -32,6 +8,18 @@ tr.odd td.forum-folder-new-posts .forum-list-icon-wrapper span,
   width: 50px;
   height: 50px;
   display: block;
+}
+
+tr.even td.forum-list-icon-default .forum-list-icon-wrapper span,
+tr.odd td.forum-list-icon-default .forum-list-icon-wrapper span,
+.forum-list-icon-legend .forum-list-icon-default {
+  background: transparent url(images/forum_list_default.png) no-repeat center center;
+}
+
+tr.even td.forum-folder-new-posts .forum-list-icon-wrapper span,
+tr.odd td.forum-folder-new-posts .forum-list-icon-wrapper span,
+.forum-list-icon-legend .forum-list-icon-new-posts {
+  background: transparent url(images/forum_list_new_posts.png) no-repeat center center;
 }
 
 /* TOPIC LIST ICONS *********************************************************/

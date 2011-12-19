@@ -42,7 +42,7 @@ function advanced_forum_markasread($tid = NULL) {
 
   // Subquery to find nids to delete from history table.
   $query_node = db_select('node', 'n');
-  $query_node->join('forum', 'f', 'n.nid = f.nid');
+  $query_node->join('forum', 'f', 'n.vid = f.vid');
   $query_node->join('taxonomy_term_data', 't', 'f.tid = t.tid');
   $query_node->join('node_comment_statistics', 'ncs', 'n.nid = ncs.nid');
   $query_node->condition(db_or()

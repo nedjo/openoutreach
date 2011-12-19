@@ -30,6 +30,18 @@ function debut_event_admin_paths() {
 }
 
 /**
+ * Implements hook_features_export_alter().
+ *
+ * Remove the tags vocabulary, which we create at install time so as not to
+ * create a dependency on a feature providing the vocabulary.
+ */
+function debut_event_features_export_alter(&$export, $module_name) {
+  if ($module_name == 'debut_event' && isset($export['features']['taxonomy']) && isset($export['features']['taxonomy']['tags'])) {
+    unset($export['features']['taxonomy']['tags']);
+  }
+}
+
+/**
  * Implements hook_date_format_types().
  */
 function debut_event_date_format_types() {

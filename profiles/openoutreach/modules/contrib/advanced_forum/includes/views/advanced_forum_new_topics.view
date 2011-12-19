@@ -362,6 +362,11 @@ $handler->display->display_options['sorts']['sticky']['id'] = 'sticky';
 $handler->display->display_options['sorts']['sticky']['table'] = 'node';
 $handler->display->display_options['sorts']['sticky']['field'] = 'sticky';
 $handler->display->display_options['sorts']['sticky']['order'] = 'DESC';
+/* Sort criterion: Content: Updated/commented date */
+$handler->display->display_options['sorts']['last_updated']['id'] = 'last_updated';
+$handler->display->display_options['sorts']['last_updated']['table'] = 'node_comment_statistics';
+$handler->display->display_options['sorts']['last_updated']['field'] = 'last_updated';
+$handler->display->display_options['sorts']['last_updated']['order'] = 'DESC';
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
 $handler->display->display_options['filters']['status']['table'] = 'node';

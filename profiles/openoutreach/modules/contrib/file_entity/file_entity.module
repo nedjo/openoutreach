@@ -214,6 +214,7 @@ function file_entity_entity_info_alter(&$entity_info) {
   $entity_info['file']['fieldable'] = TRUE;
   $entity_info['file']['entity keys']['bundle'] = 'type';
   $entity_info['file']['bundles'] = array();
+  $entity_info['file']['uri callback'] = 'file_entity_uri';
   $entity_info['file']['view modes']['full'] = array(
     'label' => t('Full'),
     'custom settings' => FALSE,
@@ -231,6 +232,14 @@ function file_entity_entity_info_alter(&$entity_info) {
     $entity_info['file']['bundles'][$type] = array_intersect_key($info, drupal_map_assoc(array('label', 'admin')));
     $entity_info['file']['view callback'] = 'file_view_multiple';
   }
+}
+
+/**
+ * URI callback for file entities.
+ */
+function file_entity_uri($file) {
+  $uri['path'] = 'file/' . $file->fid;
+  return $uri;
 }
 
 /**
@@ -423,18 +432,22 @@ function file_entity_file_formatter_file_field_settings($form, &$form_state, $se
 function file_entity_file_formatter_file_image_view($file, $display, $langcode) {
   $scheme = file_uri_scheme($file->uri);
   $local_wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_LOCAL);
-  if (isset($local_wrappers[$scheme]) && strpos($file->filemime, 'image/') === 0) {
+  if (isset($local_wrappers[$scheme]) && strpos($file->filemime, 'image/') === 0 && $image = image_load($file->uri)) {
     if (!empty($display['settings']['image_style'])) {
       $element = array(
         '#theme' => 'image_style',
         '#style_name' => $display['settings']['image_style'],
         '#path' => $file->uri,
+        '#width' => $image->info['width'],
+        '#height' => $image->info['height'],
       );
     }
     else {
       $element = array(
         '#theme' => 'image',
         '#path' => $file->uri,
+        '#width' => $image->info['width'],
+        '#height' => $image->info['height'],
       );
     }
     return $element;
@@ -644,6 +657,10 @@ function file_entity_file_mimetype_mapping_alter(&$mapping) {
   // @todo Remove when http://drupal.org/node/1293140 is fixed in core.
   $new_mappings['mka'] = 'audio/x-matroska';
   $new_mappings['mkv'] = 'video/x-matroska';
+
+  // Add support for webp.
+  // @todo Remove when http://drupal.org/node/1347624 is fixed in core.
+  $new_mappings['webp'] = 'image/webp';
 
   foreach ($new_mappings as $extension => $mime_type) {
     if (!in_array($mime_type, $mapping['mimetypes'])) {

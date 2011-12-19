@@ -172,7 +172,11 @@ function variable_features_export_render($module, $data) {
   $schema = ctools_export_get_schema('variable');
   $code = '  $export = array();'."\n\n";
   $identifier = $schema['export']['identifier'];
-  $result = db_query("SELECT * FROM {variable} WHERE name IN (:names)", array(':names' => $data));
+  $result = db_select('variable', 'v')
+    ->fields('v', array('name', 'value'))
+    ->condition('name', $data, 'IN')
+    ->orderBy('name')
+    ->execute();
   foreach ($result as $object) {
     $object = _ctools_export_unpack_object($schema, $object);
     $code .= _ctools_features_export_crud_export('variable', $object, '  ');

@@ -57,9 +57,10 @@
 /* The exposed Views form doesn't need some of these styles */
 .container-inline-date .date-padding {
   padding: 10px;
+  float: left;
 }
 .views-exposed-form .container-inline-date .date-padding {
-  padding: 0:
+  padding: 0;
 }
 
 /* Fixes for date popup css so it will behave in Drupal */
@@ -91,17 +92,8 @@ span.date-display-start {
 span.date-display-end {
 }
 
-.date-repeat-input {
-  float: left; /* LTR */
-  margin-right: 5px; /* LTR */
-  width: auto;
-}
-.date-repeat-input select {
-  min-width: 7em;
-}
-.date-repeat fieldset {
-  clear: both;
-  float: none;
+.date-prefix-inline {
+  display: inline-block;
 }
 
 .date-views-filter-wrapper {

@@ -59,5 +59,16 @@ function debut_event_user_default_permissions() {
     'module' => 'node',
   );
 
+  // Exported permission: view date repeats
+  $permissions['view date repeats'] = array(
+    'name' => 'view date repeats',
+    'roles' => array(
+      0 => 'administrator',
+      1 => 'contributor',
+      2 => 'editor',
+    ),
+    'module' => 'date_repeat_field',
+  );
+
   return $permissions;
 }

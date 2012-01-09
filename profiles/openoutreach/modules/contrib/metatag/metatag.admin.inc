@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Administration page callbacks for the metatag_ui module.
+ * Administration page callbacks for the metatag module.
  */
 
-function _metatag_ui_config_sort($a, $b) {
+function _metatag_config_sort($a, $b) {
   $return = NULL;
   $a_contexts = explode(':', $a->instance);
   $b_contexts = explode(':', $b->instance);
@@ -28,7 +28,7 @@ function _metatag_ui_config_sort($a, $b) {
   return $return;
 }
 
-function _metatag_ui_config_overview_indent($text, $instance) {
+function _metatag_config_overview_indent($text, $instance) {
   $parents = metatag_config_get_parent_instances($instance);
   array_shift($parents);
 
@@ -42,14 +42,14 @@ function _metatag_ui_config_overview_indent($text, $instance) {
   return $text;
 }
 
-function metatag_ui_config_overview() {
+function metatag_config_overview() {
   ctools_include('export');
 
   $metatags = metatag_get_info('tags');
 
   $configs = ctools_export_crud_load_all('metatag_config');
   ksort($configs);
-  //uasort($configs, '_metatag_ui_config_sort');
+  //uasort($configs, '_metatag_config_sort');
 
   $rows = array();
   foreach ($configs as $config) {
@@ -69,7 +69,7 @@ function metatag_ui_config_overview() {
     foreach (array_reverse($parents) as $parent) {
       if (!isset($configs[$parent])) {
         $rows[$parent] = array(
-          _metatag_ui_config_overview_indent('<div class="metatag-config-label">' . check_plain(metatag_config_instance_label($parent)) . '</div>', $parent),
+          _metatag_config_overview_indent('<div class="metatag-config-label">' . check_plain(metatag_config_instance_label($parent)) . '</div>', $parent),
           '',
         );
       }
@@ -88,10 +88,10 @@ function metatag_ui_config_overview() {
 
     // Add a summary of the configuration's defaults.
     $summary = array();
-    foreach ($config->config as $metatag => $value) {
+    foreach ($config->config as $metatag => $data) {
       $summary[] = array(
         check_plain($metatags[$metatag]['label']) . ':',
-        check_plain($value['value']),
+        check_plain(metatag_get_value($metatag, $data, array('raw' => TRUE))),
       );
     }
     if (!empty($summary)) {
@@ -109,18 +109,18 @@ function metatag_ui_config_overview() {
     $details .= '</div>';
 
     // Add indentation to the leading cell based on how many parents the config has.
-    $details = _metatag_ui_config_overview_indent($details, $config->instance);
+    $details = _metatag_config_overview_indent($details, $config->instance);
 
     $row['data']['details'] = $details;
 
     $operations = array();
-    if (metatag_ui_config_access('disable', $config)) {
+    if (metatag_config_access('disable', $config)) {
       $operations['edit'] = array(
         'title' => ($config->export_type & EXPORT_IN_DATABASE) ? t('Edit') : t('Override'),
         'href' => 'admin/config/search/metatags/config/' . $config->instance,
       );
     }
-    if (metatag_ui_config_access('enable', $config)) {
+    if (metatag_config_access('enable', $config)) {
       $operations['enable'] = array(
         'title' => t('Enable'),
         'href' => 'admin/config/search/metatags/config/' . $config->instance . '/enable',
@@ -129,7 +129,7 @@ function metatag_ui_config_overview() {
         ) + drupal_get_destination(),
       );
     }
-    if (metatag_ui_config_access('disable', $config)) {
+    if (metatag_config_access('disable', $config)) {
       $operations['disable'] = array(
         'title' => t('Disable'),
         'href' => 'admin/config/search/metatags/config/' . $config->instance . '/disable',
@@ -138,13 +138,13 @@ function metatag_ui_config_overview() {
         ) + drupal_get_destination(),
       );
     }
-    if (metatag_ui_config_access('revert', $config)) {
+    if (metatag_config_access('revert', $config)) {
       $operations['revert'] = array(
         'title' => t('Revert'),
         'href' => 'admin/config/search/metatags/config/' . $config->instance . '/revert',
       );
     }
-    if (metatag_ui_config_access('delete', $config)) {
+    if (metatag_config_access('delete', $config)) {
       $operations['delete'] = array(
         'title' => t('Delete'),
         'href' => 'admin/config/search/metatags/config/' . $config->instance . '/delete',
@@ -179,10 +179,10 @@ function metatag_ui_config_overview() {
     ),
     '#attached' => array(
       'js' => array(
-        drupal_get_path('module', 'metatag_ui') . '/metatag_ui.admin.js',
+        drupal_get_path('module', 'metatag') . '/metatag.admin.js',
       ),
       'css' => array(
-        drupal_get_path('module', 'metatag_ui') . '/metatag_ui.admin.css',
+        drupal_get_path('module', 'metatag') . '/metatag.admin.css',
       ),
     ),
   );
@@ -193,7 +193,7 @@ function metatag_ui_config_overview() {
 /**
  * Build an FAPI #options array for the instance select field.
  */
-function _metatag_ui_config_instance_get_available_options() {
+function _metatag_config_instance_get_available_options() {
   $options = array();
   $instances = metatag_config_instance_info();
 
@@ -223,12 +223,12 @@ function _metatag_ui_config_instance_get_available_options() {
   return $options;
 }
 
-function metatag_ui_config_add_form($form, &$form_state) {
+function metatag_config_add_form($form, &$form_state) {
   $form['instance'] = array(
     '#type' => 'select',
     '#title' => t('Type'),
     '#description' => t('Select the type of default meta tags you would like to add.'),
-    '#options' => _metatag_ui_config_instance_get_available_options(),
+    '#options' => _metatag_config_instance_get_available_options(),
     '#required' => TRUE,
   );
   $form['config'] = array(
@@ -250,14 +250,14 @@ function metatag_ui_config_add_form($form, &$form_state) {
   return $form;
 }
 
-function metatag_ui_config_add_form_submit($form, &$form_state) {
+function metatag_config_add_form_submit($form, &$form_state) {
   form_state_values_clean($form_state);
   $config = (object) $form_state['values'];
   metatag_config_save($config);
   $form_state['redirect'] = 'admin/config/search/metatags/config/' . $config->instance;
 }
 
-function metatag_ui_config_edit_form($form, &$form_state, $config) {
+function metatag_config_edit_form($form, &$form_state, $config) {
   $form['cid'] = array(
     '#type' => 'value',
     '#value' => !empty($config->cid) ? $config->cid : NULL,
@@ -307,11 +307,11 @@ function metatag_ui_config_edit_form($form, &$form_state, $config) {
     '#href' => isset($_GET['destination']) ? $_GET['destination'] : 'admin/config/search/metatags',
   );
 
-  $form['#submit'][] = 'metatag_ui_config_edit_form_submit';
+  $form['#submit'][] = 'metatag_config_edit_form_submit';
   return $form;
 }
 
-function metatag_ui_config_edit_form_submit($form, &$form_state) {
+function metatag_config_edit_form_submit($form, &$form_state) {
   // Build the configuration object and save it.
   form_state_values_clean($form_state);
   $config = (object) $form_state['values'];
@@ -326,7 +326,7 @@ function metatag_ui_config_edit_form_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/config/search/metatags';
 }
 
-function metatag_ui_config_enable($config) {
+function metatag_config_enable($config) {
   if (!isset($_GET['token']) || !drupal_valid_token($_GET['token'], 'enable-' . $config->instance)) {
     return MENU_ACCESS_DENIED;
   }
@@ -338,7 +338,7 @@ function metatag_ui_config_enable($config) {
   drupal_goto();
 }
 
-function metatag_ui_config_disable($config) {
+function metatag_config_disable($config) {
   if (!isset($_GET['token']) || !drupal_valid_token($_GET['token'], 'disable-' . $config->instance)) {
     return MENU_ACCESS_DENIED;
   }
@@ -350,12 +350,12 @@ function metatag_ui_config_disable($config) {
   drupal_goto();
 }
 
-function metatag_ui_config_delete_form($form, &$form_state, $config) {
+function metatag_config_delete_form($form, &$form_state, $config) {
   $form['cid'] = array('#type' => 'value', '#value' => $config->cid);
   $form['instance'] = array('#type' => 'value', '#value' => $config->instance);
 
   $label = metatag_config_instance_label($config->instance);
-  $delete = metatag_ui_config_access('delete', $config);
+  $delete = metatag_config_access('delete', $config);
   $title = $delete ? t('Are you sure you want to delete the meta tag defaults for @label?', array('@label' => $label)) : t('Are you sure you want to revert the meta tag defaults for @label?', array('@label' => $label));
 
   return confirm_form(
@@ -366,19 +366,19 @@ function metatag_ui_config_delete_form($form, &$form_state, $config) {
   );
 }
 
-function metatag_ui_config_delete_form_submit($form, &$form_state) {
+function metatag_config_delete_form_submit($form, &$form_state) {
   $config = metatag_config_load($form_state['values']['instance']);
   metatag_config_delete($config->instance);
 
   $label = metatag_config_instance_label($config->instance);
-  $delete = metatag_ui_config_access('delete', $config);
+  $delete = metatag_config_access('delete', $config);
   $title = $delete ? t('The meta tag defaults for @label have been deleted.', array('@label' => $label)) : t('The meta tag defaults for @label have been reverted.', array('@label' => $label));
   drupal_set_message($title);
 
   $form_state['redirect'] = 'admin/config/search/metatags';
 }
 
-function metatag_ui_config_export_form($config) {
+function metatag_config_export_form($config) {
   ctools_include('export');
   return drupal_get_form('ctools_export_form', ctools_export_crud_export('metatag_config', $config), t('Export'));
 }

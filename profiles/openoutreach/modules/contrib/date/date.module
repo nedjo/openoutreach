@@ -189,7 +189,6 @@ function date_formatter_process($formatter, $entity_type, $entity, $field, $inst
   $format = date_formatter_format($formatter, $settings, $granularity, $langcode);
   $timezone = isset($item['timezone']) ? $item['timezone'] : '';
   $timezone = date_get_timezone($field['settings']['tz_handling'], $timezone);
-  $timezone_db = date_get_timezone_db($field['settings']['tz_handling']);
   $process = date_process_values($field);
   foreach ($process as $processed) {
     if (empty($item[$processed])) {
@@ -197,12 +196,9 @@ function date_formatter_process($formatter, $entity_type, $entity, $field, $inst
     }
     else {
       // create a date object with a gmt timezone from the database value
-      $value = $item[$processed];
-      $db_format = date_type_format($field['type']);
-      $date = new DateObject($value, $timezone_db, $db_format);
-      $date->limitGranularity($field['settings']['granularity']);
-
       $dates[$processed] = array();
+
+      $date = $item['db'][$processed];
       $dates[$processed]['db']['object'] = $date;
       $dates[$processed]['db']['datetime'] = date_format($date, DATE_FORMAT_DATETIME);
 
@@ -279,7 +275,7 @@ function date_process_values($field) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for field_ui_field_edit_form().
  */
 function date_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
   $field = $form['#field'];
@@ -287,12 +283,6 @@ function date_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id
 
   if (!in_array($field['type'], array('date', 'datetime', 'datestamp'))) {
     return;
-  }
-
-  // If using repeating dates, override the Field module's handling of the multiple values option.
-  if (module_exists('date_repeat') && date_is_repeat_field($field, $instance)) {
-    $form['field']['cardinality']['#disabled'] = TRUE;
-    $form['field']['cardinality']['#value'] = FIELD_CARDINALITY_UNLIMITED;
   }
 
   // Reorganize the instance settings and widget settings sections into a more
@@ -383,48 +373,52 @@ function date_formatter_format($formatter, $settings, $granularity = array(), $l
  * Checks for locale-based format first.
  */
 function date_format_type_format($format_type, $langcode = NULL) {
-  $format = system_date_format_locale($langcode, $format_type);
+  $static = &drupal_static(__FUNCTION__);
+  if (!isset($static[$langcode][$format_type])) {
+    $format = system_date_format_locale($langcode, $format_type);
 
-  // If locale enabled and $format_type inexistent in {date_format_locale}
-  // we receive (due to inconsistency of core api) an array of all (other)
-  // formats available for $langcode in locale table.
-  // However there's no guarantee that the key $format_type exists.
-  // See http://drupal.org/node/1302358.
-  if (!is_string($format)) {
-    // If the configuration page at admin/config/regional/date-time was
-    // never saved, the default core date format variables
-    // ('date_format_short', 'date_format_medium', and 'date_format_long')
-    // will not be stored in the database, so we have to define their
-    // expected defaults here.
-    switch ($format_type) {
-      case 'short':
-        $default = 'm/d/Y - H:i';
-        break;
-      case 'long':
-        $default = 'l, F j, Y - H:i';
-        break;
-      // If it's not one of the core date types and isn't stored in the
-      // database, we'll fall back on using the same default format as the
-      // 'medium' type.
-      case 'medium':
-      default:
-        // @todo: If a non-core module provides a date type and does not
-        //   variable_set() a default for it, the default assumed here may
-        //   not be correct (since the default format used by 'medium' may
-        //   not even be one of the allowed formats for the date type in
-        //   question). To fix this properly, we should really call
-        //   system_get_date_formats($format_type) and take the first
-        //   format from that list as the default. However, this function
-        //   is called often (on many different page requests), so calling
-        //   system_get_date_formats() from here would be a performance hit
-        //   since that function writes several records to the database
-        //   during each page request that calls it.
-        $default = 'D, m/d/Y - H:i';
-        break;
+    // If locale enabled and $format_type inexistent in {date_format_locale}
+    // we receive (due to inconsistency of core api) an array of all (other)
+    // formats available for $langcode in locale table.
+    // However there's no guarantee that the key $format_type exists.
+    // See http://drupal.org/node/1302358.
+    if (!is_string($format)) {
+      // If the configuration page at admin/config/regional/date-time was
+      // never saved, the default core date format variables
+      // ('date_format_short', 'date_format_medium', and 'date_format_long')
+      // will not be stored in the database, so we have to define their
+      // expected defaults here.
+      switch ($format_type) {
+        case 'short':
+          $default = 'm/d/Y - H:i';
+          break;
+        case 'long':
+          $default = 'l, F j, Y - H:i';
+          break;
+        // If it's not one of the core date types and isn't stored in the
+        // database, we'll fall back on using the same default format as the
+        // 'medium' type.
+        case 'medium':
+        default:
+          // @todo: If a non-core module provides a date type and does not
+          //   variable_set() a default for it, the default assumed here may
+          //   not be correct (since the default format used by 'medium' may
+          //   not even be one of the allowed formats for the date type in
+          //   question). To fix this properly, we should really call
+          //   system_get_date_formats($format_type) and take the first
+          //   format from that list as the default. However, this function
+          //   is called often (on many different page requests), so calling
+          //   system_get_date_formats() from here would be a performance hit
+          //   since that function writes several records to the database
+          //   during each page request that calls it.
+          $default = 'D, m/d/Y - H:i';
+          break;
+      }
+      $format = variable_get('date_format_' . $format_type, $default);
     }
-    $format = variable_get('date_format_'. $format_type, $default);
+    $static[$langcode][$format_type] = $format;
   }
-  return $format;
+  return $static[$langcode][$format_type];
 }
 
 /**

@@ -53,6 +53,26 @@ function date_help($path, $arg) {
 }
 
 /**
+ * Implements hook_menu().
+ *
+ * Creates a 'Date API' section on the administration page for Date
+ * modules to use for their configuration and settings.
+ */
+function date_api_menu() {
+  $items['admin/config/date'] = array(
+    'title' => 'Date API',
+    'description' => 'Settings for modules the use the Date API.',
+    'position' => 'left',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer group'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  return $items;
+}
+
+/**
  * Extend PHP DateTime class with granularity handling, merge functionality and
  * slightly more flexible initialization parameters.
  *
@@ -1382,7 +1402,6 @@ function date_default_timezone($check_user = TRUE) {
  *   Identify the default timezone for a user, if available, otherwise the site.
  */
 function date_default_timezone_object($check_user = TRUE) {
-  $timezone = date_default_timezone($check_user);
   return timezone_open(date_default_timezone($check_user));
 }
 
@@ -1997,11 +2016,12 @@ function date_api_database_info($field) {
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_FORM_ID_alter() for system_regional_settings().
  *
- * Add a form element to configure whether or not week numbers are ISO-8601 (default: FALSE == US/UK/AUS norm).
+ * Add a form element to configure whether or not week numbers are ISO-8601, the
+ * default is FALSE (US/UK/AUS norm).
  */
-function date_api_form_system_regional_settings_alter(&$form, $form_state, $form_id = 'system_date_time_settings') {
+function date_api_form_system_regional_settings_alter(&$form, &$form_state, $form_id) {
   $form['locale']['date_api_use_iso8601'] = array(
     '#type'          => 'checkbox',
     '#title'         => t('Use ISO-8601 week numbers'),
@@ -2009,7 +2029,6 @@ function date_api_form_system_regional_settings_alter(&$form, $form_state, $form
     '#description'   => t('IMPORTANT! If checked, First day of week MUST be set to Monday'),
   );
   $form['#validate'][] = 'date_api_form_system_settings_validate';
-  $form = system_settings_form($form);
 }
 
 /**
@@ -2092,18 +2111,28 @@ function date_is_all_day($string1, $string2, $granularity = 'second', $increment
   $tmp = date_minutes('i', TRUE, $increment);
   $max_minutes = intval(array_pop($tmp));
 
+  // See if minutes and seconds are the maximum allowed for an increment or the maximum possible (59), or 0.
   switch ($granularity) {
     case 'second':
-      $min_match = $time1 == '00:00:00' || ($hour1 == 0 && $min1 == 0 && $sec1 == 0);
-      $max_match = $time2 == '00:00:00' || ($hour2 == 23 && $min2 == $max_minutes && $sec2 == $max_seconds) || ($hour1 == 0 && $hour2 == 0 && $min1 == 0 && $min2 == 0 && $sec1 == 0 && $sec2 == 0);
+      $min_match = $time1 == '00:00:00'
+        || ($hour1 == 0 && $min1 == 0 && $sec1 == 0);
+      $max_match = $time2 == '00:00:00'
+        || ($hour2 == 23 && in_array($min2, array($max_minutes, 59)) && in_array($sec2, array($max_seconds, 59)))
+        || ($hour1 == 0 && $hour2 == 0 && $min1 == 0 && $min2 == 0 && $sec1 == 0 && $sec2 == 0);
       break;
     case 'minute':
-      $min_match = $time1 == '00:00:00' || ($hour1 == 0 && $min1 == 0);
-      $max_match = $time2 == '00:00:00' || ($hour2 == 23 && $min2 == $max_minutes) || ($hour1 == 0 && $hour2 == 0 && $min1 == 0 && $min2 == 0);
+      $min_match = $time1 == '00:00:00'
+        || ($hour1 == 0 && $min1 == 0);
+      $max_match = $time2 == '00:00:00'
+        || ($hour2 == 23 && in_array($min2, array($max_minutes, 59)))
+        || ($hour1 == 0 && $hour2 == 0 && $min1 == 0 && $min2 == 0);
       break;
     case 'hour':
-      $min_match = $time1 == '00:00:00' || ($hour1 == 0);
-      $max_match = $time2 == '00:00:00' || ($hour2 == 23) || ($hour1 == 0 && $hour2 == 0);
+      $min_match = $time1 == '00:00:00'
+        || ($hour1 == 0);
+      $max_match = $time2 == '00:00:00'
+        || ($hour2 == 23)
+        || ($hour1 == 0 && $hour2 == 0);
       break;
     default:
       $min_match = TRUE;

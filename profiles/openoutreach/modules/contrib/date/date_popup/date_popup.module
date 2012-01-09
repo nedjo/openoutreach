@@ -660,7 +660,7 @@ function theme_date_popup($vars) {
 function date_popup_menu() {
   $items = array();
   // TODO Fix this later.
-  $items['admin/config/content/date_popup'] = array(
+  $items['admin/config/date/date_popup'] = array(
     'title' => 'Date Popup',
     'description' => 'Configure the Date Popup settings.',
     'page callback' => 'drupal_get_form',

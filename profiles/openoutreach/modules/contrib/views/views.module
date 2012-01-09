@@ -91,6 +91,10 @@ function views_theme($existing, $type, $theme, $path) {
     'pattern' => 'views_view_field__',
     'variables' => array('view' => NULL, 'field' => NULL, 'row' => NULL),
   );
+  $hooks['views_view_grouping'] = $base + array(
+    'pattern' => 'views_view_grouping__',
+    'variables' => array('view' => NULL, 'grouping' => NULL, 'grouping_level' => NULL, 'rows' => NULL, 'title' => NULL),
+  );
 
   $plugins = views_fetch_plugin_data();
 
@@ -1422,7 +1426,7 @@ function views_get_views_as_options($views_only = FALSE, $filter = 'all', $exclu
   foreach ($views as $view) {
     // Return only views.
     if ($views_only && $view->name != $exclude_view_name) {
-      $options[$view->name] = $view->name;
+      $options[$view->name] = $view->get_human_name();
     }
     // Return views with display ids.
     else {
@@ -1591,16 +1595,13 @@ function views_debug($message, $placeholders = array()) {
       $output = $message;
       watchdog('views_logging', $output, $placeholders);
     }
-    else if ($devel_region == 'message') {
-      $output = empty($output) ? t($message, $placeholders) : $output;
-      dpm($output);
-    }
     else if ($devel_region == 'drupal_debug') {
       $output = empty($output) ? t($message, $placeholders) : $output;
       dd($output);
     }
     else {
-      drupal_add_region_content($devel_region, $output);
+      $output = empty($output) ? t($message, $placeholders) : $output;
+      dpm($output);
     }
   }
   elseif (isset($GLOBALS['drupal_test_info'])) {

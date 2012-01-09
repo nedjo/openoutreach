@@ -53,3 +53,12 @@ Usage
    settings.
  * Users with sufficient permissions (check user permissions) receive a menu
    item in their user menu, just beside the "My account" menu item.
+
+
+--------------------------------------------------------------------------------
+                               General notes
+--------------------------------------------------------------------------------
+
+  * Automatic profile labels can be easily generated based upon a pre-configured
+    pattern using the Rules module. See http://drupal.org/node/1392716 for more
+    details.

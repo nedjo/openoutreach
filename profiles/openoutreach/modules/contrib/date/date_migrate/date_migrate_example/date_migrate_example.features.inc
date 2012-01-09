@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Examples and test folder for migration into date fields.
+ */
 
 /**
  * Implementation of hook_node_info().

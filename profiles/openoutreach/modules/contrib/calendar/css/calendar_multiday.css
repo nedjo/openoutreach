@@ -45,7 +45,7 @@
   font-weight: bold;
 }
 .calendar-calendar td {
-  width: 14%; 
+  width: 14%;
   border: 1px solid #ccc;
   color: #777;
   text-align: right;
@@ -102,7 +102,7 @@
 .calendar-calendar td a:hover {
   text-decoration: underline;
 }
-.calendar-calendar td.year, 
+.calendar-calendar td.year,
 .calendar-calendar td.month {
   text-align: center;
 }
@@ -174,8 +174,8 @@
   white-space: normal;
 }
 
-table td.mini, 
-table th.mini, 
+table td.mini,
+table th.mini,
 table.mini td.week {
   padding: 0 1px 0 0;
   margin: 0;
@@ -233,6 +233,7 @@ table.calendar-legend tr.even .stripe {
 }
 .calendar-legend td {
   text-align: left;
+  padding-left: 5px;
 }
 
 .calendar-empty {
@@ -285,8 +286,8 @@ table.calendar-legend tr.even .stripe {
   float: right;
   width: 25%;
 }
-.calendar-date-select div, 
-.calendar-date-select input, 
+.calendar-date-select div,
+.calendar-date-select input,
 .calendar-date-select label {
   text-align: right;
   padding: 0;
@@ -310,7 +311,7 @@ table.calendar-legend tr.even .stripe {
   width: auto;
   border: 1px solid #ccc;
 }
-.calendar-calendar div.date-nav a, 
+.calendar-calendar div.date-nav a,
 .calendar-calendar div.date-nav h3 {
   color: #777;
   text-decoration: none;
@@ -457,7 +458,7 @@ table.calendar-legend tr.even .stripe {
   padding: 1px 2px 0 2px
 }
 
-.calendar-calendar .month-view .full td.date-box { 
+.calendar-calendar .month-view .full td.date-box {
   height: 1%;
   border-bottom: 0px;
   padding-bottom: 2px;
@@ -479,13 +480,13 @@ table.calendar-legend tr.even .stripe {
   margin-bottom: 0px;
 }
 
-.calendar-calendar .month-view .full td.date-box .inner, 
-.calendar-calendar .week-view .full td.date-box .inner { 
+.calendar-calendar .month-view .full td.date-box .inner,
+.calendar-calendar .week-view .full td.date-box .inner {
   min-height: inherit;
 }
 
 .calendar-calendar .month-view .full td.multi-day,
-.calendar-calendar .week-view .full td.multi-day { 
+.calendar-calendar .week-view .full td.multi-day {
   border-top: 0px;
   border-bottom: 0px;
 }
@@ -494,13 +495,13 @@ table.calendar-legend tr.even .stripe {
   border-top: 1px solid #CCCCCC;
 }
 
-.calendar-calendar .month-view .full td.single-day { 
+.calendar-calendar .month-view .full td.single-day {
   border-top: 0px;
 }
 
 .calendar-calendar .month-view .full td.multi-day .inner,
 .calendar-calendar .week-view .full td.multi-day .inner,
-.calendar-calendar .day-view .full td.multi-day .inner { 
+.calendar-calendar .day-view .full td.multi-day .inner {
   min-height: inherit;
   width: auto;
   position: relative;
@@ -516,35 +517,35 @@ table.calendar-legend tr.even .stripe {
   background: #F4F4F4;
 }
 
-.calendar-calendar .month-view .full td.single-day .inner div, 
+.calendar-calendar .month-view .full td.single-day .inner div,
 .calendar-calendar .month-view .full td.single-day .inner div a ,
-.calendar-calendar .month-view .full td.multi-day .inner div, 
+.calendar-calendar .month-view .full td.multi-day .inner div,
 .calendar-calendar .month-view .full td.multi-day .inner div a ,
-.calendar-calendar .month-view .full td .inner div.calendar.monthview div, 
+.calendar-calendar .month-view .full td .inner div.calendar.monthview div,
 .calendar-calendar .month-view .full td .inner div.calendar.monthview div a,
-.calendar-calendar .week-view .full td.single-day .inner div, 
+.calendar-calendar .week-view .full td.single-day .inner div,
 .calendar-calendar .week-view .full td.single-day .inner div a ,
-.calendar-calendar .week-view .full td.multi-day .inner div, 
+.calendar-calendar .week-view .full td.multi-day .inner div,
 .calendar-calendar .week-view .full td.multi-day .inner div a ,
-.calendar-calendar .week-view .full td .inner div.calendar.weekview div, 
+.calendar-calendar .week-view .full td .inner div.calendar.weekview div,
 .calendar-calendar .week-view .full td .inner div.calendar.weekview div a,
-.calendar-calendar .day-view .full td .inner div.view-item, 
-.calendar-calendar .day-view .full td .inner div.calendar div, 
+.calendar-calendar .day-view .full td .inner div.view-item,
+.calendar-calendar .day-view .full td .inner div.calendar div,
 .calendar-calendar .day-view .full td .inner div.calendar div a {
   background: none;
 }
 
-.calendar-calendar .day-view .full td .inner div.calendar div, 
+.calendar-calendar .day-view .full td .inner div.calendar div,
 .calendar-calendar .day-view .full td .inner div.calendar div a {
   margin: 0px 3px;
 }
 
 .calendar-calendar .day-view .full td .inner div.calendar div.stripe {
   margin: 0px;
-} 
+}
 
-.calendar-calendar .month-view .full tr td.today, 
-.calendar-calendar .month-view .full tr.odd td.today, 
+.calendar-calendar .month-view .full tr td.today,
+.calendar-calendar .month-view .full tr.odd td.today,
 .calendar-calendar .month-view .full tr.even td.today {
   background: none;
   border-left: 2px solid #7C7F12;
@@ -623,11 +624,11 @@ table.calendar-legend tr.even .stripe {
   height: 3.5em;
 }
 
-.calendar-calendar .month-view .full td.multi-day .inner .view-field, 
+.calendar-calendar .month-view .full td.multi-day .inner .view-field,
 .calendar-calendar .month-view .full td.multi-day .inner .view-field a,
-.calendar-calendar .week-view .full td.multi-day .inner .view-field, 
+.calendar-calendar .week-view .full td.multi-day .inner .view-field,
 .calendar-calendar .week-view .full td.multi-day .inner .view-field a,
-.calendar-calendar .day-view .full td.multi-day .inner .view-field, 
+.calendar-calendar .day-view .full td.multi-day .inner .view-field,
 .calendar-calendar .day-view .full td.multi-day .inner .view-field a {
   color: #ffffff;
 }
@@ -671,9 +672,8 @@ table.calendar-legend tr.even .stripe {
   border-radius: 5px 5px 0px 0px;
   left: 0px;
   top: 0px;
-  position:absolute;
   width: 100%;
-  height:3px;
+  height: 3px;
   z-index: 2;
 }
 

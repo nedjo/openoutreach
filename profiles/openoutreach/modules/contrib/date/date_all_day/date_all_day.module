@@ -383,18 +383,20 @@ function date_all_day_field_widget_info_alter(&$info) {
   $info['date_text']['settings'] += array(
     'display_all_day' => 0,
   );
-  $info['date_popup']['settings'] += array(
-    'display_all_day' => 0,
-  );
+  if (module_exists('date_popup')) {
+    $info['date_popup']['settings'] += array(
+      'display_all_day' => 0,
+    );
+  }
 }
 
 /**
- * Implements hook_date_field_settings_form_alter().
+ * Implements hook_date_field_widget_settings_form_alter().
  *
  * This hook lets us alter the field settings form by adding a place
  * to set the value added above.
  */
-function date_all_day_date_field_settings_form_alter(&$form, $context) {
+function date_all_day_date_field_widget_settings_form_alter(&$form, $context) {
 
   $field = $context['field'];
   $instance = $context['instance'];

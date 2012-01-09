@@ -844,12 +844,7 @@ If you would like to have the characters %5B and %5D please use the html entity 
         '#description' => t('If checked, all HTML tags will be stripped.'),
         '#default_value' => $this->options['alter']['strip_tags'],
       );
-      $form['alter']['trim_whitespace'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Remove whitespace'),
-        '#description' => t('If checked, all whitespaces at the beginning and the end of the output will be removed.'),
-        '#default_value' => $this->options['alter']['trim_whitespace'],
-      );
+
       $form['alter']['preserve_tags'] = array(
         '#type' => 'textfield',
         '#title' => t('Preserve certain tags'),
@@ -858,6 +853,13 @@ If you would like to have the characters %5B and %5D please use the html entity 
         '#dependency' => array(
           'edit-options-alter-strip-tags' => array(1),
         ),
+      );
+
+      $form['alter']['trim_whitespace'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Remove whitespace'),
+        '#description' => t('If checked, all whitespaces at the beginning and the end of the output will be removed.'),
+        '#default_value' => $this->options['alter']['trim_whitespace'],
       );
 
       $form['alter']['nl2br'] = array(
@@ -1016,7 +1018,13 @@ If you would like to have the characters %5B and %5D please use the html entity 
       $value = $this->render_altered($alter, $tokens);
     }
 
-    if ((($this->options['hide_empty'] && empty($value)) || ($this->options['hide_alter_empty'] && empty($this->original_value))) && ($value !== 0 || $this->options['empty_zero'])) {
+    // Check whether the value is empty and return nothing, so the field isn't rendered.
+    // First check whether the field should be hidden if the value(hide_alter_empty = TRUE) /the rewrite is empty (hide_alter_empty = FALSE).
+    // For numeric values you can specify whether "0"/0 should be empty.
+    if ((($this->options['hide_empty'] && empty($value))
+        || ($this->options['hide_alter_empty'] && empty($this->original_value)))
+      && (($value !== 0 && $value !== '0')
+        || $this->options['empty_zero'])) {
       return '';
     }
 
@@ -1324,6 +1332,8 @@ If you would like to have the characters %5B and %5D please use the html entity 
 
 /**
  * A special handler to take the place of missing or broken handlers.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_broken extends views_handler_field {
   function ui_name($short = FALSE) {
@@ -1346,6 +1356,8 @@ class views_handler_field_broken extends views_handler_field {
 
 /**
  * Render a numeric value as a size.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_file_size extends views_handler_field {
   function option_definition() {
@@ -1386,7 +1398,9 @@ class views_handler_field_file_size extends views_handler_field {
 }
 
 /**
- * A handler to run a field through simple XSS filtering
+ * A handler to run a field through simple XSS filtering.
+ *
+ * @ingroup views_field_handlers
  */
 class views_handler_field_xss extends views_handler_field {
   function render($values) {

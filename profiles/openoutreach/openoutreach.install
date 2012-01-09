@@ -155,6 +155,11 @@ function openoutreach_install() {
     'link_title' => $t('Add terms'),
     'weight' => -18,
   );
+  $shortcut_set->links[] = array(
+    'link_path' => 'user',
+    'link_title' => $t('My account'),
+    'weight' => -10,
+  );
   shortcut_set_save($shortcut_set);
 }
 

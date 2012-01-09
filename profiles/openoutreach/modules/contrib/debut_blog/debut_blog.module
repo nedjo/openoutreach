@@ -81,19 +81,20 @@ function debut_blog_user_default_permissions_alter(&$items) {
  * Determine whether a feature is being recreated.
  */
 function debut_blog_is_recreating($feature = NULL) {
-  $feature = is_null($feature) ? arg(3) : $feature;
-
   // Test for Drush usage.
   if (function_exists('drush_get_command') && $command = drush_get_command()) {
     switch($command['command']) {
       case 'features-update-all':
         return TRUE;
       case 'features-update':
-        return $feature && in_array($feature, $command['arguments']);
+        // If a specific feature was requested, test for it. If not, return
+        // true for any feature recreation.
+        return is_null($feature) || in_array($feature, $command['arguments']);
     }
   }
 
   // Test for admin UI usage.
+  $feature = is_null($feature) ? arg(3) : $feature;
   if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
     return TRUE;
   }

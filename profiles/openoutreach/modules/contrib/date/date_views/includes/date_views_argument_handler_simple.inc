@@ -55,7 +55,7 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
       if ($granularity == 'week') {
         $now = date_now();
         $week = date_week(date_format($now, 'Y-m-d'));
-        return date_format($now, 'Y') .'-W'. $week;
+        return date_format($now, 'Y') . '-W' . $week;
       }
       else {
         return date($this->arg_format, REQUEST_TIME);
@@ -140,20 +140,27 @@ class date_views_argument_handler_simple extends views_handler_argument_date {
       '#description' => t("Set the allowable minimum and maximum year range for this argument, either a -X:+X offset from the current year, like '-3:+3' or an absolute minimum and maximum year, like '2005:2010' . When the argument is set to a date outside the range, the page will be returned as 'Page not found (404)' ."),
     );
 
-    $form['add_delta'] = array(
-      '#type' => 'radios',
-      '#title' => t('Add multiple value identifier'),
-      '#default_value' => $this->options['add_delta'],
-      '#options' => array('' => t('No'), 'yes' => t('Yes')),
-      '#description' => t('Add an identifier to the view to show which multiple value date fields meet the filter criteria. Note: This option may introduce duplicate values into the view. Required when using multiple value fields in a Calendar. Use this option if you are having trouble getting multiple value date fields to display only the values that match the view filters.'),
-    );
-
     $form['use_fromto'] = array(
       '#type' => 'radios',
       '#title' => t('Dates to compare'),
       '#default_value' => $this->options['use_fromto'],
       '#options' => array('' => t('Start/End date range'), 'no' => t('Only this field')),
       '#description' => t("If selected the view will check if any value starting with the 'Start' date and ending with the 'End' date matches the view criteria. Otherwise the view will be limited to the specifically selected fields. Comparing to the whole Start/End range is the recommended setting when using this filter in a Calendar. When using the Start/End option, it is not necessary to add both the Start and End fields to the filter, either one will do."),
+    );
+
+    $access = TRUE;
+    if (!empty($this->definition['field_name'])) {
+      $field = field_info_field($this->definition['field_name']);
+      $access = $field['cardinality'] != 1;
+    }
+    $form['add_delta'] = array(
+      '#type' => 'radios',
+      '#title' => t('Add multiple value identifier'),
+      '#default_value' => $this->options['add_delta'],
+      '#options' => array('' => t('No'), 'yes' => t('Yes')),
+      '#description' => t('Add an identifier to the view to show which multiple value date fields meet the filter criteria. Note: This option may introduce duplicate values into the view. Required when using multiple value fields in a Calendar or any time you want the node view of multiple value dates to display only the values that match the view filters.'),
+      // Only let mere mortals tweak this setting for multi-value fields
+      '#access' => $access,
     );
 
   }

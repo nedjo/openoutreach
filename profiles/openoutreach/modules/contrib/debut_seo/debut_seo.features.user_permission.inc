@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_user_default_permissions().
+ * Implements hook_user_default_permissions().
  */
 function debut_seo_user_default_permissions() {
   $permissions = array();
@@ -25,6 +25,7 @@ function debut_seo_user_default_permissions() {
     'roles' => array(
       0 => 'administrator',
     ),
+    'module' => 'pathauto',
   );
 
   // Exported permission: create url aliases

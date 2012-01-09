@@ -37,10 +37,7 @@ class XMLSitemapTaxonomyFunctionalTest extends XMLSitemapTestHelper {
     );
     $this->drupalPost('admin/structure/taxonomy/add', $edit, 'Save');
     $this->assertText("Created new vocabulary {$edit['name']}.");
-
-    $vocabularies = taxonomy_vocabulary_get_names();
-    $vid = $vocabularies[$edit['machine_name']]->vid;
-    $vocabulary = taxonomy_vocabulary_load($vid);
+    $vocabulary = taxonomy_vocabulary_machine_name_load($edit['machine_name']);
 
     $edit = array(
       'name' => $this->randomName(),

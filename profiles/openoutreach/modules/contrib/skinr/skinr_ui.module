@@ -488,8 +488,23 @@ function skinr_ui_form_alter(&$form, $form_state, $form_id) {
 
       // Create widget.
       $field = array();
-      if (!empty($skin_info['form callback']) && function_exists($skin_info['form callback'])) {
-        // @todo Allow for custom form callbacks.
+      if (!empty($skin_info['form callback'])) {
+        // Process custom form callbacks.
+
+        // Load include file.
+        if (!empty($skin_info['source']['filename'])) {
+          skinr_load_include($skin_info['source']['path'] . '/' . $skin_info['source']['filename']);
+        }
+
+        // Execute form callback.
+        if (function_exists($skin_info['form callback'])) {
+          $context = array(
+            'theme' => $theme->name,
+            'skin_name' => $skin_name,
+            'skin_info' => $skin_info,
+          );
+          $field = $skin_info['form callback']($form, $form_state, $context);
+        }
       }
       else {
         switch ($skin_info['type']) {

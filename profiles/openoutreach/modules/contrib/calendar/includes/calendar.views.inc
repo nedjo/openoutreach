@@ -2,7 +2,7 @@
 
 /**
  * @file
- * 
+ *
  * Creates calendar displays of Views results.
  */
 /**
@@ -45,11 +45,20 @@ function calendar_views_plugins() {
     ),
     'row' => array(
       'calendar_node' => array(
-        'title' => t('Calendar Items'),
+        'title' => t('Calendar Items (DEPRECATED, switch to Calendar Entities)'),
         'help' => t('Displays each selected node as a Calendar item.'),
         'handler' => 'calendar_plugin_row_node',
         'path' => "$module_path/includes",
         'base' => array('node'), // only works with 'node' as base.
+        'uses options' => TRUE,
+        'uses fields' => TRUE,
+        'type' => 'normal',
+      ),
+      'calendar_entity' => array(
+        'title' => t('Calendar Entities'),
+        'help' => t('Displays each selected entity as a Calendar item.'),
+        'handler' => 'calendar_plugin_row',
+        'path' => "$module_path/includes",
         'uses options' => TRUE,
         'uses fields' => TRUE,
         'type' => 'normal',

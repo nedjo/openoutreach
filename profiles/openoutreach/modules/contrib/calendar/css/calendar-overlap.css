@@ -7,7 +7,7 @@
   display: none;
 }
 
-.calendar-calendar .week-view .full div.item-wrapper, 
+.calendar-calendar .week-view .full div.item-wrapper,
 .calendar-calendar .day-view .full div.item-wrapper {
   background-color: none;
   border: 0px;
@@ -17,7 +17,7 @@
   margin-top: -24px;
 }
 
-.calendar-calendar td .inner div, 
+.calendar-calendar td .inner div,
 .calendar-calendar td .inner div a {
   background: none;
 }
@@ -213,12 +213,12 @@
 }
 
 .calendar-calendar .week-view .full div.single-day,
-.calendar-calendar .day-view .full div.single-day { 
+.calendar-calendar .day-view .full div.single-day {
   padding: 0px;
 }
 
 .calendar-calendar .week-view .full div.single-day .inner,
-.calendar-calendar .day-view .full div.single-day .inner { 
+.calendar-calendar .day-view .full div.single-day .inner {
   position: relative;
   z-index: 1;
 }

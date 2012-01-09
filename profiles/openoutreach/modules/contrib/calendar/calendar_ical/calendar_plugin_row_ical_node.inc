@@ -89,7 +89,7 @@ class calendar_plugin_row_ical_node extends views_plugin_row {
       $node->date_id[] = 'calendar.' . $node->nid . '.' . $field_name . '.' . $delta;
 
       if (!empty($item['value'])) {
-        // @TODO Need to come back after this is all working and make more timezone adjustments.    
+        // @TODO Need to come back after this is all working and make more timezone adjustments.
         $start = new dateObject($item['value'], 'UTC');
         $end   = array_key_exists('value2', $item) ? new dateObject($item['value2'], 'UTC') : $start;
       }
@@ -98,12 +98,12 @@ class calendar_plugin_row_ical_node extends views_plugin_row {
       $start = new dateObject($item, 'UTC');
       $end   = new dateObject($item, 'UTC');
      }
-    
+
     // If we don't have an iCal date value, go no further.
     if (empty($start)) {
       return;
     }
-    
+
     module_load_include('inc', 'date_api', 'date_api_ical');
     $item_text = '';
 
@@ -124,7 +124,7 @@ class calendar_plugin_row_ical_node extends views_plugin_row {
     $event['url'] = url("node/$node->nid", array('absolute' => TRUE));
     $event['uid'] = !empty($node->date_id) ? $node->date_id[0] : $event['url'];
     $event['rrule'] = $is_field && array_key_exists('rrule', $item) ? $item['rrule'] : '';
-    
+
     return theme($this->theme_functions(),
       array(
         'view' => $this->view,

@@ -37,7 +37,16 @@ function debut_event_views_default_views() {
   $handler->display->display_options['style_options']['multiday_theme'] = '1';
   $handler->display->display_options['style_options']['theme_style'] = '1';
   $handler->display->display_options['style_options']['max_items'] = '0';
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
+  $handler->display->display_options['row_plugin'] = 'calendar_entity';
+  $handler->display->display_options['row_options']['colors']['calendar_colors_type'] = array(
+    'article' => '#ffffff',
+    'blog' => '#ffffff',
+    'book' => '#ffffff',
+    'event' => '#ffffff',
+    'highlighted' => '#ffffff',
+    'link' => '#ffffff',
+    'section' => '#ffffff',
+  );
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
   $handler->display->display_options['fields']['title']['table'] = 'node';
@@ -130,19 +139,6 @@ function debut_event_views_default_views() {
   $handler->display->display_options['defaults']['pager'] = FALSE;
   $handler->display->display_options['pager']['type'] = 'date_views_pager';
   $handler->display->display_options['pager']['options']['date_id'] = 'month';
-  $handler->display->display_options['defaults']['style_plugin'] = FALSE;
-  $handler->display->display_options['style_plugin'] = 'calendar_style';
-  $handler->display->display_options['style_options']['name_size'] = '3';
-  $handler->display->display_options['style_options']['mini'] = '0';
-  $handler->display->display_options['style_options']['with_weekno'] = '0';
-  $handler->display->display_options['style_options']['multiday_theme'] = '1';
-  $handler->display->display_options['style_options']['theme_style'] = '1';
-  $handler->display->display_options['style_options']['max_items'] = '0';
-  $handler->display->display_options['defaults']['style_options'] = FALSE;
-  $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
-  $handler->display->display_options['row_options']['colors']['legend'] = 'type';
-  $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Content: Title */
   $handler->display->display_options['fields']['title']['id'] = 'title';
@@ -237,7 +233,16 @@ function debut_event_views_default_views() {
   $handler->display->display_options['style_options']['max_items'] = '0';
   $handler->display->display_options['defaults']['style_options'] = FALSE;
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
+  $handler->display->display_options['row_plugin'] = 'calendar_entity';
+  $handler->display->display_options['row_options']['colors']['calendar_colors_type'] = array(
+    'article' => '#ffffff',
+    'blog' => '#ffffff',
+    'book' => '#ffffff',
+    'event' => '#ffffff',
+    'highlighted' => '#ffffff',
+    'link' => '#ffffff',
+    'section' => '#ffffff',
+  );
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   /* Contextual filter: Date: Date (node) */
@@ -272,7 +277,16 @@ function debut_event_views_default_views() {
   $handler->display->display_options['style_options']['max_items'] = '0';
   $handler->display->display_options['defaults']['style_options'] = FALSE;
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
+  $handler->display->display_options['row_plugin'] = 'calendar_entity';
+  $handler->display->display_options['row_options']['colors']['calendar_colors_type'] = array(
+    'article' => '#ffffff',
+    'blog' => '#ffffff',
+    'book' => '#ffffff',
+    'event' => '#ffffff',
+    'highlighted' => '#ffffff',
+    'link' => '#ffffff',
+    'section' => '#ffffff',
+  );
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['fields'] = FALSE;
   /* Field: Content: Title */
@@ -364,7 +378,16 @@ function debut_event_views_default_views() {
   $handler->display->display_options['style_options']['max_items'] = '0';
   $handler->display->display_options['defaults']['style_options'] = FALSE;
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
+  $handler->display->display_options['row_plugin'] = 'calendar_entity';
+  $handler->display->display_options['row_options']['colors']['calendar_colors_type'] = array(
+    'article' => '#ffffff',
+    'blog' => '#ffffff',
+    'book' => '#ffffff',
+    'event' => '#ffffff',
+    'highlighted' => '#ffffff',
+    'link' => '#ffffff',
+    'section' => '#ffffff',
+  );
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   /* Contextual filter: Date: Date (node) */
@@ -399,7 +422,16 @@ function debut_event_views_default_views() {
   $handler->display->display_options['style_options']['max_items'] = '0';
   $handler->display->display_options['defaults']['style_options'] = FALSE;
   $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-  $handler->display->display_options['row_plugin'] = 'calendar_node';
+  $handler->display->display_options['row_plugin'] = 'calendar_entity';
+  $handler->display->display_options['row_options']['colors']['calendar_colors_type'] = array(
+    'article' => '#ffffff',
+    'blog' => '#ffffff',
+    'book' => '#ffffff',
+    'event' => '#ffffff',
+    'highlighted' => '#ffffff',
+    'link' => '#ffffff',
+    'section' => '#ffffff',
+  );
   $handler->display->display_options['defaults']['row_options'] = FALSE;
   $handler->display->display_options['defaults']['arguments'] = FALSE;
   /* Contextual filter: Date: Date (node) */

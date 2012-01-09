@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Examples and test fodder for migration into date fields.
+ * Examples and test folder for migration into date fields.
  */
 
 /**

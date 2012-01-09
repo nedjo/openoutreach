@@ -5,6 +5,31 @@ Date Module 7.x
 Version 7.x-2.x-dev
 ===================
 
+- Issue #1397822, Fix 'Undefined index: field' error on line 207 of date_views_filter_handler_simple.inc.
+- Issue #1396536, Repeating fields weren't getting created with Devel Generate because of the change in widgets. Add new hooks so Date Repeat Field can add the repeats.
+- Issue #1397126 follow-up by arlinsandbulte, Fix broken tests.
+- Issue #1397158, The default value for the end date was using the wrong timezone setting.
+- Issue #1392128 by kidrobot and tim.plunkett, Don't show repeat tab unless the date is repeating.
+- Issue #1397126, Add Date API section to administration menu and consolidate Date Popup and Date Tools settings there.
+- Issue #1358790 by tim.plunkett, Store date objects in field_load to speed up processing.
+- Follow up to Issue #1302052 by benjifisher, More clean up of ical line endings.
+- Issue #1388174 by travist, Remove redundant use of date_default_timezone().
+- Issue #1388586 by Moloc, Don't use check_plain() on system messages with links.
+- Issue #1302052 by benjifisher, penguin25, and helmo, Fix linespace ending problems in ical files.
+- Issue #1357216, The Date Views field list was including the Date Views filter itself, creating errors about missing node.date_filter values.
+- Issue #1259870, Reinstate the test for a missing date argument for the pager.
+- The new option to hide the add_delta for simple fields needs to be adjusted to work right where there is no field.
+- Tweak the all day formula to check for 59:59 even for items that use increments, to help fix problems when the calendar creates all day values.
+- Our test for whether this is a Date argument or filter needs to include a check that the field was actually processed by Date Views. Some dates are not.
+- Revert the change to 7.8. It breaks the modules page.
+- Issue #1379172 by deviantpixel, Note that the Date Repeat form uses a function that was re-named in 7.8.
+- Store the locale format in a static cache to avoid re-computing it dozens of times on calendar views.
+- Sheesh. Fix syntax error in api.date.php.
+
+======================
+Version 7.x-2.0-rc1
+======================
+
 Notes:
 The Date Browser has been removed. Please use the Date Pager instead. If you have existing views using the Date
 Browser the navigation will just disappear from them. If you add a Date Pager to the view you should get it back.
@@ -23,7 +48,8 @@ use Repeating dates you can disable it.
 
 New Features/Major Changes
 
-- Issue #1236216, Start the process of moving the repeating date integration out of the Date module and into a separate, Date Repeat Field module.
+- Issue #1229378 by ksenzee, Sync the end date with the start date on new dates using select widgets.
+- Issue #1236216, Move the repeating date integration out of the Date module and into a separate, Date Repeat Field module.
 - Issue #874322, The All Day functionality has been moved into a separate module and hooks were added to make it easier for other modules to inject steps into date processing.
 - Issue #1267046, Include the UNTIL date in repeating results..
 - Issue #1354606 by temaruk, Rework the repeating date UI to make it more user-friendly.
@@ -33,6 +59,9 @@ New Features/Major Changes
 
 Bugfixes
 
+- Fix to new default date handling, the default date has to set a date in the database timezone, not the display timezone.
+- Issue #1245106 by Gábor Hojtsy, Hide the option to add the delta into the view for single value fields.
+- Issue #1370876, Make sure new Date All Day code does not try to set the popup values if Date Popup is disabled.
 - Issue #874322, Add back the date_field_all_day() function to avoid breaking other modules that are using it.
 - Fix Date text placeholder to display a formatted date instead of a format. Follow up to Date repeat UI changes.
 - Issue #1248520 by fearlsgroove, Use attribute selector on all day and end day checkboxes.

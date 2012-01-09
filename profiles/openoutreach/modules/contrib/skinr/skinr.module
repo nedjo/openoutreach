@@ -1280,6 +1280,7 @@ function skinr_get_skin_info() {
           $hooks["{$name}_skinr_skin_{$plugin}_info"] = array(
             // The source path for a plugin is the plugin directory.
             'path' => $dir . '/' . basename(dirname($file->uri)),
+            'filename' => $file->filename,
           ) + $extension;
         }
       }
@@ -1336,6 +1337,7 @@ function skinr_get_group_info() {
           $hooks["{$name}_skinr_group_{$plugin}_info"] = array(
             // The source path for a plugin is the plugin directory.
             'path' => $dir . '/' . basename(dirname($file->uri)),
+            'filename' => $file->filename,
           ) + $extension;
         }
       }

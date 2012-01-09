@@ -174,6 +174,7 @@ function date_default_value($field, $instance, $langcode) {
  */
 function date_default_value_part($item, $field, $instance, $langcode, $part = 'value') {
   $timezone = date_get_timezone($field['settings']['tz_handling']);
+  $timezone_db = date_get_timezone_db($field['settings']['tz_handling']);
   $date = NULL;
   if ($part == 'value') {
     $default_value = $instance['settings']['default_value'];
@@ -194,7 +195,8 @@ function date_default_value_part($item, $field, $instance, $langcode, $part = 'v
       return NULL;
     }
     else {
-      $date = new DateObject($item[0]['value'], $timezone, DATE_FORMAT_DATETIME);
+      // The date stored in 'value' has already been switched to the db timezone.
+      $date = new DateObject($item[0]['value'], $timezone_db, DATE_FORMAT_DATETIME);
     }
   }
   // Special case for 'now' when using dates with no timezone,
@@ -205,6 +207,8 @@ function date_default_value_part($item, $field, $instance, $langcode, $part = 'v
   else {
     $date = date_now($timezone);
   }
+  // The default value needs to be in the database timezone.
+  date_timezone_set($date, timezone_open($timezone_db));
   $date->limitGranularity($field['settings']['granularity']);
   return $date;
 }
@@ -310,6 +314,7 @@ function date_combo_element_process($element, &$form_state, $form) {
     case 'date_select':
       $element[$from_field]['#type'] = 'date_select';
       $element[$from_field]['#theme_wrappers'] = array('date_select');
+      $element['#attached']['js'][] = drupal_get_path('module', 'date') . '/date.js';
       break;
     case 'date_popup':
       $element[$from_field]['#type'] = 'date_popup';
@@ -333,7 +338,9 @@ function date_combo_element_process($element, &$form_state, $form) {
     $element[$to_field]['#required'] = FALSE;
     $element[$to_field]['#weight'] += .2;
     $element[$to_field]['#prefix'] = '';
-    $description .= ' ' . t("Empty 'End date' values will use the 'Start date' values.");
+    // Users with JS enabled will never see initially blank values for the end
+    // date (see Drupal.date.EndDateHandler()), so hide the message for them.
+    $description .= '<span class="js-hide"> ' . t("Empty 'End date' values will use the 'Start date' values.") . '</span>';
     $element['#fieldset_description'] = $description;
     if ($field['settings']['todate'] == 'optional') {
       $element[$to_field]['#states'] = array(

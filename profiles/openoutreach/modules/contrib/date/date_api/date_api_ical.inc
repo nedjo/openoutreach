@@ -470,7 +470,7 @@ function date_ical_parse_rrule($field, $data) {
  *   an array of date value arrays.
  */
 function date_ical_parse_exceptions($field, $data) {
-  $data = str_replace($field.':', '', $data);
+  $data = str_replace($field . ':', '', $data);
   $items = array('DATA' => $data);
   $ex_dates = explode(',', $data);
   foreach ($ex_dates as $ex_date) {
@@ -614,7 +614,7 @@ function date_ical_escape_text($text) {
   // this and see if anything breaks.
   //$text = str_replace('"', '\"', $text);
   //$text = str_replace(":", "\:", $text);
-  $text = preg_replace("/\\\b/","\\\\", $text);
+  $text = preg_replace("/\\\b/", "\\\\", $text);
   $text = str_replace(",", "\,", $text);
   $text = str_replace(";", "\;", $text);
   $text = str_replace("\n", "\\n ", $text);
@@ -758,11 +758,11 @@ function date_api_ical_build_rrule($form_values) {
     }
     if (!empty($ex_dates)) {
       sort($ex_dates);
-      $RRULE .= chr(13) . chr(10) .'RDATE:'. implode(',', $ex_dates);
+      $RRULE .= chr(13) . chr(10) . 'RDATE:' . implode(',', $ex_dates);
     }
   }
   elseif (!empty($form_values['RDATE'])) {
-    $RRULE .= chr(13) . chr(10) .'RDATE:'. $form_values['RDATE'];
+    $RRULE .= chr(13) . chr(10) . 'RDATE:' . $form_values['RDATE'];
   }
 
   return $RRULE;

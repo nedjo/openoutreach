@@ -257,7 +257,7 @@ function features_help($path, $arg) {
       $output = file_get_contents(drupal_get_path('module', 'features') .'/README.txt');
       return module_exists('markdown') ? filter_xss_admin(module_invoke('markdown', 'filter', 'process', 0, -1, $output)) : '<pre>'. check_plain($output) .'</pre>';
     case 'admin/build/features':
-      return '<p>'. t('A "Feature" is a certain type of Drupal module with contains a package of configuration that, when enabled, provides a new set of functionality for your Drupal site. Enable features by selecting the checkboxes below and clicking the Save configuration button. If the configuration of the feature has been changed its "State" will be either "overridden" or "needs review", otherwise it will be "default", indicating that the configuration has not been changed. Click on the state to see more details about the feature and its components.') .'</p>';
+      return '<p>'. t('A "Feature" is a certain type of Drupal module which contains a package of configuration that, when enabled, provides a new set of functionality for your Drupal site. Enable features by selecting the checkboxes below and clicking the Save configuration button. If the configuration of the feature has been changed its "State" will be either "overridden" or "needs review", otherwise it will be "default", indicating that the configuration has not been changed. Click on the state to see more details about the feature and its components.') .'</p>';
   }
 }
 
@@ -314,6 +314,9 @@ function features_include($reset = FALSE) {
         module_load_include('inc', 'features', "includes/features.$module");
       }
     }
+
+    // Finally, add ctools eval'd implementations.
+    ctools_features_declare_functions();
 
     // Clear static cache, since we've now included new implementers.
     module_implements('features_api', FALSE, TRUE);
@@ -513,6 +516,11 @@ function features_get_info($type = 'module', $name = NULL, $reset = FALSE) {
     $data = array();
     $ignored = variable_get('features_ignored_orphans', array());
     $files = system_rebuild_module_data();
+
+    // Filter out intentionally hidden features.
+    module_load_include('inc', 'features', 'features.admin');
+    $files = array_filter($files, 'features_filter_hidden');
+
     foreach ($files as $row) {
       // If module is no longer enabled, remove it from the ignored orphans list.
       if (in_array($row->name, $ignored, TRUE) && !$row->status) {
@@ -610,9 +618,9 @@ function features_get_orphans($reset = FALSE) {
     _module_build_dependencies($modules);
 
     foreach ($orphaned as $module) {
-      if (!empty($modules[$module]->info['dependents'])) {
+      if (!empty($modules[$module]->required_by)) {
         // Determine whether any dependents are actually enabled.
-        $dependents = array_intersect($modules[$module]->info['dependents'], $enabled);
+        $dependents = array_intersect($modules[$module]->required_by, $enabled);
         if (empty($dependents)) {
           $info = features_get_modules($module);
           $orphans[$module] = $info;
@@ -858,8 +866,10 @@ function features_log($message, $severity = 'status') {
  * Implements hook_hook_info().
  */
 function features_hook_info() {
-  $hooks['features_api'] = array(
-    'group' => 'features',
+  $hooks = array(
+    'features_api',
+    'features_pipe_alter',
+    'features_export_alter',
   );
-  return $hooks;
+  return array_fill_keys($hooks, array('group' => 'features'));
 }

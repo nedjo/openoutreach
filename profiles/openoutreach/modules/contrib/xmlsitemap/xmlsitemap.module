@@ -596,15 +596,15 @@ function xmlsitemap_link_save(array $link) {
     _xmlsitemap_check_changed_link($link, $existing, TRUE);
   }
 
+  // Save the link and allow other modules to respond to the link being saved.
   if ($existing) {
     drupal_write_record('xmlsitemap', $link, array('type', 'id'));
+    module_invoke_all('xmlsitemap_link_update', $link);
   }
   else {
     drupal_write_record('xmlsitemap', $link);
+    module_invoke_all('xmlsitemap_link_insert', $link);
   }
-
-  // Allow other modules to respond after saving the link.
-  //module_invoke_all('xmlsitemap_save_link', $link);
 
   return $link;
 }
@@ -681,6 +681,8 @@ function xmlsitemap_link_delete_multiple(array $conditions) {
   if (!variable_get('xmlsitemap_regenerate_needed', TRUE)) {
     _xmlsitemap_check_changed_links($conditions, array(), TRUE);
   }
+
+  // @todo Add a hook_xmlsitemap_link_delete() hook invoked here.
 
   $query = db_delete('xmlsitemap');
   foreach ($conditions as $field => $value) {

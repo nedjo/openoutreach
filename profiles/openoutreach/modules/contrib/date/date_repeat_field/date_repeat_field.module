@@ -122,7 +122,7 @@ function date_repeat_field_show($entity_type = 'node', $entity = NULL) {
   $fields = field_info_instances($entity_type, $bundle);
   foreach ($fields as $field_name => $data) {
     $field = field_info_field($field_name);
-    if (in_array($field['type'], array('date', 'datestamp', 'datetime'))) {
+    if (in_array($field['type'], array('date', 'datestamp', 'datetime')) && date_is_repeat_field($field)) {
       return user_access('view date repeats');
     }
   }
@@ -143,7 +143,7 @@ function date_repeat_field_page($entity_type = 'node', $entity = NULL) {
   $fields = field_info_instances($entity_type, $bundle);
   foreach ($fields as $field_name => $data) {
     $field = field_info_field($field_name);
-    if (in_array($field['type'], array('date', 'datestamp', 'datetime'))) {
+    if (in_array($field['type'], array('date', 'datestamp', 'datetime')) && date_is_repeat_field($field)) {
       $field = field_view_field($entity_type, $entity, $field_name, 'full');
       $output .= drupal_render($field);
     }
@@ -190,47 +190,39 @@ function date_is_repeat_field($field, $instance = NULL) {
   }
 }
 
-/**
- * Implementation of hook_field_widget_form_WIDGET_TYPE_form_alter().
+/*
+ * Implements hook_date_field_insert_alter().
+ *
+ * We can't use hook_devel_generate() because we need custom handling for
+ * repeating date fields. So we wait until the entity is saved, then
+ * intervene here to fix it.
  */
-function date_repeat_field_field_widget_form_date_text_form_alter(&$element, &$form_state, $context) {
-  date_repeat_field_widget_form_alter($element, $form_state, $context);
+function date_repeat_field_date_field_insert_alter(&$items, $context) {
+  module_load_include('inc', 'date_repeat_field', 'date_repeat_field.devel_generate');
+  date_repeat_field_date_field_insert($items, $context);
 }
 
 /**
- * Implementation of hook_field_widget_form_WIDGET_TYPE_form_alter().
+ * Implements hook_field_widget_form_alter().
  */
-function date_repeat_field_field_widget_form_date_select_form_alter(&$element, &$form_state, $context) {
-  date_repeat_field_widget_form_alter($element, $form_state, $context);
-}
+function date_repeat_field_field_widget_form_alter(&$element, &$form_state, $context) {
 
-/**
- * Implementation of hook_field_widget_form_WIDGET_TYPE_form_alter().
- */
-function date_repeat_field_field_widget_form_date_popup_form_alter(&$element, &$form_state, $context) {
-  date_repeat_field_widget_form_alter($element, $form_state, $context);
-}
-
-/**
- * Helper function to handle all implementations of 
- * hook_field_widget_form_WIDGET_TYPE_form_alter().
- */
-function date_repeat_field_widget_form_alter(&$element, &$form_state, $context) {
   $field = $context['field'];
   $instance = $context['instance'];
   $items = $context['items'];
   $delta = $context['delta'];
-
-  if (!empty($field['settings']['repeat'])) {
-    $element['#element_validate'][] = 'date_repeat_widget_validate';
-    $element['show_repeat_settings'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Repeat'),
-      '#weight' => $instance['widget']['weight'] + .3,
-      '#prefix' => '<div class="date-clear">',
-      '#suffix' => '</div>',
-      '#default_value' => isset($items[$delta]['rrule']) && !empty($items[$delta]['rrule']) ? 1 : 0,
-    );
+  if (in_array($field['type'], array('date', 'datetime', 'datestamp'))) {
+    if (!empty($field['settings']['repeat'])) {
+      $element['#element_validate'][] = 'date_repeat_field_widget_validate';
+      $element['show_repeat_settings'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Repeat'),
+        '#weight' => $instance['widget']['weight'] + .3,
+        '#prefix' => '<div class="date-clear">',
+        '#suffix' => '</div>',
+        '#default_value' => isset($items[$delta]['rrule']) && !empty($items[$delta]['rrule']) ? 1 : 0,
+      );
+    }
   }
 }
 
@@ -240,7 +232,7 @@ function date_repeat_field_widget_form_alter(&$element, &$form_state, $context) 
  * Create multiple values from the RRULE results.
  * Lots more work needed here.
  */
-function date_repeat_widget_validate($element, &$form_state) {
+function date_repeat_field_widget_validate($element, &$form_state) {
 
   $field = field_widget_field($element, $form_state);
   if (empty($field['settings']['repeat'])) {
@@ -357,6 +349,7 @@ function date_repeat_widget_validate($element, &$form_state) {
  * Remove the 'Add more' elements from a repeating date form.
  */
 function date_repeat_after_build(&$element, &$form_state) {
+
   foreach ($form_state['storage']['repeat_fields'] as $field_name => $parents) {
     // Remove unnecessary items in the form added by the Add more handling.
     $value = drupal_array_get_nested_value($element, $parents);
@@ -509,22 +502,176 @@ function date_repeat_field_date_combo_pre_validate_alter(&$element, &$form_state
 }
 
 /**
+ * Implements hook_field_info_alter().
+ *
+ * This Field API hook lets us add a new setting to the fields.
+ */
+function date_repeat_field_field_info_alter(&$info) {
+
+  $info['date']['settings'] += array(
+    'repeat' => 0,
+  );
+  $info['datetime']['settings'] += array(
+    'repeat' => 0,
+  );
+  $info['datestamp']['settings'] += array(
+    'repeat' => 0,
+  );
+}
+
+/**
+ * Implements hook_field_formatter_info_alter().
+ *
+ * This hook lets us add settings to the formatters.
+ */
+function date_repeat_field_field_formatter_info_alter(&$info) {
+
+  $info['date_default']['settings'] += array(
+    'show_repeat_rule' => 'show',
+  );
+}
+
+/**
  * Implements hook_field_widget_info_alter().
  *
  * This Field API hook lets us add a new setting to the widgets.
  */
 function date_repeat_field_field_widget_info_alter(&$info) {
-  // Just a placeholder for now
+
+  $info['date_text']['settings'] += array(
+    'repeat_collapsed' => 0,
+  );
+  $info['date_select']['settings'] += array(
+    'repeat_collapsed' => 0,
+  );
+  if (module_exists('date_popup')) {
+    $info['date_popup']['settings'] += array(
+      'repeat_collapsed' => 0,
+    );
+  }
 }
 
 /**
  * Implements hook_date_field_settings_form_alter().
  *
- * This hook lets us alter the field settings form by adding a place
- * to set the value added above.
+ * This hook lets us alter the field settings form.
  */
 function date_repeat_field_date_field_settings_form_alter(&$form, $context) {
+
+  $field = $context['field'];
+  $instance = $context['instance'];
+  $has_data = $context['has_data'];
+
+  $form['repeat'] = array(
+    '#type' => 'select',
+    '#title' => t('Repeating date'),
+    '#default_value' => $field['settings']['repeat'],
+    '#options' => array(0 => t('No'), 1 => t('Yes')),
+    '#attributes' => array('class' => array('container-inline')),
+    '#description' => t("Repeating dates use an 'Unlimited' number of values. Instead of the 'Add more' button, they include a form to select when and how often the date should repeat."),
+    '#disabled' => $has_data,
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for field_ui_field_edit_form().
+ */
+function date_repeat_field_form_field_ui_field_edit_form_alter(&$form, &$form_state, $form_id) {
+  $field = $form['#field'];
+  $instance = $form['#instance'];
+
+  if (!in_array($field['type'], array('date', 'datetime', 'datestamp'))) {
+    return;
+  }
+
+  // If using repeating dates, override the Field module's handling of the multiple values option.
+  if (date_is_repeat_field($field, $instance)) {
+    $form['field']['cardinality']['#disabled'] = TRUE;
+    $form['field']['cardinality']['#value'] = FIELD_CARDINALITY_UNLIMITED;
+  }
+}
+
+/**
+ * Implements hook_date_field_instance_settings_form_alter().
+ *
+ * This hook lets us alter the field instance settings form.
+ */
+function date_repeat_field_date_field_instance_settings_form_alter(&$form, $context) {
   // Just a placeholder for now.
 }
 
+/**
+ * Implements hook_date_field_widget_settings_form_alter().
+ *
+ * This hook lets us alter the field widget settings form.
+ */
+function date_repeat_field_date_field_widget_settings_form_alter(&$form, $context) {
 
+  $field = $context['field'];
+  $instance = $context['instance'];
+
+  if (date_is_repeat_field($field, $instance)) {
+    $form['repeat_collapsed'] = array(
+      '#type' => 'value',
+      '#default_value' => 1,
+      '#options' => array(
+        0 => t('Expanded', array(), array('context' => 'Date repeat')),
+        1 => t('Collapsed', array(), array('context' => 'Date repeat'))
+      ),
+      '#title' => t('Repeat display', array(), array('context' => 'Date repeat')),
+      '#description' => t("Should the repeat options form start out expanded or collapsed? Set to 'Collapsed' to make those options less obtrusive.", array(), array('context' => 'Date repeat')),
+      '#fieldset' => 'date_format',
+      );
+  }
+
+}
+
+/**
+ * Implements hook_date_field_foraatter_settings_form_alter().
+ *
+ * This hook lets us alter the field formatter settings form.
+ */
+function date_repeat_field_date_field_formatter_settings_form_alter(&$form, &$form_state, $context) {
+
+  $field = $context['field'];
+  $instance = $context['instance'];
+  $view_mode = $context['view_mode'];
+  $display = $instance['display'][$view_mode];
+  $formatter = $display['type'];
+  $settings = $display['settings'];
+  if ($formatter == 'date_default') {
+    $form['show_repeat_rule'] = array(
+      '#title' => t('Repeat rule:'),
+      '#type' => 'select',
+      '#options' => array(
+        'show' => t('Display repeat rule'),
+        'hide' => t('Hide repeat rule')),
+      '#default_value' => $settings['show_repeat_rule'],
+      '#access' => $field['settings']['repeat'],
+      '#weight' => 5,
+    );
+  }
+}
+
+/**
+ * Implements hook_date_field_foraatter_settings_summary_alter().
+ *
+ * This hook lets us alter the field formatter settings summary.
+ */
+function date_repeat_field_date_field_formatter_settings_summary_alter(&$summary, $context) {
+
+  $field = $context['field'];
+  $instance = $context['instance'];
+  $view_mode = $context['view_mode'];
+  $display = $instance['display'][$view_mode];
+  $formatter = $display['type'];
+  $settings = $display['settings'];
+  if (array_key_exists('show_repeat_rule', $settings) && !empty($field['settings']['repeat'])) {
+    if (!empty($settings['show_repeat_rule'])) {
+      $summary[] = t('Show repeat rule');
+    }
+    else {
+      $summary[] = t('Do not show repeat rule');
+    }
+  }
+}

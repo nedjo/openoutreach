@@ -41,16 +41,6 @@ function openoutreach_user_default_permissions() {
     'module' => 'node',
   );
 
-  // Exported permission: access contextual links
-  $permissions['access contextual links'] = array(
-    'name' => 'access contextual links',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
-    ),
-    'module' => 'contextual',
-  );
-
   // Exported permission: administer nodes
   $permissions['administer nodes'] = array(
     'name' => 'administer nodes',
@@ -111,55 +101,6 @@ function openoutreach_user_default_permissions() {
       1 => 'editor',
     ),
     'module' => 'node',
-  );
-
-  // Exported permission: search content
-  $permissions['search content'] = array(
-    'name' => 'search content',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'anonymous user',
-      2 => 'authenticated user',
-    ),
-    'module' => 'search',
-  );
-
-  // Exported permission: use advanced search
-  $permissions['use advanced search'] = array(
-    'name' => 'use advanced search',
-    'roles' => array(
-      0 => 'administrator',
-      1 => 'anonymous user',
-      2 => 'authenticated user',
-    ),
-    'module' => 'search',
-  );
-
-  // Exported permission: view advanced help index
-  $permissions['view advanced help index'] = array(
-    'name' => 'view advanced help index',
-    'roles' => array(
-      0 => 'administrator',
-    ),
-    'module' => 'advanced_help',
-  );
-
-  // Exported permission: view advanced help popup
-  $permissions['view advanced help popup'] = array(
-    'name' => 'view advanced help popup',
-    'roles' => array(
-      0 => 'administrator',
-    ),
-    'module' => 'advanced_help',
-  );
-
-  // Exported permission: view advanced help topic
-  $permissions['view advanced help topic'] = array(
-    'name' => 'view advanced help topic',
-    'roles' => array(
-      0 => 'administrator',
-    ),
-    'module' => 'advanced_help',
   );
 
   // Exported permission: view own unpublished content

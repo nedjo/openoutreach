@@ -291,7 +291,7 @@ function debut_highlighted_views_default_views() {
   $handler->display->display_options['fields']['field_content_image']['field'] = 'field_content_image';
   $handler->display->display_options['fields']['field_content_image']['label'] = '';
   $handler->display->display_options['fields']['field_content_image']['alter']['alter_text'] = 1;
-  $handler->display->display_options['fields']['field_content_image']['alter']['text'] = '<a href="[field_link]">[field_image]</a>';
+  $handler->display->display_options['fields']['field_content_image']['alter']['text'] = '<a href="[field_link]">[field_content_image]</a>';
   $handler->display->display_options['fields']['field_content_image']['alter']['make_link'] = 0;
   $handler->display->display_options['fields']['field_content_image']['alter']['absolute'] = 0;
   $handler->display->display_options['fields']['field_content_image']['alter']['external'] = 0;

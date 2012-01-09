@@ -77,7 +77,7 @@ function theme_date_display_combination($vars) {
   // Check the formatter settings to see if the repeat rule should be
   // displayed. Show it only with the first multiple value date.
   list($id) = entity_extract_ids($entity_type, $entity);
-  if (!in_array($id, $repeating_ids) && module_exists('date_repeat')
+  if (!in_array($id, $repeating_ids) && module_exists('date_repeat_field')
   && !empty($item['rrule']) && $options['show_repeat_rule'] == 'show') {
     $repeat_vars = array(
       'field' => $field,

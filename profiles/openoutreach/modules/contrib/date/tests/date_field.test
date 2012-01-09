@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Basic functions for Date tests.
  */
 abstract class DateFieldBasic extends DrupalWebTestCase {

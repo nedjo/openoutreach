@@ -152,6 +152,7 @@
   </div>
   <div class="header-body-divider">&nbsp;</div>
   <div id="single-day-container">
+    <?php if (!empty($scroll_content)) : ?>
     <script>
       try {
         // Hide container while it renders...  Degrade w/o javascript support
@@ -160,6 +161,7 @@
         // swallow 
       }
     </script>
+    <?php endif; ?>
     <table class="full">
       <tbody>
         <tr class="holder"><td class="calendar-time-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td><td class="calendar-day-holder"></td></tr>
@@ -186,8 +188,7 @@
               <?php if( $index == 0 ): ?>
               <?php $time = $items[$start_time];?>
               <div class="<?php print $class?>calendar-agenda-hour">
-                <span class="calendar-hour"><?php print $time['hour']; ?></span>
-                <span class="calendar-ampm"><?php print $time['ampm']; ?></span>
+                <span class="calendar-hour"><?php print $time['hour']; ?></span><span class="calendar-ampm"><?php print $time['ampm']; ?></span>
               </div>
               <?php else: ?>
               <div class="<?php print $class?>calendar-agenda-items single-day">
@@ -218,6 +219,7 @@
   </div>
   <div class="single-day-footer">&nbsp;</div>
 </div></div>
+<?php if (!empty($scroll_content)) : ?>
 <script>
 try {
   // Size and position the viewport inline so there are no delays
@@ -230,3 +232,4 @@ try {
   // swallow 
 }
 </script>
+<?php endif; ?>

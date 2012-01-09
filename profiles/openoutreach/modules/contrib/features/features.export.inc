@@ -43,12 +43,18 @@ function features_populate($items, $dependencies, $module_name) {
 function _features_populate($pipe, &$export, $module_name = '') {
   features_include();
   foreach ($pipe as $component => $data) {
-    if ($function = features_hook($component, 'features_export')) {
+    // Convert already defined items to dependencies.
+    _features_resolve_dependencies($data, $export, $module_name, $component);
+    if (!empty($data) && $function = features_hook($component, 'features_export')) {
       // Pass module-specific data and export array.
       // We don't use features_invoke() here since we need to pass $export by reference.
       $more = $function($data, $export, $module_name, $component);
+      // Add the context information.
+      $export['component'] = $component;
       // Allow other modules to manipulate the pipe to add in additional modules.
-      drupal_alter('features_pipe_' . $component, $more, $data, $export);
+      drupal_alter(array('features_pipe', 'features_pipe_' . $component), $more, $data, $export);
+      // Remove the component information.
+      unset($export['component']);
       // Allow for export functions to request additional exports.
       if (!empty($more)) {
         _features_populate($more, $export, $module_name);
@@ -56,6 +62,21 @@ function _features_populate($pipe, &$export, $module_name = '') {
     }
   }
   return $export;
+}
+
+/**
+ * Iterates over data and convert to dependencies if already defined elsewhere.
+ */
+function _features_resolve_dependencies(&$data, &$export, $module_name, $component) {
+  if ($map = features_get_default_map($component)) {
+    foreach ($data as $key => $item) {
+      // If this node type is provided by a different module, add it as a dependency
+      if (isset($map[$item]) && $map[$item] != $module_name) {
+        $export['dependencies'][$map[$item]] = $map[$item];
+        unset($data[$key]);
+      }
+    }
+  }
 }
 
 /**
@@ -139,8 +160,18 @@ function features_export_prepare($export, $module_name, $reset = FALSE) {
   if (isset($export['conflicts'])) {
     unset($export['conflicts']);
   }
+
+  // Order info array.
+  $standard_info = array();
+  foreach (array('name', 'description', 'core', 'package', 'php', 'version', 'project', 'dependencies') as $item) {
+    if (isset($export[$item])) {
+      $standard_info[$item] = $export[$item];
+    }
+  }
+
+  $export = array_diff_assoc($export, $standard_info);
   ksort($export);
-  return $export;
+  return array_merge($standard_info, $export);
 }
 
 /**

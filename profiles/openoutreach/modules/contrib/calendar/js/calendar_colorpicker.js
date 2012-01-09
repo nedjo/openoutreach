@@ -1,6 +1,6 @@
 /**
  * Implementation of hook_elements.
- * 
+ *
  * Much of the colorpicker code was adapted from the Colorpicker module.
  * That module has no stable release yet nor any D6 branch.
  */
@@ -13,7 +13,7 @@
       $(".edit-calendar-colorpicker").live("focus", function(event) {
         var edit_field = this;
         var picker = $(this).closest('div').parent().find(".calendar-colorpicker");
-        
+
         // Hide all color pickers except this one.
         $(".calendar-colorpicker").hide();
         $(picker).show();

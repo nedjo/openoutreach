@@ -42,8 +42,13 @@ function metatag_opengraph_metatag_config_default_alter(array &$configs) {
         $config->config += array(
           'og:type' => array('value' => 'profile'),
           'og:title' => array('value' => '[user:name]'),
-          'og:image' => array('value' => '[user:picture:url]'),
         );
+        if (variable_get('user_pictures')) {
+          $config->config += array(
+            'og:image' => array('value' => '[user:picture:url]'),
+          );
+        }
+
         break;
     }
   }

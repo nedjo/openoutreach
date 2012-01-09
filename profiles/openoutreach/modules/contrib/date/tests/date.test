@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Test date UI.
+ */
 class DateUITestCase extends DrupalWebTestCase {
   protected $privileged_user;
 

@@ -23,9 +23,9 @@ name = "Open Outreach Front Page"
 package = "Features"
 php = "5.2.4"
 
-; Information added by drupal.org packaging script on 2011-12-19
-version = "7.x-1.0-beta6"
+; Information added by drupal.org packaging script on 2012-01-09
+version = "7.x-1.0-beta7"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1324329043"
+datestamp = "1326141943"
 

@@ -1,5 +1,4 @@
 <?php
-// $Id: date_views_filter_handler.inc,v 1.7 2011/01/20 13:07:24 karens Exp $
 /**
  * @file
  * A flexible, configurable date filter.
@@ -48,7 +47,7 @@ class date_views_filter_handler extends date_views_filter_handler_simple {
           $this->related_table_alias = $this->query->queue_table($field['table_name'], $this->relationship);
         }
         $table_alias = !empty($this->related_table_alias) ? $this->related_table_alias : $field['table_name'];
-        $query_field['field']['fullname'] = $table_alias .'.'. $query_field['field']['field_name'];
+        $query_field['field']['fullname'] = $table_alias . '.' . $query_field['field']['field_name'];
         parent::op_between($query_field['field']['fullname']);
       }
     }
@@ -79,7 +78,7 @@ class date_views_filter_handler extends date_views_filter_handler_simple {
           $this->related_table_alias = NULL;
         }
         $table_alias = !empty($this->related_table_alias) ? $this->related_table_alias : $field['table_name'];
-        $query_field['field']['fullname'] = $table_alias .'.'. $query_field['field']['field_name'];
+        $query_field['field']['fullname'] = $table_alias . '.' . $query_field['field']['field_name'];
         parent::op_simple($query_field['field']['fullname']);
       }
     }

@@ -1,6 +1,7 @@
 core = "7.x"
 dependencies[] = "date"
 dependencies[] = "date_repeat"
+dependencies[] = "date_repeat_field"
 dependencies[] = "date_migrate"
 dependencies[] = "features"
 dependencies[] = "migrate"
@@ -20,9 +21,9 @@ package = "Features"
 project = "date_migrate_example"
 version = "7.x-2.0"
 
-; Information added by drupal.org packaging script on 2011-12-15
+; Information added by drupal.org packaging script on 2012-01-09
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "date"
-datestamp = "1323908289"
+datestamp = "1326068226"
 

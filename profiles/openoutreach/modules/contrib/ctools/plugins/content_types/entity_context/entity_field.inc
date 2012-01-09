@@ -7,7 +7,7 @@
 
 $plugin = array(
   'title' => t('Entity field'),
-  'defaults' => array('label' => 'title', 'formatter' => ''),
+  'defaults' => array('label' => 'title', 'formatter' => '', 'delta_limit' => 0, 'delta_offset' => '0', 'delta_reversed' => FALSE),
   'content type' => 'ctools_entity_field_content_type_content_type',
 );
 
@@ -119,6 +119,35 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     $field_settings['settings'] = $conf['formatter_settings'];
   }
 
+  $all_values = $entity->{$field_name}[$language];
+
+  // Reverse values.
+  if (isset($conf['delta_reversed']) && $conf['delta_reversed']) {
+    $all_values = array_reverse($all_values);
+  }
+
+  if (isset($conf['delta_limit'])) {
+    $delta_limit = $conf['delta_limit'];
+    $offset = intval($conf['delta_offset']);
+    $total = count($all_values);
+
+    if ($delta_limit == 0) {
+      $delta_limit = $total - $offset;
+    }
+
+    $new_values = array();
+    for ($i = 0; $i < $delta_limit; $i++) {
+      $new_delta = $offset + $i;
+
+      if (isset($all_values[$new_delta])) {
+        $new_values[] = $all_values[$new_delta];
+      }
+    }
+
+    $all_values = $new_values;
+  }
+
+  $entity->{$field_name}[$language] = $all_values;
   $field_output = field_view_field($entity_type, $entity, $field_name, $field_settings, $language);
 
   // Build the content type block.
@@ -209,6 +238,12 @@ function ctools_entity_field_content_type_formatter_styles_submit($form, &$form_
         }
       }
     }
+  }
+
+  if (isset($form_state['values']['delta_limit'])) {
+    $form_state['conf']['delta_limit'] = $form_state['values']['delta_limit'];
+    $form_state['conf']['delta_offset'] = $form_state['values']['delta_offset'];
+    $form_state['conf']['delta_reversed'] = $form_state['values']['delta_reversed'];
   }
 }
 

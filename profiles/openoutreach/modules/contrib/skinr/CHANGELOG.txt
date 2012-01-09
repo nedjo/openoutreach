@@ -1,5 +1,11 @@
 Skinr 7.x-2.x, xxxx-xx-xx
 -------------------------
+Issue #1299162 by nedjo: Added form callback functionality to skin plugins.
+  Fixed call by reference error.
+Issue #1331004 by mrfelton: Fixed Undefined index: panels_pane() in
+  skinr_panels_preprocess_links().
+Issue #1299162 by JurriaanRoelofs, moonray: Added form callback functionality to
+  skin plugins.
 Issue #984402 by moonray: Updated Skinr admin UI.
 Issue #952610 by aquariumtap, moonray | Alan D.: Added Vertical tabs integration.
 Issue #1163618 by moonray: Fixed *.skinr.inc not auto-loading for certain hooks.

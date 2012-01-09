@@ -3,4 +3,15 @@
  * @file
  */
 
-// Drupal needs this blank file.
+/**
+ * Implementation of hook_field_extra_fields_alter().
+ *
+ * Assign the metatags fieldset a high weight on node forms.
+ */
+function debut_seo_field_extra_fields_alter(&$info) {
+  foreach (node_type_get_types() as $bundle) {
+    if (isset($info['node'][$bundle->type]['form']['metatags'])) {
+      $info['node'][$bundle->type]['form']['metatags']['weight'] = 100;
+    }
+  }
+}

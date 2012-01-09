@@ -83,8 +83,7 @@ $index = 0;
     <?php foreach ($items as $time): ?>
     <tr class="not-all-day">
       <td class="calendar-agenda-hour">
-        <span class="calendar-hour"><?php print $time['hour']; ?></span>
-      <span class="calendar-ampm"><?php print $time['ampm']; ?></span>
+        <span class="calendar-hour"><?php print $time['hour']; ?></span><span class="calendar-ampm"><?php print $time['ampm']; ?></span>
       </td>
       <?php $curpos = 0; ?>
       <?php foreach ($columns as $index => $column): ?>

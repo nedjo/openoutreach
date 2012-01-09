@@ -16,7 +16,7 @@ if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install') {
  * Implements hook_modules_installed().
  *
  * When a module is installed, enable the modules it recommends if they are
- * present.
+ * present. For Open Outreach, also install permissions.
  */
 function openoutreach_modules_installed($modules) {
   module_load_include('inc', 'openoutreach', 'openoutreach.module_batch');

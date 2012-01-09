@@ -50,6 +50,23 @@ function profile2_schema() {
         'default' => NULL,
         'description' => "The {users}.uid of the associated user.",
       ),
+      'label' => array(
+        'description' => 'A human-readable label for this profile.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the profile was created.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'changed' => array(
+        'description' => 'The Unix timestamp when the profile was most recently saved.',
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
     ),
     'indexes' => array(
       'uid' => array('uid'),
@@ -102,7 +119,22 @@ function profile2_schema() {
         'serialize' => TRUE,
         'description' => 'A serialized array of additional data related to this profile type.',
       ),
-    ) + entity_exportable_schema_fields(),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
     'primary key' => array('id'),
     'unique keys' => array(
       'type' => array('type'),
@@ -126,6 +158,49 @@ function profile2_update_7100() {
     'description' => 'The name of the providing module if the entity has been defined in code.',
     'type' => 'varchar',
     'length' => 255,
+    'not null' => FALSE,
+  ));
+}
+
+/**
+ * Add a label column to profiles.
+ */
+function profile2_update_7101() {
+  db_add_field('profile', 'label', array(
+    'description' => 'A human-readable label for this profile.',
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
+  $types = db_select('profile_type', 'p')
+    ->fields('p')
+    ->execute()
+    ->fetchAllAssoc('type');
+
+  // Initialize with the type label.
+  foreach ($types as $type_name => $type) {
+    db_update('profile')
+      ->fields(array(
+        'label' => $type->label,
+      ))
+      ->condition('type', $type_name)
+      ->execute();
+  }
+}
+
+/**
+ * Add a created and a changed column to profiles.
+ */
+function profile2_update_7102() {
+  db_add_field('profile', 'created', array(
+    'description' => 'The Unix timestamp when the profile was created.',
+    'type' => 'int',
+    'not null' => FALSE,
+  ));
+  db_add_field('profile', 'changed', array(
+    'description' => 'The Unix timestamp when the profile was most recently saved.',
+    'type' => 'int',
     'not null' => FALSE,
   ));
 }

@@ -5,11 +5,38 @@ Calendar Module 7.x
 Version 7.x-3.x-dev
 ===================
 
+- Issue #1354560, Add a new plugin that works for all entities, not just nodes and mark the old one as deprecated.
+- Follow up to Issue #1302052 by benjifisher, More clean up of ical line endings.
+
+======================
+Version 7.x-3.0-alpha2
+======================
+
 NOTES:
 The links at the top of the calendar page have been reworked into tabs. They will not show up
-until you clear the caches. Use hook_calendar_links_alter() to alter the links or the titles 
+until you clear the caches. Use hook_calendar_links_alter() to alter the links or the titles
 or to empty the links array if you don't want to see them.
 
+- Issue #1302052 by benjifisher, penguin25, and helmo, Fix linespace ending problems in ical files.
+- Issue #704068, Avoid undefined variable error by not returning a value we don't even need.
+- Issue #1388364, Do some clean up of the handling for taxonomy stripes.
+- Issue #1303458. Make sure calendar tabs work right without clean urls.
+- Issue #1270538, Fix notice for missing index 'access'.
+- Issue #1259870, Reinstate the test for a missing date argument for the pager and add to the message a warning that the problem could be that the default date is missing from the argument.
+- Issue #1305938 by kristiaanvandeneynde and KarenS, Make sure the overlapping items work correctly with half hour grouping, and don't allow it for custom time groupings.
+- Issue #1259992 by jlyon, slerby, and KarenS, The maximum items processing was not working right.
+- Issue #1260380, Some items showing up in wrong time periods because wrong value is used to create the start date bucket.
+- Issue #1292148, Make scrolling in day and week view optional.
+- Issue #462748, Make sure calendar links can be deleted as well as created.
+- Issue #1301734 by Danny_Joris, Do not show any links to disabled displays.
+- Issue #1383782 by googletorp, Check if module_exists('taxonomy') before creating taxonomy strip options.
+- Issue #1235344 by kenianbei, Make sure items don't overlap if they start and end on the same times.
+- Issue #1323280 by mshepherd, Remove time from time headers.
+- Issue #1322376 by mshepherd, Remove space between hour and am/pm in day and week views.
+- Issue #1230500, The calendar row logic was failing if there was more than one date field in a node due to a bad return value. Also fixed some errors caused by not returning an empty array for missing values.
+- Issue #1236610, Allow the calendar style to work with any row plugin that extends the calendar_row_plugin.
+- Issue #1265590, The calendar tabs were not showing up for everyone.
+- Issue #1312792, Rework language handling for the calendar row plugin.
 - Issue #1315328, Default calendar had date arguments in the master, which affected the upcoming view.
 - Issue #1268780 by drewkeller, $part_path in calendar_preprocess_date_views_pager() seems to be incorrect when base_path() is '/'
 - Issue #1235180 by marleythedog, Fix broken taxonomy stripe handling in calendar row plugin.
@@ -24,14 +51,6 @@ or to empty the links array if you don't want to see them.
 - Issue #1254922 by larsdesigns, calendar_multiday.css is not complient with Drupal Coding Standards
 - Issue #1254920 by larsdesigns, calendar.css is not complient with Drupal Coding Standards
 - Issue #1254916 by larsdesigns, calendar-overlap.css is not complient with Drupal Coding Standards
-
-Starting new branch with a total rework of Calendar, using a Views pager plugin for the back/next navigation, 
-a row plugin to explode the view results into calendar day items, and a style plugin to disply the results in a calendar.
-
-======================
-Version 7.x-3.0-alpha2
-======================
-
 - Add update hook to remove old style calendar legend blocks from system.
 - Issue #742146, Add option to remove X-WR-CALNAME if VEVENT is not a feed.
 - Add option to change method from PUBLISH to REQUEST in VCALENDAR.
@@ -48,6 +67,9 @@ Version 7.x-3.0-alpha1
 ======================
 
 Initial release of 7.3 branch.
+
+Starting new branch with a total rework of Calendar, using a Views pager plugin for the back/next navigation,
+a row plugin to explode the view results into calendar day items, and a style plugin to disply the results in a calendar.
 
 - Get colorpicker working again with an assist from the Examples module Field example.
 - Issue #1227128 The ical feed needs to have a '.ics' extension on it.
@@ -155,21 +177,21 @@ Abandoned the 7.x-1.x branch.
 
 Start a new 7.x-2.x branch that will contain a complete re-work of the Views handling.
 
-The 7.x-2.x branch will totally re-work and simplify the Views filters. These changes may/will 
-break some views and will require that you check views that use the date filter or 
+The 7.x-2.x branch will totally re-work and simplify the Views filters. These changes may/will
+break some views and will require that you check views that use the date filter or
 argument to be sure they are still configured correctly.
 
-There is a new date_filter_handler_simple for an individual date field that simplifies 
-the Views handling by using most of the core Views field handling but adds in the 
-possibility to set a default date using options like 'now', along with a choice of a 
+There is a new date_filter_handler_simple for an individual date field that simplifies
+the Views handling by using most of the core Views field handling but adds in the
+possibility to set a default date using options like 'now', along with a choice of a
 month/day/year drop-down selector or popup calendar selector.
 
-The date_filter_handler is an extension of the simple handler that allows you to combine 
-multiple dates into a single filter so that you can control all of them with the same 
+The date_filter_handler is an extension of the simple handler that allows you to combine
+multiple dates into a single filter so that you can control all of them with the same
 filter widget, allowing you to either 'OR' or 'AND' them together.
 
-The arguments will be rewritten in the same way, with a simple argument handler for 
-individual dates and another handler that extends that to control multiple dates with 
+The arguments will be rewritten in the same way, with a simple argument handler for
+individual dates and another handler that extends that to control multiple dates with
 a single argument.
 
 =======================
@@ -182,7 +204,7 @@ Argh! Fixing the field handling broke the handling for system dates. Try again.
 Version 7.x-1.0-alpha2
 =======================
 
-Views made lots of changes to field handling just before the new release, which broke lots of things here. 
+Views made lots of changes to field handling just before the new release, which broke lots of things here.
 Adding some work-arounds to get things working again and waiting until the dust settles on how the new core fields will be handled in Views before doing much more with the Views integration. These changes should get things working with latest Views release.
 
 =======================

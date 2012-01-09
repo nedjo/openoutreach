@@ -9,7 +9,7 @@
       var divider = $(this).addClass('header-body-divider-processed');
       var start_y = divider.offset().top;
 
-      // Add the grippie icon 
+      // Add the grippie icon
       $(this).prepend('<div class="grippie"></div>').mousedown(startDrag);
 
       function startDrag(e) {
@@ -40,7 +40,7 @@
       var divider = $(this).addClass('single-day-footer-processed');
       var start_y = divider.offset().top;
 
-      // Add the grippie icon 
+      // Add the grippie icon
       $(this).prepend('<div class="grippie"></div>').mousedown(startDrag);
 
       function startDrag(e) {
@@ -76,7 +76,7 @@ function calendar_scrollToFirst($) {
    }
 }
 
-// Size the single day view 
+// Size the single day view
 function calendar_resizeViewport($) {
   // Size of the browser window
   var viewportHeight = window.innerHeight ? window.innerHeight : $(window).height();

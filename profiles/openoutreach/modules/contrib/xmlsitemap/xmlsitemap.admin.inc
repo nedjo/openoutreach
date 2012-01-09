@@ -230,7 +230,7 @@ function xmlsitemap_sitemap_delete_form(array $form, array &$form_state, stdClas
 
   $count = (int) db_query("SELECT COUNT(smid) FROM {xmlsitemap_sitemap}")->fetchField();
   if ($count === 1 && empty($_POST)) {
-    drupal_set_message('It is not recommended to delete the only XML sitemap.', 'error');
+    drupal_set_message(t('It is not recommended to delete the only XML sitemap.'), 'error');
   }
 
   $form['#sitemap'] = $sitemap;
@@ -309,18 +309,17 @@ function xmlsitemap_settings_form($form, &$form_state) {
     '#default_value' => xmlsitemap_var('batch_limit'),
     '#description' => t('If you have problems running cron or rebuilding the sitemap, you may want to lower this value.'),
   );
-  $path = variable_get('xmlsitemap_path', 'xmlsitemap');
   if (!xmlsitemap_check_directory()) {
     form_set_error('xmlsitemap_path', t('The directory %directory does not exist or is not writable.', array('%directory' => xmlsitemap_get_directory())));
   }
   $form['advanced']['xmlsitemap_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Sitemap cache directory'),
-    '#default_value' => $path,
+    '#default_value' => variable_get('xmlsitemap_path', 'xmlsitemap'),
     '#size' => 30,
     '#maxlength' => 255,
     '#description' => t('Subdirectory where the sitemap data will be stored. This folder <strong>must not be shared</strong> with any other Drupal site or install using XML sitemap.'),
-    '#field_prefix' => variable_get('file_public_path', conf_path() . '/files') . '/',
+    '#field_prefix' => file_build_uri(''),
     '#required' => TRUE,
   );
   $form['advanced']['xmlsitemap_base_url'] = array(

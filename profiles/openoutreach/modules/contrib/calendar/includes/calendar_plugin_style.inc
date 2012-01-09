@@ -38,17 +38,16 @@ class calendar_plugin_style extends views_plugin_style {
     $options['with_weekno'] = array('default' => 0);
     $options['multiday_theme'] = array('default' => 1);
     $options['theme_style'] = array('default' => 1);
-    $options['max_items'] = array('default' => 0);  
-    $options['max_items_behavior'] = array('default' => 'more');  
-    $options['groupby_times'] = array('default' => 'hour');  
-    $options['groupby_times_custom'] = array('default' => '');  
-    $options['groupby_field'] = array('default' => '');  
+    $options['max_items'] = array('default' => 0);
+    $options['max_items_behavior'] = array('default' => 'more');
+    $options['groupby_times'] = array('default' => 'hour');
+    $options['groupby_times_custom'] = array('default' => '');
+    $options['groupby_field'] = array('default' => '');
     return $options;
   }
 
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $form['#title'] .= t('Calendar period');
     $form['calendar_type'] = array(
       '#title' => t('Calendar type'),
       '#type' => 'select',
@@ -83,8 +82,8 @@ class calendar_plugin_style extends views_plugin_style {
     $form['max_items'] = array(
       '#title' => t('Maximum items'),
       '#type' => 'select',
-      '#options' => array(0 => t('Unlimited'), 3 => t('3 items'), 5 => t('5 items'), 10 => t('10 items')),
-      '#default_value' => $calendar_type != 'day' ? $this->options['max_items'] : 0,
+      '#options' => array(0 => t('Unlimited'), 1 => t('1 item'), 3 => t('3 items'), 5 => t('5 items'), 10 => t('10 items')),
+      '#default_value' => $this->options['calendar_type'] != 'day' ? $this->options['max_items'] : 0,
       '#description' => t('Maximum number of items to show in calendar cells, used to keep the calendar from expanding to a huge size when there are lots of items in one day.'),
       '#dependency' => array('edit-style-options-calendar-type' => array('month')),
       );
@@ -92,7 +91,7 @@ class calendar_plugin_style extends views_plugin_style {
       '#title' => t('Too many items'),
       '#type' => 'select',
       '#options' => array('more' => t("Show maximum, add 'more' link"), 'hide' => t('Hide all, add link to day')),
-      '#default_value' => $calendar_type != 'day' ? $this->options['max_items_behavior'] : 'more',
+      '#default_value' => $this->options['calendar_type'] != 'day' ? $this->options['max_items_behavior'] : 'more',
       '#description' => t('Behavior when there are more than the above number of items in a single day. When there more items than this limit, a link to the day view will be displayed.'),
       '#dependency' => array('edit-style-options-calendar-type' => array('month')),
       );
@@ -115,10 +114,10 @@ class calendar_plugin_style extends views_plugin_style {
       '#title' => t('Overlapping time style'),
       '#default_value' => $this->options['theme_style'],
       '#type' => 'select',
-      '#options' => array(0 => t('Do not display overlapping items'), 1 => t('Display overlapping items')),
-      '#description' => t('Select whether calendar items are displayed as overlapping items. Only works if some sort of time grouping is chosen!'),
+      '#options' => array(0 => t('Do not display overlapping items'), 1 => t('Display overlapping items, with scrolling'), 2 => t('Display overlapping items, no scrolling')),
+      '#description' => t('Select whether calendar items are displayed as overlapping items. Use scrolling to shrink the window and focus on the selected items, or omit scrolling to display the whole day. This only works if hour or half hour time grouping is chosen!'),
       '#dependency' => array('edit-style-options-calendar-type' => array('day', 'week')),
-      );      
+      );
 
     // Create a list of fields that are available for grouping,
     $field_options = array();
@@ -151,11 +150,14 @@ class calendar_plugin_style extends views_plugin_style {
     if ($values['groupby_times'] == 'custom' && empty($values['groupby_times_custom'])) {
       form_set_error('style_options][groupby_times_custom', t('Custom groupby times cannot be empty.'));
     }
-    if (!empty($values['theme_style']) && empty($values['groupby_times'])) {
-      form_set_error('style_options][theme_style', t('You cannot use overlapping items unless there are groupby times selected.'));
+    if (!empty($values['theme_style']) && (empty($values['groupby_times']) || !in_array($values['groupby_times'], array('hour', 'half')))) {
+      form_set_error('style_options][theme_style', t('Overlapping items only work with hour or half hour groupby times.'));
     }
     if (!empty($values['theme_style']) && !empty($values['groupby_field'])) {
       form_set_error('style_options][theme_style', t('You cannot use overlapping items and also try to group by a field value.'));
+    }
+    if ($values['groupby_times'] != 'custom') {
+      form_set_value($form['groupby_times_custom'], NULL, $form_state);
     }
 
   }
@@ -182,7 +184,7 @@ class calendar_plugin_style extends views_plugin_style {
    * if there are values.
    */
   function granularity() {
-    
+
     if (!$handler = $this->date_argument_handler()) {
       return 'month';
     }
@@ -206,19 +208,24 @@ class calendar_plugin_style extends views_plugin_style {
     return $this->view_granularity;
   }
 
+  function has_calendar_row_plugin() {
+    return $this->row_plugin instanceof calendar_plugin_row || $this->row_plugin instanceof calendar_plugin_row_node;
+  }
+
   function render() {
-    if (empty($this->row_plugin) || $this->row_plugin->definition['handler'] != 'calendar_plugin_row_node') {
-      debug('calendar_plugin_style: The calendar row plugin is required when using the calendar style but it is missing.');
+    if (empty($this->row_plugin) || !$this->has_calendar_row_plugin()) {
+      debug('calendar_plugin_style: The calendar row plugin is required when using the calendar style, but it is missing.');
       return;
     }
     if (!$argument = $this->date_argument_handler()) {
-      debug('calendar_plugin_style: A date argument is required when using the calendar style, but it is missing.');
+      debug('calendar_plugin_style: A date argument is required when using the calendar style, but it is missing or is not using the default date.');
       return;
     }
 
+    // There are date arguments that have not been added by Date Views.
+    // They will be missing the information we would need to render the field.
     if (empty($argument->min_date)) {
-      //debug('calendar_plugin_style: Empty date argument');
-      return;      
+      return;
     }
 
     // Add information from the date argument to the view.
@@ -282,9 +289,8 @@ class calendar_plugin_style extends views_plugin_style {
     $items = array();
     foreach ($this->view->result as $row_index => $row) {
       $this->view->row_index = $row_index;
-
       foreach ($this->row_plugin->render($row) as $item) {
-        $item->granularity = $this->date_info->granularity;      
+        $item->granularity = $this->date_info->granularity;
         $rendered_fields = array();
         $item_start = date_format($item->calendar_start_date, DATE_FORMAT_DATE);
         $item_end = date_format($item->calendar_end_date, DATE_FORMAT_DATE);
@@ -370,22 +376,22 @@ class calendar_plugin_style extends views_plugin_style {
       $multiday_buckets = $week_rows['multiday_buckets'];
       $singleday_buckets = $week_rows['singleday_buckets'];
       $total_rows = $week_rows['total_rows'];
-  
+
       // Theme each row
       $output = "";
       $final_day = clone($this->curday);
-  
+
       $iehint = 0;
       $max_multirow_cnt = 0;
       $max_singlerow_cnt = 0;
-  
+
       for ($i = 0; $i < intval($total_rows + 1); $i++) {
         $inner = "";
-  
+
         // If we're displaying the week number, add it as the
         // first cell in the week.
         if ($i == 0 && !empty($this->date_info->style_with_weekno) && !in_array($this->date_info->granularity, array('day', 'week'))) {
-          $url = $this->view->get_path() .'/'. $this->date_info->year .'-W'. $week;
+          $url = $this->view->get_path() . '/' . $this->date_info->year . '-W' . $week;
           if (!empty($this->date_info->display_types['week'])) {
             $weekno = l($week, $url, array('query' => !empty($this->date_info->append) ? $this->date_info->append : ''));
           }
@@ -397,29 +403,29 @@ class calendar_plugin_style extends views_plugin_style {
             'entry' => $weekno,
             'colspan' => 1,
             'rowspan' => $total_rows + 1,
-            'id' => $this->view->name . '-weekno-' . $curday_date, 
+            'id' => $this->view->name . '-weekno-' . $curday_date,
             'class' => 'week'
           );
           $inner .= theme('calendar_month_col', array('item' => $item));
         }
-  
+
         $this->curday = clone($init_day);
-  
+
         // move backwards to the first day of the week
         $day_wday = date_format($this->curday, 'w');
         date_modify($this->curday, '-' . strval((7 + $day_wday - $first_day) % 7) . ' days');
-  
+
         for ( $wday = 0; $wday < 7; $wday++) {
-  
+
           $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
           $class = strtolower($weekdays[$wday]);
           $item = NULL;
           $in_month = !($curday_date < $this->date_info->min_date_date || $curday_date > $this->date_info->max_date_date || date_format($this->curday, 'n') != $month);
-  
+
           // Add the datebox
           if ($i == 0) {
             $variables = array(
-              'date' => $curday_date, 
+              'date' => $curday_date,
               'view' => $this->view,
               'items' => $this->items,
               'selected' => $in_month ? count($multiday_buckets[$wday]) + count($singleday_buckets[$wday]) : FALSE,
@@ -439,39 +445,39 @@ class calendar_plugin_style extends views_plugin_style {
           else {
             $index = $i - 1;
             $multi_count = count($multiday_buckets[$wday]);
-  
+
             // Process multiday buckets first.  If there is a multiday-bucket item in this row...
             if ($index < $multi_count) {
               // If this item is filled with either a blank or an entry...
               if ($multiday_buckets[$wday][$index]['filled']) {
-  
+
                 // Add item and add class
                 $item = $multiday_buckets[$wday][$index];
                 $item['class'] =  'multi-day';
                 $item['date'] = $curday_date;
-  
+
                 // Is this an entry?
                 if (!$multiday_buckets[$wday][$index]['avail']) {
-  
+
                   // If the item either starts or ends on today,
                   // then add tags so we can style the borders
                   if ($curday_date == $today && $in_month) {
                     $item['class'] .=  ' starts-today';
                   }
-  
+
                   // Calculate on which day of this week this item ends on..
                   $end_day = clone($this->curday);
                   $span = $item['colspan'] - 1;
-                  date_modify($end_day, '+' . $span .' day');
+                  date_modify($end_day, '+' . $span . ' day');
                   $endday_date = date_format($end_day, DATE_FORMAT_DATE);
-  
+
                   // If it ends today, add class
                   if ($endday_date == $today && $in_month) {
                     $item['class'] .=  ' ends-today';
                   }
                 }
               }
-  
+
               // If this is an actual entry, add classes regarding the state of the
               // item
               if ($multiday_buckets[$wday][$index]['avail']) {
@@ -479,7 +485,7 @@ class calendar_plugin_style extends views_plugin_style {
                   ($curday_date < $today ? ' past' : '') .
                   ($curday_date > $today ? ' future' : '');
               }
-  
+
             // Else, process the single day bucket - we only do this once per day
             }
             elseif ($index == $multi_count) {
@@ -504,7 +510,7 @@ class calendar_plugin_style extends views_plugin_style {
                 }
                 $class = 'single-day';
               }
-  
+
               $rowspan = $total_rows - $index;
               // Add item...
               $item = array(
@@ -515,7 +521,7 @@ class calendar_plugin_style extends views_plugin_style {
                 'date' => $curday_date,
                 'id' => $this->view->name . '-' . $curday_date . '-' . $index
               );
-  
+
               // Hack for ie to help it properly space single day rows
               if ($rowspan > 1 && $in_month && $single_day_cnt > 0) {
                 $max_multirow_cnt = max($max_multirow_cnt, $single_day_cnt);
@@ -523,7 +529,7 @@ class calendar_plugin_style extends views_plugin_style {
               else {
                 $max_singlerow_cnt = max($max_singlerow_cnt, $single_day_cnt);
               }
-  
+
               // If the singlerow is bigger than the multi-row, then null out
               // ieheight - I'm estimating that a single row is twice the size of
               // multi-row.  This is really the best that can be done with ie
@@ -533,14 +539,14 @@ class calendar_plugin_style extends views_plugin_style {
               elseif ($rowspan > 1 && $in_month && $single_day_cnt > 0) {
                 $iehint = max($iehint, $rowspan - 1); // How many rows to adjust for?
               }
-  
+
               // Set the class
               $item['class'] .= ($curday_date == $today && $in_month ? ' today' : '') .
                 ($curday_date < $today ? ' past' : '') .
                 ($curday_date > $today ? ' future' : '');
             }
           }
-  
+
           // If there isn't an item, then add empty class
           if ($item != NULL) {
             if (!$in_month) {
@@ -549,21 +555,21 @@ class calendar_plugin_style extends views_plugin_style {
             // Style this entry - it will be a <td>.
             $inner .= theme('calendar_month_col', array('item' => $item));
           }
-  
+
           date_modify($this->curday, '+1 day');
         }
-  
+
         if ($i == 0) {
           $output .= theme('calendar_month_row', array(
-            'inner' => $inner, 
-            'class' => 'date-box', 
+            'inner' => $inner,
+            'class' => 'date-box',
             'iehint' => $iehint,
           ));
         }
         elseif ($i == $total_rows) {
           $output .= theme('calendar_month_row', array(
-            'inner' => $inner, 
-            'class' => 'single-day', 
+            'inner' => $inner,
+            'class' => 'single-day',
             'iehint' => $iehint,
           ));
           $iehint = 0;
@@ -573,19 +579,19 @@ class calendar_plugin_style extends views_plugin_style {
         else {
           // Style all the columns into a row
           $output .= theme('calendar_month_row', array(
-            'inner' => $inner, 
+            'inner' => $inner,
             'class' => 'multi-day',
             'iehint' => 0,
           ));
         }
-  
+
       } // End foreach
-  
+
       $this->curday = $final_day;
-  
+
       // Add the row into the row array....
       $rows[] = array('data' => $output);
-  
+
       $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
       $curday_month = date_format($this->curday, 'n');
     } while ($curday_month == $month && $curday_date <= $this->date_info->max_date_date);
@@ -602,23 +608,23 @@ class calendar_plugin_style extends views_plugin_style {
     $weekdays = calendar_untranslated_days($this->items, $this->view);
     $month = date_format($this->curday, 'n');
     $first_day = variable_get('date_first_day', 0);
-  
+
     // Set up buckets
     $total_rows = 0;
     $multiday_buckets = array( array(), array(), array(), array(), array(), array(), array());
     $singleday_buckets = array( array(), array(), array(), array(), array(), array(), array());
-  
+
     // move backwards to the first day of the week
     $day_wday = date_format($this->curday, 'w');
     date_modify($this->curday, '-' . strval((7 + $day_wday - $first_day) % 7) . ' days');
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
-  
+
     for ($i = 0; $i < 7; $i++) {
       if ($check_month && ($curday_date < $this->date_info->min_date_date || $curday_date > $this->date_info->max_date_date || date_format($this->curday, 'n') != $month)) {
-        $class = strtolower($weekdays[$i]) .' empty';
+        $class = strtolower($weekdays[$i]) . ' empty';
         $singleday_buckets[$i][][] = array(
           'entry' => theme('calendar_empty_day', array(
-             'curday' => $curday_date, 
+             'curday' => $curday_date,
              'view' => $this->view,
           )),
           'item' => NULL
@@ -631,7 +637,7 @@ class calendar_plugin_style extends views_plugin_style {
       date_modify($this->curday, '+1 day');
       $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
     }
-  
+
     $rows = array(
       'multiday_buckets' => $multiday_buckets,
       'singleday_buckets' => $singleday_buckets,
@@ -644,14 +650,14 @@ class calendar_plugin_style extends views_plugin_style {
    */
   function calendar_build_week_day($wday, &$multiday_buckets, &$singleday_buckets) {
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
-    $max_events = !empty($this->date_info->style_max_items) ? $this->date_info->style_max_items : 0;
+    $max_events = $this->date_info->calendar_type == 'month' && !empty($this->date_info->style_max_items) ? $this->date_info->style_max_items : 0;
     $hide = !empty($this->date_info->style_max_items_behavior) ? ($this->date_info->style_max_items_behavior == 'hide') : FALSE;
     $multiday_theme = !empty($this->date_info->style_multiday_theme) && $this->date_info->style_multiday_theme == '1';
     $first_day = variable_get('date_first_day', 0);
     $cur_cnt = 0;
     $total_cnt = 0;
     $ids = array();
-  
+
     // If we are hiding, count before processing further
     if ($max_events != CALENDAR_SHOW_ALL) {
       foreach ($this->items as $date => $day) {
@@ -665,9 +671,9 @@ class calendar_plugin_style extends views_plugin_style {
         }
       }
     }
-  
+
     // If we haven't already exceeded the max or we'll showing all, then process the items
-    if ($max_events == CALENDAR_SHOW_ALL || !$hide || $total_cnt <= $max_events) {
+    if ($max_events == CALENDAR_SHOW_ALL || !$hide || $total_cnt < $max_events) {
       // Count currently filled items
       foreach ($multiday_buckets[$wday] as $bucket) {
         if (!$bucket['avail']) {
@@ -676,127 +682,126 @@ class calendar_plugin_style extends views_plugin_style {
       }
       foreach ($this->items as $date => $day) {
         if ($date == $curday_date) {
-          $count = 0;
           ksort($day);
           foreach ($day as $time => $hour) {
             foreach ($hour as $key => $item) {
-              $count++;
-              // Can we add an item?
-              if ($max_events == CALENDAR_SHOW_ALL || $cur_cnt <= $max_events) {
-                $all_day = $item->calendar_start_date == $item->calendar_end_date;
-  
-                // Parse out date part
-                $start_ydate = date_format($item->date_start, DATE_FORMAT_DATE);
-                $end_ydate = date_format($item->date_end, DATE_FORMAT_DATE);
-                $cur_ydate = date_format($this->curday, DATE_FORMAT_DATE);
-  
-                $is_multi_day = ($start_ydate < $cur_ydate || $end_ydate > $cur_ydate);
-  
-                // Does this event span multi-days?
-                if ($multiday_theme && ($is_multi_day || $all_day)) {
-                  // If this the first day of the week, or is the start date of the multi-day event,
-                  // then record this item, otherwise skip over
-                  $day_no = date_format($this->curday, 'd');
-                  if ($wday == 0 || $start_ydate == $cur_ydate || ($this->date_info->granularity == 'month' && $day_no == 1) || ($all_day && !$is_multi_day)) {
-                    $cur_cnt++;
-                    // Calculate the colspan for this event
-  
-                    // If the last day of this event exceeds the end of the current month or week,
-                    // truncate the remaining days
-                    $diff =  $this->curday->difference($this->date_info->max_date, 'days');
-                    $remaining_days = ($this->date_info->granularity == 'month') ? min(6 - $wday, $diff) : $diff - 1;                 
-                    // The bucket_cnt defines the colspan.  colspan = bucket_cnt + 1
-                    $days = $this->curday->difference($item->date_end, 'days');
-                    $bucket_cnt = max(0, min($days, $remaining_days));
-  
-                    // See if there is an available slot to add an event.  This will allow
-                    // an event to precede a row filled up by a previous day event
-                    $avail = FALSE;
-                    $bucket_index = count($multiday_buckets[$wday]);
-                    for ($i = 0; $i < $bucket_index; $i++) {
-                      if ($multiday_buckets[$wday][$i]['avail']) {
-                        $bucket_index = $i;
-                        break;
-                      }
-                    }
-  
-                    // Add continuation attributes
-                    $item->continuation =  ($item->date_start < $this->curday);
-                    $item->continues = ( $days > $bucket_cnt );
-  
-                    // Assign the item to the available bucket
-                    $multiday_buckets[$wday][$bucket_index] = array(
-                      'colspan' => $bucket_cnt + 1,
-                      'rowspan' => 1,
-                      'filled' => TRUE,
-                      'avail' => FALSE,
-                      'all_day' => $all_day,
-                      'item' => $item,
-                      'wday' => $wday,
-                      'entry' => theme('calendar_item', array('view' => $this->view, 'rendered_fields' => $item->rendered_fields, 'item' => $item)),
-                    );
-  
-                    // Block out empty buckets for the next days in this event for this week
-                    for ($i = 0; $i < $bucket_cnt; $i++) {
-                      $bucket = &$multiday_buckets[$i + $wday + 1];
-                      $bucket_row_count = count($bucket);
-                      $row_diff = $bucket_index - $bucket_row_count;
-  
-                      // Fill up the preceding buckets - these are available for future
-                      // events
-                      for ( $j = 0; $j < $row_diff; $j++) {
-                        $bucket[($bucket_row_count + $j) ] = array(
-                          'entry' => '&nbsp;',
-                          'colspan' => 1,
-                          'rowspan' => 1,
-                          'filled' => TRUE,
-                          'avail' => TRUE,
-                          'wday' => $wday,
-                          'item' => NULL
-                        );
-                      }
-                      $bucket[$bucket_index] = array(
-                        'filled' => FALSE,
-                        'avail' => FALSE
-                      );
+              $all_day = $item->calendar_start_date == $item->calendar_end_date;
+
+              // Parse out date part
+              $start_ydate = date_format($item->date_start, DATE_FORMAT_DATE);
+              $end_ydate = date_format($item->date_end, DATE_FORMAT_DATE);
+              $cur_ydate = date_format($this->curday, DATE_FORMAT_DATE);
+
+              $is_multi_day = ($start_ydate < $cur_ydate || $end_ydate > $cur_ydate);
+
+              // Does this event span multi-days?
+              if ($multiday_theme && ($is_multi_day || $all_day)) {
+
+                // Remove multiday items from the total count. We can't hide them or they will break.
+                $total_cnt--;
+
+                // If this the first day of the week, or is the start date of the multi-day event,
+                // then record this item, otherwise skip over
+                $day_no = date_format($this->curday, 'd');
+                if ($wday == 0 || $start_ydate == $cur_ydate || ($this->date_info->granularity == 'month' && $day_no == 1) || ($all_day && !$is_multi_day)) {
+                  // Calculate the colspan for this event
+
+                  // If the last day of this event exceeds the end of the current month or week,
+                  // truncate the remaining days
+                  $diff =  $this->curday->difference($this->date_info->max_date, 'days');
+                  $remaining_days = ($this->date_info->granularity == 'month') ? min(6 - $wday, $diff) : $diff - 1;
+                  // The bucket_cnt defines the colspan.  colspan = bucket_cnt + 1
+                  $days = $this->curday->difference($item->date_end, 'days');
+                  $bucket_cnt = max(0, min($days, $remaining_days));
+
+                  // See if there is an available slot to add an event.  This will allow
+                  // an event to precede a row filled up by a previous day event
+                  $avail = FALSE;
+                  $bucket_index = count($multiday_buckets[$wday]);
+                  for ($i = 0; $i < $bucket_index; $i++) {
+                    if ($multiday_buckets[$wday][$i]['avail']) {
+                      $bucket_index = $i;
+                      break;
                     }
                   }
-                }
-                else {
-                  $cur_cnt++;
-                  // Assign to single day bucket
-                  $singleday_buckets[$wday][$time][] = array(
-                    'entry' => theme('calendar_item', array('view' => $this->view, 'rendered_fields' => $item->rendered_fields, 'item' => $item)),
-                    'item' => $item,
-                    'colspan' => 1,
+
+                  // Add continuation attributes
+                  $item->continuation =  ($item->date_start < $this->curday);
+                  $item->continues = ( $days > $bucket_cnt );
+
+                  // Assign the item to the available bucket
+                  $multiday_buckets[$wday][$bucket_index] = array(
+                    'colspan' => $bucket_cnt + 1,
                     'rowspan' => 1,
                     'filled' => TRUE,
                     'avail' => FALSE,
+                    'all_day' => $all_day,
+                    'item' => $item,
                     'wday' => $wday,
+                    'entry' => theme('calendar_item', array('view' => $this->view, 'rendered_fields' => $item->rendered_fields, 'item' => $item)),
                   );
+
+                  // Block out empty buckets for the next days in this event for this week
+                  for ($i = 0; $i < $bucket_cnt; $i++) {
+                    $bucket = &$multiday_buckets[$i + $wday + 1];
+                    $bucket_row_count = count($bucket);
+                    $row_diff = $bucket_index - $bucket_row_count;
+
+                    // Fill up the preceding buckets - these are available for future
+                    // events
+                    for ( $j = 0; $j < $row_diff; $j++) {
+                      $bucket[($bucket_row_count + $j) ] = array(
+                        'entry' => '&nbsp;',
+                        'colspan' => 1,
+                        'rowspan' => 1,
+                        'filled' => TRUE,
+                        'avail' => TRUE,
+                        'wday' => $wday,
+                        'item' => NULL
+                      );
+                    }
+                    $bucket[$bucket_index] = array(
+                      'filled' => FALSE,
+                      'avail' => FALSE
+                    );
+                  }
                 }
               }
-              else {
-                break;  // exceeded count
+              elseif ($max_events == CALENDAR_SHOW_ALL || $cur_cnt < $max_events) {
+                $cur_cnt++;
+                // Assign to single day bucket
+                $singleday_buckets[$wday][$time][] = array(
+                  'entry' => theme('calendar_item', array('view' => $this->view, 'rendered_fields' => $item->rendered_fields, 'item' => $item)),
+                  'item' => $item,
+                  'colspan' => 1,
+                  'rowspan' => 1,
+                  'filled' => TRUE,
+                  'avail' => FALSE,
+                  'wday' => $wday,
+                );
               }
+
             }
           }
         }
       }
     }
-  
+
     // Add a more link if necessary
     if ($max_events != CALENDAR_SHOW_ALL && $total_cnt > 0 && $cur_cnt < $total_cnt) {
-      $singleday_buckets[$wday][][] = array(
-        'entry' => theme('calendar_'. $this->date_info->calendar_type .'_multiple_node', array(
-          'curday' => $curday_date, 
-          'count' => $total_cnt, 
-          'view' => $this->view, 
+      $entry = theme('calendar_' . $this->date_info->calendar_type . '_multiple_entity', array(
+          'curday' => $curday_date,
+          'count' => $total_cnt,
+          'view' => $this->view,
           'ids' => $ids,
-        )),
-        'more_link' => TRUE,
-        'item' => NULL
-      );
+        ));
+      if (!empty($entry)) {
+        $singleday_buckets[$wday][][] = array(
+          'entry' => $entry,
+          'more_link' => TRUE,
+          'item' => NULL
+        );
+      }
     }
   }
 
@@ -807,7 +812,7 @@ class calendar_plugin_style extends views_plugin_style {
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
     $selected = FALSE;
     $max_events = !empty($this->date_info->style_max_items) ? $this->date_info->style_max_items : 0;
-    $types = array();
+    $ids = array();
     $inner = array();
     $all_day = array();
     $empty = '';
@@ -822,14 +827,14 @@ class calendar_plugin_style extends views_plugin_style {
           foreach ($hour as $key => $item) {
             $count++;
             if (isset($item->type)) {
-              $types[$item->type] = $item;
+              $ids[$item->type] = $item;
             }
             if (empty($this->date_info->mini) && ($max_events == CALENDAR_SHOW_ALL || $count <= $max_events || ($count > 0 && $max_events == CALENDAR_HIDE_ALL))) {
               if ($item->calendar_all_day) {
                 $all_day[] = $item;
               }
               else {
-                $key = date_format($item->date_start, 'H:i:s');
+                $key = date_format($item->calendar_start_date, 'H:i:s');
                 $inner[$key][] = $item;
               }
             }
@@ -848,20 +853,20 @@ class calendar_plugin_style extends views_plugin_style {
         $all_day = array();
         $inner = array();
       }
-      $link = theme('calendar_'. $this->date_info->calendar_type .'_multiple_node', array(
-        'curday' => $curday_date, 
-        'count' => $count, 
-        'view' => $this->view, 
-        'types' => $types,
+      $link = theme('calendar_' . $this->date_info->calendar_type . '_multiple_node', array(
+        'curday' => $curday_date,
+        'count' => $count,
+        'view' => $this->view,
+        'ids' => $ids,
       ));
     }
-    
+
     $content = array(
       'date' => $curday_date,
       'datebox' => theme('calendar_datebox', array(
-         'date' => $curday_date, 
-         'view' => $this->view, 
-         'items' => $this->items, 
+         'date' => $curday_date,
+         'view' => $this->view,
+         'items' => $this->items,
          'selected' => $selected,
       )),
       'empty' => $empty,
@@ -903,17 +908,17 @@ class calendar_plugin_style extends views_plugin_style {
     $day_wday = date_format($this->curday, 'w');
     date_modify($this->curday, '-' . strval((7 + $day_wday - $first_day) % 7) . ' days');
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
-  
+
     for ($i = 0; $i < 7; $i++) {
       $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
       $class = strtolower($weekdays[$i] . ' mini');
       if ($check_month && ($curday_date < $this->date_info->min_date_date || $curday_date > $this->date_info->max_date_date || date_format($this->curday, 'n') != $month)) {
          $class .= ' empty';
          $variables = array(
-          'curday' => $curday_date, 
+          'curday' => $curday_date,
           'view' => $this->view,
         );
-  
+
         $content = array(
           'date' => '',
           'datebox' => '',
@@ -932,7 +937,7 @@ class calendar_plugin_style extends views_plugin_style {
       }
       $rows[$week][] = array(
         'data' => $content,
-        'class' => $class, 
+        'class' => $class,
         'id' => $this->view->name . '-' . $curday_date,
       );
       date_modify($this->curday, '+1 day');

@@ -1,4 +1,8 @@
 <?php
+/**
+ *@file
+ * Tests for Date Tools.
+ */
 class DateToolsTestCase extends DrupalWebTestCase {
   protected $privileged_user;
 
@@ -78,7 +82,7 @@ class DateToolsTestCase extends DrupalWebTestCase {
       'tz_handling' => 'site',
       'year_range' => '2010:+2',
     );
-    $this->drupalPost('admin/structure/date/date_wizard', $edit, t('Save'));
+    $this->drupalPost('admin/config/date/tools/date_wizard', $edit, t('Save'));
     $this->assertText('Your date field Test has been created.', 'Create a date field using the Date Wizard.');
   }
 

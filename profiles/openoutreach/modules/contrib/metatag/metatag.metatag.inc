@@ -142,9 +142,6 @@ function metatag_metatag_info() {
     'label' => t('Generator'),
     'description' => t("Describes the name and version number of the software or publishing tool used to create the page."),
     'class' => 'DrupalTextMetaTag',
-    'element' => array(
-      '#id' => 'system_meta_generator',
-    ),
     'header' => 'X-Generator',
     'context' => array('global'),
     'group' => 'advanced',
@@ -165,6 +162,12 @@ function metatag_metatag_info() {
   );
   $info['tags']['shortlink'] = array(
     'label' => t('Shortlink URL'),
+    'description' => '',
+    'class' => 'DrupalLinkMetaTag',
+    'group' => 'advanced',
+  );
+  $info['tags']['publisher'] = array(
+    'label' => t('Publisher URL'),
     'description' => '',
     'class' => 'DrupalLinkMetaTag',
     'group' => 'advanced',

@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * The Date Wizard code.
+ */
+
 function date_tools_wizard_form() {
 
   $form = array();
@@ -54,7 +59,7 @@ function date_tools_wizard_form() {
     '#default_value' => 0,
     '#options' => array(0 => t('No'), 1 => t('Yes')),
     '#title' => t('Show repeating date options'),
-    '#access' => module_exists('date_repeat'),
+    '#access' => module_exists('date_repeat_field'),
     );
   $form['field']['advanced'] = array(
     '#type' => 'fieldset',
@@ -313,7 +318,7 @@ function date_tools_wizard_create_content_type($name, $bundle, $description, $ty
   date_tools_wizard_include();
 
   // Create the content type.
-  $values  = array (
+  $values  = array(
     'name' => $name,
     'type' => $bundle,
     'description' => $description,
@@ -322,7 +327,7 @@ function date_tools_wizard_create_content_type($name, $bundle, $description, $ty
     'min_word_count' => '0',
     'help' => '',
     'node_options' =>
-    array (
+    array(
       'status' => 1,
       'promote' => 1,
       'sticky' => 0,

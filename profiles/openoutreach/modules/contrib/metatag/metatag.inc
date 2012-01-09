@@ -99,10 +99,15 @@ class DrupalTextMetaTag extends DrupalDefaultMetaTag {
       'token data' => array(),
       'clear' => TRUE,
       'sanitize' => FALSE,
+      'raw' => FALSE,
     );
 
-    $value = token_replace($this->data['value'], $options['token data'], $options);
-    $value = trim(strip_tags($value));
+    $value = $this->data['value'];
+    if (empty($options['raw'])) {
+      $value = token_replace($value, $options['token data'], $options);
+    }
+    $value = strip_tags(decode_entities($value));
+    $value = trim($value);
     return $value;
   }
 }

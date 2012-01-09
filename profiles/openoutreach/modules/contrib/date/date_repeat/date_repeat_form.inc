@@ -860,7 +860,7 @@ function date_repeat_merge($form_values, $element) {
     unset($form_values['RDATE']);
   }
   if (array_key_exists('RDATE', $form_values) && is_array($form_values['RDATE'])) {
-    $function = $element['#date_repeat_widget'] .'_input_date';
+    $function = $element['#date_repeat_widget'] . '_input_date';
     $rdate_element = $element;
     foreach ($form_values['RDATE'] as $delta => $value) {
       if (is_array($value['datetime'])) {

@@ -212,6 +212,7 @@ class SkinrUIBasicTestCase extends SkinrUITestCase {
     // Check the widgets.
     $this->assertFieldByName('skinr_settings[block_type][bartik][groups][general][skinr_ui_test_bgcolor]', NULL, 'Widget with valid type is displayed.');
     $this->assertNoFieldByName('skinr_settings[block_type][bartik][groups][box][skinr_ui_test_border]', NULL, 'Widget with invalid type is not displayed.');
+    $this->assertFieldByName('skinr_settings[block_type][bartik][groups][general][skinr_ui_test_custom][custom]', NULL, 'Widget with form callback is displayed.');
 
     // Check for output from empty groups.
     $this->assertNoRaw('id="edit-skinr-settings-block-group-bartik-box"', 'Resulting empty group is not displayed.');

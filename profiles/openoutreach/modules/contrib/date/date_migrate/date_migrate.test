@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Test for using date fields with Migrate module.
+ */
 
 /**
  * Test date migration.
@@ -13,7 +17,7 @@ class DateMigrateExampleUnitTest extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('migrate', 'features', 'date', 'date_repeat',
+    parent::setUp('migrate', 'features', 'date', 'date_repeat', 'date_repeat_field',
       'date_migrate_example');
   }
 

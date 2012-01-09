@@ -240,7 +240,8 @@ function captcha_element_process($element, &$form_state, $complete_form) {
   // - $element['#captcha_info'], for post processing functions that do not
   //   receive a $form_state argument (e.g. the pre_render callback).
   $form_state['captcha_info'] = array(
-    'form_id' => $posted_form_id,
+    'this_form_id' => $this_form_id,
+    'posted_form_id' => $posted_form_id,
     'captcha_sid' => $captcha_sid,
     'module' => $captcha_type_module,
     'captcha_type' => $captcha_type_challenge,
@@ -459,6 +460,20 @@ function captcha_form_alter(&$form, &$form_state, $form_id) {
 
     }
   }
+
+  // Add a warning about caching on the Perfomance settings page.
+  if ($form_id == 'system_performance_settings') {
+    $icon = theme('image', array('path' => 'misc/watchdog-warning.png', 'width' => 18, 'height' => 18, 'alt' => t('warning'), 'title' => t('warning')));
+    $form['caching']['captcha'] = array(
+      '#type' => 'item',
+      '#title' => t('CAPTCHA'),
+      '#markup' => t('!icon The CAPTCHA module will disable the caching of pages that contain a CAPTCHA element.', array(
+        '!icon' => '<span class="icon">' . $icon . '</span>')
+      ),
+      '#attributes' => array('class' => array('warning')),
+    );
+  }
+
 }
 
 /**
@@ -527,34 +542,26 @@ function captcha_validate_case_insensitive_ignore_spaces($solution, $response) {
  *     if the values could not be found, e.g. for a fresh form).
  */
 function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) {
-  if (isset($form_state['captcha_info'])) {
-    // We already determined the posted form ID and CAPTCHA session ID
-    // for this form, so we reuse this info
-    $posted_form_id = $form_state['captcha_info']['form_id'];
+  if ($form_state['submitted'] && isset($form_state['captcha_info'])) {
+    // We are handling (or rebuilding) an already submitted form,
+    // so we already determined the posted form ID and CAPTCHA session ID
+    // for this form (from before submitting). Reuse this info.
+    $posted_form_id = $form_state['captcha_info']['posted_form_id'];
     $posted_captcha_sid = $form_state['captcha_info']['captcha_sid'];
   }
   else {
     // We have to determine the posted form ID and CAPTCHA session ID
     // from the post data.
-    // TODO: is this enough? We had to check more sources in Drupal 6 (see over there).
-    if (isset($form_state['input']) && count($form_state['input'])) {
-      $post_data = $form_state['input'];
-    }
-    else {
-      // No posted CAPTCHA info found (probably a fresh form).
-      $post_data = array();
-    }
-    // Get the posted form_id and CAPTCHA session ID.
     // Because we possibly use raw post data here,
     // we should be extra cautious and filter this data.
-    $posted_form_id = isset($post_data['form_id']) ?
-      preg_replace("/[^a-z0-9_]/", "", (string) $post_data['form_id'])
+    $posted_form_id = isset($form_state['input']['form_id']) ?
+      preg_replace("/[^a-z0-9_]/", "", (string) $form_state['input']['form_id'])
       : NULL;
-    $posted_captcha_sid = isset($post_data['captcha_sid']) ?
-      (int) $post_data['captcha_sid']
+    $posted_captcha_sid = isset($form_state['input']['captcha_sid']) ?
+      (int) $form_state['input']['captcha_sid']
       : NULL;
-    $posted_captcha_token = isset($post_data['captcha_token']) ?
-      preg_replace("/[^a-zA-Z0-9]/", "", (string) $post_data['captcha_token'])
+    $posted_captcha_token = isset($form_state['input']['captcha_token']) ?
+      preg_replace("/[^a-zA-Z0-9]/", "", (string) $form_state['input']['captcha_token'])
       : NULL;
 
     if ($posted_form_id == $this_form_id) {
@@ -601,7 +608,7 @@ function _captcha_get_posted_captcha_info($element, $form_state, $this_form_id) 
 function captcha_validate($element, &$form_state) {
 
   $captcha_info = $form_state['captcha_info'];
-  $form_id = $captcha_info['form_id'];
+  $form_id = $captcha_info['this_form_id'];
 
   // Get CAPTCHA response.
   $captcha_response = $form_state['values']['captcha_response'];
@@ -760,4 +767,13 @@ function captcha_captcha($op, $captcha_type = '') {
       }
       break;
   }
+}
+
+/**
+ * Implements hook_modules_enabled.
+ */
+function captcha_modules_enabled() {
+  // When new modules are enabled: clear the CAPTCHA placement cache, so that
+  // new hook_captcha_placement_map hooks can be triggered.
+  variable_del('captcha_placement_map_cache');
 }

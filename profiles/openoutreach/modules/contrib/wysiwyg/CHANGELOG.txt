@@ -1,6 +1,7 @@
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+#970452 by smk-ka, sun, TwoD, drzraf: Fixed outdated TinyMCE plugin info.
 #1155678 by james.elliott, Jody Lynn, sun: Add Drupal.detachBehaviors support.
 #624018 by smk-ka, quartsize, dagmar, nedjo, rickvug, catch, sun: Added Features support.
 #1238766 by Dave Reid: Fixed Missing cells in profile plugins table.

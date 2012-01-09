@@ -98,16 +98,18 @@ function skinr_panels_preprocess_links(&$variables, $hook) {
   if (isset($variables['links'][0]['title']) && $variables['links'][0]['title'] == t('Edit @type', array('@type' => 'Panel')) && user_access('edit skin settings')) {
     // Get contextual links.
     $contextual_links = skinr_ui_get_contextual_links();
-    $contextual_links = $contextual_links['panels_pane'];
+    if (isset($contextual_links['panels_pane'])) {
+      $contextual_links = $contextual_links['panels_pane'];
 
-    // Render links.
-    $element = array(
-      '#type' => 'contextual_links',
-      '#contextual_links' => $contextual_links,
-    );
-    $element = contextual_pre_render_links($element);
+      // Render links.
+      $element = array(
+        '#type' => 'contextual_links',
+        '#contextual_links' => $contextual_links,
+      );
+      $element = contextual_pre_render_links($element);
 
-    // Hack in the Skinr links.
-    $variables['links'] += $element['#links'];
+      // Hack in the Skinr links.
+      $variables['links'] += $element['#links'];
+    }
   }
 }

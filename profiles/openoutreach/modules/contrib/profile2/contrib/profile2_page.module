@@ -22,7 +22,7 @@ function profile2_page_menu() {
       $count = count(explode('/', $path));
 
       $items[$path] = array(
-        'title callback' => 'profile2_page_own_title',
+        'title callback' => 'profile2_page_title',
         'title arguments' => array($type_name),
         'page callback' => 'profile2_page_own',
         'page arguments' => array($path),
@@ -33,12 +33,24 @@ function profile2_page_menu() {
       );
 
       $items[$path . '/%profile2_by_uid'] = array(
+        'title callback' => 'profile2_page_title',
+        'title arguments' => array($type_name, $count),
         'page callback' => 'profile2_page_view',
         'page arguments' => array($count),
         'load arguments' => array($type_name),
         'access callback' => 'profile2_access',
         'access arguments' => array('view', $count),
         'file' => 'profile2_page.inc',
+        // Copied over the following hack from user_menu() to avoid $path
+        // appearing in the breadcrumb:
+        //
+        // By assigning a different menu name, this item (and all registered
+        // child paths) are no longer considered as children of 'user'. When
+        // accessing the user account pages, the preferred menu link that is
+        // used to build the active trail (breadcrumb) will be found in this
+        // menu (unless there is more specific link), so the link to 'user' will
+        // not be in the breadcrumb.
+        'menu_name' => 'navigation',
       );
       $items[$path . '/%profile2_by_uid/view'] = array(
         'title' => 'View',
@@ -83,7 +95,7 @@ function profile2_by_uid_load($uid, $type_name) {
   if ($uid && is_numeric($uid) && ($account = user_load($uid))) {
     $profile = profile2_load_by_user($account, $type_name);
     if (!$profile) {
-      $profile = profile_create(array('type' => $type_name));
+      $profile = profile2_create(array('type' => $type_name));
       $profile->setUser($account);
       $profile->is_new = TRUE;
     }
@@ -175,9 +187,14 @@ function profile2_page_form_callback($profile) {
 /**
  * Menu title callback.
  */
-function profile2_page_own_title($type_name) {
+function profile2_page_title($type_name, $profile2 = NULL) {
   $type = profile2_get_types($type_name);
-  return user_is_logged_in() ? t('My @profile-label', array('@profile-label' => drupal_strtolower($type->label))) : check_plain($type->label);
+  // If no profile is given, we are at the general path pointing to the own
+  // profile.
+  if (!isset($profile2)) {
+    return t('My @profile-label', array('@profile-label' => drupal_strtolower($type->label)));
+  }
+  return drupal_ucfirst($profile2->label());
 }
 
 /**

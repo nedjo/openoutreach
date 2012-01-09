@@ -38,7 +38,7 @@ function theme_metatag_opengraph($variables) {
   $element = &$variables['element'];
   element_set_attributes($element, array('#name' => 'property', '#value' => 'content'));
   unset($element['#value']);
-  return theme_html_tag($variables);
+  return theme('html_tag', $variables);
 }
 
 /*

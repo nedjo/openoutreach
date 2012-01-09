@@ -52,5 +52,28 @@ function skinr_ui_test_skinr_skin_info() {
       ),
     ),
   );
+  $skins['skinr_ui_test_custom'] = array(
+    'title' => t('Custom'),
+    'form callback' => 'skinr_ui_test_skinr_skinr_ui_test_custom_form',
+    'group' => 'general',
+    'theme hooks' => array('block__system', 'comment_wrapper__page', 'node__page'),
+    'default status' => 1,
+    'options' => array(
+      'custom' => array(
+        'class' => array('custom'),
+      ),
+    ),
+  );
   return $skins;
+}
+
+function skinr_ui_test_skinr_skinr_ui_test_custom_form($form, $form_state, $context) {
+  $form = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Custom'),
+    '#options' => array(
+      'custom' => t('Custom'),
+    ),
+  );
+  return $form;
 }

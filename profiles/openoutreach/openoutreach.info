@@ -23,21 +23,15 @@ distribution_name = "Open Outreach"
 features[context][] = "shortcut"
 features[ctools][] = "context:context:3"
 features[ctools][] = "strongarm:strongarm:1"
-features[user_permission][] = "access content"
 features[user_permission][] = "access administration pages"
+features[user_permission][] = "access content"
 features[user_permission][] = "access content overview"
-features[user_permission][] = "access contextual links"
 features[user_permission][] = "administer nodes"
 features[user_permission][] = "administer taxonomy"
 features[user_permission][] = "cancel account"
 features[user_permission][] = "change own username"
 features[user_permission][] = "delete revisions"
 features[user_permission][] = "revert revisions"
-features[user_permission][] = "search content"
-features[user_permission][] = "use advanced search"
-features[user_permission][] = "view advanced help index"
-features[user_permission][] = "view advanced help popup"
-features[user_permission][] = "view advanced help topic"
 features[user_permission][] = "view own unpublished content"
 features[user_permission][] = "view revisions"
 features[user_permission][] = "view the administration theme"
@@ -103,9 +97,9 @@ subprofiles[minimal][features][openoutreach_front_page] = FALSE
 
 
 
-; Information added by drupal.org packaging script on 2011-12-19
-version = "7.x-1.0-beta6"
+; Information added by drupal.org packaging script on 2012-01-09
+version = "7.x-1.0-beta7"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1324329043"
+datestamp = "1326141943"
 

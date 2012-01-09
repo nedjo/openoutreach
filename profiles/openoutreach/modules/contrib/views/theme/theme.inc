@@ -110,7 +110,7 @@ function template_preprocess_views_view(&$vars) {
     // It is true that the DIV wrapper has classes denoting the name of the view
     // and its display ID, but this is not enough to unequivocally match a view
     // with its HTML, because one view may appear several times on the page. So
-    // we set up a running counter, $dom_id, to issue a "unique" identifier for
+    // we set up a hash with the current time, $dom_id, to issue a "unique" identifier for
     // each view. This identifier is written to both Drupal.settings and the DIV
     // wrapper.
     $vars['dom_id'] = !empty($view->dom_id) ? $view->dom_id : md5($view->name . REQUEST_TIME . rand());
@@ -307,6 +307,29 @@ function template_preprocess_views_view_fields(&$vars) {
 }
 
 /**
+ * Display a single views grouping.
+ */
+function theme_views_view_grouping($vars) {
+  $view = $vars['view'];
+  $title = $vars['title'];
+  $content = $vars['content'];
+
+  $output = '<div class="view-grouping">';
+  $output .= '<div class="view-grouping-header">' . $title . '</div>';
+  $output .= '<div class="view-grouping-content">' . $content . '</div>' ;
+  $output .= '</div>';
+
+  return $output;
+}
+
+/**
+ * Process a single grouping within a view.
+ */
+function template_preprocess_views_view_grouping(&$vars) {
+  $vars['content'] = $vars['view']->style_plugin->render_grouping_sets($vars['rows'], $vars['grouping_level']);
+}
+
+/**
  * Display a single views field.
  *
  * Interesting bits of info:
@@ -442,6 +465,7 @@ function template_preprocess_views_view_table(&$vars) {
   $result   = $vars['result'] = $vars['rows'];
   $vars['rows'] = array();
   $vars['field_classes'] = array();
+  $vars['header'] = array();
 
   $options  = $view->style_plugin->options;
   $handler  = $view->style_plugin;

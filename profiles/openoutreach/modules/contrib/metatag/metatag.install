@@ -30,7 +30,7 @@ function metatag_schema() {
       'cid' => array(
         'type' => 'serial',
         'unsigned' => TRUE,
-        'not null' => FALSE,
+        'not null' => TRUE,
         'description' => 'The primary identifier for a metatag configuration set.',
       ),
       'instance' => array(
@@ -45,7 +45,8 @@ function metatag_schema() {
         'size' => 'big',
         'not null' => TRUE,
         'serialize' => TRUE,
-        'description' => 'Serialized data containing the meta tag configuration.'
+        'description' => 'Serialized data containing the meta tag configuration.',
+        'translatable' => TRUE,
       ),
     ),
     'primary key' => array('cid'),
@@ -85,4 +86,27 @@ function metatag_schema() {
   $schema['cache_metatag']['description'] = t('Cache table for the generated meta tag output.');
 
   return $schema;
+}
+
+/**
+ * Disable the deprecated metatag_ui module which has been merged into metatag.
+ */
+function metatag_update_7000() {
+  if (module_exists('metatag_ui')) {
+    module_disable(array('metatag_ui'), FALSE);
+    drupal_uninstall_modules(array('metatag_ui'), FALSE);
+  }
+}
+
+/**
+ * Fix the {metatag_config}.cid column cannot be NULL.
+ */
+function metatag_update_7001() {
+  $field = array(
+    'type' => 'serial',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'description' => 'The primary identifier for a metatag configuration set.',
+  );
+  db_change_field('metatag_config', 'cid', 'cid', $field);
 }

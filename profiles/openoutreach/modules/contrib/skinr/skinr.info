@@ -5,9 +5,9 @@ core = 7.x
 
 files[] = tests/skinr.test
 
-; Information added by drupal.org packaging script on 2011-10-22
+; Information added by drupal.org packaging script on 2012-01-07
 version = "7.x-2.x-dev"
 core = "7.x"
 project = "skinr"
-datestamp = "1319243680"
+datestamp = "1325897730"
 

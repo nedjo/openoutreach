@@ -61,8 +61,7 @@
     <?php foreach ($rows['items'] as $hour): ?>
     <tr>
       <td class="calendar-agenda-hour">
-        <span class="calendar-hour"><?php print $hour['hour']; ?></span>
-        <span class="calendar-ampm"><?php print $hour['ampm']; ?></span>
+        <span class="calendar-hour"><?php print $hour['hour']; ?></span><span class="calendar-ampm"><?php print $hour['ampm']; ?></span>
       </td>
       <?php foreach ($columns as $column): ?>
         <td class="calendar-agenda-items single-day">

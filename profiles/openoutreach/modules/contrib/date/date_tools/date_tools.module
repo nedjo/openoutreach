@@ -39,13 +39,13 @@ function date_tools_permission() {
 function date_tools_menu() {
 
   $items = array();
-  $items['admin/structure/date'] = array(
+  $items['admin/config/date/tools'] = array(
     'title'    => 'Date Tools',
     'description' => 'Tools to import and auto-create dates and calendars. ',
     'access arguments'   => array('administer date tools'),
     'page callback' => 'date_tools_page',
   );
-  $items['admin/structure/date/about'] = array(
+  $items['admin/config/date/tools/about'] = array(
     'title' => 'About',
     'description' => 'Tools to import and auto-create dates and calendars. ',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -53,7 +53,7 @@ function date_tools_menu() {
     'page callback' => 'date_tools_page',
     'access arguments' => array('administer date tools'),
   );
-  $items['admin/structure/date/date_wizard'] = array(
+  $items['admin/config/date/tools/date_wizard'] = array(
     'title' => 'Date wizard',
     'description' => 'Easy creation of date content types and calendars. ',
     'type' => MENU_LOCAL_TASK,
@@ -63,14 +63,14 @@ function date_tools_menu() {
     'access arguments' => array('administer date tools'),
     'file' => 'date_tools.wizard.inc',
   );
-  $items['admin/structure/date/remove'] = array(
+  $items['admin/config/date/tools/remove'] = array(
     'title'    => 'Remove calendar',
     'access arguments'   => array('administer date tools'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('date_tools_remove_form', 4),
     'type' => MENU_CALLBACK,
   );
-  $items['admin/structure/date/change'] = array(
+  $items['admin/config/date/tools/change'] = array(
     'title'    => 'Change type',
     'access arguments'   => array('administer date tools'),
     'page callback' => 'drupal_get_form',

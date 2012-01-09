@@ -27,12 +27,12 @@ function profile2_entity_info() {
       'entity keys' => array(
         'id' => 'pid',
         'bundle' => 'type',
+        'label' => 'label',
       ),
       'bundles' => array(),
       'bundle keys' => array(
         'bundle' => 'type',
       ),
-      'label callback' => 'entity_class_label',
       'uri callback' => 'entity_class_uri',
       'access callback' => 'profile2_access',
       'module' => 'profile2',
@@ -56,6 +56,12 @@ function profile2_entity_info() {
         'access arguments' => array('administer profiles'),
       ),
     );
+  }
+
+  // Support entity cache module.
+  if (module_exists('entitycache')) {
+    $return['profile2']['field cache'] = FALSE;
+    $return['profile2']['entity cache'] = TRUE;
   }
 
   $return['profile2_type'] = array(
@@ -265,6 +271,13 @@ function profile2_user_delete($account) {
 /**
  * Create a new profile object.
  */
+function profile2_create(array $values) {
+  return new Profile($values);
+}
+
+/**
+ * Deprecated. Use profile2_create().
+ */
 function profile_create(array $values) {
   return new Profile($values);
 }
@@ -291,19 +304,6 @@ function profile2_type_save(ProfileType $type) {
  */
 function profile2_type_delete(ProfileType $type) {
   $type->delete();
-}
-
-/**
- * Implements hook_profile2_load()
- */
-function profile2_profile2_load($profiles) {
-  $types = profile2_get_types();
-  // Load the profile's label.
-  foreach ($profiles as $profile) {
-    if (isset($types[$profile->type])) {
-      $profile->label = $types[$profile->type]->label;
-    }
-  }
 }
 
 /**
@@ -367,7 +367,7 @@ function profile2_form_user_profile_form_alter(&$form, &$form_state) {
     if (empty($form_state['profiles'])) {
       $profile = profile2_load_by_user($form['#user'], $form['#user_category']);
       if (empty($profile)) {
-        $profile = profile_create(array('type' => $form['#user_category'], 'uid' => $form['#user']->uid));
+        $profile = profile2_create(array('type' => $form['#user_category'], 'uid' => $form['#user']->uid));
       }
       $form_state['profiles'][$profile->type] = $profile;
     }
@@ -382,7 +382,7 @@ function profile2_form_user_register_form_alter(&$form, &$form_state) {
   foreach (profile2_get_types() as $type_name => $profile_type) {
     if (!empty($profile_type->data['registration'])) {
       if (empty($form_state['profiles'][$type_name])) {
-        $form_state['profiles'][$type_name] = profile_create(array('type' => $type_name));
+        $form_state['profiles'][$type_name] = profile2_create(array('type' => $type_name));
       }
       profile2_attach_form($form, $form_state);
       // Wrap each profile form in a fieldset.
@@ -527,7 +527,7 @@ function profile2_user_categories() {
 function profile2_category_access($account, $type_name) {
   // As there might be no profile yet, create a new object for being able to run
   // a proper access check.
-  $profile = profile_create(array('type' => $type_name, 'uid' => $account->uid));
+  $profile = profile2_create(array('type' => $type_name, 'uid' => $account->uid));
   return ($account->uid > 0 && $profile->type()->userCategory && profile2_access('edit', $profile));
 }
 
@@ -613,6 +613,49 @@ function profile2_theme() {
  */
 class Profile extends Entity {
 
+  /**
+   * The profile id.
+   *
+   * @var integer
+   */
+  public $pid;
+
+  /**
+   * The name of the profile type.
+   *
+   * @var string
+   */
+  public $type;
+
+  /**
+   * The profile label.
+   *
+   * @var string
+   */
+  public $label;
+
+  /**
+   * The user id of the profile owner.
+   *
+   * @var integer
+   */
+  public $uid;
+
+  /**
+   * The Unix timestamp when the profile was created.
+   *
+   * @var integer
+   */
+  public $created;
+
+  /**
+   * The Unix timestamp when the profile was most recently saved.
+   *
+   * @var integer
+   */
+  public $changed;
+
+
   public function __construct($values = array()) {
     if (isset($values['user'])) {
       $this->setUser($values['user']);
@@ -620,6 +663,11 @@ class Profile extends Entity {
     }
     if (isset($values['type']) && is_object($values['type'])) {
       $values['type'] = $values['type']->type;
+    }
+    if (!isset($values['label']) && isset($values['type']) && $type = profile2_get_types($values['type'])) {
+      // Initialize the label with the type label, so newly created profiles
+      // have that as interim label.
+      $values['label'] = $type->label;
     }
     parent::__construct($values, 'profile2');
   }
@@ -648,10 +696,6 @@ class Profile extends Entity {
    */
   public function type() {
     return profile2_get_types($this->type);
-  }
-
-  public function defaultLabel() {
-    return isset($this->label) ? $this->label : (isset($this->type) ? $this->type()->label : '');
   }
 
   /**
@@ -687,6 +731,13 @@ class Profile extends Entity {
   }
 
   public function save() {
+    // Care about setting created and changed values. But do not automatically
+    // set a created values for already existing profiles.
+    if (empty($this->created) && (!empty($this->is_new) || !$this->pid)) {
+      $this->created = REQUEST_TIME;
+    }
+    $this->changed = REQUEST_TIME;
+
     parent::save();
     // Update the static cache from profile2_load_by_user().
     $cache = &drupal_static('profile2_load_by_user', array());

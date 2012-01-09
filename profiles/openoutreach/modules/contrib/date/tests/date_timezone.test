@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Timezone tests.
+ */
 class DateTimezoneTestCase extends DateFieldBasic {
   public static function getInfo() {
     return array(

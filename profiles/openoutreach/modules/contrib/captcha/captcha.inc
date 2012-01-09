@@ -264,15 +264,11 @@ function _captcha_get_captcha_placement($form_id, $form) {
     $placement_map = variable_get('captcha_placement_map_cache', NULL);
 
     if ($placement_map === NULL) {
-      // If second level cache missed: start from a fresh placement map.
-      $placement_map = array();
-
-      // This is the place to (pre)fill the placement map with some hard coded default entries.
-      // However, probably all Drupal core forms are correctly handled with the best effort
-      // guess based on the 'actions' element (see below). So not much to here at the moment.
-
-      // TODO: provide a hook here so other modules can inject placements here?
-      // TODO: also make the placement 'overridable' from the admin UI?
+      // If second level cache missed: initialize the placement map
+      // and let other modules hook into this with the hook_captcha_placement_map hook.
+      // By default however, probably all Drupal core forms are already correctly
+      // handled with the best effort guess based on the 'actions' element (see below).
+      $placement_map = module_invoke_all('captcha_placement_map');
     }
   }
 
@@ -353,7 +349,7 @@ function _captcha_search_buttons($form) {
  *       CAPTCHA element should be inserted.
  *     - 'key': the key of the element before which the CAPTCHA element
  *       should be inserted. If the field 'key' is undefined or NULL, the CAPTCHA will
- *       just be appended to the container.
+ *       just be appended in the container.
  *     - 'weight': if 'key' is not NULL: should be the weight of the element defined by 'key'.
  *       If 'key' is NULL and weight is not NULL: set the weight property of the CAPTCHA element
  *       to this value.

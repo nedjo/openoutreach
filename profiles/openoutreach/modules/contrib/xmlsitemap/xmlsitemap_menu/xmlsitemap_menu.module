@@ -86,6 +86,9 @@ function xmlsitemap_menu_xmlsitemap_process_menu_links(array $mlids, array $xmls
 
   foreach ($mlids as $mlid) {
     $menu_item = menu_link_load($mlid);
+    if (empty($menu_item)) {
+      continue;
+    }
     if (!empty($xmlsitemap)) {
       $menu_item['xmlsitemap'] = $xmlsitemap;
     }

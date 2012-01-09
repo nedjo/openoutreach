@@ -566,7 +566,7 @@ class date_sql_handler {
         $date->setTimezone(timezone_open($this->db_timezone));
         $this->local_timezone = $this->db_timezone;
       }
-      $value = "'" . $date->format(DATE_FORMAT_DATETIME, true) . "'";
+      $value = "'" . $date->format(DATE_FORMAT_DATETIME, TRUE) . "'";
     }
     if ($this->local_timezone != $this->db_timezone) {
       $field = $this->sql_field($field);

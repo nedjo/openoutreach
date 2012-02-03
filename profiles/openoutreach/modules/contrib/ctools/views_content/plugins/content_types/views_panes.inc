@@ -13,6 +13,7 @@ function views_content_views_panes_ctools_content_types() {
   return array(
     'title' => t('View panes'),
     'admin settings' => 'views_content_admin_form',
+    'all contexts' => TRUE,
   );
 }
 
@@ -274,7 +275,7 @@ function views_content_views_panes_content_type_render($subtype, $conf, $panel_a
   if ($allow['fields_override']) {
     if ($conf['fields_override']) {
       $fields = $view->get_items('field');
-      foreach ($conf['fields_override'] as $field => $display) {
+      foreach ($fields as $field => $display) {
         $fields[$field]['exclude'] = empty($conf['fields_override'][$field]);
       }
       $view->display_handler->set_option('fields', $fields);
@@ -608,7 +609,7 @@ function views_content_views_panes_content_type_admin_info($subtype, $conf, $con
     $block->title = array_shift($info);
 
     $info[] = $view->display_handler->get_option('pane_description');
-    $block->content = theme('item_list', $info);
+    $block->content = theme('item_list', array('items' => $info));
   }
   else {
     $block->title = $view->display_handler->get_option('pane_description');

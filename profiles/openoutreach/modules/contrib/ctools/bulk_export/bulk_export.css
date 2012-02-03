@@ -16,7 +16,7 @@ div.export-container table td {
   margin: 0;
   border-right: none;
   border-left: none;
-  vertical-align: center;
+  vertical-align: middle;
 }
 
 div.export-container .select-all {

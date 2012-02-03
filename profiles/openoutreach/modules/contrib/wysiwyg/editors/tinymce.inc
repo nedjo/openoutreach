@@ -409,7 +409,7 @@ function wysiwyg_tinymce_plugins($editor) {
     'advimage' => array(
       'path' => $editor['library path'] . '/plugins/advimage',
       'extensions' => array('advimage' => t('Advanced image')),
-      'extended_valid_elements' => array('img[src|alt|title|align|width|height|usemap|hspace|vspace|border|style|class|onmouseover|onmouseout|id|name]'),
+      'extended_valid_elements' => array('img[src|alt|title|align|width|height|usemap|hspace|vspace|border|style|class|onmouseover|onmouseout|id|name|longdesc]'),
       'url' => 'http://www.tinymce.com/wiki.php/Plugin:advimage',
       'internal' => TRUE,
       'load' => TRUE,

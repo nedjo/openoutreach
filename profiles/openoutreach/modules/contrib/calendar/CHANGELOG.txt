@@ -5,6 +5,7 @@ Calendar Module 7.x
 Version 7.x-3.x-dev
 ===================
 
+- Issue #1411862, Add calendar templates for all date fields.
 - Issue #1354560, Add a new plugin that works for all entities, not just nodes and mark the old one as deprecated.
 - Follow up to Issue #1302052 by benjifisher, More clean up of ical line endings.
 

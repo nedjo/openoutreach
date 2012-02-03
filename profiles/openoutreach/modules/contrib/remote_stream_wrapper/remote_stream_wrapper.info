@@ -8,9 +8,9 @@ suggests[] = file
 suggests[] = media
 suggests[] = image
 
-; Information added by drupal.org packaging script on 2011-12-13
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2012-01-27
+version = "7.x-1.0-beta2+5-dev"
 core = "7.x"
 project = "remote_stream_wrapper"
-datestamp = "1323736781"
+datestamp = "1327625313"
 

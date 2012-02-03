@@ -154,9 +154,15 @@ function media_import($form, &$form_state) {
       '#description' => 'Only files matching this pattern will be imported.',
     );
 
-    $form['submit'] = array(
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Preview')
+    );
+    $form['actions']['cancel'] = array(
+      '#type' => 'link',
+      '#title' => t('Cancel'),
+      '#href' => isset($_GET['destination']) ? $_GET['destination'] : 'admin/content/file',
     );
   }
   else {

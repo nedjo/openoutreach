@@ -621,3 +621,10 @@ function media_update_7201() {
   }
   return t('The "Media" field type has been moved to the new "Media Field" module. File fields can be used to store media.');
 }
+
+/**
+ * Enable the Views module if it is not already enabled.
+ */
+function media_update_7202() {
+  module_enable(array('views'));
+}

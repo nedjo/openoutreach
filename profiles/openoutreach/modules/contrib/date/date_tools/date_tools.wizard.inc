@@ -5,109 +5,111 @@
  * The Date Wizard code.
  */
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_form() {
-
   $form = array();
   $form['type'] = array(
     '#type' => 'fieldset',
     '#title' => t('Content type'),
-    );
+  );
   $form['type']['bundle'] = array(
     '#type' => 'textfield',
     '#default_value' => 'date',
     '#title' => t('Content type name'),
     '#description' => t('Machine-readable name. Allowed values: (a-z, 0-9, _). If this is not an existing content type, the content type will be created.'),
-    );
+  );
   $form['type']['name'] = array(
     '#type' => 'textfield',
     '#default_value' => t('Date'),
     '#title' => t('Content type label'),
     '#description' => t('The human-readable name for this content type. Only needed when creating a new content type.'),
-    );
+  );
   $form['type']['type_description'] = array(
     '#type' => 'textarea',
     '#default_value' => t('A date content type that is linked to a Views calendar.'),
     '#title' => t('Content type description'),
     '#description' => t('A description for the content type. Only needed when creating a new content type.'),
-    );
+  );
   $form['field'] = array(
     '#type' => 'fieldset',
     '#title' => t('Date field'),
-    );
+  );
   $form['field']['field_name'] = array(
     '#type' => 'textfield',
     '#default_value' => 'date',
     '#field_prefix' => 'field_',
     '#title' => t('Date field name'),
     '#description' => t('Machine-readable name. Allowed values: (a-z, 0-9, _) Must not be an existing field name.'),
-    );
+  );
   $form['field']['label'] = array(
     '#tree' => TRUE,
     '#type' => 'textfield',
     '#default_value' => t('Date'),
     '#title' => t('Date field label'),
     '#description' => t('The human-readable label for this field.'),
-    );
+  );
   $form['field']['widget_type'] = array(
     '#type' => 'select',
     '#options' => date_tools_wizard_widget_types(),
     '#default_value' => 'date_select',
     '#title' => t('Date widget type'),
-    );
+  );
   $form['field']['repeat'] = array(
     '#type' => 'select',
     '#default_value' => 0,
     '#options' => array(0 => t('No'), 1 => t('Yes')),
     '#title' => t('Show repeating date options'),
     '#access' => module_exists('date_repeat_field'),
-    );
+  );
   $form['field']['advanced'] = array(
     '#type' => 'fieldset',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#title' => t('Advanced options'),
-    );
+  );
   $form['field']['advanced']['todate'] = array(
     '#type' => 'select',
     '#default_value' => 'optional',
     '#options' => array('' => t('Never'), 'optional' => t('Optional'), 'required' => t('Required')),
     '#title' => t('End Date'),
     '#description' => t("Display a matching second date field as a 'End date'."),
-    );
+  );
   $form['field']['advanced']['field_type'] = array(
     '#type' => 'select',
     '#options' => date_tools_wizard_field_types(),
     '#default_value' => 'datetime',
     '#title' => t('Date field type'),
     '#description' => t("The recommend type is Datetime, except for historical dates or dates with only year or month granularity. Older or incomplete dates should use the Date type (an ISO date)."),
-    );
+  );
   $form['field']['advanced']['granularity'] = array(
     '#type' => 'select',
     '#options' => date_granularity_names(),
     '#default_value' => array('month', 'day', 'year', 'hour', 'minute'),
     '#title' => t('Granularity'),
     '#multiple' => TRUE,
-    );
+  );
   $form['field']['advanced']['year_range'] = array(
     '#type' => 'textfield',
     '#default_value' => '-1:+1',
     '#title' => t('Year range'),
     '#description' => t("Range of allowed years, oldest to newest. '-1:+1 means oldest date is one year back, newest is one year forward from current year."),
-    );
+  );
   $form['field']['advanced']['tz_handling'] = array(
     '#type' => 'select',
     '#options' => date_tools_wizard_tz_handling(),
     '#default_value' => 'site',
     '#title' => t('Date timezone handling'),
-    '#description' => t("Timezone handling should be set to 'none' for granularity without time elements.")
-    );
+    '#description' => t("Timezone handling should be set to 'none' for granularity without time elements."),
+  );
   $form['calendar'] = array(
     '#type' => 'select',
     '#default_value' => 1,
     '#options' => array(0 => t('No'), 1 => t('Yes')),
     '#title' => t('Create a calendar for this date field'),
     '#access' => module_exists('calendar'),
-    );
+  );
   $current_theme = variable_get('theme_default', 'garland');
   $options = array('' => t('None')) + system_region_list($current_theme);
   $form['blocks'] = array(
@@ -116,16 +118,19 @@ function date_tools_wizard_form() {
     '#default_value' => 0,
     '#title' => t('Add calendar blocks to a region'),
     '#access' => module_exists('calendar'),
-    );
+  );
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
-    );
+  );
 
   return $form;
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_form_validate(&$form, &$form_state) {
   $bundle = $form_state['values']['bundle'];
   $field_name = 'field_' . $form_state['values']['field_name'];
@@ -151,12 +156,18 @@ function date_tools_wizard_form_validate(&$form, &$form_state) {
   }
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_form_submit(&$form, &$form_state) {
   $view_name = date_tools_wizard_build($form_state['values']);
   menu_rebuild();
   $form_state['redirect'] = 'admin/structure/types/manage/' . str_replace('_', '-', $form_state['values']['bundle']) . '/fields';
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_build($form_values) {
   extract($form_values);
 
@@ -212,9 +223,9 @@ function date_tools_wizard_build($form_values) {
       // Increment for minutes and seconds, can be 1, 5, 10, 15, or 30.
       'settings' => array(
         'increment' => 15,
-        // The number of years to go back and forward in drop-down year selectors.
+        // The number of years to go back and forward in drop-down year
+        // selectors.
         'year_range' => !empty($year_range) ? $year_range : '-0:+1',
-
         'input_format' => date_default_format($widget_type),
         'text_parts' => array(),
         'label_position' => 'above',
@@ -225,7 +236,7 @@ function date_tools_wizard_build($form_values) {
     'settings' => array(
       'default_value' => 'now',
       'default_value2' => 'blank',
-    )
+    ),
   );
 
   $instance['display'] = array(
@@ -262,7 +273,6 @@ function date_tools_wizard_build($form_values) {
   $field = field_create_field($field);
   $instance = field_create_instance($instance);
 
-  //_field_info_collate_fields(TRUE);
   field_info_cache_clear(TRUE);
   field_cache_clear(TRUE);
 
@@ -280,9 +290,11 @@ function date_tools_wizard_build($form_values) {
   drupal_set_message(t('Your date field @name has been created.', array('@name' => $label)));
 
   return $view_name;
-
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_include() {
   module_load_include('inc', 'node', 'content_types');
   module_load_include('inc', 'node', 'node.pages');
@@ -290,14 +302,20 @@ function date_tools_wizard_include() {
   module_load_include('inc', 'date', 'date_admin');
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_field_types() {
   $field_types = array();
   foreach (date_field_info() as $name => $info) {
-    $field_types[$name] = $info['label']; //. ' - ' . $info['description'];
+    $field_types[$name] = $info['label'];
   }
   return $field_types;
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_widget_types() {
   $widget_types = array();
   foreach (date_field_widget_info() as $name => $info) {
@@ -308,11 +326,17 @@ function date_tools_wizard_widget_types() {
   return $widget_types;
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_tz_handling() {
-  include_once(drupal_get_path('module', 'date') . '/date_admin.inc');
+  include_once drupal_get_path('module', 'date') . '/date_admin.inc';
   return date_timezone_handling_options();
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_create_content_type($name, $bundle, $description, $type_settings = array()) {
 
   date_tools_wizard_include();
@@ -385,6 +409,9 @@ function date_tools_wizard_create_content_type($name, $bundle, $description, $ty
 
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_create_calendar($name, $bundle, $date_field, $date_instance) {
 
   $date_name = !empty($date_field) ? $date_field['field_name'] : '';
@@ -429,6 +456,9 @@ function date_tools_wizard_create_calendar($name, $bundle, $date_field, $date_in
   return 'cal_' . $bundle;
 }
 
+/**
+ * @todo.
+ */
 function date_tools_wizard_create_blocks($bundle, $region) {
   // Add calendar blocks to the default theme.
   $current_theme = variable_get('theme_default', 'garland');

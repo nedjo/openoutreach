@@ -246,7 +246,7 @@ function ctools_context_add_item_table($type, &$form, $available_contexts, $item
 }
 
 function ctools_context_add_item_table_buttons($type, $module, &$form, $available_contexts) {
-  drupal_add_js('misc/ajax.js');
+  drupal_add_library('system', 'drupal.ajax');
   $form['buttons'] = array(
     '#tree' => TRUE,
   );

@@ -283,7 +283,7 @@ function media_format_form($form, $form_state, $file) {
   $view_modes = $entity_info['view modes'];
   drupal_alter('media_wysiwyg_allowed_view_modes', $view_modes, $file);
 
-  $options = array();
+  $formats = $options = array();
   foreach ($view_modes as $view_mode => $view_mode_info) {
     // Don't present the user with an option to choose a view mode in which the
     // file is hidden.

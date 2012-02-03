@@ -133,6 +133,58 @@ class view extends views_db_object {
   var $base_database = NULL;
 
   /**
+   * Here comes a list of the possible handler which are active on this view.
+   */
+
+  /**
+   * Stores the field handlers which are initialized on this view.
+   * @var array[views_handler_field]
+   */
+  var $field;
+
+  /**
+   * Stores the argument handlers which are initialized on this view.
+   * @var array[views_handler_argument]
+   */
+  var $argument;
+
+  /**
+   * Stores the sort handlers which are initialized on this view.
+   * @var array[views_handler_sort]
+   */
+  var $sort;
+
+  /**
+   * Stores the filter handlers which are initialized on this view.
+   * @var array[views_handler_filter]
+   */
+  var $filter;
+
+  /**
+   * Stores the relationship handlers which are initialized on this view.
+   * @var array[views_handler_relationship]
+   */
+  var $relationship;
+
+  /**
+   * Stores the area handlers for the header which are initialized on this view.
+   * @var array[views_handler_area]
+   */
+  var $header;
+
+  /**
+   * Stores the area handlers for the footer which are initialized on this view.
+   * @var array[views_handler_area]
+   */
+  var $footer;
+
+  /**
+   * Stores the area handlers for the empty text which are initialized on this view.
+   * @var array[views_handler_area]
+   */
+  var $empty;
+
+  /**
    * Constructor
    */
   function __construct() {
@@ -1165,19 +1217,17 @@ class view extends views_db_object {
     views_set_current_view($this);
     $display_id = $this->current_display;
 
-    // Let modules modify the view just prior to executing it.
-    foreach (module_implements('views_pre_view') as $module) {
-      $function = $module . '_views_pre_view';
-      $function($this, $display_id, $args);
-    }
-
     // Prepare the view with the information we have, but only if we were
     // passed arguments, as they may have been set previously.
     if ($args) {
       $this->set_arguments($args);
     }
 
-//    $this->attach_displays();
+    // Let modules modify the view just prior to executing it.
+    foreach (module_implements('views_pre_view') as $module) {
+      $function = $module . '_views_pre_view';
+      $function($this, $display_id, $this->args);
+    }
 
     // Allow the display handler to set up for execution
     $this->display_handler->pre_execute();
@@ -1902,6 +1952,8 @@ class view extends views_db_object {
  * Base class for views' database objects.
  */
 class views_db_object {
+  public $db_table;
+
   /**
    * Initialize this object, setting values from schema defaults.
    *

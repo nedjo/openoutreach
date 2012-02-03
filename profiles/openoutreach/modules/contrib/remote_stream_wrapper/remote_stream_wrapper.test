@@ -84,6 +84,7 @@ class RemoteStreamWrapperTestCase extends DrupalWebTestCase {
     $file = remote_stream_wrapper_file_load_by_uri($files[0]->uri);
     $this->assertFalse($file, 'Remote file not yet saved as a managed file.');
     $file = remote_stream_wrapper_file_create_by_uri($files[0]->uri);
+    file_save($file);
     $this->assertTrue(!empty($file->fid), 'Remote file saved successfully.');
     $this->assertEqual($file->filesize, filesize($files[0]->original_uri));
     $this->assertEqual($file->filemime, file_get_mimetype($files[0]->original_uri));
@@ -103,6 +104,7 @@ class RemoteStreamWrapperTestCase extends DrupalWebTestCase {
   function testRemoteImageStyles() {
     $files = $this->drupalGetTestFiles('image');
     $file = remote_stream_wrapper_file_create_by_uri($files[0]->uri);
+    file_save($file);
     $generated_uri = remote_stream_wrapper_image_style_path('thumbnail', $file->uri);
 
     $output = theme('image_style', array('style_name' => 'thumbnail', 'path' => $file->uri));

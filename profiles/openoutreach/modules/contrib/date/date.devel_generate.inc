@@ -1,10 +1,12 @@
 <?php
+
 /**
  * @file
  * Date Devel Generate code.
  */
+
 /**
- * Implementation of Devel module's hook_content_generate().
+ * Implements hook_devel_generate().
  *
  * Included only when needed.
  */

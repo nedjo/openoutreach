@@ -84,6 +84,9 @@ function page_manager_node_view_page($node) {
   // Load the node into a context.
   ctools_include('context');
   ctools_include('context-task-handler');
+
+  // We need to mimic Drupal's behavior of setting the node title here.
+  drupal_set_title($node->title);
   $contexts = ctools_context_handler_get_task_contexts($task, '', array($node));
 
   $output = ctools_context_handler_render($task, '', $contexts, array($node->nid));

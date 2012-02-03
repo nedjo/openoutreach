@@ -87,9 +87,10 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
                       $replacements = array(
                         '@to_entity' => $to_entity_info['label'],
                         '@from_entity' => $from_entity_info['label'],
-                        '@field_name' => ctools_field_label($field_name),
+                        '@field_name' => $field_name,
+                        '@field_label' => ctools_field_label($field_name),
                       );
-                      $plugin['title'] = t('@to_entity from @from_entity (on @from_entity: @field_name)', $replacements);
+                      $plugin['title'] = t('@to_entity from @from_entity (on @from_entity: @field_label [@field_name])', $replacements);
                       $plugin['keyword'] = $to_entity;
                       $plugin['context name'] = $name;
                       $plugin['name'] = $plugin_id;

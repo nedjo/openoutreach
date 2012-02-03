@@ -43,7 +43,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
    */
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     $options = array();
     foreach ($fields['name'] as $name => $field) {
       $options[$name] = $field['label'];
@@ -97,7 +97,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
 
   // Update the summary values to show selected granularity.
   function admin_summary() {
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     if (!empty($this->options['date_fields'])) {
       $output = array();
       foreach ($this->options['date_fields'] as $field) {
@@ -177,7 +177,7 @@ class date_views_argument_handler extends date_views_argument_handler_simple {
    * Collect information about our fields we will need to create the right query.
    */
   function get_query_fields() {
-    $fields = date_views_fields($this->view->base_table);
+    $fields = date_views_fields($this->base_table);
     $fields = $fields['name'];
     $this->query_fields = array();
     foreach ($this->options['date_fields'] as $delta => $name) {

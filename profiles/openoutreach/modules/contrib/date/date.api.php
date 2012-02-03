@@ -71,8 +71,9 @@ function hook_date_formatter_dates_alter(&$dates, $context) {
  *   The array of input values to be validated.
  */
 function hook_date_text_pre_validate_alter(&$element, &$form_state, &$input) {
-  // Let Date module massage the format for all day values so they will pass validation.
-  // The All day flag, if used, actually exists on the parent element.
+  // Let Date module massage the format for all day values so they will pass
+  // validation. The All day flag, if used, actually exists on the parent
+  // element.
   date_all_day_value($element, $form_state);
 }
 
@@ -87,8 +88,9 @@ function hook_date_text_pre_validate_alter(&$element, &$form_state, &$input) {
  *   The array of input values to be validated.
  */
 function hook_date_select_pre_validate_alter(&$element, &$form_state, &$input) {
-  // Let Date module massage the format for all day values so they will pass validation.
-  // The All day flag, if used, actually exists on the parent element.
+  // Let Date module massage the format for all day values so they will pass
+  // validation. The All day flag, if used, actually exists on the parent
+  // element.
   date_all_day_value($element, $form_state);
 }
 
@@ -103,8 +105,9 @@ function hook_date_select_pre_validate_alter(&$element, &$form_state, &$input) {
  *   The array of input values to be validated.
  */
 function hook_date_popup_pre_validate_alter(&$element, &$form_state, &$input) {
-  // Let Date module massage the format for all day values so they will pass validation.
-  // The All day flag, if used, actually exists on the parent element.
+  // Let Date module massage the format for all day values so they will pass
+  // validation. The All day flag, if used, actually exists on the parent
+  // element.
   date_all_day_value($element, $form_state);
 }
 
@@ -126,8 +129,8 @@ function hook_date_combo_pre_validate_alter(&$element, &$form_state, $context) {
 
     $field = $context['field'];
 
-    // If we have an all day flag on this date and the time is empty,
-    // change the format to match the input value so we don't get validation errors.
+    // If we have an all day flag on this date and the time is empty, change the
+    // format to match the input value so we don't get validation errors.
     $element['#date_is_all_day'] = TRUE;
     $element['value']['#date_format'] = date_part_format('date', $element['value']['#date_format']);
     if (!empty($field['settings']['todate'])) {
@@ -154,10 +157,10 @@ function hook_date_combo_pre_validate_alter(&$element, &$form_state, $context) {
  *  - element: The $element array.
  */
 function hook_date_combo_validate_date_start_alter(&$date, &$form_state, $context) {
-   // If this is an 'All day' value, set the time to midnight.
-   if (!empty($context['element']['#date_is_all_day'])) {
-     $date->setTime(0, 0, 0);
-   }
+  // If this is an 'All day' value, set the time to midnight.
+  if (!empty($context['element']['#date_is_all_day'])) {
+    $date->setTime(0, 0, 0);
+  }
 }
 
 /**
@@ -178,10 +181,10 @@ function hook_date_combo_validate_date_start_alter(&$date, &$form_state, $contex
  *  - element: The $element array.
  */
 function hook_date_combo_validate_date_end_alter(&$date, &$form_state, $context) {
-   // If this is an 'All day' value, set the time to midnight.
-   if (!empty($context['element']['#date_is_all_day'])) {
-     $date->setTime(0, 0, 0);
-   }
+  // If this is an 'All day' value, set the time to midnight.
+  if (!empty($context['element']['#date_is_all_day'])) {
+    $date->setTime(0, 0, 0);
+  }
 }
 
 /**
@@ -212,7 +215,7 @@ function hook_date_select_process_alter(&$element) {
   // Hide or show the element in reaction to the all_day status for the element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '') {
-    foreach(array('hour', 'minute', 'second', 'ampm') as $field) {
+    foreach (array('hour', 'minute', 'second', 'ampm') as $field) {
       if (array_key_exists($field, $element)) {
         $element[$field]['#states'] = array(
           'visible' => array(
@@ -387,7 +390,7 @@ function hook_date_field_formatter_settings_form_alter(&$form, &$form_state, $co
       '#title' => t('Repeat rule:'),
       '#type' => 'select',
       '#options' => array(
-        'show' => t('Display repeat rule'),
+        'show' => t('Show repeat rule'),
         'hide' => t('Hide repeat rule')),
       '#default_value' => $settings['show_repeat_rule'],
       '#access' => $field['settings']['repeat'],
@@ -399,7 +402,7 @@ function hook_date_field_formatter_settings_form_alter(&$form, &$form_state, $co
 /**
  * Alter a date field formatter settings summary.
  *
- * @param array $form
+ * @param array $summary
  *   An array of strings to be concatenated into a short summary of the
  *   formatter settings.
  * @param array $context
@@ -417,12 +420,12 @@ function hook_date_field_formatter_settings_summary_alter(&$summary, $context) {
   $display = $instance['display'][$view_mode];
   $formatter = $display['type'];
   $settings = $display['settings'];
-  if (array_key_exists('show_repeat_rule', $settings) && !empty($field['settings']['repeat'])) {
-    if (!empty($settings['show_repeat_rule'])) {
+  if (isset($settings['show_repeat_rule']) && !empty($field['settings']['repeat'])) {
+    if ($settings['show_repeat_rule'] == 'show') {
       $summary[] = t('Show repeat rule');
     }
     else {
-      $summary[] = t('Do not show repeat rule');
+      $summary[] = t('Hide repeat rule');
     }
   }
 }

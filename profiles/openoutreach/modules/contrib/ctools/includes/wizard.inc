@@ -34,9 +34,6 @@
  * Remember that the form builders for this form will receive
  * &$form, &$form_state, NOT just &$form_state and no additional args.
  *
- * Do NOT use #required => TRUE with these forms as that validation
- * cannot be skipped for the CANCEL button.
- *
  * @param $form_info
  *   An array of form info. @todo document the array.
  * @param $step

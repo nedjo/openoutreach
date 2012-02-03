@@ -119,7 +119,10 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     $field_settings['settings'] = $conf['formatter_settings'];
   }
 
-  $all_values = $entity->{$field_name}[$language];
+  $all_values = field_get_items($entity_type, $entity, $field_name, $language);
+  if (!is_array($all_values)) {
+    $all_values = array();
+  }
 
   // Reverse values.
   if (isset($conf['delta_reversed']) && $conf['delta_reversed']) {
@@ -147,8 +150,9 @@ function ctools_entity_field_content_type_render($subtype, $conf, $panel_args, $
     $all_values = $new_values;
   }
 
-  $entity->{$field_name}[$language] = $all_values;
-  $field_output = field_view_field($entity_type, $entity, $field_name, $field_settings, $language);
+  $clone = clone $entity;
+  $clone->{$field_name}[$language] = $all_values;
+  $field_output = field_view_field($entity_type, $clone, $field_name, $field_settings, $language);
 
   // Build the content type block.
   $block = new stdClass();

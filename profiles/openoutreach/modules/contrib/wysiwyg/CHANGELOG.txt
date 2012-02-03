@@ -1,6 +1,9 @@
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+#1352426 by TwoD, sun: Added install notes (CKEditor edition clarification).
+#1112212 by timdiacon, TwoD: Added language direction buttons for CKEditor.
+#1398560 by markwittens: Fixed TinyMCE removing the longdesc attribute.
 #970452 by smk-ka, sun, TwoD, drzraf: Fixed outdated TinyMCE plugin info.
 #1155678 by james.elliott, Jody Lynn, sun: Add Drupal.detachBehaviors support.
 #624018 by smk-ka, quartsize, dagmar, nedjo, rickvug, catch, sun: Added Features support.

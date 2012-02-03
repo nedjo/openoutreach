@@ -51,7 +51,6 @@ SOCIAL NETWORKS
 ********************************************************************************
 Here's a list of the currently supported social networks:
  - Facebook
- - Google+
  - Virb
  - MySpace
  - Twitter

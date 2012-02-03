@@ -175,6 +175,12 @@ class views_handler extends views_object {
   public $table_alias;
 
   /**
+   * The actual field in the database table, maybe different
+   * on other kind of query plugins/special handlers.
+   */
+  var $real_field;
+
+  /**
    * init the handler with necessary data.
    * @param $view
    *   The $view object this handler is attached to.
@@ -284,9 +290,11 @@ class views_handler extends views_object {
     // If grouping, check to see if the aggregation method needs to modify the field.
     if ($this->view->display_handler->use_group_by()) {
       $this->view->init_query();
-      $info = $this->query->get_aggregation_info();
-      if (!empty($info[$this->options['group_type']]['method']) && function_exists($info[$this->options['group_type']]['method'])) {
-        return $info[$this->options['group_type']]['method']($this->options['group_type'], $field);
+      if ($this->query) {
+        $info = $this->query->get_aggregation_info();
+        if (!empty($info[$this->options['group_type']]['method']) && function_exists($info[$this->options['group_type']]['method'])) {
+          return $info[$this->options['group_type']]['method']($this->options['group_type'], $field);
+        }
       }
     }
 

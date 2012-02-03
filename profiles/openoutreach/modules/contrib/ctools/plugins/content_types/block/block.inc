@@ -126,6 +126,10 @@ function _ctools_get_block_info($module, $delta) {
   if (isset($blocks[$key])) {
     return $blocks[$key];
   }
+  $info = new stdClass;
+  $info->module = $module;
+  $info->delta = $delta;
+  return $info;
 }
 
 /**

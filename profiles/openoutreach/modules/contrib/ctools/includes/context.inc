@@ -106,6 +106,12 @@ class ctools_context_required {
   var $required = TRUE;
 
   /**
+   * If TRUE, skip the check in ctools_context_required::select()
+   * for contexts whose names may have changed.
+   */
+  var $skip_name_check = FALSE;
+
+  /**
    *
    * @param $title
    *   The first parameter should be the 'title' of the context for use
@@ -116,6 +122,11 @@ class ctools_context_required {
   function ctools_context_required($title) {
     $args = func_get_args();
     $this->title = array_shift($args);
+
+    // If we have a boolean value at the end for $skip_name_check, store it
+    if (is_bool(end($args))) {
+      $this->skip_name_check = array_pop($args);
+    }
 
     // If we were given restrictions at the end, store them.
     if (count($args) > 1 && is_array(end($args))) {
@@ -165,7 +176,7 @@ class ctools_context_required {
     // in our context list, there is a good chance that what happened
     // is our context IDs changed. See if there's another context
     // that satisfies our requirements.
-    if (!empty($context) && !isset($contexts[$context])) {
+    if (!$this->skip_name_check && !empty($context) && !isset($contexts[$context])) {
       $choices = $this->filter($contexts);
 
       // If we got a hit, take the first one that matches.

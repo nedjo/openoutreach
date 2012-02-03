@@ -413,6 +413,11 @@ function wysiwyg_profile_overview($form, &$form_state) {
       $instructions = '<p>' . t('Extract the archive and copy its contents into a new folder in the following location:<br /><code>@editor-path</code>', $targs) . '</p>';
       $instructions .= '<p>' . t('So the actual library can be found at:<br /><code>@library-filepath</code>', $targs) . '</p>';
 
+      // Add any install notes.
+      if (!empty($editor['install note callback']) && function_exists($editor['install note callback'])) {
+        $instructions .= '<div class="editor-install-note">' . $editor['install note callback']() . '</div>';
+      }
+
       $status[$name]['description'] .= $instructions;
       $count--;
     }

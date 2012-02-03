@@ -24,15 +24,15 @@ function ctools_vocabulary_terms_content_type_render($subtype, $conf, $panel_arg
   $vocab = isset($context->data) ? clone($context->data) : NULL;
   $max_depth = (!empty($conf['max_depth']) ? (int)$conf['max_depth'] : NULL);
   if ($conf['tree'] == FALSE) {
-    $terms = taxonomy_get_tree($vocab->vid, 0, -1, $max_depth);
+    $terms = taxonomy_get_tree($vocab->vid, 0, $max_depth);
     $items = array();
     foreach ($terms as $term) {
       $items[] = l($term->name, 'taxonomy/term/' . $term->tid);
     }
-    $output = theme('item_list', $items);
+    $output = theme('item_list', array('items' => $items));
   }
   else {
-    $output = theme('item_list', _ctools_content_vocabulary_terms($vocab->vid, $max_depth));
+    $output = theme('item_list', array('items' => _ctools_content_vocabulary_terms($vocab->vid, $max_depth)));
   }
 
   $block = new stdClass();

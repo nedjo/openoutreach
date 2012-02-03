@@ -23,6 +23,11 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
     $this->form_submitted = FALSE;
     $this->date_handler->granularity = isset($options['granularity']) ? $options['granularity'] : 'day';
     $this->format = $this->date_handler->views_formats($this->options['granularity'], 'sql');
+
+    // Identify the base table for this field.
+    // It will be used to call for the right query field options.
+    $this->base_table = $this->table;
+
   }
 
   // Set default values for the date filter.
@@ -117,17 +122,21 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
     }
 
     $min_value = $this->get_filter_value('min', $this->value['min']);
+    $min_comp_date = new DateObject($min_value, date_default_timezone(), $this->format);
     $max_value = $this->get_filter_value('max', $this->value['max']);
-    $field = $this->date_handler->sql_field($field);
-    $field = $this->date_handler->sql_format($this->format, $field);
+    $max_comp_date = new DateObject($max_value, date_default_timezone(), $this->format);
+    $field_min = $this->date_handler->sql_field($field, NULL, $min_comp_date);
+    $field_min = $this->date_handler->sql_format($this->format, $field_min);
+    $field_max = $this->date_handler->sql_field($field, NULL, $max_comp_date);
+    $field_max = $this->date_handler->sql_format($this->format, $field_max);
     $placeholder_min = $this->placeholder();
     $placeholder_max = $this->placeholder();
     $group = !empty($this->options['date_group']) ? $this->options['date_group'] : $this->options['group'];
     if ($this->operator == 'between') {
-      $this->query->add_where_expression($group, "$field >= $placeholder_min AND $field <= $placeholder_max", array($placeholder_min => $min_value, $placeholder_max => $max_value));
+      $this->query->add_where_expression($group, "$field_min >= $placeholder_min AND $field_max <= $placeholder_max", array($placeholder_min => $min_value, $placeholder_max => $max_value));
     }
     else {
-      $this->query->add_where_expression($group, "$field <= $placeholder_min OR $field >= $placeholder_max", array($placeholder_min => $min_value, $placeholder_max => $max_value));
+      $this->query->add_where_expression($group, "$field_min < $placeholder_min OR $field_max > $placeholder_max", array($placeholder_min => $min_value, $placeholder_max => $max_value));
     }
   }
 
@@ -140,7 +149,8 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
     }
 
     $value = $this->get_filter_value('value', $this->value['value']);
-    $field = $this->date_handler->sql_field($field);
+    $comp_date = new DateObject($value, date_default_timezone(), $this->format);
+    $field = $this->date_handler->sql_field($field, NULL, $comp_date);
     $field = $this->date_handler->sql_format($this->format, $field);
     $placeholder = $this->placeholder();
     $group = !empty($this->options['date_group']) ? $this->options['date_group'] : $this->options['group'];

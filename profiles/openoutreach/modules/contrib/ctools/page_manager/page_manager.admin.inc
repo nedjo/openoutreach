@@ -1087,7 +1087,7 @@ function page_manager_edit_page_cancel(&$form_state) {
  * - - 'collapsible': If TRUE the collapsible tool will be used.
  */
 function page_manager_render_operations(&$page, $operations, $active_trail, $attributes, $location, $parents = array()) {
-  drupal_add_js('misc/ajax.js');
+  drupal_add_library('system', 'drupal.ajax');
 
   if (!isset($output[$location])) {
     $output[$location] = '';

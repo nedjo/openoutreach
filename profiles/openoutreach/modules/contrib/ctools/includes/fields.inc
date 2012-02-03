@@ -110,7 +110,7 @@ function ctools_fields_get_field_formatter_settings_form($field, $formatter_type
       '#default_value' => $conf['delta_reversed'],
       '#description' => t('(start from last values)'),
     );
-  } 
+  }
 }
 
 /**
@@ -286,4 +286,23 @@ function ctools_field_invoke_field($field_name, $op, $entity_type, $entity, &$a 
 function ctools_field_invoke_field_default($field_name, $op, $entity_type, $entity, &$a = NULL, &$b = NULL, $options = array()) {
   $options['default'] = TRUE;
   return ctools_field_invoke_field($field_name, $op, $entity_type, $entity, $a, $b, $options);
+}
+
+/**
+ * Returns a list of field definitions of a specified type.
+ *
+ * @param string $field_type
+ *   A field type name; e.g. 'text' or 'date'.
+ *
+ * @return array
+ *   An array of field definitions of the specified type, keyed by field name.
+ */
+function ctools_fields_get_fields_by_type($field_type) {
+  $fields = array();
+  foreach (field_info_fields() as $field_name => $field_info) {
+    if ($field_info['type'] == $field_type) {
+      $fields[$field_name] = $field_info;
+    }
+  }
+  return $fields;
 }

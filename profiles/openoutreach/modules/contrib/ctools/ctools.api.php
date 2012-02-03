@@ -14,6 +14,22 @@
  */
 
 /**
+ * Inform CTools about plugin types.
+ *
+ * @return array
+ *  An array of plugin types, keyed by the type name.
+ *  See the advanced help topic 'plugins-creating' for details of the array
+ *  properties.
+ */
+function hook_ctools_plugin_type() {
+  $plugins['my_type'] = array(
+    'load themes' => TRUE,
+  );
+
+  return $plugins;
+}
+
+/**
  * This hook is used to inform the CTools plugin system about the location of a
  * directory that should be searched for files containing plugins of a
  * particular type. CTools invokes this same hook for all plugins, using the
@@ -130,6 +146,32 @@ function hook_ctools_plugin_post_alter(&$plugin, &$info) {
 function hook_ctools_math_expression_functions_alter(&$functions) {
   // Allow to convert from degrees to radiant.
   $functions[] = 'deg2rad';
+}
+
+/**
+ * Alter everything.
+ *
+ * @param $info
+ *   An associative array containing the following keys:
+ *   - content: The rendered content.
+ *   - title: The content's title.
+ *   - no_blocks: A boolean to decide if blocks should be displayed.
+ * @param $page
+ *   If TRUE then this renderer owns the page and can use theme('page')
+ *   for no blocks; if false, output is returned regardless of any no
+ *   blocks settings.
+ * @param $context
+ *   An associative array containing the following keys:
+ *   - args: The raw arguments behind the contexts.
+ *   - contexts: The context objects in use.
+ *   - task: The task object in use.
+ *   - subtask: The subtask object in use.
+ *   - handler: The handler object in use.
+ */
+function hook_ctools_render_alter(&$info, &$page, &$context) {
+  if ($context['handler']->name == 'my_handler') {
+    ctools_add_css('my_module.theme', 'my_module');
+  }
 }
 
 /**

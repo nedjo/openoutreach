@@ -19,8 +19,8 @@ function media_internet_media_browser_plugin_info() {
   $plugins['media_internet'] = array(
     'title' => t('Web'),
     'handler' => array(
-      'path' => drupal_get_path('module', 'media_internet'),
-      'file' => 'media_internet.module',
+      'path' => drupal_get_path('module', 'media_internet') . '/includes',
+      'file' => 'MediaBrowserInternet.inc',
       'class' => 'MediaBrowserInternet',
     ),
     'access callback' => 'media_internet_access',
@@ -33,21 +33,6 @@ function media_internet_media_browser_plugin_info() {
  */
 function media_internet_access() {
   return user_access('administer media') || user_access('add media from remote sources');
-}
-
-class MediaBrowserInternet extends MediaBrowserPlugin {
-
-  function view() {
-    // @todo: implement the multiselect argument here.
-    $from_web_form = drupal_get_form('media_internet_add',  $this->params['types'], $this->params['multiselect']);
-    return array(
-      'form' => array($from_web_form),
-      '#attached' => array(
-        //'js' => array($path . '/js/plugins/media.fromurl.js'),
-      ),
-    );
-  }
-
 }
 
 /**
@@ -113,7 +98,10 @@ function media_internet_add($form, &$form_state = array(), $types = NULL) {
   }
 
   $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Submit'));
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
   return $form;
 }
 
@@ -306,11 +294,25 @@ class MediaInternetFileHandler extends MediaInternetBaseHandler {
   }
 
   public function claim($embedCode) {
-    $supported_schemes = media_variable_get('fromurl_supported_schemes');
-    $scheme = file_uri_scheme($embedCode);
-    if (in_array($scheme, $supported_schemes)) {
-      return TRUE;
+    // Claim only valid URLs using a supported scheme.
+    if (!valid_url($embedCode, TRUE) || !in_array(file_uri_scheme($embedCode), media_variable_get('fromurl_supported_schemes'))) {
+      return FALSE;
     }
+
+    // This handler is intended for regular files, so don't claim URLs
+    // containing query strings or fragments.
+    if (preg_match('/[\?\#]/', $embedCode)) {
+      return FALSE;
+    }
+
+    // Since this handler copies the remote file to the local web server, do not
+    // claim a URL with an extension disallowed for media uploads.
+    $regex = '/\.(' . preg_replace('/ +/', '|', preg_quote(media_variable_get('file_extensions'))) . ')$/i';
+    if (!preg_match($regex, basename($embedCode))) {
+      return FALSE;
+    }
+
+    return TRUE;
   }
 }
 
@@ -360,6 +362,17 @@ abstract class MediaInternetBaseHandler {
   public function preSave(&$file_obj) {
 
   }
+
+  /**
+   * Recognize if this handler should take the the item with the embed
+   * coded passed as argument.
+   *
+   * @param string $embed_code
+   *
+   * @return boolean
+   *   Whether or not this handler is resposible for the give embed code.
+   */
+  abstract public function claim($embed_code);
 }
 
 class MediaInternetValidationException extends Exception {

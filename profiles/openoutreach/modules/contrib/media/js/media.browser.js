@@ -62,8 +62,8 @@ Drupal.media.browser.validateButtons = function() {
   // so that media can be selected or the window can be closed. This is still a
   // hacky approach, but it is a step in the right direction.
 
-  $('a.button.fake-submit', this).bind('click', Drupal.media.browser.submit);
-  $('a.button.fake-cancel', this).bind('click', Drupal.media.browser.submit);
+  $('a.button.fake-submit', this).once().bind('click', Drupal.media.browser.submit);
+  $('a.button.fake-cancel', this).once().bind('click', Drupal.media.browser.submit);
 };
 
 Drupal.media.browser.submit = function () {
@@ -75,6 +75,9 @@ Drupal.media.browser.submit = function () {
   else {
     buttons[0].click();
   }
+
+  // Return false to prevent the fake link "click" from continuing.
+  return false;
 }
 
 Drupal.media.browser.selectMedia = function (selectedMedia) {

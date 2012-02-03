@@ -15,13 +15,13 @@ function date_repeat_field_date_field_insert(&$items, $context) {
   $entity = $context['entity'];
   $field = $context['field'];
   $instance = $context['instance'];
-  $langcode = $context['langcode']; 
-
-  if (empty($entity->devel_generate) || empty($field['settings']['repeat'])) {
-    return;
-  }
+  $langcode = $context['langcode'];
 
   // The first value was already created by the regular Devel Generate code.
+  // Skipping doing anything if there is no value for this field.
+  if (empty($items)) {
+    return;
+  }
   $item = $items[0];
 
   // Unset any previous dates past the first one.
@@ -62,7 +62,7 @@ function date_repeat_field_date_field_insert(&$items, $context) {
 
   $max_items = mt_rand(3, 10);
 
-  $intervals = array_keys(INTERVAL_options());
+  $intervals = array_keys(date_repeat_interval_options());
   unset($intervals[0]);
   $interval = $intervals[mt_rand(1, 3)];
   switch ($which) {

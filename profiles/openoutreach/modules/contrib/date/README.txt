@@ -160,7 +160,7 @@ and set the '#type' to one of the following:
 date_select
  The date_select element will create a collection of form elements, with a
  separate select or textfield for each date part. The whole collection will
- get re-formatted back into a date value of the requested type during validation.
+ get reformatted back into a date value of the requested type during validation.
 
 date_text
  The date_text element will create a textfield that can contain a whole

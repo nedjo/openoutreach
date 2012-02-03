@@ -496,7 +496,15 @@ function ctools_export_load_object($table, $type = 'all', $args = array()) {
       if ($type == 'conditions') {
         // if this does not match all of our conditions, skip it.
         foreach ($args as $key => $value) {
-          if (!isset($object->$key) || $object->$key != $value) {
+          if (!isset($object->$key)) {
+            continue 2;
+          }
+          if (is_array($value)) {
+            if (!in_array($object->$key, $value)) {
+              continue 2;
+            }
+          }
+          else if ($object->$key != $value) {
             continue 2;
           }
         }
@@ -515,6 +523,7 @@ function ctools_export_load_object($table, $type = 'all', $args = array()) {
       if (!empty($cache[$table][$object->{$export['key']}])) {
         $cache[$table][$object->{$export['key']}]->{$export['export type string']} = t('Overridden');
         $cache[$table][$object->{$export['key']}]->export_type |= EXPORT_IN_CODE;
+        $cache[$table][$object->{$export['key']}]->export_module = isset($object->export_module) ? $object->export_module : NULL;
         if ($type == 'conditions') {
           $return[$object->{$export['key']}] = $cache[$table][$object->{$export['key']}];
         }
@@ -885,7 +894,7 @@ function ctools_export_object($table, $object, $indent = '', $identifier = NULL,
     $identifier = $schema['export']['identifier'];
   }
 
-  $output = $indent . '$' . $identifier . ' = new ' . get_class($object) . ";\n";
+  $output = $indent . '$' . $identifier . ' = new ' . get_class($object) . "();\n";
 
   if ($schema['export']['can disable']) {
     $output .= $indent . '$' . $identifier . '->disabled = FALSE; /* Edit this to true to make a default ' . $identifier . ' disabled initially */' . "\n";
@@ -1192,7 +1201,7 @@ function ctools_export_to_hook_code(&$code, $table, $names = array(), $name = 'f
 function ctools_export_default_to_hook_code($schema, $table, $names, $name) {
   $export = $schema['export'];
   $output = '';
-  $objects = ctools_export_load_object($table, 'names', $names);
+  $objects = ctools_export_crud_load_multiple($table, $names);
   if ($objects) {
     $output = "/**\n";
     $output .= " * Implements hook_{$export['default hook']}().\n";

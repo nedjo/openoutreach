@@ -192,14 +192,45 @@ function date_is_repeat_field($field, $instance = NULL) {
 
 /*
  * Implements hook_date_field_insert_alter().
- *
- * We can't use hook_devel_generate() because we need custom handling for
- * repeating date fields. So we wait until the entity is saved, then
- * intervene here to fix it.
  */
 function date_repeat_field_date_field_insert_alter(&$items, $context) {
-  module_load_include('inc', 'date_repeat_field', 'date_repeat_field.devel_generate');
-  date_repeat_field_date_field_insert($items, $context);
+
+  $entity = $context['entity'];
+  $field = $context['field'];
+  $instance = $context['instance'];
+  $langcode = $context['langcode'];
+
+  // If an RRULE with a frequency of NONE made it this far, unset it.
+  if (!empty($items[0]['rrule']) && strpos($items[0]['rrule'], 'FREQ=NONE')) {
+    $items[0]['rrule'] = NULL;
+  }
+
+  // We can't use hook_devel_generate() because we need custom handling for
+  // repeating date fields. So we wait until the entity is inserted, then
+  // intervene here to fix it.
+  if (!empty($entity->devel_generate) && !empty($field['settings']['repeat'])) {
+    module_load_include('inc', 'date_repeat_field', 'date_repeat_field.devel_generate');
+    date_repeat_field_date_field_insert($items, $context);
+  }
+}
+
+/*
+ * Implements hook_date_field_update_alter().
+ */
+function date_repeat_field_date_field_update_alter(&$items, $context) {
+
+  // If an RRULE with a frequency of NONE made it this far, unset it.
+  if (!empty($items[0]['rrule']) && strpos($items[0]['rrule'], 'FREQ=NONE')) {
+    $items[0]['rrule'] = NULL;
+  }
+
+  // If you have a repeating date field on a user and don't check the box to repeat it,
+  // we end up with $items[0]['rrule'] = array('additions' => '', 'exceptions' => ''));
+  // This will clean it up by getting rid of those bogus values.
+  // @TODO Figure out where that's coming from. It doesn't happen on nodes.
+  if (!empty($items[0]['rrule']) && is_array($items[0]['rrule'])) {
+    $items[0]['rrule'] = NULL;
+  }
 }
 
 /**
@@ -211,6 +242,7 @@ function date_repeat_field_field_widget_form_alter(&$element, &$form_state, $con
   $instance = $context['instance'];
   $items = $context['items'];
   $delta = $context['delta'];
+
   if (in_array($field['type'], array('date', 'datetime', 'datestamp'))) {
     if (!empty($field['settings']['repeat'])) {
       $element['#element_validate'][] = 'date_repeat_field_widget_validate';
@@ -233,7 +265,6 @@ function date_repeat_field_field_widget_form_alter(&$element, &$form_state, $con
  * Lots more work needed here.
  */
 function date_repeat_field_widget_validate($element, &$form_state) {
-
   $field = field_widget_field($element, $form_state);
   if (empty($field['settings']['repeat'])) {
     return;
@@ -268,13 +299,15 @@ function date_repeat_field_widget_validate($element, &$form_state) {
   $rrule_values = date_repeat_merge($input['rrule'], $element['rrule']);
 
   // If no repeat information was set, treat this as a normal, non-repeating value.
-  if ($rrule_values['FREQ'] == 'NONE') {
+  if ($rrule_values['FREQ'] == 'NONE' || empty($input['show_repeat_settings'])) {
     $item['rrule'] = NULL;
+    form_set_value($element, $item, $form_state);
+    return;
   }
 
   // If no start date was set, clean up the form and return.
   if (empty($item['value'])) {
-    form_set_value($element, array($item), $form_state);
+    form_set_value($element, NULL, $form_state);
     return;
   }
 
@@ -349,7 +382,6 @@ function date_repeat_field_widget_validate($element, &$form_state) {
  * Remove the 'Add more' elements from a repeating date form.
  */
 function date_repeat_after_build(&$element, &$form_state) {
-
   foreach ($form_state['storage']['repeat_fields'] as $field_name => $parents) {
     // Remove unnecessary items in the form added by the Add more handling.
     $value = drupal_array_get_nested_value($element, $parents);
@@ -467,7 +499,7 @@ function date_repeat_field_date_combo_process_alter(&$element, &$form_state, $co
   // Add a date repeat form element, if needed.
   // We delayed until this point so we don't bother adding it to hidden fields.
   if (date_is_repeat_field($field, $instance)) {
-    
+
     $item = $element['#value'];
     $element['rrule'] = array(
       '#type' => 'date_repeat_rrule',
@@ -526,9 +558,11 @@ function date_repeat_field_field_info_alter(&$info) {
  */
 function date_repeat_field_field_formatter_info_alter(&$info) {
 
-  $info['date_default']['settings'] += array(
-    'show_repeat_rule' => 'show',
-  );
+  if (isset($info['date_default'])) {
+    $info['date_default']['settings'] += array(
+      'show_repeat_rule' => 'show',
+    );
+  }
 }
 
 /**
@@ -644,7 +678,7 @@ function date_repeat_field_date_field_formatter_settings_form_alter(&$form, &$fo
       '#title' => t('Repeat rule:'),
       '#type' => 'select',
       '#options' => array(
-        'show' => t('Display repeat rule'),
+        'show' => t('Show repeat rule'),
         'hide' => t('Hide repeat rule')),
       '#default_value' => $settings['show_repeat_rule'],
       '#access' => $field['settings']['repeat'],
@@ -666,12 +700,12 @@ function date_repeat_field_date_field_formatter_settings_summary_alter(&$summary
   $display = $instance['display'][$view_mode];
   $formatter = $display['type'];
   $settings = $display['settings'];
-  if (array_key_exists('show_repeat_rule', $settings) && !empty($field['settings']['repeat'])) {
-    if (!empty($settings['show_repeat_rule'])) {
+  if (isset($settings['show_repeat_rule']) && !empty($field['settings']['repeat'])) {
+    if ($settings['show_repeat_rule'] == 'show') {
       $summary[] = t('Show repeat rule');
     }
     else {
-      $summary[] = t('Do not show repeat rule');
+      $summary[] = t('Hide repeat rule');
     }
   }
 }

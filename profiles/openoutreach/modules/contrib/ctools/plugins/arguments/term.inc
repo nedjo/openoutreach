@@ -16,7 +16,7 @@ $plugin = array(
   'keyword' => 'term',
   'description' => t('Creates a single taxonomy term from a taxonomy ID or taxonomy term name.'),
   'context' => 'ctools_term_context',
-  'default' => array('input_form' => 'tid', 'breadcrumb' => TRUE),
+  'default' => array('input_form' => 'tid', 'breadcrumb' => TRUE, 'transform' => FALSE),
   'settings form' => 'ctools_term_settings_form',
   'placeholder form' => 'ctools_term_ctools_argument_placeholder',
   'breadcrumb' => 'ctools_term_breadcrumb',
@@ -45,6 +45,10 @@ function ctools_term_context($arg = NULL, $conf = NULL, $empty = FALSE) {
         break;
 
       case 'term':
+        if (!empty($conf['transform'])) {
+          $arg = strtr($arg, '-', ' ');
+        }
+
         $terms = taxonomy_get_term_by_name($arg);
 
         $conf['vids'] = is_array($conf['vids']) ? array_filter($conf['vids']) : NULL;
@@ -109,6 +113,12 @@ function ctools_term_settings_form(&$form, &$form_state, $conf) {
     '#type' => 'checkbox',
     '#default_value' => !empty($conf['breadcrumb']),
     '#description' => t('If checked, taxonomy term parents will appear in the breadcrumb trail.'),
+  );
+
+  $form['settings']['transform'] = array(
+    '#title' => t('Transform dashes in URL to spaces in term name filter values'),
+    '#type' => 'checkbox',
+    '#default_value' => !empty($conf['transform']),
   );
 //  return $form;
 }

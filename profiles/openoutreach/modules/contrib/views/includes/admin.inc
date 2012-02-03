@@ -311,7 +311,7 @@ function views_ui_add_form($form, &$form_state) {
   );
   $form['name'] = array(
     '#type' => 'machine_name',
-    '#maxlength' => 32,
+    '#maxlength' => 128,
     '#machine_name' => array(
       'exists' => 'views_get_view',
       'source' => array('human_name'),
@@ -1947,6 +1947,11 @@ function views_ui_import_page($form, &$form_state) {
     '#description' => t('Enter the name to use for this view if it is different from the source view. Leave blank to use the name of the view.'),
   );
 
+  $form['name_override'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Replace an existing view if one exists with the same name'),
+  );
+
   $form['view'] = array(
     '#type' => 'textarea',
     '#title' => t('Paste view code here'),
@@ -2000,8 +2005,15 @@ function views_ui_import_validate($form, &$form_state) {
   }
 
   $test = views_get_view($view->name);
-  if ($test && $test->type != t('Default')) {
-    form_set_error('', t('A view by that name already exists; please choose a different name'));
+  if (!$form_state['values']['name_override']) {
+    if ($test && $test->type != t('Default')) {
+      form_set_error('', t('A view by that name already exists; please choose a different name'));
+    }
+  }
+  else {
+    if ($test->vid) {
+      $view->vid = $test->vid;
+    }
   }
 
   // Make sure base table gets set properly if it got moved.
@@ -3612,7 +3624,7 @@ function views_ui_rearrange_filter_form($form, &$form_state) {
     );
 
     $form['remove_groups'][$id] = array(); // to prevent a notice
-    if ($id != 0) {
+    if ($id != 1) {
       $form['remove_groups'][$id] = array(
         '#type' => 'submit',
         '#value' => t('Remove group @group', array('@group' => $id)),
@@ -3623,7 +3635,7 @@ function views_ui_rearrange_filter_form($form, &$form_state) {
         '#group' => $id,
       );
     }
-    $group_options[$id] = $id == 0 ? t('Default group') : t('Group @group', array('@group' => $id));
+    $group_options[$id] = $id == 1 ? t('Default group') : t('Group @group', array('@group' => $id));
     $form['#group_renders'][$id] = array();
   }
 
@@ -3635,7 +3647,7 @@ function views_ui_rearrange_filter_form($form, &$form_state) {
   foreach ($handlers as $id => $field) {
     // If the group does not exist, move the filters to the default group.
     if (empty($field['group']) || empty($groups['groups'][$field['group']])) {
-      $field['group'] = 0;
+      $field['group'] = 1;
     }
 
     $handler = $display->handler->get_handler($type, $id);
@@ -3647,7 +3659,7 @@ function views_ui_rearrange_filter_form($form, &$form_state) {
     // the default group to prevent weird errors from having it be in its
     // own group:
     if (!$grouping && $field['group'] == 'ungroupable') {
-      $field['group'] = 0;
+      $field['group'] = 1;
     }
 
     // Place this item into the proper group for rendering.
@@ -3883,11 +3895,11 @@ function views_ui_rearrange_filter_form_submit($form, &$form_state) {
     // The actual update button was clicked. Remove the empty groups, and
     // renumber them sequentially.
     ksort($remember_groups);
-    $groups['groups'] = array_values(array_intersect_key($groups['groups'], $remember_groups));
+    $groups['groups'] = views_array_key_plus(array_values(array_intersect_key($groups['groups'], $remember_groups)));
     // Change the 'group' key on each field to match. Here, $mapping is an
     // array whose keys are the old group numbers and whose values are the new
     // (sequentially numbered) ones.
-    $mapping = array_flip(array_keys($remember_groups));
+    $mapping = array_flip(views_array_key_plus(array_keys($remember_groups)));
     foreach ($new_fields as &$new_field) {
       $new_field['group'] = $mapping[$new_field['group']];
     }
@@ -4653,6 +4665,13 @@ function views_ui_admin_settings_basic() {
     '#title' => t('Always show advanced display settings'),
     '#description' => t('Default to showing advanced display settings, such as relationships and contextual filters.'),
     '#default_value' => variable_get('views_ui_show_advanced_column', FALSE),
+  );
+
+  $form['basic']['views_ui_display_embed'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show the embed display in the ui.'),
+    '#description' => t('Allow advanced user to use the embed view display. The plugin itself works if it\'s not visible in the ui'),
+    '#default_value' => variable_get('views_ui_display_embed', FALSE),
   );
 
   $form['basic']['views_ui_custom_theme'] = array(

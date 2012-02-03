@@ -66,7 +66,7 @@ Step 5)
    - 'access epostcard': allow user to send an epostcard.
    - 'override email address': allow logged in user to change sender address.
    - 'administer forward': allow user to configure forward.
-   - 'override flood control': allow user to bypass flood control.
+   - 'override flood control': allow user to bypass flood control on send.
 
   Note that you need to enable 'access forward' for users who should be able
   to send emails using the forward module.
@@ -79,15 +79,57 @@ Step 6)
   Statistics are captured when emails are sent and when recipients click on
   links within the sent emails.
 
-
 Step 7)
+  If the Views module is enabled for your site, go to "admin/structure/views"
+  to optionally enable and configure Forward related views.  These views
+  are available:
+
+  forward_forwards - most popular nodes to forward
+  forward_recent - recently forwarded nodes or pages
+  forward_clickthroughs - forwarded nodes with most clicks from sent emails
+
+Step 8)
   Go to "admin/structure/block" to optionally enable and configure Forward
   blocks for your theme.  Several blocks are available:
 
   Forward: Form - places the forward link or forward form in a block
   Forward: Statistics - most recently emailed or most emailed of all time
-  forward_forwards - a Views list of most popular nodes to forward
-  forward_recent - a Views list of recently forwarded nodes or pages
+
+  If you enabled views in step 7, these blocks are also available:
+
+  forward_forwards:Block - a Views list of most popular nodes to forward
+  forward_recent:Block - a Views list of recently forwarded nodes or pages
+  forward_clickthroughs:Block - a Views list of nodes with most clicks
+
+
+DYNAMIC BLOCK ACCESS CONTROL
+
+The 7.x-1.3 release of the Forward module added a new security field
+for administators on the Forward configuration page named Dynamic Block
+Access Control.  This field allows the administrator to control which
+permissions are used when Drupal applies access control checks to the nodes,
+comments or users listed in the Dynamic Block.  Several access control
+options are available, including a bypass option.  The bypass option allows
+the email recipient to possibly view node titles, comment titles, or user
+names that only privileged users should see. The bypass option should not
+normally be selected, but is provided for sites that used prior versions
+of Forward and rely on the access bypass to operate correctly.
+
+IMPORTANT: Because the default for the new field is to apply access control,
+administrators of sites that rely on the access bypass to operate correctly
+need to visit the Forward configuration page and explicitly select the bypass
+option after upgrading from versions of Forward prior to 7.x-1.3.
+
+
+CLICKTHROUGH COUNTER FLOOD CONTROL
+
+The Forward module tracks clicks from links in sent emails to determine which
+nodes get the most clickthroughs.  The method used could allow someone to
+manipulate clickthrough counts via CSRF - for example, placing an image on
+a website with a src tag that points to the clickthrough counter link.  The
+module uses flood control to limit the number of clickthroughs from a given
+IP address in a given time period to migitate this possibility.
+
 
 CREDITS & SUPPORT
 

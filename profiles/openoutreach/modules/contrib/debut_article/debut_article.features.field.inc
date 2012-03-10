@@ -107,6 +107,7 @@ function debut_article_field_default_fields() {
       'module' => 'image',
       'settings' => array(
         'default_image' => 0,
+        'profile2_private' => FALSE,
         'uri_scheme' => 'public',
       ),
       'translatable' => '1',
@@ -166,6 +167,7 @@ function debut_article_field_default_fields() {
             'image' => 'image',
             'video' => 0,
           ),
+          'browser_plugins' => array(),
           'progress_indicator' => 'throbber',
         ),
         'type' => 'media_generic',
@@ -199,8 +201,8 @@ function debut_article_field_default_fields() {
       'settings' => array(
         'allowed_values' => array(
           0 => array(
-            'parent' => 0,
             'vocabulary' => 'tags',
+            'parent' => 0,
           ),
         ),
       ),
@@ -251,7 +253,6 @@ function debut_article_field_default_fields() {
   t('Body');
   t('Enter a comma-separated list of words to describe your content.');
   t('Image');
-  t('Media');
   t('Select an image to be displayed in association with this piece of content.');
   t('Tags');
 

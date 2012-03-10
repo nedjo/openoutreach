@@ -261,7 +261,7 @@ function date_popup_element_value_callback($element, $input = FALSE, &$form_stat
  * Javascript popup element processing.
  * Add popup attributes to $element.
  */
-function date_popup_element_process($element, $form_state, $form) {
+function date_popup_element_process($element, &$form_state, $form) {
   if (date_hidden_element($element)) {
     return $element;
   }
@@ -289,7 +289,10 @@ function date_popup_element_process($element, $form_state, $form) {
     $element['#element_validate'] = array('date_popup_validate');
   }
 
-  drupal_alter('date_popup_process', $element);
+  $context = array(
+   'form' => $form,
+  );
+  drupal_alter('date_popup_process', $element, $form_state, $context);
 
   return $element;
 }

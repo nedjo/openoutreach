@@ -17,7 +17,7 @@ class RemoteStreamWrapperMediaBrowser extends MediaBrowserPlugin {
   function view() {
     return array(
       '#title' => t('Remote URL'),
-      'form' => drupal_get_form('remote_stream_wrapper_media_browser_form', $this->params['types']),
+      'form' => drupal_get_form('remote_stream_wrapper_file_add_form', $this->params),
     );
   }
 

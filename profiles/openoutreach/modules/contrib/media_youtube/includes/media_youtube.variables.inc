@@ -104,7 +104,16 @@ function media_youtube_variable_default($name = NULL) {
       'width' => 560,
       'height' =>340,
       'autoplay' => FALSE,
+      'related' => TRUE,
+      'hd' => FALSE,
+      'showsearch' => TRUE,
+      'modestbranding' => FALSE,
+      'showinfo'=> TRUE,
+      'version' => 3,
+      'theme' => 'dark',
       'fullscreen' => TRUE,
+      'wmode' => 'transparent',
+      'chromeless' => FALSE,
       'preview_uri' => 'youtube://v/-jubiv7QUco',
     );
   }

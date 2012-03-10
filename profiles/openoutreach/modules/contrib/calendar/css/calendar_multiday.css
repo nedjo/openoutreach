@@ -831,14 +831,6 @@ table.calendar-legend tr.even .stripe {
   font-weight: bold;
 }
 
-.view-content:after {
-  content: ".";
-  display: block;
-  height: 0;
-  clear: both;
-  visibility: hidden;
-}
-
 .attachment .calendar-calendar {
   margin-top: 20px;
   clear: both;
@@ -879,4 +871,9 @@ ul.calendar-links,
 .region-content ul.calendar-links {
   margin:0;
   padding:0;
+}
+
+.year-view div.month-view div.date-nav {
+  background-color: #DFDFDF;
+  min-height: 20px;
 }

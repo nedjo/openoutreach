@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_field_default_fields().
+ * Implements hook_field_default_fields().
  */
 function debut_section_field_default_fields() {
   $fields = array();
@@ -107,6 +107,7 @@ function debut_section_field_default_fields() {
       'module' => 'image',
       'settings' => array(
         'default_image' => 0,
+        'profile2_private' => FALSE,
         'uri_scheme' => 'public',
       ),
       'translatable' => '1',
@@ -166,6 +167,7 @@ function debut_section_field_default_fields() {
             'image' => 'image',
             'video' => 0,
           ),
+          'browser_plugins' => array(),
           'progress_indicator' => 'throbber',
         ),
         'type' => 'media_generic',
@@ -178,7 +180,6 @@ function debut_section_field_default_fields() {
   // Included for use with string extractors like potx.
   t('Body');
   t('Image');
-  t('Media');
   t('Select an image to be displayed in association with this piece of content.  The maximum allowed image size is 1000 x 1000 pixels.');
 
   return $fields;

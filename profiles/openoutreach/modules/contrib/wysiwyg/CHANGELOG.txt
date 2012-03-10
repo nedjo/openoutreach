@@ -1,6 +1,7 @@
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+#1442226 by robertom: Fixed inverted list button names for WYMeditor.
 #1352426 by TwoD, sun: Added install notes (CKEditor edition clarification).
 #1112212 by timdiacon, TwoD: Added language direction buttons for CKEditor.
 #1398560 by markwittens: Fixed TinyMCE removing the longdesc attribute.

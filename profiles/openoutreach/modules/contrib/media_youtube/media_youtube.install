@@ -16,6 +16,8 @@ function media_youtube_install() {
  * Implement hook_uninstall().
  */
 function media_youtube_uninstall() {
+  drupal_load('module', 'media_youtube');
+
   foreach (media_youtube_variable_default() as $variable => $value) {
     media_youtube_variable_del($variable);
   }
@@ -90,3 +92,18 @@ function media_youtube_update_7009() {
 function media_youtube_update_7010() {
   return array();
 }
+
+/**
+ * Add video presets based on Image styles.
+ */
+function media_youtube_update_7011() {
+  return array();
+}
+
+/**
+ * Rebuild theme and formatters.
+ */
+function media_youtube_update_7012() {
+  return array();
+}
+

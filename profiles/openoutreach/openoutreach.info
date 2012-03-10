@@ -97,9 +97,9 @@ subprofiles[minimal][features][openoutreach_front_page] = FALSE
 
 
 
-; Information added by drupal.org packaging script on 2012-01-09
-version = "7.x-1.0-beta7"
+; Information added by drupal.org packaging script on 2012-03-10
+version = "7.x-1.0-beta8"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1326141943"
+datestamp = "1331339450"
 

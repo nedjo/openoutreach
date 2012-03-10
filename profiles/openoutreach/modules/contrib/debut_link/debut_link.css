@@ -1,3 +1,10 @@
+.node-link .field-type-image {
+  clear: both;
+  float: right;
+  margin-left: 12px;
+  margin-bottom: 12px;
+}
+
 .view-link.view-display-id-page_1 td {
   padding: 10px;
 }

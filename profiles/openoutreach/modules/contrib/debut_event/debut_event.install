@@ -9,6 +9,7 @@
  * Implements hook_install().
  */
 function debut_event_install() {
+  // Ensure the tags vocabulary is present.
   _debut_event_ensure_vocabulary_tags();
 }
 
@@ -18,13 +19,15 @@ function debut_event_install() {
  * Cribbed from media_gallery.install.
  */
 function _debut_event_ensure_vocabulary_tags() {
+  $t = get_t();
+
   // Make sure the 'tags' vocabulary exists.
   $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
   if (!$vocabulary) {
-    $description = st('Use tags to group articles on similar topics into categories.');
-    $help = st('Enter a comma-separated list of words to describe your content.');
+    $description = $t('Use tags to group articles on similar topics into categories.');
+    $help = $t('Enter a comma-separated list of words to describe your content.');
     $vocabulary = (object) array(
-      'name' => 'Tags',
+      'name' => $t('Tags'),
       'description' => $description,
       'machine_name' => 'tags',
       'help' => $help,

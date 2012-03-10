@@ -15,16 +15,16 @@
  */
 
 // A registry of variable_get defaults.
-include_once('includes/media_youtube.variables.inc');
+include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'media_youtube') . '/includes/media_youtube.variables.inc';
 
 // Hooks and callbacks for integrating with Styles module for display.
 // @todo Can save a little overhead for people without Styles module by wrapping
 //   this inside a module_exists('styles'). However, is that safe to do in
 //   global context? If not, is there any down side to doing it in hook_init()?
-include_once('includes/media_youtube.styles.inc');
+include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'media_youtube') . '/includes/media_youtube.styles.inc';
 
 // Hooks and callbacks for integrating with File Entity module for display.
-include_once('includes/media_youtube.formatters.inc');
+include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'media_youtube') . '/includes/media_youtube.formatters.inc';
 
 /**
  * Implements hook_media_internet_providers().
@@ -68,8 +68,9 @@ function media_youtube_theme($existing, $type, $theme, $path) {
       'file' => 'media_youtube.theme.inc',
       'path' => $path . '/includes/themes',
     ),
+    // Note that all the variables after options are now deprecated.
     'media_youtube_video' => array(
-      'variables' => array('uri' => NULL, 'width' => NULL, 'height' => NULL, 'autoplay' => NULL, 'fullscreen' => NULL),
+      'variables' => array('uri' => NULL, 'options' => array(), 'width' => NULL, 'height' => NULL, 'autoplay' => NULL, 'fullscreen' => NULL, 'related' => NULL),
       'file' => 'media_youtube.theme.inc',
       'path' => $path . '/includes/themes',
       'template' => 'media-youtube-video',

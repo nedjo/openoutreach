@@ -12,16 +12,14 @@ function template_preprocess_calendar_style_ical(&$vars) {
   global $base_url;
   global $language;
   $view = $vars['view'];
+  $view_title = $view->get_title();
 
-  if ($view->display_handler->get_option('sitename_title')) {
-    $title = variable_get('site_name', 'Drupal');
-    if ($slogan = variable_get('site_slogan', '')) {
-      $title .= ' - ' . $slogan;
-    }
+  $title = variable_get('site_name', 'Drupal');
+  if ($slogan = variable_get('site_slogan', '')) {
+    $title .= ' - ' . $slogan;
   }
-  else {
-    $title = $view->get_title();
-  }
+  $title .= !empty($view_title) ? ': ' . $view_title : '';
+
   $vars['title'] = check_plain($title);
 
   // During live preview we don't want to output the header since the contents

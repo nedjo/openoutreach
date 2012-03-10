@@ -26,6 +26,7 @@
 }
 
 .view-highlighted .views-slideshow-overlay a,
+.view-highlighted .views-slideshow-overlay a:link,
 .view-highlighted .views-slideshow-overlay a:active,
 .view-highlighted .views-slideshow-overlay a:visited {
   color: #fff;
@@ -45,6 +46,7 @@
 }
 
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item a,
+.view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item a:link,
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item a:active,
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item a:visited {
   color: #ddd;
@@ -57,6 +59,7 @@
 
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item.active,
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item.active a,
+.view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item.active a:link,
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item.active a:active,
 .view-highlighted .views-slideshow-pager-fields .views-slideshow-pager-field-item.active a:visited {
   color: #fff;
@@ -107,5 +110,10 @@
 .view-highlighted a.views-slideshow-button:hover {
   background-color: #555;
   text-decoration: none;
+}
+
+.views-slideshow-overlay h2, .views-slideshow-overlay h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
 }
 

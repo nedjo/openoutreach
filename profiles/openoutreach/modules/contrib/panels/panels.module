@@ -77,9 +77,10 @@ function panels_theme() {
   );
 
   // We don't need layout and style themes in maintenance mode.
-  if (defined('MAINTENANCE_MODE')) {
-    return $theme;
-  }
+  // Disabling this: See http://drupal.org/node/979912 for information.
+//  if (defined('MAINTENANCE_MODE')) {
+//    return $theme;
+//  }
 
   // Register layout and style themes on behalf of all of these items.
   ctools_include('plugins', 'panels');
@@ -276,9 +277,17 @@ function panels_permission() {
       'title' => t("Administer Panels layouts"),
       'description' => t("Allows a user to administer exported Panels layout plugins & instances."),
     ),
+    'administer panels styles' => array(
+      'title' => t("Administer Panels styles"),
+      'description' => t("Allows a user to administer the styles of Panel panes."),
+    ),
     'use panels caching features' => array(
       'title' => t("Configure caching settings on Panels"),
       'description' => t("Allows a user to configure caching on Panels displays and panes."),
+    ),
+    'use panels locks' => array(
+      'title' => t('Use panel locks'),
+      'description' => t('Allows a user to lock and unlock panes in a panel display.'),
     ),
   );
 }
@@ -308,7 +317,21 @@ function panels_ctools_plugin_directory($module, $plugin) {
   if (!module_invoke('ctools', 'api_version', PANELS_REQUIRED_CTOOLS_API)) {
     return;
   }
+
+  // We don't support the 'ctools' 'cache' plugin and pretending to causes
+  // errors when they're in use.
+  if ($module == 'ctools' && $plugin == 'cache') {
+    return;
+    // if we did we'd make a plugin/ctools_cache or something.
+  }
+
   if ($module == 'page_manager' || $module == 'panels' || $module == 'ctools' || $module == 'stylizer') {
+    // Panels and CTools both implement a 'cache' plugin but we don't implement
+    // the CTools version.
+    if ($module == 'ctools' && $plugin == 'cache') {
+      return;
+    }
+
     return 'plugins/' . $plugin;
   }
 }
@@ -463,7 +486,7 @@ function panels_stylizer_pane_preview($plugin, $settings) {
     return theme($plugin['theme'], array('settings' => $settings, 'content' => $content, 'pane' => $pane, 'display' => $display));
   }
   else {
-    return theme('panels_pane', array('output' => $content, 'pane' => $pane, 'display' => $display));
+    return theme('panels_pane', array('content' => $content, 'pane' => $pane, 'display' => $display));
   }
 }
 
@@ -624,7 +647,7 @@ class panels_display {
   }
 
   function clone_pane($pid) {
-    $pane = drupal_clone($this->content[$pid]);
+    $pane = clone $this->content[$pid];
     return $pane;
   }
 
@@ -970,6 +993,8 @@ function panels_export_display($display, $prefix = '') {
   ctools_include('export');
   $output = ctools_export_object('panels_display', $display, $prefix);
 
+  $pid_counter = &drupal_static(__FUNCTION__, 0);
+
   // Initialize empty properties.
   $output .= $prefix . '$display->content = array()' . ";\n";
   $output .= $prefix . '$display->panels = array()' . ";\n";
@@ -977,7 +1002,6 @@ function panels_export_display($display, $prefix = '') {
 
   $title_pid = 0;
   if (!empty($display->content)) {
-    $pid_counter = 0;
     $region_counters = array();
     foreach ($display->content as $pane) {
       $pid = 'new-' . ++$pid_counter;
@@ -1027,7 +1051,6 @@ function panels_render_display(&$display, $renderer = NULL) {
     if ($form_context = ctools_context_get_form($display->context)) {
       $form_context->form['#theme'] = 'panels_render_display_form';
       $form_context->form['#display'] = &$display;
-      $form_context->form['#form_context_id'] = $form_context->id;
       return $form_context->form;
     }
   }
@@ -1214,7 +1237,19 @@ function template_preprocess_panels_pane(&$vars) {
     }
   }
 
+  // Set up some placeholders for constructing template file names.
+  $base = 'panels_pane';
+  $delimiter = '__';
+
+  // Add template file suggestion for content type and sub-type.
+  $vars['theme_hook_suggestions'][] = $base . $delimiter . $content->type;
+  $vars['theme_hook_suggestions'][] = $base . $delimiter . $content->type . $delimiter . $content->subtype;
+
+  $vars['pane_prefix'] = !empty($content->pane_prefix) ? $content->pane_prefix : '';
+  $vars['pane_suffix'] = !empty($content->pane_suffix) ? $content->pane_suffix : '';
+
   $vars['title'] = !empty($content->title) ? $content->title : '';
+  $vars['title_attributes_array']['class'][] = 'pane-title';
 
   $vars['feeds'] = !empty($content->feeds) ? implode(' ', $content->feeds) : '';
 

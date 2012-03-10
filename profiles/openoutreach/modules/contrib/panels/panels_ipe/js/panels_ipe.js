@@ -2,6 +2,13 @@
 // Ensure the $ alias is owned by jQuery.
 (function($) {
 
+// randomly lock a pane.
+// @debug only
+Drupal.settings.Panels = Drupal.settings.Panels || {};
+Drupal.settings.Panels.RegionLock = {
+  10: { 'top': false, 'left': true, 'middle': true }
+}
+
 Drupal.PanelsIPE = {
   editors: {},
   bindClickDelete: function(context) {
@@ -23,6 +30,7 @@ Drupal.PanelsIPE = {
 $(function() {
   $.each(Drupal.settings.PanelsIPECacheKeys, function() {
     Drupal.PanelsIPE.editors[this] = new DrupalPanelsIPE(this, Drupal.settings.PanelsIPESettings[this]);
+    Drupal.PanelsIPE.editors[this].showContainer();
   });
 });
 
@@ -46,24 +54,67 @@ function DrupalPanelsIPE(cache_key, cfg) {
   var ipe = this;
   this.key = cache_key;
   this.state = {};
+  this.container = $('#panels-ipe-control-container');
   this.control = $('div#panels-ipe-control-' + cache_key);
   this.initButton = $('div.panels-ipe-startedit', this.control);
   this.cfg = cfg;
   this.changed = false;
   this.sortableOptions = $.extend({
-    revert: 200,
-    dropOnEmpty: true, // default
     opacity: 0.75, // opacity of sortable while sorting
-    // placeholder: 'draggable-placeholder',
-    // forcePlaceholderSize: true,
     items: 'div.panels-ipe-portlet-wrapper',
     handle: 'div.panels-ipe-draghandle',
-    tolerance: 'pointer',
-    cursorAt: 'top',
-    update: this.setChanged,
-    scroll: true
-    // containment: ipe.topParent,
+    cancel: '.panels-ipe-nodrag'
   }, cfg.sortableOptions || {});
+
+  this.regions = [];
+  this.sortables = {};
+
+  this.activateSortable = function(event, ui) {
+    if (!Drupal.settings.Panels || !Drupal.settings.Panels.RegionLock) {
+      // don't bother if there are no region locks in play.
+      return;
+    }
+
+    var region = event.data.region;
+    var $pane = $(event.srcElement).parents('.panels-ipe-portlet-wrapper');
+    var paneId = $pane.attr('id').replace('panels-ipe-paneid-', '');
+
+    var disabledRegions = false;
+
+    // Determined if this pane is locked out of this region.
+    if (!Drupal.settings.Panels.RegionLock[paneId] || Drupal.settings.Panels.RegionLock[paneId][region]) {
+      ipe.sortables[region].sortable('enable');
+      ipe.sortables[region].sortable('refresh');
+    }
+    else {
+      disabledRegions = true;
+      ipe.sortables[region].sortable('disable');
+      ipe.sortables[region].sortable('refresh');
+    }
+
+    // If we disabled regions, we need to
+    if (disabledRegions) {
+      $(event.srcElement).bind('dragstop', function(event, ui) {
+        // Go through
+      });
+    }
+  };
+
+  // When dragging is stopped, we need to ensure all sortable regions are enabled.
+  this.enableRegions = function(event, ui) {
+    for (var i in ipe.regions) {
+      ipe.sortables[ipe.regions[i]].sortable('enable');
+      ipe.sortables[ipe.regions[i]].sortable('refresh');
+    }
+  }
+
+  this.initSorting = function() {
+    var $region = $(this).parent('.panels-ipe-region');
+    var region = $region.attr('id').replace('panels-ipe-regionid-', '');
+    ipe.sortables[region] = $(this).sortable(ipe.sortableOptions);
+    ipe.regions.push(region);
+    $(this).bind('sortactivate', {region: region}, ipe.activateSortable);
+  };
 
   this.initEditing = function(formdata) {
     ipe.topParent = $('div#panels-ipe-display-' + cache_key);
@@ -73,7 +124,7 @@ function DrupalPanelsIPE(cache_key, cfg) {
     // parameters used here.
     ipe.changed = false;
 
-    $('div.panels-ipe-sort-container', ipe.topParent).sortable(ipe.sortable_options);
+    $('div.panels-ipe-sort-container', ipe.topParent).each(ipe.initSorting);
 
     // Since the connectWith option only does a one-way hookup, iterate over
     // all sortable regions to connect them with one another.
@@ -83,6 +134,8 @@ function DrupalPanelsIPE(cache_key, cfg) {
     $('div.panels-ipe-sort-container', ipe.topParent).bind('sortupdate', function() {
       ipe.changed = true;
     });
+
+    $('div.panels-ipe-sort-container', ipe.topParent).bind('sortstop', this.enableRegions);
 
     $('.panels-ipe-form-container', ipe.control).append(formdata);
 
@@ -101,6 +154,15 @@ function DrupalPanelsIPE(cache_key, cfg) {
           ipe.saveEditing();
           return Drupal.ajax[base].beforeSerialize(element_settings, options);
         };
+        Drupal.ajax[base].oldEventResponse = Drupal.ajax[base].eventResponse;
+        Drupal.ajax[base].eventResponse = function (element, event) {
+          var val = this.oldEventResponse(element, event);
+          if (this.ajaxing) {
+            ipe.hideContainer();
+          }
+          return val;
+        };
+
       }
       if ($(this).attr('id') == 'panels-ipe-cancel') {
         Drupal.ajax[base].options.beforeSend = function () {
@@ -110,23 +172,42 @@ function DrupalPanelsIPE(cache_key, cfg) {
     });
 
     // Perform visual effects in a particular sequence.
-    ipe.initButton.css('position', 'absolute');
-    ipe.initButton.fadeOut('normal');
     $('.panels-ipe-on').show('normal');
-//    $('.panels-ipe-on').fadeIn('normal');
+    ipe.showForm();
     ipe.topParent.addClass('panels-ipe-editing');
-  }
+  };
+
+  this.hideContainer = function() {
+    ipe.container.slideUp('fast');
+  };
+
+  this.showContainer = function() {
+    ipe.container.slideDown('normal');
+    ipe.container.css('margin-left', '-' + parseInt(ipe.container.outerWidth() / 2) + 'px');
+  };
+
+  this.showButtons = function() {
+    $('.panels-ipe-form-container').hide();
+    $('.panels-ipe-button-container').show();
+    ipe.showContainer();
+  };
+
+  this.showForm = function() {
+    $('.panels-ipe-button-container').hide();
+    $('.panels-ipe-form-container').show();
+    ipe.showContainer();
+  };
 
   this.endEditing = function(data) {
     $('.panels-ipe-form-container', ipe.control).empty();
     // Re-show all the IPE non-editing meta-elements
     $('div.panels-ipe-off').show('fast');
 
+    ipe.showButtons();
     // Re-hide all the IPE meta-elements
     $('div.panels-ipe-on').hide('fast');
-    ipe.initButton.css('position', 'static');
     ipe.topParent.removeClass('panels-ipe-editing');
-   $('div.panels-ipe-sort-container', ipe.topParent).sortable("destroy");
+    $('div.panels-ipe-sort-container', ipe.topParent).sortable("destroy");
   };
 
   this.saveEditing = function() {
@@ -152,6 +233,7 @@ function DrupalPanelsIPE(cache_key, cfg) {
     }
 
     if (!ipe.changed || confirm(Drupal.t('This will discard all unsaved changes. Are you sure?'))) {
+      ipe.hideContainer();
       ipe.topParent.fadeOut('medium', function() {
         ipe.topParent.replaceWith(ipe.backup.clone());
         ipe.topParent = $('div#panels-ipe-display-' + ipe.key);
@@ -182,6 +264,9 @@ function DrupalPanelsIPE(cache_key, cfg) {
         $(this).appendTo($(this).parent().parent());
       });
 
+      // Also remove the last panel separator.
+      $('div.panel-separator', this).filter(':last').remove();
+
       // Add a marker so we can drag things to empty containers.
       $('div.panels-ipe-sort-container', this).append('<div>&nbsp;</div>');
     });
@@ -198,6 +283,15 @@ function DrupalPanelsIPE(cache_key, cfg) {
   };
 
   Drupal.ajax['ipe-ajax'] = new Drupal.ajax('ipe-ajax', $('div.panels-ipe-startedit', this.control).get(0), element_settings);
+
+  Drupal.ajax['ipe-ajax'].oldEventResponse = Drupal.ajax['ipe-ajax'].eventResponse;
+  Drupal.ajax['ipe-ajax'].eventResponse = function (element, event) {
+    this.oldEventResponse(element, event);
+    if (this.ajaxing) {
+      ipe.hideContainer();
+      $('div.panels-ipe-off').fadeOut('normal');
+    }
+  };
 
 /*
   var ajaxOptions = {

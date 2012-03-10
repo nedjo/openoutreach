@@ -1,3 +1,10 @@
+.node-section .field-type-image {
+  clear: both;
+  float: right;
+  margin-left: 12px;
+  margin-bottom: 12px;
+}
+
 div.view-section-children table tr td {
   border: none;
   width: 33.3%;

@@ -6,6 +6,104 @@ define('CALENDAR_HIDE_ALL', -1);
  * @file
  * Adds calendar filtering and displays to Views.
  */
+/**
+ * Implements hook_menu().
+ */
+function calendar_menu() {
+  $items = array();
+  $items['admin/config/date/calendar'] = array(
+    'title' => 'Calendar',
+    'description' => 'Calendar administration.',
+    'page callback' => 'calendar_admin',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['admin/config/date/calendar/remove'] = array(
+    'title'    => 'Remove calendar',
+    'access arguments'   => array('administer views'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('calendar_remove_form', 4),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * General Calendar administration.
+ */
+function calendar_admin() {
+
+  $content = '<h2>Calendar Administration</h2>';
+  $content .= t('This is the future home for calendar administration tasks.');
+
+  $calendar_options = variable_get('calendar_default_view_options', array());
+
+  if (!empty($calendar_options)) {
+    $content .= t('<h2>Deleting Calendars</h2>Calendars that were created using older versions of the !date_wizard cannot be deleted in the Views listing. You can delete them using the links below. The newer version of the Date Wizard creates views from templates that can be deleted normally.', array('!date_wizard' => l(t('Date wizard'), 'admin/config/date/tools/date_wizard')));
+
+    $calendars = array();
+    $node_types = node_type_get_names();
+    foreach ($calendar_options as $key => $option) {
+      $bundle = str_replace(array('calendar_', 'cal_'), '', $key);
+      if (array_key_exists($bundle, $node_types)) {
+        $type = $node_types[$bundle];
+        $calendars[] = array(
+          l($type, 'admin/structure/types/manage/' . $bundle . '/fields'),
+          l($key, 'admin/structure/views/edit/' . $key),
+          t('The calendar %view is a default calendar created for the content type %bundle. ', array('%view' => $key, '%bundle' => $type)),
+          l(t('remove !view', array('!view' => $key)), 'admin/structure/date/remove/' . $key),
+        );
+      }
+      else {
+        // Do some cleanup while we're here if we have default calendars
+        // for non-existent content types.
+        calendar_remove($bundle);
+      }
+    }
+    if (!empty($calendars)) {
+      $header = array(t('Content Type'), t('Calendar'), t('Description'), t('Operations'));
+      $content .= theme('table', array('header' => $header, 'rows' => $calendars));
+    }
+
+  }
+  return $content;
+}
+
+/**
+ * Form constructor for the date field removal form.
+ *
+ * Path: admin/config/date/tools/remove
+ *
+ * @see date_tools_remove_form_submit()
+ */
+function calendar_remove_form($form, &$form_state, $view_name) {
+  $form = array();
+  $form['view_name'] = array(
+    '#type' => 'value',
+    '#value' => $view_name,
+  );
+  $output = confirm_form($form,
+    t('Are you sure you want to remove the view %view?', array('%view' => $view_name)),
+    'admin/config/date/calendar',
+    t('This action cannot be undone.'),
+    t('Remove'), t('Cancel')
+  );
+
+  return $output;
+}
+
+/**
+ * Form submission handler for date_tools_remove_form().
+ */
+function calendar_remove_form_submit($form, &$form_state) {
+  $form_values = $form_state['values'];
+  $view_name = $form_values['view_name'];
+  if ($view_name && $form_values['confirm']) {
+    calendar_remove($view_name);
+    drupal_set_message(t('Removed calendar %calendar.', array('%calendar' => $view_name)));
+  }
+  $form_state['redirect'] = 'admin/config/date';
+}
 
 /**
  * Implements hook_preprocess_date_views_pager().
@@ -17,10 +115,14 @@ define('CALENDAR_HIDE_ALL', -1);
  */
 function calendar_preprocess_date_views_pager(&$vars) {
   $view = $vars['plugin']->view;
-  if ($view->plugin_name != 'calendar_style') {
+
+  // If no one has added date information, nothing to do here.
+  if (empty($view->date_info) || empty($view->argument)) {
     return;
   }
+
   $options = $view->style_options;
+  $pager_format = $view->date_info->date_pager_format;
 
   // If we're not on a view with a path (a page), no links are needed.
   $current_path = !empty($view->display_handler->options['path']) ? $view->display_handler->options['path'] : '';
@@ -36,20 +138,18 @@ function calendar_preprocess_date_views_pager(&$vars) {
     if (!empty($display->deleted) || empty($display->display_options['style_plugin']) || (isset($display->display_options['enabled']) && $display->display_options['enabled'] == FALSE)) {
       continue;
     }
-    if ($display->display_options['style_plugin'] == 'calendar_style' && !empty($display->display_options['path'])) {
-      $path = $display->display_options['path'];
+    if ($display->display_plugin != 'feed' && !empty($display->display_options['path'])) {
+      //$path = $display->display_options['path'];
       $title = $display->display_title;
-      $type = !empty($display->display_options['style_options']['calendar_type']) ? $display->display_options['style_options']['calendar_type'] : 'month';
+      foreach ($display->display_options['arguments'] as $name => $argument) {
+        if (!empty($argument['granularity'])) {
+          $type = $argument['granularity'];
+        }
+      }
 
-      // Make sure the links to other calendar displays use the right path for that display.
-      // Get rid of pager links when swapping between displays to force the base argument
-      // to be structured correctly for the type of display. This means you can't use
-      // these links in a block or panel.
-      $href = str_replace($current_path, $path, date_pager_url($view, $type, NULL, TRUE, FALSE));
-      $part_path = substr($href, strlen(base_path()));
-
-      // Once we have a path for the links to other displays, add it to our links array.
-      $calendar_links[$current_path]['tabs'][$type] = array('title' => $title, 'path' => $part_path);
+      //$type = !empty($display->display_options['style_options']['calendar_type']) ? $display->display_options['style_options']['calendar_type'] : '';
+      $path = calendar_granularity_path($view, $type);
+      $calendar_links[$current_path]['tabs'][$type] = array('title' => $title, 'path' => $path);
       $calendar_links[$current_path]['types'][] = $type;
     }
   }
@@ -66,8 +166,9 @@ function calendar_preprocess_date_views_pager(&$vars) {
   drupal_alter('calendar_links', $calendar_links);
 
   // Add the value to the session so it can be used to create the tabs.
-  $_SESSION['calendar_links'][$current_path] = $calendar_links[$current_path];
-
+  if (!empty($calendar_links[$current_path])) {
+    $_SESSION['calendar_links'][$current_path] = $calendar_links[$current_path];
+  }
 }
 
 /**
@@ -117,7 +218,24 @@ function calendar_menu_local_tasks_alter(&$data, $router_item, $root_path) {
               '#theme' => 'menu_local_task',
               '#link' => $item,
             );
-            if (strpos($clean_path, $root_path) === 0) {
+            $path_parts = explode('/', $root_path);
+            if (in_array('%', $path_parts)) {
+              $clean_parts = explode('/', $clean_path);
+              $count = count($clean_parts);
+              $match = TRUE;
+              foreach ($path_parts as $key => $part) {
+                if (empty($clean_parts[$key])) {
+                  $match = FALSE;
+                }
+                elseif ($part != '%' &&  $part != $clean_parts[$key]) {
+                  $match = FALSE;
+                }
+              }
+              if ($match) {
+                $data['tabs'][0]['output'][$delta]['#active'] = TRUE;
+              }
+            }
+            elseif (strpos($clean_path, $root_path) === 0) {
               $data['tabs'][0]['output'][$delta]['#active'] = TRUE;
             }
             $delta++;
@@ -153,7 +271,7 @@ function calendar_display_types() {
 function calendar_help($section, $arg) {
   switch ($section) {
     case 'admin/help#calendar':
-      return t("<p>View complete documentation at !link.</p>", array('!link' => 'http://drupal.org/node/120710'));
+      return t("<p>View complete documentation at !link.</p>", array('!link' => l(t('Date and Calendar Documentation'), 'http://drupal.org/node/262062')));
   }
 }
 
@@ -389,10 +507,28 @@ function calendar_granularity_path(&$view, $granularity) {
       if (!empty($display->deleted) || empty($display->display_options['style_plugin']) || (isset($display->display_options['enabled']) && $display->display_options['enabled'] == FALSE)) {
         continue;
       }
-      if ($display->display_options['style_plugin'] == 'calendar_style' && !empty($display->display_options['path'])) {
-        $type = !empty($display->display_options['style_options']['calendar_type']) ? $display->display_options['style_options']['calendar_type'] : 'month';
+
+      if ($display->display_plugin != 'feed' && !empty($display->display_options['path'])) {
+        foreach ($display->display_options['arguments'] as $name => $argument) {
+          if (!empty($argument['granularity'])) {
+            $type = $argument['granularity'];
+          }
+        }
+
         if ($type == $granularity) {
-          $paths[$view->name][$granularity] = $display->display_options['path'];
+          $part_path =  $display->display_options['path'];
+          $parts = explode('/', $part_path);
+          if (in_array('%', $parts)) {
+            $current_path = parse_url($_GET['q']);
+            $current_parts = explode('/', $current_path['path']);
+            foreach ($parts as $key => $part) {
+              if ($part == '%' && !empty($current_parts[$key])) {
+                $parts[$key] = $current_parts[$key];
+              }
+            }
+            $part_path = implode('/', $parts);
+          }
+          $paths[$view->name][$granularity] = $part_path;
         }
       }
     }

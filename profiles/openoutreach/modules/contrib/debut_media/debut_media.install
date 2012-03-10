@@ -8,10 +8,6 @@
 
 /**
  * Implements hook_install().
- *
- * Add "Tags", "Title", and "Description" fields to files.
- *
- * @see media_gallery_install().
  */
 function debut_media_install() {
   // Make sure the standard 'field_tags' field exists.
@@ -24,6 +20,13 @@ function debut_media_install() {
 function debut_media_requirements() {
   $requirements = array();
   $t = get_t();
+
+  // If this module is part of an install profile, its requirements may be
+  // checked before the field system is available. The rest of this function is
+  // unneeded anyway in that case, so bail out here to avoid fatal errors.
+  if (!module_exists('field')) {
+    return $requirements;
+  }
 
   $required_fields = _debut_media_controlled_fields();
   // In addition to the fields we control, we also need the standard field_tags
@@ -50,13 +53,15 @@ function debut_media_requirements() {
  * Make sure the field_tags field exists and is of the right type.
  */
 function _debut_media_ensure_vocabulary_tags() {
+  $t = get_t();
+
   // Make sure the 'tags' vocabulary exists.
   $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
   if (!$vocabulary) {
-    $description = st('Use tags to group articles on similar topics into categories.');
-    $help = st('Enter a comma-separated list of words to describe your content.');
+    $description = $t('Use tags to group articles on similar topics into categories.');
+    $help = $t('Enter a comma-separated list of words to describe your content.');
     $vocabulary = (object) array(
-      'name' => 'Tags',
+      'name' => $t('Tags'),
       'description' => $description,
       'machine_name' => 'tags',
       'help' => $help,

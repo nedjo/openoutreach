@@ -123,6 +123,8 @@ function hook_date_popup_pre_validate_alter(&$element, &$form_state, &$input) {
  *   - field: The $field array.
  *   - instance: The $instance array.
  *   - item: The $item array.
+ *
+ * @see date_combo_element_process()
  */
 function hook_date_combo_pre_validate_alter(&$element, &$form_state, $context) {
   if (!empty($context['item']['all_day'])) {
@@ -192,10 +194,15 @@ function hook_date_combo_validate_date_end_alter(&$date, &$form_state, $context)
  *
  * @param array $element
  *   An associative array containing the properties of the date_text element.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ * @param array $context
+ *   An associative array containing the following keys:
+ *   - form: Nested array of form elements that comprise the form.
  *
  * @see date_text_element_process()
  */
-function hook_date_text_process_alter(&$element) {
+function hook_date_text_process_alter(&$element, &$form_state, $context) {
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '') {
     // All Day handling on text dates works only if the user leaves the time out
@@ -208,10 +215,15 @@ function hook_date_text_process_alter(&$element) {
  *
  * @param array $element
  *   An associative array containing the properties of the date_select element.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ * @param array $context
+ *   An associative array containing the following keys:
+ *   - form: Nested array of form elements that comprise the form.
  *
  * @see date_select_element_process()
  */
-function hook_date_select_process_alter(&$element) {
+function hook_date_select_process_alter(&$element, &$form_state, $context) {
   // Hide or show the element in reaction to the all_day status for the element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '') {
@@ -232,10 +244,15 @@ function hook_date_select_process_alter(&$element) {
  *
  * @param array $element
  *   An associative array containing the properties of the date_popup element.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ * @param array $context
+ *   An associative array containing the following keys:
+ *   - form: Nested array of form elements that comprise the form.
  *
  * @see date_popup_element_process()
  */
-function hook_date_popup_process_alter(&$element) {
+function hook_date_popup_process_alter(&$element, &$form_state, $context) {
   // Hide or show the element in reaction to the all_day status for the element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '' && array_key_exists('time', $element)) {
@@ -289,6 +306,40 @@ function hook_date_combo_process_alter(&$element, &$form_state, $context) {
       '#weight' => $instance['widget']['weight'] + .4,
     );
   }
+}
+
+/**
+ * Alter the date_timezone widget element.
+ *
+ * @param array $element
+ *   An associative array containing the properties of the date_select element.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ * @param array $context
+ *   An associative array containing the following keys:
+ *   - form: Nested array of form elements that comprise the form.
+ *
+ * @see date_timezone_element_process()
+ */
+function hook_date_timezone_process_alter(&$element, &$form_state, $context) {
+  // @todo.
+}
+
+/**
+ * Alter the date_year_range widget element.
+ *
+ * @param array $element
+ *   An associative array containing the properties of the date_select element.
+ * @param array $form_state
+ *   A keyed array containing the current state of the form.
+ * @param array $context
+ *   An associative array containing the following keys:
+ *   - form: Nested array of form elements that comprise the form.
+ *
+ * @see date_year_range_element_process()
+ */
+function hook_date_year_range_process_alter(&$element, &$form_state, $context) {
+  // @todo.
 }
 
 /**

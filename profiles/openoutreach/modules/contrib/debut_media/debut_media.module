@@ -24,12 +24,12 @@ function debut_media_init() {
 /**
  * Implements hook_menu_alter().
  *
- * Add a local action link to the media page.
+ * Add a local action link to the file page.
  */
 function debut_media_menu_alter(&$items) {
   if (isset($items['media/browser'])) {
-    $items['media/add'] = $items['media/browser'];
-    $items['media/add']['type'] = MENU_LOCAL_ACTION;
+    $items['file/add'] = $items['media/browser'];
+    $items['file/add']['type'] = MENU_LOCAL_ACTION;
   }
 }
 

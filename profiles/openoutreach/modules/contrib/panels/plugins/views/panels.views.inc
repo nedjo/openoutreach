@@ -17,6 +17,7 @@ function panels_views_plugins() {
         'uses options' => TRUE,
         'type' => 'normal',
         'help topic' => 'style-row-panels-fields',
+        'parent' => 'fields',
       ),
     ),
   );

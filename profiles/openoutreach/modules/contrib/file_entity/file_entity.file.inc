@@ -24,14 +24,28 @@ function file_entity_file_presave($file) {
  * Implements hook_file_insert().
  */
 function file_entity_file_insert($file) {
+  // Ensure field data is saved since file_save() does not in Drupal 7.
   field_attach_insert('file', $file);
+
+  // Clear any related field caches.
+  file_entity_invalidate_field_caches($file);
+
+  // Clear the page and block caches.
+  cache_clear_all();
 }
 
 /**
  * Implement hook_file_update().
  */
 function file_entity_file_update($file) {
+  // Ensure field data is saved since file_save() does not in Drupal 7.
   field_attach_update('file', $file);
+
+  // Clear any related field caches.
+  file_entity_invalidate_field_caches($file);
+
+  // Clear the page and block caches.
+  cache_clear_all();
 }
 
 /**
@@ -39,6 +53,13 @@ function file_entity_file_update($file) {
  */
 function file_entity_file_delete($file) {
   field_attach_delete('file', $file);
+
+  // This is safe to call since the file's records from the usage table have
+  // not yet been deleted.
+  file_entity_invalidate_field_caches($file);
+
+  // Clear the page and block caches.
+  cache_clear_all();
 }
 
 /**

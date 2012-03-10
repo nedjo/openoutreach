@@ -31,11 +31,6 @@ $plugin = array(
 function ctools_page_tabs_content_type_render($subtype, $conf, $panel_args) {
   $block = new stdClass();
   $menus = menu_local_tabs();
-
-  if (empty($menus['#secondary']) && empty($menus['#primary'])) {
-    return;
-  }
-
   switch ($conf['type']) {
     case 'primary':
       unset($menus['#secondary']);

@@ -134,13 +134,13 @@ foreach ($date_fields as $field_name) {
 
 $view = new view;
 $view->name = $name;
-$view->description = $description;
+$view->description = t("DEPRECATED: Create new calendars using 'add view from template'.") . ' ' . $description;
 $view->tag = 'Calendar';
 $view->base_table = 'node';
-$view->human_name = ucfirst($name);
+$view->human_name =  ucfirst($name) . ' ' . t("(DEPRECATED)");
 $view->core = 7;
 $view->api_version = '3.0-alpha1';
-$view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
+$view->disabled = $name == 'calendar' ? TRUE : FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Master */
 $handler = $view->new_display('default', 'Master', 'default');
@@ -315,11 +315,12 @@ $handler->display->display_options['style_options']['name_size'] = '3';
 $handler->display->display_options['style_options']['mini'] = '0';
 $handler->display->display_options['style_options']['with_weekno'] = '0';
 $handler->display->display_options['style_options']['multiday_theme'] = '1';
+$handler->display->display_options['style_options']['groupby_times'] = 'hour';
 $handler->display->display_options['style_options']['theme_style'] = '1';
 $handler->display->display_options['style_options']['max_items'] = '0';
 $handler->display->display_options['defaults']['style_options'] = FALSE;
 $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-$handler->display->display_options['row_plugin'] = 'calendar_node';
+$handler->display->display_options['row_plugin'] = 'calendar_entity';
 $handler->display->display_options['defaults']['row_options'] = FALSE;
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: Date: Date (node) */
@@ -434,7 +435,7 @@ $handler->display->display_options['style_options']['theme_style'] = '1';
 $handler->display->display_options['style_options']['max_items'] = '0';
 $handler->display->display_options['defaults']['style_options'] = FALSE;
 $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-$handler->display->display_options['row_plugin'] = 'calendar_node';
+$handler->display->display_options['row_plugin'] = 'calendar_entity';
 $handler->display->display_options['defaults']['row_options'] = FALSE;
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: Date: Date (node) */
@@ -452,13 +453,13 @@ $handler->display->display_options['arguments']['date_argument']['date_fields'] 
 $handler->display->display_options['arguments']['date_argument']['date_method'] = 'OR';
 $handler->display->display_options['arguments']['date_argument']['date_group'] = 'date';
 
-if (module_exists('calendar_ical')) {
+if (module_exists('date_ical')) {
 
 /* Display: iCal */
 $handler = $view->new_display('feed', 'iCal', 'feed_1');
 $handler->display->display_options['pager']['type'] = 'some';
-$handler->display->display_options['style_plugin'] = 'ical';
-$handler->display->display_options['row_plugin'] = 'ical_node';
+$handler->display->display_options['style_plugin'] = 'date_ical';
+$handler->display->display_options['row_plugin'] = 'date_ical';
 $handler->display->display_options['row_options']['date_field'] = $aliases[0];
 $handler->display->display_options['defaults']['filters'] = FALSE;
 /* Filter criterion: Content: Published */

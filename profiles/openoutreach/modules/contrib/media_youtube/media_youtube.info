@@ -4,15 +4,17 @@ description = Provides YouTube support to the Media module.
 package = "Media"
 core = 7.x
 files[] = media_youtube.module
-files[] = includes/MediaYouTubeStreamWrapper.inc
 files[] = includes/MediaInternetYouTubeHandler.inc
-files[] = includes/media_youtube.styles.inc
+files[] = includes/MediaYouTubeStreamWrapper.inc
 files[] = includes/MediaYouTubeStyles.inc
+files[] = includes/media_youtube.formatters.inc
+files[] = includes/media_youtube.styles.inc
+files[] = includes/media_youtube.variables.inc
 dependencies[] = media_internet
 
-; Information added by drupal.org packaging script on 2011-06-01
-version = "7.x-1.0-alpha5"
+; Information added by drupal.org packaging script on 2012-02-22
+version = "7.x-1.0-beta2"
 core = "7.x"
 project = "media_youtube"
-datestamp = "1306891017"
+datestamp = "1329954046"
 

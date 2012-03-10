@@ -20,7 +20,7 @@
  */
 class calendar_plugin_row extends views_plugin_row {
 
-  // Stores the nodes loaded with pre_render.
+  // Stores the entities loaded with pre_render.
   var $entities = array();
 
   function init(&$view, &$display, $options = NULL) {
@@ -151,7 +151,7 @@ class calendar_plugin_row extends views_plugin_row {
       }
       $taxonomies = taxonomy_get_vocabularies();
       foreach ($taxonomies as $vid => $vocab) {
-        if (in_array($vocab->name, $vocab_names)) {
+        if (in_array($vocab->machine_name, $vocab_names)) {
           $this->options['colors']['calendar_colors_vocabulary'][] = $vid;
         }
       }
@@ -230,6 +230,7 @@ class calendar_plugin_row extends views_plugin_row {
   }
 
   function pre_render($values) {
+
     // @TODO When the date is coming in through a relationship, the nid
     // of the view is not the right node to use, then we need the related node.
     // Need to sort out how that should be handled.
@@ -242,10 +243,22 @@ class calendar_plugin_row extends views_plugin_row {
     foreach ($values as $row) {
       // Use the $id as the key so we don't create more than one value per entity.
       $id = $row->{$this->field_alias};
-      $ids[$id] = $id;
+
+      // Node revisions need special loading.
+      if ($this->view->base_table == 'node_revision') {
+        $this->entities[$id] = node_load(NULL, $id);
+      }
+      // For other entities we just create an array of ids to pass
+      // to entity_load().
+      else {
+        $ids[$id] = $id;
+      }
     }
+
+    $base_tables = date_views_base_tables();
+    $this->entity_type = $base_tables[$this->view->base_table];
     if (!empty($ids)) {
-      $this->entities = entity_load($this->view->base_table, $ids);
+      $this->entities = entity_load($this->entity_type, $ids);
     }
 
     // Let the style know if a link to create a new date is required.
@@ -271,6 +284,14 @@ class calendar_plugin_row extends views_plugin_row {
           foreach ($handler->options['date_fields'] as $alias) {
             $info = $data[$alias];
             $field_name  = str_replace(array('_value2', '_value'), '', $info['real_field_name']);
+
+            // This is ugly and hacky but I can't figure out any generic way to
+            // recognize that the node module is going to give some the revision timestamp
+            // a different field name on the entity than the actual column name in the database.
+            if ($this->view->base_table == 'node_revision' && $field_name == 'timestamp') {
+              $field_name = 'revision_timestamp';
+            }
+
             $date_fields[$field_name] = $info;
           }
         }
@@ -317,12 +338,14 @@ class calendar_plugin_row extends views_plugin_row {
       $rrule_field = $info['rrule_field'];
       $is_field    = $info['is_field'];
 
-      $info = entity_get_info($this->view->base_table);
+      $info = entity_get_info($this->entity_type);
       $this->id_field = $info['entity keys']['id'];
-      $this->bundle = $info['entity keys']['bundle'];
-      $callback = $info['uri callback'];
-      $path = $callback($entity);
-      $entity->url = $path['path'];
+      $this->id = $entity->{$this->id_field};
+      $this->type = !empty($info['entity keys']['bundle']) ? $info['entity keys']['bundle'] : $this->entity_type;
+      $this->title = entity_label($this->entity_type, $entity);
+      $uri = entity_uri($this->entity_type, $entity);
+      $uri['options']['absolute'] = TRUE;
+      $this->url = url($uri['path'], $uri['options']);
 
       // Retrieve the field value(s) that matched our query from the cached node.
       // Find the date and set it to the right timezone.
@@ -332,7 +355,6 @@ class calendar_plugin_row extends views_plugin_row {
       $item_end_date   = NULL;
       $granularity = 'second';
       $increment = 1;
-
       if ($is_field) {
 
         $delta = isset($row->$delta_field) ? $row->$delta_field : 0;
@@ -375,9 +397,9 @@ class calendar_plugin_row extends views_plugin_row {
       $item_end_date->setTimezone(new dateTimezone($to_zone));
 
       $event = new stdClass();
-      $event->id = $entity->{$this->id_field};
-      $event->title = $entity->title;
-      $event->type = $entity->{$this->bundle};
+      $event->id = $this->id;
+      $event->title = $this->title;
+      $event->type = $this->type;
       $event->date_start = $item_start_date;
       $event->date_end = $item_end_date;
       $event->db_tz = $db_tz;
@@ -385,7 +407,7 @@ class calendar_plugin_row extends views_plugin_row {
       $event->granularity = $granularity;
       $event->increment = $increment;
       $event->field = $is_field ? $item : NULL;
-      $event->url = $entity->url;
+      $event->url = $this->url;
       $event->row = $row;
       $event->entity = $entity;
 
@@ -502,6 +524,8 @@ class calendar_plugin_row extends views_plugin_row {
 
     $type_names = node_type_get_names();
     $type = $entity->type;
+    $label = '';
+    $stripe = '';
     if (!(isset($entity->stripe))) {
       $entity->stripe = array();
       $entity->stripe_label = array();
@@ -512,13 +536,9 @@ class calendar_plugin_row extends views_plugin_row {
     if (array_key_exists($type, $colors)) {
       $stripe = $colors[$type];
     }
-    else {
-      $stripe = '';
-    }
 
     $entity->stripe[] = $stripe;
     $entity->stripe_label[] = $label;
-    $GLOBALS['calendar_stripe_labels'][][$type] = array('stripe' => $stripe, 'label' => $label);
     return $stripe;
   }
 
@@ -532,11 +552,11 @@ class calendar_plugin_row extends views_plugin_row {
       return;
     }
 
-    $entity = $event->entity;
     $terms = array();
     if ($this->options['colors']['legend'] == 'taxonomy') {
       $term_field_name = $this->options['colors']['taxonomy_field'];
-      if ($term_field = field_get_items($this->view->base_table, $entity, $term_field_name)) {
+
+      if ($term_field = field_get_items($this->view->base_table, $entity->entity, $term_field_name)) {
         foreach ($term_field as $delta => $items) {
           foreach ($items as $item) {
             $terms[] = $item['tid'];
@@ -549,9 +569,9 @@ class calendar_plugin_row extends views_plugin_row {
       return;
     }
 
-    if (!(isset($event->stripe))) {
-      $event->stripe = array();
-      $event->stripe_label = array();
+    if (!(isset($entity->stripe))) {
+      $entity->stripe = array();
+      $entity->stripe_label = array();
     }
     if (count($terms)) {
       foreach ($terms as $tid) {
@@ -561,14 +581,13 @@ class calendar_plugin_row extends views_plugin_row {
         }
         $stripe = $term_colors[$term_for_entity->tid];
         $stripe_label = $term_for_entity->name;
-        $event->stripe[] = $stripe;
-        $event->stripe_label[] = $stripe_label;
-        $GLOBALS['calendar_stripe_labels'][][$term_for_entity->tid] = array('stripe' => $stripe, 'label' => $stripe_label);
+        $entity->stripe[] = $stripe;
+        $entity->stripe_label[] = $stripe_label;
       }
     }
     else {
-      $event->stripe[] = '';
-      $event->stripe_label[] = '';
+      $entity->stripe[] = '';
+      $entity->stripe_label[] = '';
     }
 
     return;
@@ -600,7 +619,6 @@ class calendar_plugin_row extends views_plugin_row {
         $stripe_label = $group_name;
         $entity->stripe[] = $stripe;
         $entity->stripe_label[] = $stripe_label;
-        $GLOBALS['calendar_stripe_labels'][][$gid] = array('stripe' => $stripe, 'label' => $stripe_label);
       }
     }
     else {

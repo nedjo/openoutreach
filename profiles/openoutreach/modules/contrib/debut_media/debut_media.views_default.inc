@@ -161,8 +161,12 @@ function debut_media_views_default_views() {
   );
   $handler->display->display_options['filters']['type']['group'] = 0;
   $handler->display->display_options['path'] = 'file';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'Multimedia';
+  $handler->display->display_options['menu']['description'] = 'View media files.';
   $handler->display->display_options['menu']['weight'] = '0';
   $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
 
   /* Display: Page: Images */
   $handler = $view->new_display('page', 'Page: Images', 'page_2');
@@ -224,7 +228,6 @@ function debut_media_views_default_views() {
   $handler->display->display_options['defaults']['style_plugin'] = FALSE;
   $handler->display->display_options['style_plugin'] = 'jcarousel';
   $handler->display->display_options['style_options']['wrap'] = '0';
-  $handler->display->display_options['style_options']['skin'] = 'default';
   $handler->display->display_options['style_options']['visible'] = '';
   $handler->display->display_options['style_options']['auto'] = '0';
   $handler->display->display_options['style_options']['autoPause'] = 1;

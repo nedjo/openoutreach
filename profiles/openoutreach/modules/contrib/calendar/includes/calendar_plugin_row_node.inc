@@ -494,7 +494,6 @@ class calendar_plugin_row_node extends views_plugin_row {
 
     $node->stripe[] = $stripe;
     $node->stripe_label[] = $label;
-    $GLOBALS['calendar_stripe_labels'][][$type] = array('stripe' => $stripe, 'label' => $label);
     return $stripe;
   }
 
@@ -539,7 +538,6 @@ class calendar_plugin_row_node extends views_plugin_row {
         $stripe_label = $term_for_node->name;
         $event->stripe[] = $stripe;
         $event->stripe_label[] = $stripe_label;
-        $GLOBALS['calendar_stripe_labels'][][$term_for_node->tid] = array('stripe' => $stripe, 'label' => $stripe_label);
       }
     }
     else {
@@ -576,7 +574,6 @@ class calendar_plugin_row_node extends views_plugin_row {
         $stripe_label = $group_name;
         $node->stripe[] = $stripe;
         $node->stripe_label[] = $stripe_label;
-        $GLOBALS['calendar_stripe_labels'][][$gid] = array('stripe' => $stripe, 'label' => $stripe_label);
       }
     }
     else {

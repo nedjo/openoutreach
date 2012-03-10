@@ -115,6 +115,8 @@ $plugin = array(
 
   // Callback to render the data.
   'render' => 'panels_panel_context_render',
+  // Callback to return addressable data
+  'addressable callback' => 'panels_panel_context_get_addressable',
 
   // Various callbacks for operations performed on the handler to ensure
   // related data is updated properly.
@@ -664,14 +666,19 @@ function panels_panel_context_edit_content($form, &$form_state) {
   $form_state['page']->display_cache[$form_state['handler_id']] = $cache;
 
   $form = panels_edit_display_form($form, $form_state);
-  // Make sure the theme will work since our form id is different.
-  $form['#theme'] = 'panels_edit_display_form';
 
   if (!isset($form_state['type']) || $form_state['type'] != 'add' && !empty($form_state['handler_id']) && !empty($form['buttons'])) {
     $form['buttons']['preview'] = $form['buttons']['return'];
     $form['buttons']['preview']['#value'] = t('Update and preview');
   }
   return $form;
+}
+
+/**
+ * Validate changes to the panel content form.
+ */
+function panels_panel_context_edit_content_validate(&$form, &$form_state) {
+  panels_edit_display_form_validate($form, $form_state);
 }
 
 function panels_panel_context_edit_content_submit(&$form, &$form_state) {
@@ -820,4 +827,24 @@ function panels_panel_context_edit_preview_submit(&$form, &$form_state) {
   $form_state['content'] = panels_render_display($display);
   $form_state['redirect'] = FALSE;
   $form_state['rerender'] = TRUE;
+}
+
+function panels_panel_context_get_addressable($task, $subtask_name, $handler, $address, $contexts, $arguments, $type) {
+  // Load the display
+  $display = panels_panel_context_get_display($handler);
+
+  $display->context = $contexts;
+  $display->args = $arguments;
+  $display->css_id = $handler->conf['css_id'];
+  $display->cache_key = 'panel_context:' . $task->name . ':' . $handler->name;
+
+  $renderer = panels_get_renderer($handler->conf['pipeline'], $display);
+  if ($type == 'content') {
+    $renderer->prepare();
+
+    $pid = array_shift($address);
+    if (!empty($renderer->prepared['panes'][$pid])) {
+      return $renderer->render_pane($renderer->prepared['panes'][$pid]);
+    }
+  }
 }

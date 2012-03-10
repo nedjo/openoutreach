@@ -24,6 +24,13 @@ Drupal.behaviors.media_youtube = {
     if (!FlashDetect.installed && !html5){
       $('.media-youtube-preview-wrapper').each(Drupal.media_youtube.needFlash);
     }
+
+    // Replace all object tags with iframes.
+    if (Drupal.settings && Drupal.settings.media_youtube) {
+      for (video in Drupal.settings.media_youtube) {
+        Drupal.media_youtube.insertEmbed(video);
+      }
+    }
   }
 };
 
@@ -48,6 +55,7 @@ Drupal.media_youtube.insertEmbed = function (embed_id) {
   var src = 'http://www.youtube.com/embed/' + settings.video_id;
 
   // Allow other modules to modify the video settings.
+  settings.options = settings.options || {};
   settings.options.wmode = 'opaque';
   $(window).trigger('media_youtube_load', settings);
 

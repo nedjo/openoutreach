@@ -47,7 +47,21 @@ function panels_requirements_install() {
 function panels_schema() {
   // This should always point to our 'current' schema. This makes it relatively easy
   // to keep a record of schema as we make changes to it.
-  return panels_schema_3();
+  return panels_schema_4();
+}
+
+function panels_schema_4() {
+  $schema = panels_schema_3();
+
+  $schema['panels_pane']['fields']['locks'] = array(
+    'type' => 'text',
+    'size' => 'big',
+    'serialize' => TRUE,
+    'object default' => array(),
+    'initial' => array(),
+  );
+
+  return $schema;
 }
 
 /**
@@ -74,7 +88,7 @@ function panels_schema_3() {
       ),
       'layout' => array(
         'type' => 'varchar',
-        'length' => '32',
+        'length' => '255',
         'default' => '',
       ),
       'layout_settings' => array(
@@ -82,20 +96,20 @@ function panels_schema_3() {
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'panel_settings' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'cache' => array(
         'type' => 'text',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'title' => array(
         'type' => 'varchar',
@@ -159,42 +173,42 @@ function panels_schema_3() {
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'configuration' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'cache' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'style' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'css' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'extras' => array(
         'type' => 'text',
         'size' => 'big',
         'serialize' => TRUE,
         'object default' => array(),
-        'initial ' => array(),
+        'initial' => array(),
       ),
       'position' => array(
         'type' => 'int',
@@ -320,3 +334,44 @@ function panels_schema_3() {
   return $schema;
 }
 
+/**
+ * Change panels_display.layout to match the size of panels_layout.name.
+ */
+function panels_update_7300() {
+  // Load the schema.
+  $schema = panels_schema_3();
+  $table = 'panels_display';
+  $field = 'layout';
+  $spec = $schema[$table]['fields'][$field];
+
+  // Re-define the column.
+  db_change_field($table, $field, $field, $spec);
+
+  return t('Changed the panels_display.layout field to the correct size.');
+}
+
+/**
+ * Add lock field to panels_pane table.
+ */
+function panels_update_7301() {
+  // Load the schema.
+
+  // Due to a previous failure, the field may already exist:
+
+  $schema = panels_schema_4();
+  $table = 'panels_pane';
+  $field = 'locks';
+
+  if (!db_field_exists($table, $field)) {
+    $spec = $schema[$table]['fields'][$field];
+
+    // Core does not properly respect 'initial' and 'serialize'.
+    unset($spec['initial']);
+
+    // Re-define the column.
+    db_add_field($table, $field, $spec);
+    return t('Added panels_pane.lock field.');
+  }
+
+  return t('panels_pane.lock field already existed, update skipped.');
+}

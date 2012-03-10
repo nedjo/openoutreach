@@ -17,21 +17,22 @@ function calendar_views_templates() {
 
   // Map the base tables to entity types.
   $entity_info = entity_get_info();
-  foreach ($entity_info as $entity_type => $info) {
-    $base_tables[$entity_type] = $info['base table'];
-  }
+  $base_tables = date_views_base_tables();
 
   // Find all the date fields we know about.
 
   $processed = array();
 
   foreach ($entity_info as $entity_type => $info) {
+    if (!$info['fieldable']) {
+      continue;
+    }
+    $items = field_info_instances($entity_type);
     $views_fields = date_views_fields($info['base table']);
     foreach ($views_fields['name'] as $name => $data) {
   
-      // For of the Field date fields, we need to find the bundle and entities this field is used on.
+      // For each of the Field date fields, we need to find the bundle and entities this field is used on.
       if ($data['is_field']) {
-        $items = field_info_instances($entity_type);
         foreach ($items as $bundle => $widgets) {
           foreach ($widgets as $field_name => $widget) {
             $field = field_info_field($field_name);
@@ -42,9 +43,9 @@ function calendar_views_templates() {
             if ($alias == $name && !in_array($alias, $processed)) {
               $base_table = $base_tables[$entity_type];
               $calendar_option = array(
-                'name' => 'calendar_' . $base_table . '_' . $field_name,
-                'description' => t("A calendar view of the @base_table base table and the @field_name date field.", array('@base_table' => $base_table, '@field_name' => $field_name)),
-                'path' => 'calendar-' . $base_table . '_' . $field_name,
+                'name' => 'calendar_' . $field_name,
+                'description' => t("A calendar view of the '@field_name' field in the '@base_table' base table.", array('@base_table' => $base_table, '@field_name' => $field_name)),
+                'path' => 'calendar-' . str_replace('_', '-', $field_name),
                 'base_table' => $base_table,
                 'field_name' => $field_name,
               );
@@ -62,9 +63,9 @@ function calendar_views_templates() {
         $base_table = $parts[0];
         $field_name = $parts[1];
         $calendar_option = array(
-          'name' => 'calendar_' . $base_table . '_' . $field_name,
-          'description' => t("A calendar view of the @base_table base table and the @field_name date field.", array('@base_table' => $base_table, '@field_name' => $field_name)),
-          'path' => 'calendar-' . $base_table . '_' . $field_name,
+          'name' => 'calendar_' . $entity_type . '_' . $field_name,
+          'description' => t("A calendar view of the '@field_name' field in the '@base_table' base table.", array('@base_table' => $base_table, '@field_name' => $field_name)),
+          'path' => 'calendar-' . str_replace('_', '-', $field_name),
           'base_table' => $base_table,
           'field_name' => $field_name,
         );
@@ -125,15 +126,15 @@ $view->name = $name;
 $view->description = $description;
 $view->tag = 'Calendar';
 $view->base_table = $base_table;
-$view->human_name = t("Calendar (@base_table: @field_name)", array('@base_table' => $base_table, '@field_name' => $field_name));
+$view->human_name = t("Calendar");
 $view->core = 7;
-$view->api_version = '3.0-alpha1';
+$view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Master */
 
 $handler = $view->new_display('default', 'Master', 'default');
-$handler->display->display_options['title'] = $name;
+$handler->display->display_options['title'] = '';
 $handler->display->display_options['link_display'] = 'page_1';
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -156,6 +157,7 @@ $handler->display->display_options['row_plugin'] = 'calendar_entity';
 switch ($base_table) {
 
   case 'node':
+  case 'node_revision':
     $handler->display->display_options['fields']['title']['id'] = 'title';
     $handler->display->display_options['fields']['title']['table'] = $base_table;
     $handler->display->display_options['fields']['title']['field'] = 'title';
@@ -333,11 +335,12 @@ $handler->display->display_options['style_options']['name_size'] = '3';
 $handler->display->display_options['style_options']['mini'] = '0';
 $handler->display->display_options['style_options']['with_weekno'] = '0';
 $handler->display->display_options['style_options']['multiday_theme'] = '1';
+$handler->display->display_options['style_options']['groupby_times'] = 'hour';
 $handler->display->display_options['style_options']['theme_style'] = '1';
 $handler->display->display_options['style_options']['max_items'] = '0';
 $handler->display->display_options['defaults']['style_options'] = FALSE;
 $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-$handler->display->display_options['row_plugin'] = 'calendar_node';
+$handler->display->display_options['row_plugin'] = 'calendar_entity';
 $handler->display->display_options['defaults']['row_options'] = FALSE;
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 
@@ -464,7 +467,7 @@ $handler->display->display_options['style_options']['theme_style'] = '1';
 $handler->display->display_options['style_options']['max_items'] = '0';
 $handler->display->display_options['defaults']['style_options'] = FALSE;
 $handler->display->display_options['defaults']['row_plugin'] = FALSE;
-$handler->display->display_options['row_plugin'] = 'calendar_node';
+$handler->display->display_options['row_plugin'] = 'calendar_entity';
 $handler->display->display_options['defaults']['row_options'] = FALSE;
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 
@@ -484,14 +487,14 @@ $handler->display->display_options['arguments']['date_argument']['date_fields'] 
 $handler->display->display_options['arguments']['date_argument']['date_method'] = 'OR';
 $handler->display->display_options['arguments']['date_argument']['date_group'] = 'date';
 
-if (module_exists('calendar_ical')) {
+if (module_exists('date_ical')) {
 
 /* Display: iCal */
 
 $handler = $view->new_display('feed', 'iCal', 'feed_1');
 $handler->display->display_options['pager']['type'] = 'some';
-$handler->display->display_options['style_plugin'] = 'ical';
-$handler->display->display_options['row_plugin'] = 'ical_node';
+$handler->display->display_options['style_plugin'] = 'date_ical';
+$handler->display->display_options['row_plugin'] = 'date_ical';
 $handler->display->display_options['row_options']['date_field'] = $alias;
 $handler->display->display_options['defaults']['filters'] = FALSE;
 

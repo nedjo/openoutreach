@@ -685,7 +685,7 @@ class calendar_plugin_style extends views_plugin_style {
           ksort($day);
           foreach ($day as $time => $hour) {
             foreach ($hour as $key => $item) {
-              $all_day = $item->calendar_start_date == $item->calendar_end_date;
+              $all_day = $item->calendar_all_day;
 
               // Parse out date part
               $start_ydate = date_format($item->date_start, DATE_FORMAT_DATE);

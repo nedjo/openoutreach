@@ -50,6 +50,12 @@ function panels_ipe_theme() {
     'panels_ipe_dnd_form_container' => array(
       'variables' => array('link' => NULL, 'cache_key' => NULL, 'display' => NULL),
     ),
+    'panels_ipe_toolbar' => array(
+      'variables' => array('buttons' => NULL),
+    ),
+    'panels_ipe_edit_button' => array(
+      'variables' => array('class' => array(), 'text' => NULL),
+    ),
   );
 }
 
@@ -107,7 +113,14 @@ function theme_panels_ipe_pane_wrapper($vars) {
   );
 
   $links = theme('links', array('links' => $links, 'attributes' => $attributes));
-  $links .= '<div class="panels-ipe-draghandle">&nbsp;</div>';
+  if (!empty($pane->locks['type']) && $pane->locks['type'] == 'immovable') {
+    $links .= '<div class="panels-ipe-dragbar panels-ipe-nodraghandle">&nbsp;</div>';
+  }
+  else {
+    $links .= '<div class="panels-ipe-dragbar panels-ipe-draghandle">&nbsp;</div>';
+  }
+
+
   $handlebar = '<div class="panels-ipe-handlebar-wrapper panels-ipe-on clearfix">' . $links . '</div>';
   return $handlebar . $output;
 }
@@ -126,12 +139,19 @@ function theme_panels_ipe_add_pane_button($vars) {
   return '<div class="panels-ipe-newblock panels-ipe-on panels-ipe-portlet-static">' . $link . '</div>';
 }
 
+/**
+ * @deprecated
+ */
 function panels_ipe_get_cache_key($key = NULL) {
-  static $cache;
-  if (isset($key)) {
-    $cache = $key;
-  }
-  return $cache;
+  return array();
+}
+
+/**
+ * Add a button to the IPE toolbar.
+ */
+function panels_ipe_toolbar_add_button($cache_key, $id, $button) {
+  $buttons = &drupal_static('panels_ipe_toolbar_buttons', array());
+  $buttons[$cache_key][$id] = $button;
 }
 
 /**
@@ -142,21 +162,48 @@ function panels_ipe_get_cache_key($key = NULL) {
  * @param unknown_type $main
  */
 function panels_ipe_page_alter(&$page) {
-  $key = panels_ipe_get_cache_key();
-  if (!isset($key)) {
+  $buttons = &drupal_static('panels_ipe_toolbar_buttons', array());
+  if (empty($buttons)) {
     return;
   }
 
-  // TODO should be moved into the IPE plugin - WAAAY too hardcoded right now
-  $output = "<div id='panels-ipe-control-container' class='clearfix'>";
-  $output .= "<div id='panels-ipe-control-$key' class='panels-ipe-control'>";
-  $output .= "<div class='panels-ipe-startedit panels-ipe-pseudobutton panels-ipe-off'>";
-  $output .= "<span>" . t('Customize this page') . "</span>";
-  $output .= "</div>";
-  $output .= "<div class='panels-ipe-form-container panels-ipe-on clearfix'</div>";
-  $output .= "</div></div>";
+  $output = theme('panels_ipe_toolbar', array('buttons' => $buttons));
 
   $page['page_bottom']['panels_ipe'] = array(
     '#markup' => $output,
   );
+}
+
+function theme_panels_ipe_toolbar($vars) {
+  $buttons = $vars['buttons'];
+
+  $output = "<div id='panels-ipe-control-container' class='clearfix'>";
+  foreach ($buttons as $key => $ipe_buttons) {
+    $output .= "<div id='panels-ipe-control-$key' class='panels-ipe-control'>";
+
+    // Controls in this container will appear when the IPE is not on.
+    $output .= '<div class="panels-ipe-button-container clearfix">';
+    foreach ($ipe_buttons as $button) {
+      $output .= $button;
+    }
+    $output .= '</div>';
+
+    // Controls in this container will appear when the IPE is on. It is usually
+    // filled via AJAX.
+    $output .= '<div class="panels-ipe-form-container clearfix"></div>';
+
+  }
+
+  $output .= "</div>";
+
+  return $output;
+}
+
+function theme_panels_ipe_edit_button($vars) {
+  $class = $vars['class'];
+  $output  = "<div class='$class panels-ipe-pseudobutton'>";
+  $output .= "  <span>" . $vars['text'] . "</span>";
+  $output .= "</div>";
+
+  return $output;
 }

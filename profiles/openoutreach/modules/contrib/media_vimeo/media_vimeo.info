@@ -13,9 +13,9 @@ files[] = includes/media_vimeo.variables.inc
 dependencies[] = media_internet
 
 
-; Information added by drupal.org packaging script on 2011-12-08
-version = "7.x-1.x-dev"
+; Information added by drupal.org packaging script on 2011-12-07
+version = "7.x-1.0-beta4"
 core = "7.x"
 project = "media_vimeo"
-datestamp = "1323304521"
+datestamp = "1323262312"
 

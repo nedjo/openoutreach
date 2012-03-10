@@ -261,6 +261,12 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
       $form['value'] += $this->date_parts_form($form_state, 'max', $source, $which, $this->operator_values(2), $identifier, 'default_to_date');
     }
 
+    // Add some extra validation for the select widget to be sure that
+    // the user inputs all parts of the date.
+    if ($this->options['form_type'] == 'date_select') {
+      $form['value']['#element_validate'] = array('date_views_select_validate');
+    }
+
   }
 
   /**

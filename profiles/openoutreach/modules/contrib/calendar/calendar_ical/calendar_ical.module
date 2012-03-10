@@ -60,7 +60,7 @@ function calendar_ical_views_plugins() {
     'module' => 'calendar_ical', // This just tells our themes are elsewhere.
     'style' => array(
       'ical' => array(
-        'title' => t('iCal Feed'),
+        'title' => t('DEPRECATED iCal Feed'),
         'help' => t('Generates an iCal VCALENDAR feed from a view.'),
         'handler' => 'calendar_plugin_style_ical',
         'path' => "$module_path",
@@ -77,7 +77,7 @@ function calendar_ical_views_plugins() {
     ),
     'row' => array(
       'ical_node' => array(
-        'title' => t('iCal Fields'),
+        'title' => t('DEPRECATED iCal Fields'),
         'help' => t('Display each node as an iCal VEVENT item.'),
         'handler' => 'calendar_plugin_row_ical_node',
         'path' => "$module_path",

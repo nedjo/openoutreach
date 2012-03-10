@@ -14,6 +14,9 @@ function calendar_views_plugins() {
   $theme_path = $module_path;
   module_load_include('inc', 'calendar', 'theme/theme');
 
+  // Limit these plugins to base tables that represent entities.
+  $base = array_keys(date_views_base_tables());
+
   $data = array(
     'module' => 'calendar', // This just tells our themes are elsewhere.
 
@@ -41,6 +44,7 @@ function calendar_views_plugins() {
         'uses options' => TRUE,
         'type' => 'normal',
         'even empty' => TRUE,
+        'base' => $base,
       ),
     ),
     'row' => array(
@@ -59,6 +63,7 @@ function calendar_views_plugins() {
         'help' => t('Displays each selected entity as a Calendar item.'),
         'handler' => 'calendar_plugin_row',
         'path' => "$module_path/includes",
+        'base' => $base,
         'uses options' => TRUE,
         'uses fields' => TRUE,
         'type' => 'normal',

@@ -18,6 +18,14 @@ define('STREAM_WRAPPERS_REMOTE', STREAM_WRAPPERS_LOCAL | STREAM_WRAPPERS_READ | 
 function remote_stream_wrapper_menu() {
   $items = array();
 
+  $items['file/add/remote'] = array(
+    'title' => 'Remote',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('remote_stream_wrapper_file_add_form'),
+    'access callback' => 'remote_stream_wrapper_media_browser_plugin_access',
+    'type' => MENU_LOCAL_TASK,
+  );
+
   // Add image style generation paths for external URLs.
   if (module_exists('image')) {
     $wrappers = file_get_remote_stream_wrappers();
@@ -220,7 +228,7 @@ function remote_stream_wrapper_media_browser_plugin_view($plugin_name, $params) 
   if ($plugin_name == 'remote_file') {
     if (user_access('administer files') || user_access('add media from remote urls')) {
       $params += array('types' => array());
-      $form = drupal_get_form('remote_stream_wrapper_media_browser_form', $params['types']);
+      $form = drupal_get_form('remote_stream_wrapper_file_add_form', $params);
       return array(
         '#title' => t('Remote URL'),
         'form' => array($form),
@@ -234,7 +242,7 @@ function remote_stream_wrapper_media_browser_plugin_view($plugin_name, $params) 
  *
  * @see remote_stream_wrapper_media_browser_form_submit()
  */
-function remote_stream_wrapper_media_browser_form($form, &$form_state, $types = array()) {
+function remote_stream_wrapper_file_add_form($form, &$form_state, array $options = array()) {
   $form['url'] = array(
     '#type' => 'textfield',
     '#title' => 'URL',
@@ -242,14 +250,10 @@ function remote_stream_wrapper_media_browser_form($form, &$form_state, $types = 
     '#maxlength' => 255, // Maximum length of {file_managed}.uri
     '#element_validate' => array('remote_stream_wrapper_validate_url'),
     '#required' => TRUE,
-    '#file_types' => $types,
   );
 
   // @todo Validate against file field allowed types.
   $form['#validators'] = array();
-  if ($types) {
-    //$form['#validators']['media_file_validate_types'] = array($types);
-  }
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -266,7 +270,7 @@ function remote_stream_wrapper_media_browser_form($form, &$form_state, $types = 
  * @see file_save()
  * @see DrupalRemoteStreamWrapper
  */
-function remote_stream_wrapper_media_browser_form_submit($form, &$form_state) {
+function remote_stream_wrapper_file_add_form_submit($form, &$form_state) {
   $uri = $url = $form_state['values']['url'];
 
   try {
@@ -285,6 +289,19 @@ function remote_stream_wrapper_media_browser_form_submit($form, &$form_state) {
     form_set_error('url', t('Unable to add file from URL %file.', array('%file' => $url)));
     return;
   }
+  else {
+    $form_state['file'] = $file;
+  }
 
-  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
+  if (drupal_valid_path('file/' . $file->fid . '/edit')) {
+    $destination = array('destination' => 'admin/content/file');
+    if (isset($_GET['destination'])) {
+      $destination = drupal_get_destination();
+      unset($_GET['destination']);
+    }
+    $form_state['redirect'] = array('file/' . $file->fid . '/edit', array('query' => $destination));
+  }
+  else {
+    $form_state['redirect'] = 'admin/content/file';
+  }
 }

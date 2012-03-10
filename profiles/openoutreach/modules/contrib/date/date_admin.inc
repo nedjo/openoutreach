@@ -551,10 +551,10 @@ function date_field_settings_validate(&$form, &$form_state) {
 
   if (!empty($field['settings']['cache_enabled'])) {
     if (!is_numeric($field['settings']['cache_count'])) {
-      $form_set_error('field[settings][cache_count]', t('The number of cache values must be a number.'));
+      form_set_error('field[settings][cache_count]', t('The number of cache values must be a number.'));
     }
     elseif ($field['settings']['cache_count'] < 0) {
-      $form_set_error('field[settings][cache_count]', t('The number of cache values must be a number 0 or greater.'));
+      form_set_error('field[settings][cache_count]', t('The number of cache values must be a number 0 or greater.'));
     }
   }
 }

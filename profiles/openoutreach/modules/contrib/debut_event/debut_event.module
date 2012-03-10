@@ -77,3 +77,40 @@ function debut_event_date_formats() {
   }
   return $formats;
 }
+
+/**
+ * Implements hook_field_default_fields_alter().
+ *
+ * If debut_media module is present, use an image style it provides instead of
+ * the default 'large' style.
+ */
+function debut_event_field_default_fields_alter(&$fields) {
+  if (isset($fields['node-event-field_content_image']) && module_exists('debut_media') && !debut_event_is_recreating('debut_event')) {
+    $fields['node-event-field_content_image']['field_instance']['display']['default']['settings']['image_style'] = 'medium_large';
+  }
+}
+
+/**
+ * Determine whether a feature is being recreated.
+ */
+function debut_event_is_recreating($feature = NULL) {
+  // Test for Drush usage.
+  if (function_exists('drush_get_command') && $command = drush_get_command()) {
+    switch($command['command']) {
+      case 'features-update-all':
+        return TRUE;
+      case 'features-update':
+        // If a specific feature was requested, test for it. If not, return
+        // true for any feature recreation.
+        return is_null($feature) || in_array($feature, $command['arguments']);
+    }
+  }
+
+  // Test for admin UI usage.
+  $feature = is_null($feature) ? arg(3) : $feature;
+  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
+    return TRUE;
+  }
+  return FALSE;
+}
+

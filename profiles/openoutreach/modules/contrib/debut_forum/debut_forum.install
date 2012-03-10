@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut_forum.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function debut_forum_install() {
+  $t = get_t();
+
+  // Create a forum link in the main menu.
+  $item = array(
+    'link_title' => $t('Forum'),
+    'link_path' => 'forum',
+    'menu_name' => 'main-menu',
+    'weight' => 0,
+    'options' => array(
+      'attributes' => array(
+        'title' => $t('Read and contribute to the forum.'),
+      ),
+    ),
+  );
+  menu_link_save($item);
+}
+

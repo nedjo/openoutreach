@@ -76,6 +76,11 @@ div.panels-ipe-draghandle {
   height: 24px;
 }
 
+div.panels-ipe-nodraghandle {
+  background: #898AAB;
+  height: 24px;
+}
+
 div.panels-ipe-placeholder {
   border: 1px solid black;
   padding: .5em;
@@ -109,7 +114,7 @@ div.panels-ipe-placeholder h3 {
 }
 
 div.panels-ipe-handlebar-wrapper li a,
-div.panels-ipe-draghandle span,
+div.panels-ipe-dragtitle span,
 div.panels-ipe-newblock a {
   background-color: #f6f6f6;
   color: blue;
@@ -165,22 +170,30 @@ div.panels-ipe-display-container .panel-pane .pane-title {
 div#panels-ipe-control-container {
   z-index: 100;
   position: fixed;
-  margin: auto;
+  margin-left: auto;
+  margin-right: auto;
   bottom: 0;
   left: 50%;
-  display: block;
+  display: none;
   background-color: #000;
   padding: 0.5em 1em;
+/*
   min-width: 9.5em;
   max-width: 14.5em;
   min-height: 2em;
   max-height: 2.5em;
+*/
+  overflow: hidden;
   -moz-border-radius-topleft:5px;
   -moz-border-radius-topright:5px;
   -moz-box-shadow: #333 0px 1px 0px;
-  -webkit-border-radius-topleft:5px;
-  -webkit-border-radius-topright:5px;
+  -webkit-border-top-left-radius:5px;
+  -webkit-border-top-right-radius:5px;
   -webkit-box-shadow: #333 0px 1px 0px;
+}
+
+div#panels-ipe-control-container .ajax-progress-throbber {
+  display: none;
 }
 
 div.panels-ipe-pseudobutton {
@@ -201,9 +214,7 @@ div.panels-ipe-control .form-submit {
   margin: 0.3em 0.5em;
 }
 
-div.panels-ipe-form-container {
-  min-width: 12.5em;
-  min-height: 2em;
-  margin-left: auto;
-  margin-right: auto;
+div.panels-ipe-button-container {
+  margin: 0.3em 0.5em;
 }
+

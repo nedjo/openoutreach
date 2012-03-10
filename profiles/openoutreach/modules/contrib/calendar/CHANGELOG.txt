@@ -5,6 +5,64 @@ Calendar Module 7.x
 Version 7.x-3.x-dev
 ===================
 
+======================
+Version 7.x-3.0
+======================
+
+NOTES:
+
+This update deprecates the Calendar iCal module, which should be replaced with
+the new Date iCal module (http://drupal.org/project/date_ical). The Calendar
+iCal module will disappear completely in a future release.
+
+The default calendar view is deprecated in this version. New calendar should be
+created using templates, using the 'Add view from template' link at the top
+of the Views list.
+
+If you are having any trouble with older views, it is highly recommended to delete
+the old view and start over with the template. It will probably save you a lot
+of time in the long run.
+
+
+- Issue #1445228 by Jaza, Calendar granularity path causing PHP notices.
+- Issue #1439832 by Dave Reid and HorsePunchKid, Undefined index error 'redirect' when using redirect module.
+- Mark Calendar iCal elements as deprecated.
+- Update calendar template to use Date iCal instead of Calendar iCal.
+- Fix broken url handling in the row plugin.
+- We need to add the entity type to the calendar template name because we have duplicate fields on various entities, like timestamp and changed.
+- Switch to using entity_lable() and entity_uri() in row handler.
+- Issue #1284170 by benjifisher, Lots of cleanup of the iCal export and its template to be sure all day items are exported correctly.
+- Issue #1346424, The calendar title got left out of the latest ical template changes.
+- Issue #1371730, The Prev/Next text was missing from the year view.
+- Paths in the template should use dashes not underscores.
+- Issue #1438792 by johnv, Remove unneeded $GLOBALS['calendar_stripe_labels'].
+- Cleanup calendar links code -- don't add to session unless populated, abort if date argument is missing.
+- We don't want a title in the template.
+- Issue #1393086, Make sure that links to the day view work even if the day view is not a calendar view.
+- Add DEPRECATED language to default views and make sure calendar plugins only get added to base tables that have entities.
+- Additional handling is needed so that revisions are handled correctly in Views.
+- Rework the Date Views hooks that queue up the right fields and base tables so they work better across all types of entities.
+- Get the file created date working in a calendar to be sure entity handling is right.
+- Fix left over reference to calendar_node row plugin and make sure calendar default view now starts out disabled. We want people to start using the templates.
+- Clean up new Calendar administration screen and move some more code from Date Tools related to removing the old calendar variables.
+
+======================
+Version 7.x-3.0-rc1
+======================
+
+NOTES:
+This release deprecates the old Calendar Items row plugin and replaces it with
+a new Calendar Entities row plugin that will work with any entity.
+
+- Issue #1264596, Make sure week view tests only the all_day value, not whether start date == end date.
+- Issue #1399964, Make sure calendar paths all take into account arguments ahead of the calendar arguments when creating links.
+- Issue #1253482, Get rid of attempt to keep track of current location when switching between calendar views, each one will go back to default.
+- Issue #1415326 by bkline, Fix help link.
+- Issue #1436020 by scrypt, Missing space in attributes at Month's day cell.
+- Issue #1400322 by Digidog, Remove clear-fix style from css.
+- Issue #1433046 by thekevinday, Fix broken continue buried in switch.
+- Issue #1392306 by johnv and KarenS, Fix broken taxonomy striping.
+- Issue #1264520 by bennettee and jackalope, Items without end date displayed as all day.
 - Issue #1411862, Add calendar templates for all date fields.
 - Issue #1354560, Add a new plugin that works for all entities, not just nodes and mark the old one as deprecated.
 - Follow up to Issue #1302052 by benjifisher, More clean up of ical line endings.

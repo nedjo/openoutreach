@@ -106,12 +106,6 @@ class ctools_context_required {
   var $required = TRUE;
 
   /**
-   * If TRUE, skip the check in ctools_context_required::select()
-   * for contexts whose names may have changed.
-   */
-  var $skip_name_check = FALSE;
-
-  /**
    *
    * @param $title
    *   The first parameter should be the 'title' of the context for use
@@ -122,11 +116,6 @@ class ctools_context_required {
   function ctools_context_required($title) {
     $args = func_get_args();
     $this->title = array_shift($args);
-
-    // If we have a boolean value at the end for $skip_name_check, store it
-    if (is_bool(end($args))) {
-      $this->skip_name_check = array_pop($args);
-    }
 
     // If we were given restrictions at the end, store them.
     if (count($args) > 1 && is_array(end($args))) {
@@ -176,7 +165,7 @@ class ctools_context_required {
     // in our context list, there is a good chance that what happened
     // is our context IDs changed. See if there's another context
     // that satisfies our requirements.
-    if (!$this->skip_name_check && !empty($context) && !isset($contexts[$context])) {
+    if (!empty($context) && !isset($contexts[$context])) {
       $choices = $this->filter($contexts);
 
       // If we got a hit, take the first one that matches.
@@ -516,8 +505,7 @@ function ctools_context_convert_context($context, $converter) {
   }
 
   $value = $context->argument;
-  $plugin = ctools_get_context($context->plugin);
-  if ($function = ctools_plugin_get_function($plugin, 'convert')) {
+  if ($function = ctools_plugin_load_function('ctools', 'contexts', $context->plugin, 'convert')) {
     $value = $function($context, $converter);
   }
 
@@ -584,8 +572,7 @@ function _ctools_context_select($contexts, $required, $context) {
 function ctools_context_create($type, $data = NULL, $conf = FALSE) {
   ctools_include('plugins');
   $plugin = ctools_get_context($type);
-
-  if ($function = ctools_plugin_get_function($plugin, 'context')) {
+  if ($function = ctools_plugin_load_function('ctools', 'contexts', $type, 'context')) {
     return $function(FALSE, $data, $conf, $plugin);
   }
 }
@@ -1016,23 +1003,8 @@ function ctools_context_get_context_from_relationships($relationships, &$context
  *   An array with information about the requested panel context.
  */
 function ctools_get_context($context) {
-  static $gate = array();
   ctools_include('plugins');
-  $plugin = ctools_get_plugins('ctools', 'contexts', $context);
-  if (empty($gate['context']) && !empty($plugin['superceded by'])) {
-    // This gate prevents infinite loops.
-    $gate[$context] = TRUE;
-    $new_plugin = ctools_get_plugins('ctools', 'contexts', $plugin['superceded by']);
-    $gate[$context] = FALSE;
-
-    // If a new plugin was returned, return it. Otherwise fall through and
-    // return the original we fetched.
-    if ($new_plugin) {
-      return $new_plugin;
-    }
-  }
-
-  return $plugin;
+  return ctools_get_plugins('ctools', 'contexts', $context);
 }
 
 /**

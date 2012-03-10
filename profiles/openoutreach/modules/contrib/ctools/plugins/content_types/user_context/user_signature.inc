@@ -18,15 +18,11 @@ function ctools_user_signature_content_type_render($subtype, $conf, $panel_args,
   $block->module = 'term-list';
 
   if ($account === FALSE || ($account->access == 0 && !user_access('administer users'))) {
-    return;
+    return NULL;
   }
 
-  $element['user_signature'] = array(
-    '#theme' => 'user_signature',
-    '#signature' => $account->signature,
-  );
+  $block->content = theme('user_signature', $account->signature);
 
-  $block->content = $element;
   return $block;
 }
 

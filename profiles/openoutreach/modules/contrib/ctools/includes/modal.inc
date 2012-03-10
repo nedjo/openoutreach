@@ -65,9 +65,9 @@ function ctools_modal_add_js() {
   );
 
   drupal_add_js($settings, 'setting');
-  drupal_add_library('system', 'jquery.form');
-  drupal_add_library('system', 'drupal.progress');
-  drupal_add_library('system', 'drupal.ajax');
+  drupal_add_js('misc/jquery.form.js');
+  drupal_add_js('misc/progress.js');
+  drupal_add_js('misc/ajax.js');
   ctools_add_js('modal');
 
   ctools_add_css('modal');
@@ -227,7 +227,7 @@ function ctools_modal_form_render($form_state, $output) {
 
   // If there are messages for the form, render them.
   if ($messages = theme('status_messages')) {
-    $output = $messages . $output;
+    $output = '<div class="messages">' . $messages . '</div>' . $output;
   }
 
   $commands = array();

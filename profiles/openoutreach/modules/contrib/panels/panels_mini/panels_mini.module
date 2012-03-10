@@ -74,7 +74,7 @@ function panels_mini_block_info() {
 
   $minis = panels_mini_load_all();
   foreach ($minis as $panel_mini) {
-    if (empty($mini->disabled) && empty($mini->requiredcontext)) {
+    if (empty($panel_mini->disabled) && empty($panel_mini->requiredcontext)) {
       $blocks[$panel_mini->name] = array(
         'info' => t('Mini panel: "@title"', array('@title' => $panel_mini->admin_title)),
         'cache' => DRUPAL_NO_CACHE,

@@ -11,14 +11,13 @@ function media_youtube_file_formatter_info() {
   $formatters['media_youtube_video'] = array(
     'label' => t('YouTube Video'),
     'file types' => array('video'),
-    'default settings' => array(
-      'width' => media_youtube_variable_get('width'),
-      'height' => media_youtube_variable_get('height'),
-      'autoplay' => media_youtube_variable_get('autoplay'),
-    ),
+    'default settings' => array(),
     'view callback' => 'media_youtube_file_formatter_video_view',
     'settings callback' => 'media_youtube_file_formatter_video_settings',
   );
+  foreach (array('width', 'height', 'autoplay', 'related', 'hd', 'showsearch', 'modestbranding', 'showinfo', 'version', 'theme', 'fullscreen', 'wmode', 'chromeless') as $setting) {
+    $formatters['media_youtube_video']['default settings'][$setting] = media_youtube_variable_get($setting);
+  }
   $formatters['media_youtube_image'] = array(
     'label' => t('YouTube Preview Image'),
     'file types' => array('video'),
@@ -41,9 +40,10 @@ function media_youtube_file_formatter_video_view($file, $display, $langcode) {
     $element = array(
       '#theme' => 'media_youtube_video',
       '#uri' => $file->uri,
+      '#options' => array(),
     );
-    foreach (array('width', 'height', 'autoplay') as $setting) {
-      $element['#' . $setting] = isset($file->override[$setting]) ? $file->override[$setting] : $display['settings'][$setting];
+    foreach (array('width', 'height', 'autoplay', 'related', 'hd', 'showsearch', 'modestbranding', 'showinfo', 'version', 'theme', 'fullscreen', 'wmode', 'chromeless') as $setting) {
+      $element['#options'][$setting] = isset($file->override[$setting]) ? $file->override[$setting] : $display['settings'][$setting];
     }
     return $element;
   }
@@ -54,6 +54,27 @@ function media_youtube_file_formatter_video_view($file, $display, $langcode) {
  */
 function media_youtube_file_formatter_video_settings($form, &$form_state, $settings) {
   $element = array();
+  $options = array(
+    0 => t('AS2'),
+    3 => t('AS3'),
+  );
+  $element['version'] = array(
+    '#title' => t('YouTube player version'),
+    '#type' => 'select',
+    '#options' => $options,
+    '#default_value' => $settings['version'],
+  );
+  $options = array(
+    'dark' => t('dark'),
+    'light' => t('light'),
+  );
+  $element['theme'] = array(
+    '#title' => t('YouTube player theme'),
+    '#type' => 'select',
+    '#options' => $options,
+    '#default_value' => $settings['theme'],
+  );
+
   $element['width'] = array(
     '#title' => t('Width'),
     '#type' => 'textfield',
@@ -64,10 +85,45 @@ function media_youtube_file_formatter_video_settings($form, &$form_state, $setti
     '#type' => 'textfield',
     '#default_value' => $settings['height'],
   );
+  $element['fullscreen'] = array(
+    '#title' => t('Allow the video to be played in full screen mode'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['fullscreen'],
+  );
   $element['autoplay'] = array(
     '#title' => t('Autoplay'),
     '#type' => 'checkbox',
     '#default_value' => $settings['autoplay'],
+  );
+  $element['related'] = array(
+    '#title' => t('Show suggested videos when the video finishes'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['related'],
+  );
+  $element['hd'] = array(
+    '#title' => t('Display the high quality version of the video when available'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['hd'],
+  );
+  $element['showsearch'] = array(
+    '#title' => t('Allow users to search from the video'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['showsearch'],
+  );
+  $element['modestbranding'] = array(
+    '#title' => t('Use modest YouTube branding (requires AS3 version player)'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['modestbranding'],
+  );
+  $element['showinfo'] = array(
+    '#title' => t('Display video title'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['showinfo'],
+  );
+  $element['chromeless'] = array(
+    '#title' => t('Use chromeless player'),
+    '#type' => 'checkbox',
+    '#default_value' => $settings['chromeless'],
   );
   return $element;
 }

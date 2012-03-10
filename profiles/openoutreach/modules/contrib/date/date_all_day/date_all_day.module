@@ -219,7 +219,7 @@ function date_all_day_date_combo_process_alter(&$element, &$form_state, $context
  *
  * This hook lets us make changes to the date_select widget.
  */
-function date_all_day_date_text_process_alter(&$element) {
+function date_all_day_date_text_process_alter(&$element, &$form_state, $context) {
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
   if ($all_day_id != '') {
     // All Day handling on text dates works only if the user leaves the time out of the input value.
@@ -232,7 +232,7 @@ function date_all_day_date_text_process_alter(&$element) {
  *
  * This hook lets us make changes to the date_select widget.
  */
-function date_all_day_date_select_process_alter(&$element) {
+function date_all_day_date_select_process_alter(&$element, &$form_state, $context) {
 
   // Hide or show this element in reaction to the all_day status for this element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';
@@ -253,7 +253,7 @@ function date_all_day_date_select_process_alter(&$element) {
  *
  * This hook lets us make changes to the date_popup element.
  */
-function date_all_day_date_popup_process_alter(&$element) {
+function date_all_day_date_popup_process_alter(&$element, &$form_state, $context) {
 
   // Hide or show this element in reaction to the all_day status for this element.
   $all_day_id = !empty($element['#date_all_day_id']) ? $element['#date_all_day_id'] : '';

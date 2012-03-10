@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_default_panels_layout()
+ * Implements hook_default_panels_renderer_pipeline().
  */
 function panels_default_panels_renderer_pipeline() {
   $pipelines = array();

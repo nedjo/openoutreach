@@ -339,6 +339,9 @@ class panels_renderer_standard {
    *  Themed & rendered HTML output.
    */
   function render() {
+    // Let the display refer back to the renderer.
+    $this->display->renderer_handler = $this;
+
     // Attach out-of-band data first.
     $this->add_meta();
 
@@ -433,7 +436,7 @@ class panels_renderer_standard {
           $url = base_path() . $filename;
 //        }
 
-        $this->prefix .= '<link type="text/css" rel="stylesheet" media="' . $media . '" href="' . $url . '" />'."\n";
+        $this->prefix .= '<link type="text/css" rel="stylesheet" href="' . $url . '" />'."\n";
         break;
     }
   }
@@ -529,14 +532,23 @@ class panels_renderer_standard {
       $content = $cache->content;
     }
     else {
+      if ($caching) {
+        // This is created before rendering so that calls to drupal_add_js
+        // and drupal_add_css will be captured.
+        $cache = new panels_cache_object();
+      }
+
       $content = ctools_content_render($pane->type, $pane->subtype, $pane->configuration, array(), $this->display->args, $this->display->context);
+
+      if (empty($content)) {
+        return;
+      }
 
       foreach (module_implements('panels_pane_content_alter') as $module) {
         $function = $module . '_panels_pane_content_alter';
         $function($content, $pane, $this->display->args, $this->display->context);
       }
-      if ($caching) {
-        $cache = new panels_cache_object();
+      if ($caching && isset($cache)) {
         $cache->set_content($content);
         panels_set_cached_content($cache, $this->display, $this->display->args, $this->display->context, $pane);
         $content = $cache->content;

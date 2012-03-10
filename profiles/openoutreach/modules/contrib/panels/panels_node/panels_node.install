@@ -66,6 +66,6 @@ function panels_node_update_6001() {
     'length' => '255',
   );
 
-  db_add_field($ret, 'panels_node', 'pipeline', $field);
+  db_add_field('panels_node', 'pipeline', $field);
   return $ret;
 }

@@ -25,7 +25,6 @@ function page_manager_page_page_manager_tasks() {
     'subtask callback' => 'page_manager_page_subtask',
     'subtasks callback' => 'page_manager_page_subtasks',
     'save subtask callback' => 'page_manager_page_save_subtask',
-    'access callback' => 'page_manager_page_access_check',
     'hook menu' => array(
       'file' => 'page.admin.inc',
       'path' => drupal_get_path('module', 'page_manager') . '/plugins/tasks',
@@ -767,21 +766,4 @@ function page_manager_page_new_page_cache(&$page, &$cache) {
 
   $cache->locked = FALSE;
   $cache->changed = TRUE;
-}
-
-/**
- * Callback to determine if a page is accessible.
- *
- * @param $task
- *   The task plugin.
- * @param $subtask_id
- *   The subtask id
- * @param $contexts
- *   The contexts loaded for the task.
- * @return
- *   TRUE if the current user can access the page.
- */
-function page_manager_page_access_check($task, $subtask_id, $contexts) {
-  $page = page_manager_page_load($subtask_id);
-  return ctools_access($page->access, $contexts);
 }

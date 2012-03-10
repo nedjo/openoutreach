@@ -25,12 +25,6 @@ function ctools_entity_from_field_get_child($plugin, $parent, $child) {
 }
 
 function ctools_entity_from_field_get_children($parent_plugin, $parent) {
-  $cid = $parent_plugin['name'] . ':' . $parent;
-  $cache = &drupal_static(__FUNCTION__);
-  if (!empty($cache[$cid])) {
-    return $cache[$cid];
-  }
-
   ctools_include('fields');
   $entities = entity_get_info();
   $plugins = array();
@@ -87,10 +81,9 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
                       $replacements = array(
                         '@to_entity' => $to_entity_info['label'],
                         '@from_entity' => $from_entity_info['label'],
-                        '@field_name' => $field_name,
-                        '@field_label' => ctools_field_label($field_name),
+                        '@field_name' => ctools_field_label($field_name),
                       );
-                      $plugin['title'] = t('@to_entity from @from_entity (on @from_entity: @field_label [@field_name])', $replacements);
+                      $plugin['title'] = t('@to_entity from @from_entity (on @from_entity: @field_name)', $replacements);
                       $plugin['keyword'] = $to_entity;
                       $plugin['context name'] = $name;
                       $plugin['name'] = $plugin_id;
@@ -161,7 +154,6 @@ function ctools_entity_from_field_get_children($parent_plugin, $parent) {
   }
   drupal_alter('ctools_entity_contexts', $plugins);
 
-  $cache[$cid] = $plugins;
   return $plugins;
 }
 

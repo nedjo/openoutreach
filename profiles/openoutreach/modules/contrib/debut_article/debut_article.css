@@ -5,6 +5,13 @@
   border: 1px solid #C0C0C0;
 }
 
+.node-article .field-type-image {
+  clear: both;
+  float: right;
+  margin-left: 12px;
+  margin-bottom: 12px;
+}
+
 /* Float image field left and add margin */
 .view-article .views-field-field-content-image img {
   float: left; /* LTR */
@@ -13,8 +20,10 @@
   border: 1px solid #C0C0C0;
 }
 
-.view-article .views-row {
+.view-article.view-display-id-page_1 .views-row {
   clear: both;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 

@@ -68,11 +68,23 @@ function panels_simple_cache_clear_cache($display) {
 function panels_simple_cache_get_id($conf, $display, $args, $contexts, $pane) {
   $id = 'panels_simple_cache';
 
-  // This is used in case this is an in-code display, which means did will be something like 'new-1'.
-  if (isset($display->owner) && isset($display->owner->id)) {
-    $id .= ':' . $display->owner->id;
+  // If the panel is stored in the database it'll have a numeric did value.
+  if (is_numeric($display->did)) {
+    $id .= ':' . $display->did;
   }
-  $id .= ':' . $display->did;
+  // Exported panels won't have a numeric did but may have a usable cache_key.
+  elseif (!empty($display->cache_key)) {
+    $id .= ':' . str_replace('panel_context:', '', $display->cache_key);
+  }
+  // Alternatively use the css_id.
+  elseif (!empty($display->css_id)) {
+    $id .= ':' . $display->css_id;
+  }
+  // Failover to just appending the did, which may be the completely unusable
+  // string 'new'.
+  else {
+    $id .= ':' . $display->did;
+  }
 
   if ($pane) {
     $id .= ':' . $pane->pid;
@@ -104,7 +116,7 @@ function panels_simple_cache_get_id($conf, $display, $args, $contexts, $pane) {
     $id .= ':' . $language->language;
   }
 
-  if(!empty($pane->configuration['use_pager'])) {
+  if(!empty($pane->configuration['use_pager']) && !empty($_GET['page'])) {
     $id .= ':p' . check_plain($_GET['page']);
   }
 

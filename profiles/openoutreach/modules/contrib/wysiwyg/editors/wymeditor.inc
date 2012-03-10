@@ -190,7 +190,7 @@ function wysiwyg_wymeditor_plugins($editor) {
     'default' => array(
       'buttons' => array(
         'Bold' => t('Bold'), 'Italic' => t('Italic'),
-        'InsertOrderedList' => t('Bullet list'), 'InsertUnorderedList' => t('Numbered list'),
+        'InsertOrderedList' => t('Numbered list'), 'InsertUnorderedList' => t('Bullet list'),
         'Outdent' => t('Outdent'), 'Indent' => t('Indent'),
         'Undo' => t('Undo'), 'Redo' => t('Redo'),
         'CreateLink' => t('Link'), 'Unlink' => t('Unlink'),

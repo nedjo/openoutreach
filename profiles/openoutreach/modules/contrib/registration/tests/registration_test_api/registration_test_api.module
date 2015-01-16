@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Test hooks for Registration module.
+ */
+
+/**
+ * Implements hook_registration_status().
+ */
+function registration_test_api_registration_status_alter(&$status, &$context) {
+  $var = variable_get(__FUNCTION__);
+  if (isset($var)) {
+    $status = $var;
+  }
+}
+
+/**
+ * Implements hook_registration_access().
+ */
+function registration_test_api_registration_access($op, $entity_type, $registration, $account) {
+  if (isset($registration->hook_registration_access)) {
+    return $registration->hook_registration_access;
+  }
+}

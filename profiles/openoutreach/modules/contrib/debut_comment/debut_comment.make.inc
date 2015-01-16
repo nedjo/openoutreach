@@ -1,25 +1,22 @@
-
 ; Drupal version
 core = 7.x
 api = 2
 
 ; Contrib modules
+projects[apps_compatible][subdir] = contrib
+projects[apps_compatible][version] = 1.0-alpha3
 projects[captcha][subdir] = contrib
-projects[captcha][version] = 1.0-alpha2
-projects[captcha][patch][http://drupal.org/files/issues/825088-19-captcha_ctools_export.patch] = http://drupal.org/files/issues/825088-19-captcha_ctools_export.patch
+projects[captcha][version] = 1.0-beta2
 projects[comment_notify][subdir] = contrib
-projects[comment_notify][version] = 1.0-rc1
+projects[comment_notify][version] = 1.1
+projects[comment_notify][patch][http://drupal.org/files/1434718_dont_mess_with_buttons.patch] = http://drupal.org/files/1434718_dont_mess_with_buttons.patch
 projects[context][subdir] = contrib
-projects[context][version] = 3.0-beta2
+projects[context][version] = 3.0-beta4
 projects[ctools][subdir] = contrib
-projects[ctools][version] = 1.x-dev
-projects[debut][subdir] = contrib
-projects[debut][version] = 1.0-beta3
-projects[debut_comment][subdir] = contrib
-projects[debut_comment][version] = 1.0-beta4
+projects[ctools][version] = 1.2
 projects[features][subdir] = contrib
-projects[features][version] = 1.0-beta4
+projects[features][version] = 1.0
 projects[logintoboggan][subdir] = contrib
-projects[logintoboggan][version] = 1.2
+projects[logintoboggan][version] = 1.3
 projects[strongarm][subdir] = contrib
-projects[strongarm][version] = 2.0-beta4
+projects[strongarm][version] = 2.0

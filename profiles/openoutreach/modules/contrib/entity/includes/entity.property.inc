@@ -19,9 +19,11 @@
  */
 function entity_get_property_info($entity_type = NULL) {
   // Use the advanced drupal_static() pattern, since this is called very often.
-  static $drupal_static = array();
-  isset($drupal_static[__FUNCTION__]) || ($drupal_static[__FUNCTION__] = &drupal_static(__FUNCTION__));
-  $info = &$drupal_static[__FUNCTION__];
+  static $drupal_static_fast;
+  if (!isset($drupal_static_fast)) {
+    $drupal_static_fast['info'] = &drupal_static(__FUNCTION__);
+  }
+  $info = &$drupal_static_fast['info'];
 
   // hook_entity_property_info() includes translated strings, so each language
   // is cached separately.
@@ -151,6 +153,9 @@ function entity_hook_info() {
   $hook_info['entity_property_info'] = array(
     'group' => 'info',
   );
+  $hook_info['entity_property_info_alter'] = array(
+    'group' => 'info',
+  );
   return $hook_info;
 }
 
@@ -230,11 +235,29 @@ function entity_field_update_instance() {
  *   Whether the data is valid for the given type.
  */
 function entity_property_verify_data_type($data, $type) {
+  // As this may be called very often statically cache the entity info using
+  // the fast pattern.
+  static $drupal_static_fast;
+  if (!isset($drupal_static_fast)) {
+    // Make use of the same static as entity info.
+    entity_get_info();
+    $drupal_static_fast['entity_info'] = &drupal_static('entity_get_info');
+  }
+  $info = &$drupal_static_fast['entity_info'];
+
   // First off check for entities, which may be represented by their ids too.
-  $info = entity_get_info();
   if (isset($info[$type])) {
-    $nameKey = isset($info[$type]['entity keys']['name']);
-    return is_object($data) || ($nameKey && entity_property_verify_data_type($data, 'token')) || (!$nameKey  && entity_property_verify_data_type($data, 'integer'));
+    if (is_object($data)) {
+      return TRUE;
+    }
+    elseif (isset($info[$type]['entity keys']['name'])) {
+      // Read the data type of the name key from the metadata if available.
+      $key = $info[$type]['entity keys']['name'];
+      $property_info = entity_get_property_info($type);
+      $property_type = isset($property_info['properties'][$key]['type']) ? $property_info['properties'][$key]['type'] : 'token';
+      return entity_property_verify_data_type($data, $property_type);
+    }
+    return entity_property_verify_data_type($data, empty($info[$type]['fieldable']) ? 'text' : 'integer');
   }
 
   switch ($type) {
@@ -356,7 +379,14 @@ function entity_property_verbatim_get($data, array $options, $name, $type, $info
     return $data[$name];
   }
   elseif (is_object($data) && isset($data->$name)) {
-    return $data->$name;
+    // Incorporate i18n_string translations. We may rely on the entity class
+    // here as its usage is required by the i18n integration.
+    if (isset($options['language']) && !empty($info['i18n string'])) {
+      return $data->getTranslation($name, $options['language']->language);
+    }
+    else {
+      return $data->$name;
+    }
   }
   return NULL;
 }
@@ -366,7 +396,12 @@ function entity_property_verbatim_get($data, array $options, $name, $type, $info
  */
 function entity_property_verbatim_date_get($data, array $options, $name, $type, $info) {
   $name = isset($info['schema field']) ? $info['schema field'] : $name;
-  return is_numeric($data[$name]) ? $data[$name] : strtotime($data[$name], time());
+  if (is_array($data) || (is_object($data) && $data instanceof ArrayAccess)) {
+    return is_numeric($data[$name]) ? $data[$name] : strtotime($data[$name], REQUEST_TIME);
+  }
+  elseif (is_object($data)) {
+    return is_numeric($data->$name) ? $data->$name : strtotime($data->$name, REQUEST_TIME);
+  }
 }
 
 /**
@@ -477,6 +512,8 @@ function entity_property_text_formatted_info() {
       'label' => t('Text format'),
       'options list' => 'entity_metadata_field_text_formats',
       'getter callback' => 'entity_property_verbatim_get',
+      'setter callback' => 'entity_property_verbatim_set',
+      'setter permissions' => 'administer filters',
     ),
   );
 }
@@ -536,12 +573,12 @@ function entity_property_field_item_image_info() {
   );
   $properties['alt'] = array(
     'type' => 'text',
-    'label' => t('The <em>Alt</em> attribute text'),
+    'label' => t('The "Alt" attribute text'),
     'setter callback' => 'entity_property_verbatim_set',
   );
   $properties['title'] = array(
     'type' => 'text',
-    'label' => t('The <em>Title</em> attribute text'),
+    'label' => t('The "Title" attribute text'),
     'setter callback' => 'entity_property_verbatim_set',
   );
   return $properties;

@@ -1,38 +1,39 @@
 <?php
 
 /**
- * Implements hook_ctools_plugin_api().
+ * Implements hook_hook_info().
  */
-function media_internet_ctools_plugin_api($module, $api) {
-  if ($module == 'media' && $api == 'browser') {
-    return array(
-      'version' => 1,
-    );
-  }
+function media_internet_hook_info() {
+  $hooks = array(
+    'media_internet_providers',
+  );
+
+  return array_fill_keys($hooks, array('group' => 'media'));
 }
 
 /**
- * Implements hook_media_browser_plugin_info().
+ * Implements hook_menu().
  */
-function media_internet_media_browser_plugin_info() {
-  $plugins = array();
-  $plugins['media_internet'] = array(
-    'title' => t('Web'),
-    'handler' => array(
-      'path' => drupal_get_path('module', 'media_internet') . '/includes',
-      'file' => 'MediaBrowserInternet.inc',
-      'class' => 'MediaBrowserInternet',
-    ),
+function media_internet_menu() {
+  $items['file/add/web'] = array(
+    'title' => 'Web',
+    'description' => 'Add internet files to your media library.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('media_internet_add_upload'),
     'access callback' => 'media_internet_access',
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'file_entity.pages.inc',
+    'file path' => drupal_get_path('module', 'file_entity'),
   );
-  return $plugins;
+
+  return $items;
 }
 
 /**
  * Access callback for the media_internet media browser plugin.
  */
-function media_internet_access() {
-  return user_access('administer media') || user_access('add media from remote sources');
+function media_internet_access($account = NULL) {
+  return user_access('administer files', $account) || user_access('add media from remote sources', $account);
 }
 
 /**
@@ -48,154 +49,15 @@ function media_internet_permission() {
 }
 
 /**
- * Provides a form for adding media items from 3rd party sources.
+ * Implements hook_theme().
  */
-function media_internet_add($form, &$form_state = array(), $types = NULL) {
-  $form['embed_code'] = array(
-    '#type' => 'textfield',
-    '#title' => t('URL or Embed code'),
-    '#description' => t('Input a url or embed code from one of the listed providers.'),
-    '#attributes' => array('class' => array('media-add-from-url')),
-    // There is no standard specifying a maximum length for a URL. Internet
-    // Explorer supports upto 2083 (http://support.microsoft.com/kb/208427), so
-    // we assume publicly available media URLs are within this limit.
-    '#maxlength' => 2083,
+function media_internet_theme() {
+  return array(
+    // media_internet.pages.inc.
+    'media_internet_embed_help' => array(
+      'variables' => array('description' => NULL, 'supported_providers' => NULL),
+    ),
   );
-
-
-  // @todo:
-  // Add live previews back (currently broken)
-
-  //$form['preview'] = array(
-  //  '#type' => 'item',
-  //  '#title' => t('Preview'),
-  //  '#markup' => '<div id="media-add-from-url-preview"></div>'
-  //);
-
-  $form['#validators'] = array();
-  if ($types) {
-    $form['#validators']['media_file_validate_types'] = array($types);
-  }
-
-  $form['providers'] = array();
-  $form['providers']['header'] = array('#markup' => '<h2>' . t('Supported Providers') . '</h2>');
-  foreach (media_internet_get_providers() as $key => $provider) {
-    if (empty($provider['hidden']) || $provider['hidden'] != TRUE) {
-      if (isset($provider['image'])) {
-        $form['providers'][$key] = array('#markup' => theme('image', array('path' => $provider['image'], 'title' => $provider['title'])));
-      }
-      else {
-        $form['providers'][$key] = array('#markup' => $provider['title']);
-      }
-      // Wrap the provider in a div so we can make a nice list
-      $form['providers'][$key]['#prefix'] = '<div class="media-provider">';
-      $form['providers'][$key]['#suffix'] = '</div>';
-    }
-  }
-  if (count($form['providers']) == 1) {
-    // Just the header, no actual providers
-    unset($form['providers']['header']);
-  }
-
-  $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  return $form;
-}
-
-/**
- * Allow stream wrappers to have their chance at validation.
- *
- * Any module that implements hook_media_parse will have an
- * opportunity to validate this.
- *
- * @see media_parse_to_uri()
- */
-function media_internet_add_validate($form, &$form_state) {
-  // Supporting providers can now claim this input.  It might be a URL, but it
-  // might be an embed code as well.
-  $embed_code = $form_state['values']['embed_code'];
-
-  try {
-    $provider = media_internet_get_provider($embed_code);
-    $provider->validate();
-  } catch (MediaInternetNoHandlerException $e) {
-    form_set_error('url', $e->getMessage());
-    return;
-  } catch (MediaInternetValidationException $e) {
-    form_set_error('url', $e->getMessage());
-    return;
-  }
-
-  $validators = $form['#validators'];
-  $file = $provider->getFileObject();
-  if ($validators) {
-    try {
-      $file = $provider->getFileObject();
-    } catch (Exception $e) {
-      form_set_error('url', $e->getMessage());
-      return;
-    }
-
-    // Check for errors. @see media_add_upload_validate calls file_save_upload().
-    // this code is ripped from file_save_upload because we just want the validation part.
-    // Call the validation functions specified by this function's caller.
-    $errors = file_validate($file, $validators);
-
-    if (!empty($errors)) {
-      $message = t('%url could not be added.', array('%url' => $embed_code));
-      if (count($errors) > 1) {
-        $message .= theme('item_list', array('items' => $errors));
-      }
-      else {
-        $message .= ' ' . array_pop($errors);
-      }
-      form_set_error('url', $message);
-      return FALSE;
-    }
-  }
-  // @TODO: Validate that if we have no $uri that this is a valid file to
-  // save. For instance, we may only be interested in images, and it would
-  // be helpful to let the user know they passed the HTML page containing
-  // the image accidentally. That would also save us from saving the file
-  // in the submit step.
-
-  // This is kinda a hack of the same.
-
-  // This should use the file_validate routines that the upload form users.
-  // We need to fix the media_parse_to_file routine to allow for a validation.
-}
-
-/**
- * Upload a file from a URL.
- *
- * This will copy a file from a remote location and store it locally.
- *
- * @see media_parse_to_uri()
- * @see media_parse_to_file()
- */
-function media_internet_add_submit($form, &$form_state) {
-  $embed_code = $form_state['values']['embed_code'];
-  try {
-    // Save the remote file
-    $provider = media_internet_get_provider($embed_code);
-    // Providers decide if they need to save locally or somewhere else.
-    // This method returns a file object
-    $file = $provider->save();
-  }
-  catch (Exception $e) {
-    form_set_error('url', $e->getMessage());
-    return;
-  }
-
-  if (!$file->fid) {
-    form_set_error('url', 'Unknown error: unable to add file, please check URL / Embed code and try again ' . $embed_code);
-    return;
-  }
-
-  $form_state['redirect'] = array('media/browser', array('query' => array('render' => 'media-popup', 'fid' => $file->fid)));
 }
 
 /**
@@ -206,20 +68,30 @@ function media_internet_add_submit($form, &$form_state) {
  * and store it as a file object in file_managed.
  */
 function media_internet_get_providers() {
-  $providers = &drupal_static(__FUNCTION__, array());
-  if (!$providers) {
-    foreach (module_implements('media_internet_providers') as $module) {
-      foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
-        // Store the module here too for convinience.
-        $providers[$key] = $provider;
-        $providers[$key]['module'] = $module;
-        if (!isset($providers[$key]['weight'])) {
-          $providers[$key]['weight'] = 0;
+  $providers = &drupal_static(__FUNCTION__);
+
+  if (!isset($providers)) {
+    $cid = 'media:internet:providers';
+    if ($cache = cache_get($cid)) {
+      $providers = $cache->data;
+    }
+    else {
+      $providers = array();
+      foreach (module_implements('media_internet_providers') as $module) {
+        foreach (module_invoke($module, 'media_internet_providers') as $key => $provider) {
+          // Store the module here too for convinience.
+          $providers[$key] = $provider;
+          $providers[$key]['module'] = $module;
+          if (!isset($providers[$key]['weight'])) {
+            $providers[$key]['weight'] = 0;
+          }
         }
       }
+      uasort($providers, 'drupal_sort_weight');
+      cache_set($cid, $providers);
     }
-    uasort($providers, 'drupal_sort_weight');
   }
+
   return $providers;
 }
 
@@ -244,141 +116,203 @@ function media_internet_get_provider($embed_string) {
 }
 
 /**
- * Implements hook_media_internet_providers();
+ * Returns HTML for help text based on supported internet media providers.
  *
- * Provides a very basic handler which coppies files from remote sources to the
- * local files directory.
+ * @param $variables
+ *   An associative array containing:
+ *   - description: The normal description for this field, specified by the
+ *     user.
+ *   - supported_providers: A string of supported providers.
+ *
+ * @ingroup themeable
  */
-function media_internet_media_internet_providers() {
-  return array(
-    'MediaInternetFileHandler' => array(
-      'title' => 'Files',
-      'hidden' => TRUE,
-      // Make it go last.
-      'weight' => 10000,
-    ),
-  );
+function theme_media_internet_embed_help($variables) {
+  $description = $variables['description'];
+  $supported_providers = $variables['supported_providers'];
+
+  $descriptions = array();
+
+  if (strlen($description)) {
+    $descriptions[] = $description;
+  }
+  if (!empty($supported_providers)) {
+    $descriptions[] = t('Supported internet media providers: !providers.', array('!providers' => '<strong>' . $supported_providers . '</strong>'));
+  }
+
+  return implode('<br />', $descriptions);
 }
 
-class MediaInternetFileHandler extends MediaInternetBaseHandler {
+/**
+ * Implements hook_forms().
+ */
+function media_internet_forms($form_id, $args) {
+  $forms = array();
 
-  public $fileObject;
+  // Create a copy of the upload wizard form for internet media.
+  if ($form_id == 'media_internet_add_upload') {
+    $forms[$form_id] = array(
+      'callback' => 'file_entity_add_upload',
+    );
+  }
 
-  public function preSave(&$file_obj) {
-    // Coppies the remote file locally.
-    $remote_uri = $file_obj->uri;
-    //@TODO: we should follow redirection here an save the final filename, not just the basename.
-    $local_filename = basename($remote_uri);
-    $local_filename = file_munge_filename($local_filename, media_variable_get('file_extensions'), FALSE);
-    $local_uri = file_stream_wrapper_uri_normalize('temporary://' . $local_filename);
-    if (!@copy($remote_uri, $local_uri)) {
-      throw new Exception('Unable to add file ' . $remote_uri);
+  return $forms;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function media_internet_form_file_entity_add_upload_alter(&$form, &$form_state, $form_id) {
+  $step = $form['#step'];
+  $options = $form['#options'];
+
+  // Swap the upload field for an embed field when on the first step of the web
+  // tab.
+  if ($form_id == 'media_internet_add_upload' && $step == 1) {
+    unset($form['upload']);
+
+    $form['embed_code'] = array(
+      '#type' => 'textfield',
+      '#title' => t('File URL'),
+      '#description' => t('Enter a URL to a file.'),
+      '#attributes' => array('class' => array('media-add-from-url')),
+      // There is no standard specifying a maximum length for a URL. Internet
+      // Explorer supports up to 2083 (http://support.microsoft.com/kb/208427)
+      // so we assume publicly available media URLs are within this limit.
+      '#maxlength' => 2083,
+      '#required' => TRUE,
+      '#default_value' => isset($form_state['storage']['embed_code']) ? $form_state['storage']['embed_code'] : NULL,
+    );
+
+    // Create an array to hold potential Internet media providers.
+    $providers = array();
+
+    // Determine if there are any visible providers.
+    foreach (media_internet_get_providers() as $key => $provider) {
+      if (empty($provider['hidden']) || $provider['hidden'] != TRUE) {
+        $providers[] = check_plain($provider['title']);
+      }
+    }
+
+    $form['#providers'] = $providers;
+
+    // Notify the user of any available providers.
+    if ($providers) {
+      // If any providers are enabled it is assumed that some kind of embed is supported.
+      $form['embed_code']['#title'] = t('File URL or media resource');
+      $form['embed_code']['#description'] = t('Enter a URL to a file or media resource. Many media providers also support identifying media via the embed code used to embed the media into external websites.');
+
+      $form['embed_code']['#description'] = theme('media_internet_embed_help', array('description' => $form['embed_code']['#description'], 'supported_providers' => implode(' ', $providers)));
+    }
+
+    $form['#validators'] = array();
+
+    if (!empty($options['types'])) {
+      $form['#validators']['media_file_validate_types'] = array($options['types']);
+    }
+
+    // Add validation and submission handlers to the form and ensure that they
+    // run first.
+    array_unshift($form['#validate'], 'media_internet_add_validate');
+    array_unshift($form['#submit'], 'media_internet_add_submit');
+  }
+}
+
+/**
+ * Allow stream wrappers to have their chance at validation.
+ *
+ * Any module that implements hook_media_parse will have an
+ * opportunity to validate this.
+ *
+ * @see media_parse_to_uri()
+ */
+function media_internet_add_validate($form, &$form_state) {
+  // Supporting providers can now claim this input. It might be a URL, but it
+  // might be an embed code as well.
+  $embed_code = $form_state['values']['embed_code'];
+
+  try {
+    $provider = media_internet_get_provider($embed_code);
+    $provider->validate();
+  }
+  catch (MediaInternetNoHandlerException $e) {
+    form_set_error('embed_code', $e->getMessage());
+    return;
+  }
+  catch (MediaInternetValidationException $e) {
+    form_set_error('embed_code', $e->getMessage());
+    return;
+  }
+
+  $validators = $form['#validators'];
+  $file = $provider->getFileObject();
+
+  if ($validators) {
+    try {
+      $file = $provider->getFileObject();
+    }
+    catch (Exception $e) {
+      form_set_error('embed_code', $e->getMessage());
       return;
     }
-    // Make the current fileObject point to the local_uri, not the remote one.
-    $file_obj = file_uri_to_object($local_uri);
-  }
 
-  public function postSave(&$file_obj) {
-    $scheme = variable_get('file_default_scheme', 'public') . '://';
-    $uri = file_stream_wrapper_uri_normalize($scheme . $file_obj->filename);
-    // Now to its new home.
-    $file_obj = file_move($file_obj, $uri, FILE_EXISTS_RENAME);
-  }
+    // Check for errors. @see media_add_upload_validate calls file_save_upload().
+    // this code is ripped from file_save_upload because we just want the validation part.
+    // Call the validation functions specified by this function's caller.
+    $errors = file_validate($file, $validators);
 
-  public function getFileObject() {
-    if (!$this->fileObject) {
-      $this->fileObject = file_uri_to_object($this->embedCode);
-    }
-    return $this->fileObject;
-  }
-
-  public function claim($embedCode) {
-    // Claim only valid URLs using a supported scheme.
-    if (!valid_url($embedCode, TRUE) || !in_array(file_uri_scheme($embedCode), media_variable_get('fromurl_supported_schemes'))) {
+    if (!empty($errors)) {
+      $message = t('%url could not be added.', array('%url' => $embed_code));
+      if (count($errors) > 1) {
+        $message .= theme('item_list', array('items' => $errors));
+      }
+      else {
+        $message .= ' ' . array_pop($errors);
+      }
+      form_set_error('embed_code', $message);
       return FALSE;
     }
-
-    // This handler is intended for regular files, so don't claim URLs
-    // containing query strings or fragments.
-    if (preg_match('/[\?\#]/', $embedCode)) {
-      return FALSE;
-    }
-
-    // Since this handler copies the remote file to the local web server, do not
-    // claim a URL with an extension disallowed for media uploads.
-    $regex = '/\.(' . preg_replace('/ +/', '|', preg_quote(media_variable_get('file_extensions'))) . ')$/i';
-    if (!preg_match($regex, basename($embedCode))) {
-      return FALSE;
-    }
-
-    return TRUE;
   }
+
+  // @TODO: Validate that if we have no $uri that this is a valid file to
+  // save. For instance, we may only be interested in images, and it would
+  // be helpful to let the user know they passed the HTML page containing
+  // the image accidentally. That would also save us from saving the file
+  // in the submit step.
+
+  // This is kinda a hack of the same.
+
+  // This should use the file_validate routines that the upload form users.
+  // We need to fix the media_parse_to_file routine to allow for a validation.
 }
 
-abstract class MediaInternetBaseHandler {
+/**
+ * Upload a file from a URL.
+ *
+ * This will copy a file from a remote location and store it locally.
+ *
+ * @see media_parse_to_uri()
+ * @see media_parse_to_file()
+ */
+function media_internet_add_submit($form, &$form_state) {
+  $embed_code = $form_state['values']['embed_code'];
 
-  public function __construct($embedCode) {
-    $this->embedCode = $embedCode;
+  try {
+    // Save the remote file
+    $provider = media_internet_get_provider($embed_code);
+    // Providers decide if they need to save locally or somewhere else.
+    // This method returns a file object
+    $file = $provider->save();
+  }
+  catch (Exception $e) {
+    form_set_error('embed_code', $e->getMessage());
+    return;
   }
 
-  /**
-   * If required, implementors can validate the embedCode.
-   */
-  public function validate() {}
-
-  /**
-   * Returns a file object which can be used for validation
-   *
-   * @return StdClass
-   */
-  abstract public function getFileObject();
-
-  /**
-   * Saves a file to the file_managed table (with file_save)
-   *
-   * @return StdClass
-   */
-  public function save() {
-    $file_obj = $this->getFileObject();
-    $this->preSave($file_obj);
-    file_save($file_obj);
-    $this->postSave($file_obj);
-    return $file_obj;
+  if (!$file->fid) {
+    form_set_error('embed_code', t('The file %file could not be saved. An unknown error has occurred.', array('%file' => $embed_code)));
+    return;
   }
-
-  /**
-   * After the file has been saved, implementors may do additional operations.
-   *
-   * @param $file_obj;
-   */
-  public function postSave(&$file_obj) {
-
+  else {
+    $form_state['storage']['upload'] = $file->fid;
   }
-
-  /**
-   * Before the file has been saved, implementors may do additional operations.
-   */
-  public function preSave(&$file_obj) {
-
-  }
-
-  /**
-   * Recognize if this handler should take the the item with the embed
-   * coded passed as argument.
-   *
-   * @param string $embed_code
-   *
-   * @return boolean
-   *   Whether or not this handler is resposible for the give embed code.
-   */
-  abstract public function claim($embed_code);
-}
-
-class MediaInternetValidationException extends Exception {
-
-}
-
-class MediaInternetNoHandlerException extends Exception {
-
 }

@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the text module.
+ */
+
+/**
+ * Implements hook_field_schema().
+ */
+function redhen_fields_field_schema($field) {
+  $columns = array();
+  $indexes = array();
+  switch ($field['type']) {
+    case 'redhen_email':
+      $columns = array(
+        'value' => array(
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+        ),
+        'hold' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'default' => 0,
+        ),
+        'bulk' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'default' => 0,
+        ),
+      );
+      $indexes = array(
+        'redhen_email_address' => array('value'),
+      );
+      break;
+  }
+  $columns += array(
+    'default' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'default' => 0,
+    ),
+    'label_id' => array(
+      'type' => 'int',
+      'unsigned' => TRUE,
+      'default' => 0,
+    ),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+  );
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redhen_fields_uninstall() {
+  field_delete_field(REDHEN_CONTACT_EMAIL_FIELD);
+}
+
+/**
+ * Add index for email addresses.
+ */
+function redhen_fields_update_7100(&$sandbox) {
+  $fields = field_read_fields(array('type' => 'redhen_email'));
+  foreach ($fields as $field_name => $field) {
+    if ($field['storage']['type'] == 'field_sql_storage') {
+      db_add_index("field_data_$field_name", 'redhen_email_address', array("{$field_name}_value"));
+      db_add_index("field_revision_$field_name", 'redhen_email_address', array("{$field_name}_value"));
+    }
+  }
+}

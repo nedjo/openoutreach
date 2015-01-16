@@ -27,7 +27,7 @@
   <a id="forum-reply-preview"></a>
 <?php endif; ?>
 
-<div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?>" <?php print $attributes; ?>>
+<div id="<?php print $post_id; ?>" class="<?php print $classes; ?>" <?php print $attributes; ?>>
   <div class="forum-post-info clearfix">
     <div class="forum-posted-on">
       <?php print $date ?>
@@ -84,4 +84,3 @@
   </div>
 
 </div>
-  

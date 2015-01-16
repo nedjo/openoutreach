@@ -10,29 +10,20 @@ function debut_blog_init() {
 }
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_menu_local_tasks_alter().
  *
- * Add a local action link to the blog view page.
+ * Add an action link to 'node/add/blog' on 'blog' page.
  */
-function debut_blog_menu_alter(&$items) {
-  if (isset($items['node/add/blog'])) {
-    $items['blog/add'] = $items['node/add/blog'];
-    $items['blog/add']['title'] = 'Add a new blog post';
-    $items['blog/add']['type'] = MENU_LOCAL_ACTION;
-  }
-}
-
-/**
- * Implements hook_admin_paths().
- *
- * Declare blog/add as an admin path to trigger e.g. admin theme and overlay.
- */
-function debut_blog_admin_paths() {
-  if (variable_get('node_admin_theme')) {
-    $paths = array(
-      'blog/add' => TRUE,
-    );
-    return $paths;
+function debut_blog_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'blog') {
+    $item = menu_get_item('node/add/blog');
+    if ($item['access']) {
+      $item['title'] = t('Add a new blog post');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
   }
 }
 
@@ -75,7 +66,7 @@ function debut_blog_node_view($node, $view_mode) {
 /**
  * Implements hook_rdf_mapping().
  */
-function blog_rdf_mapping() {
+function debut_blog_rdf_mapping() {
   return array(
     array(
       'type' => 'node',
@@ -88,18 +79,6 @@ function blog_rdf_mapping() {
 }
 
 /**
- * Implements hook_features_export_alter().
- *
- * Remove the tags vocabulary, which we create at install time so as not to
- * create a dependency on a feature providing the vocabulary.
- */
-function debut_blog_features_export_alter(&$export, $module_name) {
-  if ($module_name == 'debut_blog' && isset($export['features']['taxonomy']) && isset($export['features']['taxonomy']['tags'])) {
-    unset($export['features']['taxonomy']['tags']);
-  }
-}
-
-/**
  * Implements hook_context_default_contexts_alter().
  *
  * Trigger author bio display for on blog node pages and on the author's blog.
@@ -107,7 +86,7 @@ function debut_blog_features_export_alter(&$export, $module_name) {
 function debut_blog_context_default_contexts_alter(&$items) {
   // Don't alter when recreating/updating the debut_bio feature. This ensures
   // the context exports cleanly.
-  if (isset($items['bio_author']) && !debut_blog_is_recreating('debut_bio')) {
+  if (isset($items['bio_author']) && !apps_compatible_feature_is_recreating('debut_bio')) {
     $items['bio_author']->conditions['node']['values']['blog'] = 'blog';
     $items['bio_author']->conditions['path']['values']['blog/*'] = 'blog/*';
   }
@@ -123,7 +102,7 @@ function debut_blog_user_default_permissions_alter(&$items) {
   // the user permissions export cleanly.
   $permissions = array('edit own bio profile', 'view own bio profile');
   foreach ($permissions as $permission) {
-    if (isset($items[$permission]) && !debut_blog_is_recreating('debut_bio')) {
+    if (isset($items[$permission]) && !apps_compatible_feature_is_recreating('debut_bio')) {
       $items[$permission]['roles'][] = 'blogger';
     }
   }
@@ -136,31 +115,7 @@ function debut_blog_user_default_permissions_alter(&$items) {
  * the default 'large' style.
  */
 function debut_blog_field_default_fields_alter(&$fields) {
-  if (isset($fields['node-blog-field_content_image']) && module_exists('debut_media') && !debut_blog_is_recreating('debut_blog')) {
+  if (isset($fields['node-blog-field_content_image']) && module_exists('debut_media') && !apps_compatible_feature_is_recreating('debut_blog')) {
     $fields['node-blog-field_content_image']['field_instance']['display']['default']['settings']['image_style'] = 'medium_large';
   }
-}
-
-/**
- * Determine whether a feature is being recreated.
- */
-function debut_blog_is_recreating($feature = NULL) {
-  // Test for Drush usage.
-  if (function_exists('drush_get_command') && $command = drush_get_command()) {
-    switch($command['command']) {
-      case 'features-update-all':
-        return TRUE;
-      case 'features-update':
-        // If a specific feature was requested, test for it. If not, return
-        // true for any feature recreation.
-        return is_null($feature) || in_array($feature, $command['arguments']);
-    }
-  }
-
-  // Test for admin UI usage.
-  $feature = is_null($feature) ? arg(3) : $feature;
-  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
-    return TRUE;
-  }
-  return FALSE;
 }

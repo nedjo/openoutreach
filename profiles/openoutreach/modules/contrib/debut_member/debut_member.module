@@ -1,0 +1,40 @@
+<?php
+
+include_once('debut_member.features.inc');
+
+/**
+ * Implements hook_init().
+ */
+function debut_member_init() {
+  drupal_add_css(drupal_get_path('module', 'debut_member') . '/debut_member.css');
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Add an action link to 'node/add/member-page' on 'member-page' page.
+ */
+function debut_member_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'member-page') {
+    $item = menu_get_item('node/add/member-page');
+    if ($item['access']) {
+      $item['title'] = t('Add a new member page');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_field_default_fields_alter().
+ *
+ * If debut_media module is present, use an image style it provides instead of
+ * the default 'large' style.
+ */
+function debut_member_field_default_fields_alter(&$fields) {
+  if (isset($fields['node-member_page-field_content_image']) && module_exists('debut_media') && !apps_compatible_feature_is_recreating('debut_member')) {
+    $fields['node-member_page-field_content_image']['field_instance']['display']['default']['settings']['image_style'] = 'medium_large';
+  }
+}

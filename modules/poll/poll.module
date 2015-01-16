@@ -14,7 +14,7 @@ function poll_help($path, $arg) {
     case 'admin/help#poll':
       $output = '';
       $output .= '<h3>' . t('About') . '</h3>';
-      $output .= '<p>' . t('The Poll module can be used to create simple surveys or questionnaires that display cumulative results. A poll is a good way to receive feedback from site users and community members. For more information, see the online handbook entry for the <a href="@poll">Poll module</a>.', array('@poll' => 'http://drupal.org/handbook/modules/poll/')) . '</p>';
+      $output .= '<p>' . t('The Poll module can be used to create simple surveys or questionnaires that display cumulative results. A poll is a good way to receive feedback from site users and community members. For more information, see the online handbook entry for the <a href="@poll">Poll module</a>.', array('@poll' => 'http://drupal.org/documentation/modules/poll/')) . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Creating a poll') . '</dt>';
@@ -76,7 +76,7 @@ function poll_permission() {
       'title' => t('Cancel and change own votes'),
     ),
     'inspect all votes' => array(
-      'title' => t('View voting results'),
+      'title' => t('View details for all votes'),
     ),
   );
 
@@ -249,6 +249,7 @@ function poll_form($node, &$form_state) {
     '#title' => check_plain($type->title_label),
     '#required' => TRUE,
     '#default_value' => $node->title,
+    '#maxlength' => 255,
     '#weight' => -5,
   );
 
@@ -476,6 +477,9 @@ function poll_validate($node, $form) {
 function poll_field_attach_prepare_translation_alter(&$entity, $context) {
   if ($context['entity_type'] == 'node' && $entity->type == 'poll') {
     $entity->choice = $context['source_entity']->choice;
+    foreach ($entity->choice as $i => $options) {
+      $entity->choice[$i]['chvotes'] = 0;
+    }
   }
 }
 
@@ -717,7 +721,6 @@ function poll_view_voting($form, &$form_state, $node, $block = FALSE) {
       '#type' => 'radios',
       '#title' => t('Choices'),
       '#title_display' => 'invisible',
-      '#default_value' => -1,
       '#options' => $list,
     );
   }
@@ -745,7 +748,7 @@ function poll_view_voting($form, &$form_state, $node, $block = FALSE) {
  * Validation function for processing votes
  */
 function poll_view_voting_validate($form, &$form_state) {
-  if ($form_state['values']['choice'] == -1) {
+  if (empty($form_state['values']['choice'])) {
     form_set_error( 'choice', t('Your vote could not be recorded because you did not select any of the choices.'));
   }
 }
@@ -814,7 +817,7 @@ function poll_view_results($node, $view_mode, $block = FALSE) {
   // Make sure that choices are ordered by their weight.
   uasort($node->choice, 'drupal_sort_weight');
 
-  // Count the votes and find the maximum
+  // Count the votes and find the maximum.
   $total_votes = 0;
   $max_votes = 0;
   foreach ($node->choice as $choice) {
@@ -922,7 +925,6 @@ function template_preprocess_poll_results(&$variables) {
  *
  * @see poll-bar.tpl.php
  * @see poll-bar--block.tpl.php
- * @see theme_poll_bar()
  */
 function template_preprocess_poll_bar(&$variables) {
   if ($variables['block']) {

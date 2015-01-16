@@ -20,9 +20,9 @@ $view->name = 'advanced_forum_active_topics';
 $view->description = 'Shows the active topics in all forums.';
 $view->tag = 'Advanced Forum';
 $view->base_table = 'node';
-$view->human_name = '';
+$view->human_name = 'Advanced Forum active topics';
 $view->core = 7;
-$view->api_version = '3.0-alpha1';
+$view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Defaults */
@@ -384,11 +384,6 @@ $handler->display->display_options['fields']['name']['alter']['html'] = 0;
 $handler->display->display_options['fields']['name']['hide_empty'] = 0;
 $handler->display->display_options['fields']['name']['empty_zero'] = 0;
 $handler->display->display_options['fields']['name']['link_to_taxonomy'] = 1;
-/* Sort criterion: Content: Last comment time */
-$handler->display->display_options['sorts']['last_comment_timestamp']['id'] = 'last_comment_timestamp';
-$handler->display->display_options['sorts']['last_comment_timestamp']['table'] = 'node_comment_statistics';
-$handler->display->display_options['sorts']['last_comment_timestamp']['field'] = 'last_comment_timestamp';
-$handler->display->display_options['sorts']['last_comment_timestamp']['order'] = 'DESC';
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
 $handler->display->display_options['filters']['status']['table'] = 'node';
@@ -487,7 +482,6 @@ $translatables['advanced_forum_active_topics'] = array(
   t('Page'),
   t('Feed'),
 );
-
 
 // Get rid of the views counter if statistics not enabled.
 if (!module_exists('statistics')) {

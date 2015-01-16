@@ -18,10 +18,7 @@ function debut_highlighted_ctools_plugin_api() {
  * Implements hook_views_api().
  */
 function debut_highlighted_views_api() {
-  list($module, $api) = func_get_args();
-  if ($module == "views" && $api == "views_default") {
-    return array("version" => "3.0");
-  }
+  return array("version" => "3.0");
 }
 
 /**
@@ -30,11 +27,12 @@ function debut_highlighted_views_api() {
 function debut_highlighted_image_default_styles() {
   $styles = array();
 
-  // Exported image style: highlighted
+  // Exported image style: highlighted.
   $styles['highlighted'] = array(
     'name' => 'highlighted',
+    'label' => 'Highlighted',
     'effects' => array(
-      2 => array(
+      3 => array(
         'label' => 'Scale',
         'help' => 'Scaling will maintain the aspect-ratio of the original image. If only a single dimension is specified, the other dimension will be calculated.',
         'effect callback' => 'image_scale_effect',
@@ -44,13 +42,13 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale',
         'data' => array(
-          'width' => '635',
+          'width' => '830',
           'height' => '',
           'upscale' => 0,
         ),
         'weight' => '1',
       ),
-      3 => array(
+      4 => array(
         'label' => 'Crop',
         'help' => 'Cropping will remove portions of an image to make it the specified dimensions.',
         'effect callback' => 'image_crop_effect',
@@ -60,8 +58,8 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_crop',
         'data' => array(
-          'width' => '635',
-          'height' => '330',
+          'width' => '830',
+          'height' => '360',
           'anchor' => 'center-center',
         ),
         'weight' => '2',
@@ -69,11 +67,12 @@ function debut_highlighted_image_default_styles() {
     ),
   );
 
-  // Exported image style: highlighted_full
+  // Exported image style: highlighted_full.
   $styles['highlighted_full'] = array(
     'name' => 'highlighted_full',
+    'label' => 'Highlighted full',
     'effects' => array(
-      6 => array(
+      1 => array(
         'label' => 'Scale',
         'help' => 'Scaling will maintain the aspect-ratio of the original image. If only a single dimension is specified, the other dimension will be calculated.',
         'effect callback' => 'image_scale_effect',
@@ -83,13 +82,13 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale',
         'data' => array(
-          'width' => '930',
+          'width' => '1140',
           'height' => '',
           'upscale' => 0,
         ),
         'weight' => '1',
       ),
-      7 => array(
+      2 => array(
         'label' => 'Crop',
         'help' => 'Cropping will remove portions of an image to make it the specified dimensions.',
         'effect callback' => 'image_crop_effect',
@@ -99,7 +98,7 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_crop',
         'data' => array(
-          'width' => '930',
+          'width' => '1140',
           'height' => '300',
           'anchor' => 'center-center',
         ),

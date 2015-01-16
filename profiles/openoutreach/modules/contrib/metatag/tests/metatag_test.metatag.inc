@@ -21,6 +21,7 @@ function metatag_test_metatag_config_default() {
   $config->disabled = FALSE;
   $config->config = array(
     'description' => array('value' => 'Test foo description'),
+    'abstract' => array('value' => 'Test foo abstract'),
     'title' => array('value' => 'Test title'),
     'test:foo' => array('value' => 'foobar'),
   );

@@ -10,16 +10,23 @@
       // Create associative array where key=page path and value=comma-separated list of collapsed forum ids
       Drupal.advanced_forum.collapsed_page = new Array();
       if (pages) {
-        for (x in pages) {
-          tmp = pages[x].split('=');
+        for (var i = 0; i < pages.length; i++) {
+          var tmp = pages[i].split('=');
           Drupal.advanced_forum.collapsed_page[tmp[0]] = tmp[1].split(',');
         }
       }
 
       // Get data for current page
       Drupal.advanced_forum.collapsed_current = Drupal.advanced_forum.collapsed_page[encodeURIComponent(window.location.pathname)];
-      if (!Drupal.advanced_forum.collapsed_current)
+
+      if (!Drupal.advanced_forum.collapsed_current) {
         Drupal.advanced_forum.collapsed_current = new Array();
+        // For intial load default collapsed state settings needs to checked in init function.
+        Drupal.advanced_forum.initial_load = 1;
+      }
+      else {
+        Drupal.advanced_forum.initial_load = 0;
+      }
 
       var handleElement = $('.forum-collapsible', context);
 
@@ -72,26 +79,39 @@
     // get forum id
     var id = $(this).attr('id').split('-')[2];
 
-    // Check if item is collapsed
-    if ($.inArray(id, Drupal.advanced_forum.collapsed_current) > -1) {
-      $(this)
+    // On initial load, deal with default collapsed state of containers.
+    if(Drupal.advanced_forum.initial_load) {
+      var list = 0;
+      for(list in Drupal.settings.advanced_forum.default_collapsed_list) {
+        if (id == list) {
+          Drupal.advanced_forum.collapse(id, 'toggle');
+          break;
+        }
+      }
+    }
+    else {
+      // Check if item is collapsed
+      if ($.inArray(id, Drupal.advanced_forum.collapsed_current) > -1) {
+        $(this)
         .addClass('container-collapsed')
         .parent().addClass('container-collapsed');
-      Drupal.advanced_forum.collapse(id, 'toggle');
-      return;
+        Drupal.advanced_forum.collapse(id, 'toggle');
+      }
+      else {
+        $(this)
+        .removeClass('container-collapsed')
+        .parent().removeClass('container-collapsed');
+        Drupal.advanced_forum.expand(id, 'toggle');
+      }
     }
 
-    $(this)
-      .removeClass('container-collapsed')
-      .parent().removeClass('container-collapsed');
-    Drupal.advanced_forum.expand(id, 'toggle');
   };
 
   Drupal.advanced_forum.collapse = function(id, effect) {
     switch(effect) {
       case 'fade':
-         $('#forum-table-' + id).fadeOut('fast');
-         break;
+        $('#forum-table-' + id).fadeOut('fast');
+        break;
       case 'slide':
         $('#forum-table-' + id).slideUp('fast');
         break;
@@ -99,15 +119,15 @@
         $('#forum-table-' + id).hide();
     }
     $('#forum-collapsible-' + id)
-      .addClass('container-collapsed')
-      .parent().addClass('container-collapsed');
+    .addClass('container-collapsed')
+    .parent().addClass('container-collapsed');
   };
 
   Drupal.advanced_forum.expand = function(id, effect) {
     switch(effect) {
       case 'fade':
-         $('#forum-table-' + id).fadeIn('fast');
-         break;
+        $('#forum-table-' + id).fadeIn('fast');
+        break;
       case 'slide':
         $('#forum-table-' + id).slideDown('fast');
         break;
@@ -115,8 +135,8 @@
         $('#forum-table-' + id).show();
     }
     $('#forum-collapsible-' + id)
-      .removeClass('container-collapsed')
-      .parent().removeClass('container-collapsed');
+    .removeClass('container-collapsed')
+    .parent().removeClass('container-collapsed');
   };
 
 })(jQuery);

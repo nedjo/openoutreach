@@ -36,6 +36,10 @@ class date_views_filter_handler extends date_views_filter_handler_simple {
     $this->date_combine_conditions('op_simple');
   }
 
+  function op_contains($field) {
+    $this->date_combine_conditions('op_contains');
+  }
+
   /**
    * Combines multiple date WHERE expressions into a single WHERE expression.
    *
@@ -58,7 +62,7 @@ class date_views_filter_handler extends date_views_filter_handler_simple {
 
       // Respect relationships when determining the table alias.
       if ($field['table_name'] != $this->table || !empty($this->relationship)) {
-        $this->related_table_alias = $this->query->queue_table($field['table_name'], $this->relationship);
+        $this->related_table_alias = $this->query->ensure_table($field['table_name'], $this->relationship);
       }
       $table_alias = !empty($this->related_table_alias) ? $this->related_table_alias : $field['table_name'];
       $field_name = $table_alias . '.' . $field['field_name'];

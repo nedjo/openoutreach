@@ -7,7 +7,7 @@ function advanced_forum_forum_page_manager_tasks() {
     'title' => t('Forum page'),
     'admin title' => t('Forum page'),
     'admin description' => t('When enabled, this overrides the default Drupal behavior for displaying forum listings at <em>forum</em> and <em>forum/%forum</em>. If you add variants, you may use selection criteria such as roles or user access to provide different views of the forums. If no variant is selected, the normal advanced forum view will be selected.'),
-    'admin path' => 'forum/%forum_forum',
+    'admin path' => 'forum/%advanced_forum_forum',
     'hook menu' => 'advanced_forum_forum_menu',
     'hook menu alter' => 'advanced_forum_forum_menu_alter',
     // This is task uses 'context' handlers and must implement these to give the
@@ -18,6 +18,7 @@ function advanced_forum_forum_page_manager_tasks() {
     // Allow this to be enabled or disabled:
     'disabled' => variable_get('advanced_forum_forum_disabled', TRUE),
     'enable callback' => 'advanced_forum_forum_enable',
+    'access callback' => 'advanced_forum_forum_access_check',
     // Allow additional operations
     'operations' => array(
       'settings' => array(
@@ -38,18 +39,19 @@ function advanced_forum_forum_page_manager_tasks() {
  * normal user view process.
  */
 function advanced_forum_forum_menu_alter(&$items, $task) {
-  if (variable_get('advanced_forum_forum_disabled', TRUE)) {
+  if (variable_get('advanced_forum_forum_disabled')) {
     return;
   }
-
+  
   $items['forum']['page callback'] = 'advanced_forum_forum_page';
   $items['forum']['file path'] = $task['path'];
   $items['forum']['file'] = $task['file'];
 
-  // Take over forum/%forum_forum page also
-  $items['forum/%forum_forum']['page callback'] = 'advanced_forum_forum_page';
-  $items['forum/%forum_forum']['file path'] = $task['path'];
-  $items['forum/%forum_forum']['file'] = $task['file'];
+  // Take over forum/%advanced_forum_forum page
+  $items['forum/%advanced_forum_forum']['page callback'] = 'advanced_forum_forum_page';
+  $items['forum/%advanced_forum_forum']['file path'] = $task['path'];
+  $items['forum/%advanced_forum_forum']['file'] = $task['file'];
+  
 }
 
 /**
@@ -80,7 +82,6 @@ function advanced_forum_forum_page($forum_term = NULL) {
   $output = ctools_context_handler_render($task, '', $contexts, array($forum_term->tid));
   if ($output === FALSE) {
     $output = advanced_forum_page($forum_term);
-    dpm($task);
   }
 
   return $output;
@@ -115,6 +116,8 @@ function advanced_forum_forum_get_contexts($task, $subtask_id) {
  * Callback to enable/disable the page from the UI.
  */
 function advanced_forum_forum_enable($cache, $status) {
+  if ($status == NULL)
+    $status = FALSE;
   variable_set('advanced_forum_forum_disabled', $status);
 }
 
@@ -155,4 +158,9 @@ function advanced_forum_forum_page_save($subtask, $cache) {
   if (isset($cache->update_values)) {
     variable_set('advanced_forum_forum_page_breadcrumb', $cache->update_values['advanced_forum_forum_page_breadcrumb']);
   }
+}
+
+function advanced_forum_forum_access_check($task, $subtask_id, $contexts) {
+  $context = reset($contexts);
+  return node_access('view', $context->data);
 }

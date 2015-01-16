@@ -132,7 +132,7 @@ function wysiwyg_fckeditor_settings($editor, $config, $theme) {
       $settings['EditorAreaCSS'] = implode(',', wysiwyg_get_css());
     }
     elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
-      $settings['EditorAreaCSS'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
+      $settings['EditorAreaCSS'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => drupal_get_path('theme', variable_get('theme_default', NULL))));
     }
   }
 

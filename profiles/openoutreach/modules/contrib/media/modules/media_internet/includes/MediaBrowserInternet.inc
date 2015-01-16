@@ -2,20 +2,31 @@
 
 /**
  * @file
- * Media browser internet plugin.
+ * Definition of MediaBrowserInternet.
  */
 
+/**
+ * Media browser plugin for Media Internet sources.
+ */
 class MediaBrowserInternet extends MediaBrowserPlugin {
-
-  function view() {
-    // @todo: implement the multiselect argument here.
-    $from_web_form = drupal_get_form('media_internet_add',  $this->params['types'], $this->params['multiselect']);
-    return array(
-      'form' => $from_web_form,
-      '#attached' => array(
-        //'js' => array($path . '/js/plugins/media.fromurl.js'),
-      ),
-    );
+  /**
+   * Implements MediaBrowserPluginInterface::access().
+   */
+  public function access($account = NULL) {
+    return media_internet_access($account);
   }
 
+  /**
+   * Implements MediaBrowserPlugin::view().
+   */
+  public function view() {
+    module_load_include('inc', 'file_entity', 'file_entity.pages');
+
+    $build = array();
+    $params = $this->params;
+    $params['internet_media'] = TRUE;
+    $build['form'] = drupal_get_form('media_internet_add_upload', $params);
+
+    return $build;
+  }
 }

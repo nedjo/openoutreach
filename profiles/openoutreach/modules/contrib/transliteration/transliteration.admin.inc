@@ -62,17 +62,22 @@ function transliteration_retroactive_submit($form, &$form_state) {
 
   while ($file = $result->fetchObject()) {
     $wrapper = file_stream_wrapper_get_instance_by_uri($file->uri);
+    $scheme = file_uri_scheme($file->uri);
+
+    // Missing implementation.
     if (!$wrapper) {
-      // Missing implementation.
       $errors[] = file_uri_target($file->uri);
       continue;
     }
-    if (!in_array('DrupalLocalStreamWrapper', class_parents($wrapper))) {
-      // Skip non-local files.
+
+    // Skip non-writable stream wrappers.
+    $writeable_stream_wrappers = file_get_stream_wrappers(STREAM_WRAPPERS_WRITE);
+    if (!isset($writeable_stream_wrappers[$scheme])) {
       continue;
     }
+
+    // Missing file.
     if (!file_exists($wrapper->realpath())) {
-      // Missing file.
       $errors[] = file_uri_target($file->uri);
       continue;
     }
@@ -133,12 +138,20 @@ function transliteration_file_query() {
     case 'mysql':
     case 'mysqli':
       $operator = 'NOT REGEXP';
+      if (variable_get('transliteration_file_lowercase', TRUE)) {
+        $operator .= ' BINARY';
+      }
       $regex = '/[a-z0-9_.-]+$';
       break;
 
     case 'pgsql':
       $operator = '!~*';
       $regex = '/[a-z0-9_.-]+$';
+      break;
+
+    case 'mssql':
+      $operator = 'LIKE';
+      $regex = '%[^a-z0-9_.-]%';
       break;
 
     default:

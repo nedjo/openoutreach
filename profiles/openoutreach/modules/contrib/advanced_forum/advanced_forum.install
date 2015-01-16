@@ -35,3 +35,9 @@ function advanced_forum_update_5005() {
       ->condition('name', 'advanced_forum')
       ->execute();
 }
+
+function advanced_forum_update_7200() {
+  if (variable_get('advanced_forum_forum_disabled') == NULL) {
+    variable_set('advanced_forum_forum_disabled', FALSE);
+  }
+}

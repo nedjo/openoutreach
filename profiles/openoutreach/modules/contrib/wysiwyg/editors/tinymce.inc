@@ -28,6 +28,7 @@ function wysiwyg_tinymce_editor() {
     ),
     'version callback' => 'wysiwyg_tinymce_version',
     'themes callback' => 'wysiwyg_tinymce_themes',
+    'init callback' => 'wysiwyg_tinymce_init',
     'settings callback' => 'wysiwyg_tinymce_settings',
     'plugin callback' => 'wysiwyg_tinymce_plugins',
     'plugin settings callback' => 'wysiwyg_tinymce_plugin_settings',
@@ -126,6 +127,40 @@ function wysiwyg_tinymce_themes($editor, $profile) {
 }
 
 /**
+ * Returns an initialization JavaScript for this editor library.
+ *
+ * @param array $editor
+ *   The editor library definition.
+ * @param string $library
+ *   The library variant key from $editor['libraries'].
+ * @param object $profile
+ *   The (first) wysiwyg editor profile.
+ *
+ * @return string
+ *   A string containing inline JavaScript to execute before the editor library
+ *   script is loaded.
+ */
+function wysiwyg_tinymce_init($editor, $library) {
+  // TinyMCE unconditionally searches for its library filename in SCRIPT tags on
+  // on the page upon loading the library in order to determine the base path to
+  // itself. When JavaScript aggregation is enabled, this search fails and all
+  // relative constructed paths within TinyMCE are broken. The library has a
+  // tinyMCE.baseURL property, but it is not publicly documented and thus not
+  // reliable. The official support forum suggests to solve the issue through
+  // the global window.tinyMCEPreInit variable also used by various serverside
+  // compressor scrips available from the official website.
+  // @see http://www.tinymce.com/forum/viewtopic.php?id=23286
+  $settings = drupal_json_encode(array(
+    'base' => base_path() . $editor['library path'],
+    'suffix' => (strpos($library, 'src') !== FALSE || strpos($library, 'dev') !== FALSE ? '_src' : ''),
+    'query' => '',
+  ));
+  return <<<EOL
+window.tinyMCEPreInit = $settings;
+EOL;
+}
+
+/**
  * Return runtime editor settings for a given wysiwyg profile.
  *
  * @param $editor
@@ -191,7 +226,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
       $settings['content_css'] = implode(',', wysiwyg_get_css());
     }
     elseif ($config['css_setting'] == 'self' && isset($config['css_path'])) {
-      $settings['content_css'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => path_to_theme()));
+      $settings['content_css'] = strtr($config['css_path'], array('%b' => base_path(), '%t' => drupal_get_path('theme', variable_get('theme_default', NULL))));
     }
   }
 
@@ -266,7 +301,7 @@ function wysiwyg_tinymce_settings($editor, $config, $theme) {
       $settings += array(
         'theme_advanced_resize_horizontal' => FALSE,
         'theme_advanced_resizing_use_cookie' => FALSE,
-        'theme_advanced_path_location' => isset($config['path_loc']) ? $config['path_loc'] : 'bottom',
+        'theme_advanced_statusbar_location' => isset($config['path_loc']) ? $config['path_loc'] : 'bottom',
         'theme_advanced_resizing' => isset($config['resizing']) ? $config['resizing'] : 1,
         'theme_advanced_toolbar_location' => isset($config['toolbar_loc']) ? $config['toolbar_loc'] : 'top',
         'theme_advanced_toolbar_align' => isset($config['toolbar_align']) ? $config['toolbar_align'] : 'left',
@@ -594,6 +629,20 @@ function wysiwyg_tinymce_plugins($editor) {
       'extensions' => array('wordcount' => t('Word count')),
       'internal' => TRUE,
       'load' => TRUE,
+    );
+  }
+  if (version_compare($editor['installed version'], '3.4.1', '>=')) {
+    $plugins['lists'] = array(
+      'path' => $editor['library path'] . 'plugins/lists',
+      'extensions' => array('lists' => t('List normalizer')),
+      'url' => 'http://www.tinymce.com/wiki.php/Plugin:lists',
+      'internal' => TRUE,
+      'load' => TRUE,
+      'extended_valid_elements' => array(
+        'li[class|dir|id|lang|onclick|ondblclick|onkeydown|onkeypress|onkeyup|onmousedown|onmousemove|onmouseout|onmouseover|onmouseup|style|title|type|value]',
+        'ol[class|compact|dir|id|lang|onclick|ondblclick|onkeydown|onkeypress|onkeyup|onmousedown|onmousemove|onmouseout|onmouseover|onmouseup|start|style|title|type]',
+        'ul[class|compact|dir|id|lang|onclick|ondblclick|onkeydown|onkeypress|onkeyup|onmousedown|onmousemove|onmouseout|onmouseover|onmouseup|style|title|type]',
+      ),
     );
   }
   return $plugins;

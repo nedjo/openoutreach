@@ -57,6 +57,11 @@ function context_theme() {
     'path' => drupal_get_path('module', 'context') . '/theme',
     'file' => 'context_reaction_block.theme.inc',
   );
+  $items['context_block_edit_wrap'] = array(
+    'render element' => 'element',
+    'path' => drupal_get_path('module', 'context') . '/theme',
+    'file' => 'context_reaction_block.theme.inc',
+  );
   return $items;
 }
 
@@ -72,7 +77,13 @@ function context_theme_registry_alter(&$theme_registry) {
   if ($position !== FALSE) {
     unset($theme_registry['page']['preprocess functions'][$position]);
   }
-  $position = array_search('template_preprocess_page', $theme_registry['page']['preprocess functions']);
+  // Prevent conflict with i18n_menu.
+  if (module_exists('i18n_menu')) {
+    $position = array_search('i18n_menu_preprocess_page', $theme_registry['page']['preprocess functions']);
+  }
+  else {
+    $position = array_search('template_preprocess_page', $theme_registry['page']['preprocess functions']);
+  }
   $position = $position ? $position + 1 : 2;
   array_splice($theme_registry['page']['preprocess functions'], $position, 0, 'context_preprocess_page');
 }
@@ -99,7 +110,8 @@ function context_ctools_render_alter($info, $page, $data) {
 function context_entity_prepare_view($prepare, $entity_type) {
   if ($entity_type === 'taxonomy_term' && count($prepare) === 1) {
     $term = reset($prepare);
-    if ($term === menu_get_object('taxonomy_term', 2) && $plugin = context_get_plugin('condition', 'taxonomy_term')) {
+    $menu = menu_get_object('taxonomy_term', 2);
+    if ($menu && $term->tid == $menu->tid && $plugin = context_get_plugin('condition', 'taxonomy_term')) {
       $plugin->execute($term, 'view');
     }
   }
@@ -109,11 +121,9 @@ function context_entity_prepare_view($prepare, $entity_type) {
  * Implementation of hook_node_view().
  */
 function context_node_view($node, $view_mode) {
-  if ($view_mode === 'full') {
-    $object = menu_get_object();
-    if (isset($object->nid) && $object->nid === $node->nid) {
-      context_node_condition($node, 'view');
-    }
+  $object = menu_get_object();
+  if (isset($object->nid) && $object->nid === $node->nid) {
+    context_node_condition($node, 'view');
   }
 }
 
@@ -121,14 +131,24 @@ function context_node_view($node, $view_mode) {
  * Implementation of hook_form_alter().
  */
 function context_form_alter(&$form, $form_state, $form_id) {
-  // Prevent this from firing on admin pages... damn form driven apis...
-  if (!empty($form['#node_edit_form']) && arg(0) != 'admin') {
-    context_node_condition($form['#node'], 'form');
-  }
   // If the form is an admin for, flag it so that we can force a rebuild if needed.
   if (path_is_admin($_GET['q'])) {
     $form['#submit'][] = 'context_admin_form_submit';
   }
+  // Trigger the condition in an after_build function to avoid being skipped
+  // when there are validation errors.
+  $form['#after_build'][] = 'context_form_alter_node_after_build';
+}
+
+/**
+ * Form #after_build callback for context_form_alter().
+ */
+function context_form_alter_node_after_build($form, &$form_state) {
+  // Prevent this from firing on admin pages... damn form driven apis...
+  if (!empty($form['#node_edit_form']) && arg(0) != 'admin') {
+    context_node_condition($form['#node'], 'form');
+  }
+  return $form;
 }
 
 /**
@@ -184,7 +204,7 @@ function context_form_user_profile_form_alter(&$form, $form_state) {
 /**
  * Implementation of hook_form_alter() for user_register_form.
  */
-function context_form_user_register_form(&$form, $form_state) {
+function context_form_user_register_form_alter(&$form, $form_state) {
   if ($plugin = context_get_plugin('condition', 'user_page')) {
     $plugin->execute($form['#user'], 'register');
   }
@@ -299,10 +319,13 @@ function context_context_page_condition() {
   if ($plugin = context_get_plugin('condition', 'menu')) {
     $plugin->execute();
   }
-  if ($plugin = context_get_plugin('condition', 'sitewide')) {
+  if ($plugin = context_get_plugin('condition', 'default')) {
     $plugin->execute(1);
   }
   if ($plugin = context_get_plugin('condition', 'context')) {
+    $plugin->execute();
+  }
+  if ($plugin = context_get_plugin('condition', 'context_all')) {
     $plugin->execute();
   }
 }
@@ -311,9 +334,6 @@ function context_context_page_condition() {
  * Implementation of hook_context_page_reaction().
  */
 function context_context_page_reaction() {
-  if ($plugin = context_get_plugin('reaction', 'breadcrumb')) {
-    $plugin->execute();
-  }
   if ($plugin = context_get_plugin('reaction', 'css_injector')) {
     $plugin->execute();
   }
@@ -323,13 +343,13 @@ function context_context_page_reaction() {
 }
 
 /**
- * Implementation of hook_page_alter().
+ * Implementation of hook_preprocess_page().
  */
 function context_preprocess_page(&$vars) {
-  if ($plugin = context_get_plugin('reaction', 'menu')) {
+  if ($plugin = context_get_plugin('reaction', 'theme')) {
     $plugin->execute($vars);
   }
-  if ($plugin = context_get_plugin('reaction', 'theme')) {
+  if ($plugin = context_get_plugin('reaction', 'template_suggestions')) {
     $plugin->execute($vars);
   }
   /*
@@ -340,6 +360,19 @@ function context_preprocess_page(&$vars) {
     $vars['context_links'] = '';
   }
   */
+}
+
+/**
+* Implementation of hook_delivery_callback_alter().
+* Based on menu_position's and menu_trail_by_path's implementations.
+*/
+function context_page_delivery_callback_alter() {
+  if ($plugin = context_get_plugin('reaction', 'menu')) {
+    $plugin->execute();
+  }
+  if ($plugin = context_get_plugin('reaction', 'breadcrumb')) {
+    $plugin->execute();
+  }
 }
 
 /**

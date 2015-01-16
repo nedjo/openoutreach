@@ -33,6 +33,7 @@ function profile2_entity_info() {
       'bundle keys' => array(
         'bundle' => 'type',
       ),
+      'label callback' => 'entity_class_label',
       'uri callback' => 'entity_class_uri',
       'access callback' => 'profile2_access',
       'module' => 'profile2',
@@ -123,16 +124,16 @@ function profile2_permission() {
     $type_name = check_plain($type->type);
     $permissions += array(
       "edit own $type_name profile" => array(
-        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: Edit own profile', array('%type_name' => $type->getTranslation('label'))),
       ),
       "edit any $type_name profile" => array(
-        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: Edit any profile', array('%type_name' => $type->getTranslation('label'))),
       ),
       "view own $type_name profile" => array(
-        'title' => t('%type_name: View own profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: View own profile', array('%type_name' => $type->getTranslation('label'))),
       ),
       "view any $type_name profile" => array(
-        'title' => t('%type_name: View any profile', array('%type_name' => $type->label)),
+        'title' => t('%type_name: View any profile', array('%type_name' => $type->getTranslation('label'))),
       ),
     );
   }
@@ -307,36 +308,17 @@ function profile2_type_delete(ProfileType $type) {
 }
 
 /**
- * Implements hook_profile2_type_insert().
- */
-function profile2_profile2_type_insert(ProfileType $type) {
-  // Always rebuild the menu in case a profile type is inserted or changed, as
-  // also extension modules like profile2 page might need menu rebuilds. In
-  // order to avoid possible multiple rebuilds of modules we just do it always
-  // but once here.
-  menu_rebuild();
-}
-
-/**
- * Implements hook_profile2_type_update().
- */
-function profile2_profile2_type_update(ProfileType $type) {
-  // @see profile2_profile2_type_insert()
-  menu_rebuild();
-}
-
-/**
 * Implements hook_profile2_type_delete()
 */
-function profile2_profile2_type_delete($type) {
-  // Delete all profiles of this type.
-  if ($pids = array_keys(profile2_load_multiple(FALSE, array('type' => $type->type)))) {
-    profile2_delete_multiple($pids);
+function profile2_profile2_type_delete(ProfileType $type) {
+  // Delete all profiles of this type but only if this is not a revert.
+  if (!$type->hasStatus(ENTITY_IN_CODE)) {
+    $pids = array_keys(profile2_load_multiple(FALSE, array('type' => $type->type)));
+    if ($pids) {
+      profile2_delete_multiple($pids);
+    }
   }
-  // @see profile2_profile2_type_insert()
-  menu_rebuild();
 }
-
 
 /**
  * Implements hook_user_view().
@@ -388,7 +370,7 @@ function profile2_form_user_register_form_alter(&$form, &$form_state) {
       // Wrap each profile form in a fieldset.
       $form['profile_' . $type_name] += array(
         '#type' => 'fieldset',
-        '#title' => check_plain($profile_type->label),
+        '#title' => check_plain($profile_type->getTranslation('label')),
       );
     }
   }
@@ -510,7 +492,7 @@ function profile2_user_categories() {
     if ($info->userCategory) {
       $data[] = array(
         'name' => $type,
-        'title' => $info->label,
+        'title' => $info->getTranslation('label'),
         // Add an offset so a weight of 0 appears right of the account category.
         'weight' => $info->weight + 3,
         'access callback' => 'profile2_category_access',
@@ -598,9 +580,6 @@ function profile2_type_access($op, $type = NULL, $account = NULL) {
  */
 function profile2_theme() {
   return array(
-    'profile2_admin_type' => array(
-      'variables' => array('label' => NULL, 'type' => NULL),
-    ),
     'profile2' => array(
       'render element' => 'elements',
       'template' => 'profile2',
@@ -721,6 +700,15 @@ class Profile extends Entity {
     );
   }
 
+  public function defaultLabel() {
+    if (module_exists('profile2_i18n')) {
+      // Run the label through i18n_string() using the profile2_type label
+      // context, so the default label (= the type's label) gets translated.
+      return entity_i18n_string('profile2:profile2_type:' . $this->type . ':label', $this->label);
+    }
+    return $this->label;
+  }
+
   public function buildContent($view_mode = 'full', $langcode = NULL) {
     $content = array();
     // Assume newly create objects are still empty.
@@ -780,6 +768,37 @@ class ProfileType extends Entity {
   public function isLocked() {
     return isset($this->status) && empty($this->is_new) && (($this->status & ENTITY_IN_CODE) || ($this->status & ENTITY_FIXED));
   }
+
+  /**
+   * Overridden, to introduce the method for old entity API versions (BC).
+   *
+   * @todo Remove once we bump the required entity API version.
+   */
+  public function getTranslation($property, $langcode = NULL) {
+    if (module_exists('profile2_i18n')) {
+      return parent::getTranslation($property, $langcode);
+    }
+    return $this->$property;
+  }
+
+  /**
+   * Overrides Entity::save().
+   */
+  public function save() {
+    parent::save();
+    // Clear field info caches such that any changes to extra fields get
+    // reflected.
+    field_info_cache_clear();
+  }
+}
+
+/**
+ * View a profile.
+ *
+ * @see Profile::view()
+ */
+function profile2_view($profile, $view_mode = 'full', $langcode = NULL, $page = NULL) {
+  return $profile->view($view_mode, $langcode, $page);
 }
 
 /**
@@ -821,6 +840,34 @@ function profile2_field_access($op, $field, $entity_type, $profile = NULL, $acco
       return FALSE;
     }
   }
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ *
+ * We need to add pseudo fields for profile types to allow for weight settings
+ * when viewing a user or filling in the profile types while registrating.
+ */
+function profile2_field_extra_fields() {
+  $extra = array();
+  foreach (profile2_get_types() as $type_name => $type) {
+    // Appears on: admin/config/people/accounts/display
+    if (!empty($type->userView)) {
+      $extra['user']['user']['display']['profile_' . $type_name] = array(
+        'label' => t('Profile: @profile', array('@profile' => $type->label)),
+        'weight' => $type->weight,
+      );
+    }
+    // Appears on: admin/config/people/accounts/fields
+    if (!empty($type->data['registration'])) {
+      $extra['user']['user']['form']['profile_' . $type_name] = array(
+        'label' => t('Profile: @profile', array('@profile' => $type->label)),
+        'description' => t('Appears during registration only.'),
+        'weight' => $type->weight,
+      );
+    }
+  }
+  return $extra;
 }
 
 /**

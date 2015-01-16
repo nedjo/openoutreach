@@ -1,0 +1,12 @@
+name = RedHen Fields
+description = Fields specific to RedHen CRM.
+package = RedHen
+core = 7.x
+
+
+; Information added by Drupal.org packaging script on 2014-08-19
+version = "7.x-1.8"
+core = "7.x"
+project = "redhen"
+datestamp = "1408492460"
+

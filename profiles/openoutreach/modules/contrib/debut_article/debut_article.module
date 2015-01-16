@@ -10,41 +10,20 @@ function debut_article_init() {
 }
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_menu_local_tasks_alter().
  *
- * Add a local action link to the article view page.
+ * Add an action link to 'node/add/article' on 'article' page.
  */
-function debut_article_menu_alter(&$items) {
-  if (isset($items['node/add/article'])) {
-    $items['article/add'] = $items['node/add/article'];
-    $items['article/add']['title'] = 'Add a new article';
-    $items['article/add']['type'] = MENU_LOCAL_ACTION;
-  }
-}
-
-/**
- * Implements hook_admin_paths().
- *
- * Declare article/add as an admin path to trigger e.g. admin theme and overlay.
- */
-function debut_article_admin_paths() {
-  if (variable_get('node_admin_theme')) {
-    $paths = array(
-      'article/add' => TRUE,
-    );
-    return $paths;
-  }
-}
-
-/**
- * Implements hook_features_export_alter().
- *
- * Remove the tags vocabulary, which we create at install time so as not to
- * create a dependency on a feature providing the vocabulary.
- */
-function debut_article_features_export_alter(&$export, $module_name) {
-  if ($module_name == 'debut_article' && isset($export['features']['taxonomy']) && isset($export['features']['taxonomy']['tags'])) {
-    unset($export['features']['taxonomy']['tags']);
+function debut_article_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'article') {
+    $item = menu_get_item('node/add/article');
+    if ($item['access']) {
+      $item['title'] = t('Add a new article');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
   }
 }
 
@@ -55,31 +34,7 @@ function debut_article_features_export_alter(&$export, $module_name) {
  * the default 'large' style.
  */
 function debut_article_field_default_fields_alter(&$fields) {
-  if (isset($fields['node-article-field_content_image']) && module_exists('debut_media') && !debut_article_is_recreating('debut_article')) {
+  if (isset($fields['node-article-field_content_image']) && module_exists('debut_media') && !apps_compatible_feature_is_recreating('debut_article')) {
     $fields['node-article-field_content_image']['field_instance']['display']['default']['settings']['image_style'] = 'medium_large';
   }
-}
-
-/**
- * Determine whether a feature is being recreated.
- */
-function debut_article_is_recreating($feature = NULL) {
-  // Test for Drush usage.
-  if (function_exists('drush_get_command') && $command = drush_get_command()) {
-    switch($command['command']) {
-      case 'features-update-all':
-        return TRUE;
-      case 'features-update':
-        // If a specific feature was requested, test for it. If not, return
-        // true for any feature recreation.
-        return is_null($feature) || in_array($feature, $command['arguments']);
-    }
-  }
-
-  // Test for admin UI usage.
-  $feature = is_null($feature) ? arg(3) : $feature;
-  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
-    return TRUE;
-  }
-  return FALSE;
 }

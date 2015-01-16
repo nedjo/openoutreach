@@ -25,21 +25,6 @@ function debut_section_node_view($node) {
 }
 
 /**
- * Implements hook_enable().
- *
- * Ensure section is an allowed book type. We do this here rather than
- * in a Strongarm variable to avoid overriding other feature's use
- * of book.
- */
-function debut_section_enable() {
-  $types = variable_get('book_allowed_types', array('book'));
-  if (!in_array('section', $types)) {
-    $types[] = 'section';
-    variable_set('book_allowed_types', $types);
-  }
-}
-
-/**
  * Implements hook_form_FORM_ID_alter().
  *
  * When creating a new section not part of an existing book, default to new
@@ -59,32 +44,7 @@ function debut_section_form_section_node_form_alter(&$form, $form_state) {
  * the default 'large' style.
  */
 function debut_section_field_default_fields_alter(&$fields) {
-  if (isset($fields['node-section-field_content_image']) && module_exists('debut_media') && !debut_section_is_recreating('debut_section')) {
+  if (isset($fields['node-section-field_content_image']) && module_exists('debut_media') && !apps_compatible_feature_is_recreating('debut_section')) {
     $fields['node-section-field_content_image']['field_instance']['display']['default']['settings']['image_style'] = 'medium_large';
   }
 }
-
-/**
- * Determine whether a feature is being recreated.
- */
-function debut_section_is_recreating($feature = NULL) {
-  // Test for Drush usage.
-  if (function_exists('drush_get_command') && $command = drush_get_command()) {
-    switch($command['command']) {
-      case 'features-update-all':
-        return TRUE;
-      case 'features-update':
-        // If a specific feature was requested, test for it. If not, return
-        // true for any feature recreation.
-        return is_null($feature) || in_array($feature, $command['arguments']);
-    }
-  }
-
-  // Test for admin UI usage.
-  $feature = is_null($feature) ? arg(3) : $feature;
-  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
-    return TRUE;
-  }
-  return FALSE;
-}
-

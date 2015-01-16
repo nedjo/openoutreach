@@ -1,16 +1,12 @@
 name = Date Migration
-description = Provides support for importing into date fields with the Migrate module.
+description = Obsolete data migration module. Disable if no other modules depend on it.
 core = 7.x
 package = Date/Time
+hidden = TRUE
 
-dependencies[] = migrate
-dependencies[] = date
-files[] = date.migrate.inc
-files[] = date_migrate.test
-
-; Information added by drupal.org packaging script on 2012-02-24
-version = "7.x-2.2"
+; Information added by Drupal.org packaging script on 2014-09-24
+version = "7.x-2.9-alpha2"
 core = "7.x"
 project = "date"
-datestamp = "1330089942"
+datestamp = "1411597758"
 

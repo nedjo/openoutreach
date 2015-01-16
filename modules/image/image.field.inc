@@ -25,6 +25,7 @@ function image_field_info() {
         'title_field' => 0,
         'max_resolution' => '',
         'min_resolution' => '',
+        'default_image' => 0,
       ),
       'default_widget' => 'image_image',
       'default_formatter' => 'image',
@@ -152,6 +153,15 @@ function image_field_instance_settings_form($field, $instance) {
     '#weight' => 11,
   );
 
+  // Add the default image to the instance.
+  $form['default_image'] = array(
+    '#title' => t('Default image'),
+    '#type' => 'managed_file',
+    '#description' => t("If no image is uploaded, this image will be shown on display and will override the field's default image."),
+    '#default_value' => $settings['default_image'],
+    '#upload_location' => $field['settings']['uri_scheme'] . '://default_images/',
+  );
+
   return $form;
 }
 
@@ -191,8 +201,19 @@ function image_field_load($entity_type, $entities, $field, $instances, $langcode
 function image_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items) {
   // If there are no files specified at all, use the default.
   foreach ($entities as $id => $entity) {
-    if (empty($items[$id]) && $field['settings']['default_image']) {
-      if ($file = file_load($field['settings']['default_image'])) {
+    if (empty($items[$id])) {
+      $fid = 0;
+      // Use the default for the instance if one is available.
+      if (!empty($instances[$id]['settings']['default_image'])) {
+        $fid = $instances[$id]['settings']['default_image'];
+      }
+      // Otherwise, use the default for the field.
+      elseif (!empty($field['settings']['default_image'])) {
+        $fid = $field['settings']['default_image'];
+      }
+
+      // Add the default image if one is found.
+      if ($fid && ($file = file_load($fid))) {
         $items[$id][0] = (array) $file + array(
           'is_default' => TRUE,
           'alt' => '',
@@ -290,7 +311,7 @@ function image_field_widget_settings_form($field, $instance) {
   $form['preview_image_style'] = array(
     '#title' => t('Preview image style'),
     '#type' => 'select',
-    '#options' => image_style_options(FALSE),
+    '#options' => image_style_options(FALSE, PASS_THROUGH),
     '#empty_option' => '<' . t('no preview') . '>',
     '#default_value' => $settings['preview_image_style'],
     '#description' => t('The preview image will be shown while editing the content.'),
@@ -330,7 +351,7 @@ function image_field_widget_form(&$form, &$form_state, $field, $instance, $langc
   if ($field['cardinality'] == 1) {
     // If there's only one field, return it as delta 0.
     if (empty($elements[0]['#default_value']['fid'])) {
-      $elements[0]['#description'] = theme('file_upload_help', array('description' => $instance['description'], 'upload_validators' => $elements[0]['#upload_validators']));
+      $elements[0]['#description'] = theme('file_upload_help', array('description' => field_filter_xss($instance['description']), 'upload_validators' => $elements[0]['#upload_validators']));
     }
   }
   else {
@@ -474,7 +495,7 @@ function image_field_formatter_settings_form($field, $instance, $view_mode, $for
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
 
-  $image_styles = image_style_options(FALSE);
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
   $element['image_style'] = array(
     '#title' => t('Image style'),
     '#type' => 'select',
@@ -507,7 +528,7 @@ function image_field_formatter_settings_summary($field, $instance, $view_mode) {
 
   $summary = array();
 
-  $image_styles = image_style_options(FALSE);
+  $image_styles = image_style_options(FALSE, PASS_THROUGH);
   // Unset possible 'No defined styles' option.
   unset($image_styles['']);
   // Styles could be lost because of enabled/disabled modules that defines
@@ -568,7 +589,8 @@ function image_field_formatter_view($entity_type, $entity, $field, $instance, $l
  *
  * @param $variables
  *   An associative array containing:
- *   - item: An array of image data.
+ *   - item: Associative array of image data, which may include "uri", "alt",
+ *     "width", "height", "title" and "attributes".
  *   - image_style: An optional image style.
  *   - path: An array containing the link 'path' and link 'options'.
  *
@@ -578,8 +600,15 @@ function theme_image_formatter($variables) {
   $item = $variables['item'];
   $image = array(
     'path' => $item['uri'],
-    'alt' => $item['alt'],
   );
+
+  if (array_key_exists('alt', $item)) {
+    $image['alt'] = $item['alt'];
+  }
+
+  if (isset($item['attributes'])) {
+    $image['attributes'] = $item['attributes'];
+  }
 
   if (isset($item['width']) && isset($item['height'])) {
     $image['width'] = $item['width'];
@@ -587,7 +616,7 @@ function theme_image_formatter($variables) {
   }
 
   // Do not output an empty 'title' attribute.
-  if (drupal_strlen($item['title']) > 0) {
+  if (isset($item['title']) && drupal_strlen($item['title']) > 0) {
     $image['title'] = $item['title'];
   }
 
@@ -599,9 +628,11 @@ function theme_image_formatter($variables) {
     $output = theme('image', $image);
   }
 
-  if (!empty($variables['path']['path'])) {
+  // The link path and link options are both optional, but for the options to be
+  // processed, the link path must at least be an empty string.
+  if (isset($variables['path']['path'])) {
     $path = $variables['path']['path'];
-    $options = $variables['path']['options'];
+    $options = isset($variables['path']['options']) ? $variables['path']['options'] : array();
     // When displaying an image inside a link, the html option must be TRUE.
     $options['html'] = TRUE;
     $output = l($output, $path, $options);

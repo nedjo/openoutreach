@@ -18,7 +18,7 @@ function xmlsitemap_menu_entity_info_alter(&$info) {
       'entity keys' => array(
         'id' => 'mlid',
         'bundle' => 'menu_name',
-        'label' => 'title',
+        'label' => 'link_title',
         'revision' => '',
       ),
       'load hook' => NULL,
@@ -31,6 +31,7 @@ function xmlsitemap_menu_entity_info_alter(&$info) {
         'process callback' => 'xmlsitemap_menu_xmlsitemap_process_menu_links',
       ),
       'bundle label' => t('Menu'),
+      'token type' => 'menu_link',
     );
 
     foreach (menu_get_menus() as $type => $name) {
@@ -44,6 +45,15 @@ function xmlsitemap_menu_entity_info_alter(&$info) {
         ),
       );
     }
+  }
+  else {
+    // If the entity type already exists ensure the xmlsitemap is added.
+    $info['menu_link'] += array(
+      'uri callback' => 'xmlsitemap_menu_menu_link_uri',
+      'xmlsitemap' => array(
+        'process callback' => 'xmlsitemap_menu_xmlsitemap_process_menu_links',
+      ),
+    );
   }
 }
 
@@ -93,7 +103,7 @@ function xmlsitemap_menu_xmlsitemap_process_menu_links(array $mlids, array $xmls
       $menu_item['xmlsitemap'] = $xmlsitemap;
     }
     $link = xmlsitemap_menu_create_link($menu_item);
-    xmlsitemap_link_save($link);
+    xmlsitemap_link_save($link, array($link['type'] => $menu_item));
   }
 
   // Set the global user variable back to the original user.

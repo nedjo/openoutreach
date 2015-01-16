@@ -1,0 +1,22 @@
+/**
+ * Stylesheet for Open Outreach profile.
+ */
+
+#openoutreach-theme-form .form-item-theme {
+  clear: both;
+  margin-top: .5em;
+  margin-bottom: .5em;
+}
+
+#openoutreach-theme-form .form-item-theme #edit-theme label img {
+  float: left;
+  width: 35%;
+  margin-right: 1em;
+}
+
+#openoutreach-apps-verify #edit-pantheon img {
+  float: right;
+  margin-left: 1em;
+  margin-bottom: 1em;
+}
+

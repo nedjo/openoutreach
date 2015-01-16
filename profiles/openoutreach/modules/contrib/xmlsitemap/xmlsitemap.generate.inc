@@ -17,7 +17,7 @@
  * @param $path
  *   An internal Drupal path.
  * @param $language
- *   A language code to look use when looking up the paths.
+ *   A language code to use when looking up the paths.
  */
 function xmlsitemap_get_path_alias($path, $language) {
   static $aliases;
@@ -32,15 +32,33 @@ function xmlsitemap_get_path_alias($path, $language) {
     $last_language = $language;
   }
 
+  // We need to pass our path through hook_url_outbound_alter(). This fixes
+  // clean URLs not working when they don't exist in the {url_alias} table and
+  // are created with something like subpathauto.
+  $normalized_path = $path;
+
+  // hook_url_outbound_alter() expects defaults in url() options.
+  $options = array(
+    'fragment' => '',
+    'query' => array(),
+    'absolute' => FALSE,
+    'alias' => FALSE,
+    'prefix' => '',
+    'external' => FALSE,
+  );
+
   if ($language != LANGUAGE_NONE && isset($aliases[$language][$path])) {
-    return $aliases[$language][$path];
+    $normalized_path = $aliases[$language][$path];
+    $options['alias'] = TRUE;
   }
   elseif (isset($aliases[LANGUAGE_NONE][$path])) {
-    return $aliases[LANGUAGE_NONE][$path];
+    $normalized_path = $aliases[LANGUAGE_NONE][$path];
+    $options['alias'] = TRUE;
   }
-  else {
-    return $path;
-  }
+
+  $original_path = $normalized_path;
+  drupal_alter('url_outbound', $normalized_path, $options, $original_path);
+  return $normalized_path;
 }
 
 /**
@@ -150,7 +168,7 @@ function xmlsitemap_generate_chunk(stdClass $sitemap, XMLSitemapWriter $writer, 
   $link_count = 0;
 
   $query = db_select('xmlsitemap', 'x');
-  $query->fields('x', array('loc', 'lastmod', 'changefreq', 'changecount', 'priority', 'language', 'access', 'status'));
+  $query->fields('x', array('id', 'type', 'subtype', 'loc', 'lastmod', 'changefreq', 'changecount', 'priority', 'language', 'access', 'status'));
   $query->condition('x.access', 1);
   $query->condition('x.status', 1);
   $query->orderBy('x.language', 'DESC');
@@ -207,6 +225,10 @@ function xmlsitemap_generate_chunk(stdClass $sitemap, XMLSitemapWriter $writer, 
       // sitemaps.org specification.
       $element['priority'] = number_format($link['priority'], 1);
     }
+
+    // @todo Should this be moved to XMLSitemapWritier::writeSitemapElement()?
+    drupal_alter('xmlsitemap_element', $element, $link, $sitemap);
+
     $writer->writeSitemapElement('url', $element);
   }
 
@@ -458,7 +480,10 @@ function xmlsitemap_rebuild_batch_fetch($entity, &$context) {
   $context['sandbox']['progress'] += count($ids);
   $context['message'] = t('Now processing %entity @last_id (@progress of @count).', array('%entity' => $entity, '@last_id' => $context['sandbox']['last_id'], '@progress' => $context['sandbox']['progress'], '@count' => $context['sandbox']['max']));
 
-  if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
+  if ($context['sandbox']['progress'] >= $context['sandbox']['max']) {
+    $context['finished'] = 1;
+  }
+  else {
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
 }

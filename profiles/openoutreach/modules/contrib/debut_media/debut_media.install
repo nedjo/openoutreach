@@ -7,11 +7,19 @@
  */
 
 /**
- * Implements hook_install().
+ * Implements hook_enable().
  */
-function debut_media_install() {
-  // Make sure the standard 'field_tags' field exists.
-  _debut_media_ensure_vocabulary_tags();
+function debut_media_enable() {
+  // Rebuild the features static caches.
+  features_include(TRUE);
+
+  $module = 'debut_media';
+  $feature = feature_load($module);
+  // Retain the order of component types, which is needed for example to ensure
+  // that user roles are created ahead of user permissions that reference them.
+  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
+  _features_restore('enable', $items);
+  _features_restore('rebuild', $items);
 }
 
 /**
@@ -32,7 +40,7 @@ function debut_media_requirements() {
   // In addition to the fields we control, we also need the standard field_tags
   // that most sites will have gotten from their install profile.
   $required_fields['field_tags'] = array('type' => 'taxonomy_term_reference');
-  
+
   foreach ($required_fields as $field_name => $field_definition) {
     $field = field_info_field($field_name);
     // If the field doesn't exist, we will create it on install.
@@ -50,27 +58,6 @@ function debut_media_requirements() {
 }
 
 /**
- * Make sure the field_tags field exists and is of the right type.
- */
-function _debut_media_ensure_vocabulary_tags() {
-  $t = get_t();
-
-  // Make sure the 'tags' vocabulary exists.
-  $vocabulary = taxonomy_vocabulary_machine_name_load('tags');
-  if (!$vocabulary) {
-    $description = $t('Use tags to group articles on similar topics into categories.');
-    $help = $t('Enter a comma-separated list of words to describe your content.');
-    $vocabulary = (object) array(
-      'name' => $t('Tags'),
-      'description' => $description,
-      'machine_name' => 'tags',
-      'help' => $help,
-    );
-    taxonomy_vocabulary_save($vocabulary);
-  }
-}
-
-/**
  * Returns definitions for fields this module both creates and deletes.
  *
  * @see _media_gallery_controlled_fields().
@@ -84,6 +71,8 @@ function _debut_media_controlled_fields() {
       'type' => 'text_long',
       'translatable' => TRUE,
     ),
+    // No longer created by debut_media but left so that it will be deleted
+    // on uninstall from legacy sites.
     'media_title' => array(
       'field_name' => 'media_title',
       'locked' => TRUE,
@@ -104,3 +93,13 @@ function debut_media_uninstall() {
     field_delete_field($field);
   }
 }
+
+/**
+ * Enable the Apps compatible module.
+ */
+function debut_media_update_7000() {
+  if (!module_exists('apps_compatible') && !module_enable(array('apps_compatible'))) {
+    throw new Exception('This version of Debut Media requires the Apps compatible module but it could not be enabled.');
+  }
+}
+

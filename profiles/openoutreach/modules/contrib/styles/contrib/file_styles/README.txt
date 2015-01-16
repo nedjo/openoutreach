@@ -1,2 +1,0 @@
-
-Readme for File Styles

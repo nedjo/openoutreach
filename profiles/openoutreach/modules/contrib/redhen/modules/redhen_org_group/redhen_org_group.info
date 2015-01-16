@@ -1,0 +1,18 @@
+name = RedHen Organization Groups
+description = Enables group collaboration features for organizations
+package = RedHen
+core = 7.x
+
+; RedHen
+dependencies[] = redhen_org
+dependencies[] = redhen_relation
+
+; Contrib
+dependencies[] = entityreference
+
+; Information added by Drupal.org packaging script on 2014-08-19
+version = "7.x-1.8"
+core = "7.x"
+project = "redhen"
+datestamp = "1408492460"
+

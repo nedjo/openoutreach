@@ -1,0 +1,345 @@
+<?php
+
+/**
+ * @file
+ * Schema and installation hooks for redhen_contact module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redhen_contact_schema() {
+  $schema['redhen_contact'] = array(
+    'description' => 'The base table for redhen_contact module.',
+    'fields' => array(
+      'contact_id' => array(
+        'description' => 'The primary identifier for a redhen_contact.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'revision_id' => array(
+        'description' => 'The current {redhen_contact_revision}.revision_id version identifier.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'type' => array(
+        'description' => 'The {redhen_contact_type}.type of this redhen_contact.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'first_name' => array(
+        'description' => 'The first name of this redhen_contact, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'middle_name' => array(
+        'description' => 'The middle name of this redhen_contact, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'last_name' => array(
+        'description' => 'The last name of this redhen_contact, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this redhen_contact.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'redhen_state' => array(
+        'description' => 'The redhen_state of this redhen_contact.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+        'size' => 'tiny',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the redhen_contact was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the redhen_contact was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'redhen_contact_updated' => array('updated'),
+      'redhen_contact_created' => array('created'),
+      'redhen_contact_type' => array(array('type', 4)),
+      'redhen_contact_author' => array('author_uid'),
+      'redhen_contact_redhen_state' => array('redhen_state'),
+      'redhen_contact_revision' => array('revision_id'),
+    ),
+    'unique keys' => array(
+      'contact_id' => array('contact_id'),
+      'revision_id' => array('revision_id'),
+    ),
+    'foreign keys' => array(
+      'redhen_contact_revision' => array(
+        'table' => 'redhen_contact_revision',
+        'columns' => array('revision_id' => 'revision_id'),
+      ),
+      'redhen_contact_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+      'redhen_contact_type' => array(
+        'table' => 'redhen_contact_type',
+        'columns' => array('type' => 'name'),
+      ),
+    ),
+    'primary key' => array('contact_id'),
+  );
+
+  $schema['redhen_contact_revision'] = array(
+    'description' => 'Stores information about each saved version of a {redhen_contact}.',
+    'fields' => array(
+      'contact_id' => array(
+        'description' => 'The {redhen_contact} this version belongs to.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'revision_id' => array(
+        'description' => 'The primary identifier for this version.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'author_uid' => array(
+        'description' => 'The {users}.uid that created this revision.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'first_name' => array(
+        'description' => 'The first name of this version.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'middle_name' => array(
+        'description' => 'The middle name of this version.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'last_name' => array(
+        'description' => 'The last name of this version.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'redhen_state' => array(
+        'description' => 'The redhen_state of this redhen_contact revision.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'log' => array(
+        'description' => 'The log entry explaining the changes in this version.',
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+      ),
+      'updated' => array(
+        'description' => 'A Unix timestamp indicating when this version was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'redhen_revision_contact_id' => array('contact_id'),
+      'redhen_contact_author_revision' => array('author_uid'),
+      'redhen_contact_redhen_state_revision' => array('redhen_state'),
+    ),
+    'primary key' => array('revision_id'),
+    'foreign keys' => array(
+      'revision_redhen_contact' => array(
+        'table' => 'redhen_contact',
+        'columns' => array('contact_id' => 'contact_id'),
+      ),
+      'redhen_contact_revision_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+    ),
+  );
+
+  $schema['redhen_contact_type'] = array(
+    'description' => 'Stores information about all defined contact types.',
+    'fields' => array(
+      'contact_type_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique contact type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this contact type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this contact type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this contact type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this entity_test type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('contact_type_id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['redhen_contact_user'] = array(
+    'description' => 'The base table for redhen_contact module.',
+    'fields' => array(
+      'contact_id' => array(
+        'description' => 'The identifier for a redhen_contact.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The uid of the Drupal user connected to this redhen_contact.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'status' => array(
+        'description' => 'Status of this contact user relationship. 1 for active, NULL for inactive.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => FALSE,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the relationship was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the relationship was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'redhen_contact_status' => array('contact_id', 'status'),
+      'redhen_contact_user_contact' => array('contact_id'),
+      'redhen_contact_user_user' => array('uid'),
+    ),
+    'foreign keys' => array(
+      'redhen_contact_user_contact' => array(
+        'table' => 'redhen_contact',
+        'columns' => array('contact_id' => 'contact_id'),
+      ),
+      'redhen_contact_user_user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
+    'unique keys' => array(
+      'redhen_contact_user_status' => array('uid', 'status'),
+    ),
+    'primary key' => array('contact_id', 'uid'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Adding middle name field.
+ */
+function redhen_contact_update_7001() {
+  $schema = redhen_contact_schema();
+  $field_name = 'middle_name';
+
+  // Add middle_name to the main table.
+  $table_name = 'redhen_contact';
+  $spec = $schema[$table_name]['fields'][$field_name];
+  db_add_field($table_name, $field_name, $spec);
+
+  // Add middle_name to the revision table.
+  $table_name = 'redhen_contact_revision';
+  $spec = $schema[$table_name]['fields'][$field_name];
+  db_add_field($table_name, $field_name, $spec);
+}
+
+/**
+ * Rebuild the registry to pick up the new class.
+ */
+function redhen_contact_update_7002() {
+  registry_rebuild();
+}
+
+/**
+ * Create indexes for foreign keys.
+ */
+function redhen_contact_update_7003() {
+  db_add_index('redhen_contact', 'redhen_contact_revision', array('revision_id'));
+  db_add_index('redhen_contact_user', 'redhen_contact_user_contact', array('contact_id'));
+  db_add_index('redhen_contact_user', 'redhen_contact_user_user', array('uid'));
+}

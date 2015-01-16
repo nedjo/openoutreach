@@ -53,24 +53,25 @@ function advanced_forum_forum_topic_list_content_type_render($subtype, $conf, $p
 /**
  * Returns an edit form for the custom type.
  */
-function advanced_forum_forum_topic_list_content_type_edit_form(&$form, &$form_state) {
+function advanced_forum_forum_topic_list_content_type_edit_form($form, &$form_state) {
+  $conf = $form_state['conf'];
   $form['show_sort'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show sort form'),
     '#description' => t('If checked the sort form will appear at the top of the table. Uncheck this if you wish it to appear in a separate pane.'),
     '#default_value' => !empty($conf['show_sort']),
   );
+
+  return $form;
 }
 
-function advanced_forum_forum_topic_list_content_type_edit_form_submit(&$form, &$form_state) {
-  foreach (element_children($form) as $key) {
-    if (!empty($form_state['values'][$key])) {
-      $form_state['conf'][$key] = $form_state['values'][$key];
-    }
+function advanced_forum_forum_topic_list_content_type_edit_form_submit($form, &$form_state) {
+  // Copy everything from our defaults.
+  foreach (array_keys($form_state['plugin']['defaults']) as $key) {
+    $form_state['conf'][$key] = $form_state['values'][$key];
   }
 }
 
 function advanced_forum_forum_topic_list_content_type_admin_title($subtype, $conf, $context) {
   return t('"@s" topic list', array('@s' => $context->identifier));
 }
-

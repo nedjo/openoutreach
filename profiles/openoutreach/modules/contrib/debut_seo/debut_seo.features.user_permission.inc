@@ -10,7 +10,7 @@
 function debut_seo_user_default_permissions() {
   $permissions = array();
 
-  // Exported permission: administer meta tags
+  // Exported permission: administer meta tags.
   $permissions['administer meta tags'] = array(
     'name' => 'administer meta tags',
     'roles' => array(
@@ -19,7 +19,7 @@ function debut_seo_user_default_permissions() {
     'module' => 'metatag',
   );
 
-  // Exported permission: administer pathauto
+  // Exported permission: administer pathauto.
   $permissions['administer pathauto'] = array(
     'name' => 'administer pathauto',
     'roles' => array(
@@ -28,7 +28,7 @@ function debut_seo_user_default_permissions() {
     'module' => 'pathauto',
   );
 
-  // Exported permission: create url aliases
+  // Exported permission: create url aliases.
   $permissions['create url aliases'] = array(
     'name' => 'create url aliases',
     'roles' => array(
@@ -38,7 +38,7 @@ function debut_seo_user_default_permissions() {
     'module' => 'path',
   );
 
-  // Exported permission: edit meta tags
+  // Exported permission: edit meta tags.
   $permissions['edit meta tags'] = array(
     'name' => 'edit meta tags',
     'roles' => array(

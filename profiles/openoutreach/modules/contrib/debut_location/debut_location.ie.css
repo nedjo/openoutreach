@@ -1,0 +1,7 @@
+#views-exposed-form-location-map-page div.trigger {
+  position: static;
+  padding-left: 0;
+  margin-right: 0;
+  display: block;
+  float: left;
+}

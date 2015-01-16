@@ -38,8 +38,20 @@ function file_entity_token_info() {
     'description' => t('The file type of the file.'),
     'type' => 'file-type',
   );
+  $info['tokens']['file']['download-url'] = array(
+    'name' => t('Download URL'),
+    'description' => t('The URL to download the file directly.'),
+    'type' => 'url',
+  );
 
   return $info;
+}
+
+/**
+ * Implements hook_token_info_alter().
+ */
+function file_entity_token_info_alter(&$info) {
+  $info['tokens']['file']['name']['description'] = t('The name of the file.');
 }
 
 /**
@@ -66,17 +78,24 @@ function file_entity_tokens($type, $tokens, array $data = array(), array $option
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'type':
-          if ($file_type = file_info_file_types($file->type)) {
-            $replacements[$original] = $sanitize ? check_plain($file_type['label']) : $file_type['label'];
+          if ($file_type = file_type_load($file->type)) {
+            $replacements[$original] = $sanitize ? check_plain($file_type->label) : $file_type->label;
           }
+          break;
+
+        case 'download-url':
+          $uri = file_entity_download_uri($file);
+          $replacements[$original] = url($uri['path'], $uri['options'] + $url_options);
           break;
       }
     }
 
     // Chained token relationships.
-    if (($file_type_tokens = token_find_with_prefix($tokens, 'type')) && $file_type = file_info_file_types($file->type)) {
-      $file_type['type'] = $file->type;
+    if (($file_type_tokens = token_find_with_prefix($tokens, 'type')) && $file_type = file_type_load($file->type)) {
       $replacements += token_generate('file-type', $file_type_tokens, array('file_type' => $file_type), $options);
+    }
+    if ($download_url_tokens = token_find_with_prefix($tokens, 'download-url')) {
+      $replacements += token_generate('url', $download_url_tokens, file_entity_download_uri($file), $options);
     }
   }
 
@@ -87,21 +106,24 @@ function file_entity_tokens($type, $tokens, array $data = array(), array $option
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'name':
-          $replacements[$original] = $sanitize ? check_plain($file_type['label']) : $file_type['label'];
+          $replacements[$original] = $sanitize ? check_plain($file_type->label) : $file_type->label;
           break;
+
         case 'machine-name':
           // This is a machine name so does not ever need to be sanitized.
-          $replacements[$original] = $file_type['type'];
+          $replacements[$original] = $file_type->type;
           break;
+
         case 'count':
           $query = db_select('file_managed');
-          $query->condition('type', $file_type['type']);
+          $query->condition('type', $file_type->type);
           $query->addTag('file_type_file_count');
           $count = $query->countQuery()->execute()->fetchField();
           $replacements[$original] = (int) $count;
           break;
+
         case 'edit-url':
-          $replacements[$original] = url('admin/config/media/file-types/manage/' . $file_type['type'] . '/fields', $url_options);
+          $replacements[$original] = url('admin/structure/file-types/manage/' . $file_type->type . '/fields', $url_options);
           break;
       }
     }

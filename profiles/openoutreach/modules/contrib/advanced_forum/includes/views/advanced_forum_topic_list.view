@@ -18,9 +18,9 @@ $view->name = 'advanced_forum_topic_list';
 $view->description = 'Shows the topics in a given forum';
 $view->tag = 'Advanced Forum';
 $view->base_table = 'node';
-$view->human_name = '';
+$view->human_name = 'Advanced Forum topic list';
 $view->core = 7;
-$view->api_version = '3.0-alpha1';
+$view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Defaults */
@@ -459,8 +459,6 @@ $translatables['advanced_forum_topic_list'] = array(
   t('Comment status'),
   t('All'),
 );
-
-
 
 // Get rid of the views counter if statistics not enabled.
 if (!module_exists('statistics')) {

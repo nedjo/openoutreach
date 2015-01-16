@@ -1,0 +1,289 @@
+<?php
+
+/**
+ * @file
+ * Module file for geocoder module.
+ */
+ 
+include_once('geocoder.widget.inc');
+include_once('geocoder.services.inc');
+
+/**
+ * The Geocoder API call.
+ *
+ * Given a handler and data, geocode the data into a geometry object using the handler.
+ *  
+ * @param string $handler
+ *   The geocoder handler to use. Call geocoder_handler_info() to get a list
+ * 
+ * @param mixed $data
+ *   Data to be passed into the handler for geocoding. For example a address string.
+ * 
+ * @param array $options
+ *   Additional options to pass to the handler. Exact key / values to pass depend on the handler.
+ * 
+ * @param int $cache_type
+ *   (optional) The type of caching to use. Defaults to 2 (static and persistent)
+ *     0 or FALSE is no-caching at all
+ *     1 is static-cache but no persistent-cache
+ *     2 is both static-cache AND persistent-cache
+ * 
+ * @pram bool $cache_reset
+ *   (optional) Empty the static-cache and re-fill the persistent-cache. Defaults to FALSE.
+ * 
+ * @return geometry
+ *   Returns a geoPHP geometry object. Generally a Point.
+ *   See http://drupal.org/project/geoPHP and https://github.com/phayes/geoPHP/wiki/API-Reference
+ * 
+ * @example:
+ *    geocoder('google','4925 Gair Ave, Terrace, BC');
+ *    geocoder('google','New York City',array('geometry_type' => 'bounds'));
+ */
+function geocoder($handler, $data, $options = array(), $cache_type = 2, $cache_reset = FALSE) {
+  ctools_include('plugins');
+  static $static_cache = array();
+  
+  if ($cache_reset) {
+    $static_cache = array();
+  }
+  
+  if ($cache_type) {
+    $cache_id = $handler . '_' . md5(serialize(array($data, $options)));
+    if (!empty($static_cache[$cache_id])) {
+      return $static_cache[$cache_id];
+    }
+  }
+  
+  $processor = ctools_get_plugins('geocoder', 'geocoder_handler', $handler);
+  $geometry = call_user_func($processor['callback'], $data, $options);
+  
+  if ($cache_type) {
+    $static_cache[$cache_id] = $geometry;
+  }
+  
+  return $geometry;
+}
+
+
+/**
+ * Implements hook_menu().
+ */
+function  geocoder_menu() {
+  // Admin settings for the site.
+  $items['admin/config/content/geocoder'] = array(
+    'title' => 'Geocoder settings',
+    'description' => 'Configuration for API keys.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('geocoder_admin_settings'),
+    'file' => 'geocoder.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM, // optional
+  );
+  $items['geocoder/service/%'] = array(
+    'title' => 'AJAX / AJAJ geocoding service',
+    'description' => 'Provides basic callback for geocoding using JavaScript',
+    'page callback' => 'geocoder_service_callback',
+    'page arguments' => array(2),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(arg(2)),
+    'access callback' => 'geocoder_service_check_perms',
+  );
+  return $items;
+}
+
+
+/**
+ * Geocoder Handler Information
+ * 
+ * Return a list of all handlers that might geocode something for you.
+ * Optionally you may pass a field-type and get back a list of 
+ * handlers that are compatible with that field.
+ */
+function geocoder_handler_info($field_type = NULL) {
+  ctools_include('plugins');
+
+  static $handlers;
+  if (!$handlers) {
+    $handlers = ctools_get_plugins('geocoder', 'geocoder_handler');
+  }
+  if ($field_type) {
+    $field_handlers = $handlers;
+    foreach ($field_handlers as $i => $handler) {
+      if (!isset($handler['field_types']) || !in_array($field_type, $handler['field_types'])) {
+        unset($field_handlers[$i]);
+      }
+    }
+    return $field_handlers;
+  }
+  return $handlers;
+}
+
+/**
+ * Fetch geocoder handler
+ * 
+ * Given a name, fetch the full handler definition
+ */
+function geocoder_get_handler($handler_name) {
+  $handlers = geocoder_handler_info();
+  if (isset($handlers[$handler_name])) {
+    return $handlers[$handler_name];
+  }
+  else return FALSE;
+}
+
+/**
+ * Get supported field types
+ * 
+ * Get a list of supported field types along with the processors that support them
+ */
+function geocoder_supported_field_types() {
+  $supported = array();
+
+  $processors = geocoder_handler_info();
+
+  foreach ($processors as $processor) {
+    if (isset($processor['field_types'])) {
+      foreach ($processor['field_types'] as $field_type) {
+        $supported[$field_type][] = $processor['name'];
+      }
+    }
+  }
+  
+  return $supported;
+}
+
+
+/**
+ * Implementation of hook_ctools_plugin_api().
+ */
+function geocoder_ctools_plugin_api() {
+  return array('version' => 1);
+}
+
+/**
+ * Implementation of hook_ctools_plugin_dierctory() to let the system know
+ * we implement plugins.
+ */
+function geocoder_ctools_plugin_directory($module, $plugin) {
+  return 'plugins/' . $plugin;
+}
+
+/**
+ * Implements hook_ctools_plugin_type
+ */
+function geocoder_ctools_plugin_type() {
+  return array(
+    'geocoder_handler' => array(),
+  );
+}
+
+// These functions have to do with providing AJAX / AHAH 
+// service functionality so that users can make use of
+// geocoder interactively via JavaScript.
+
+/**
+ * Implements hook_permission().
+ * 
+ * We define permissions for accessing geocoder over AJAX / services. 
+ * There is one global permission which gives access to everything, 
+ * and one permission per handler. The site-administrator can therefore
+ * fine tune which handlers are accessible. Note that to use AJAX with
+ * geocoder these permissions need to be set.
+ */
+function geocoder_permission() {
+  $handler_info = geocoder_handler_info();
+  $perms = array(
+    'geocoder_service_all_handlers' =>  array(
+      'title' => t('Can use all Geocoder handlers through AJAX / service'),
+    ),
+  );
+  foreach ($handler_info as $name => $handler) {
+    $perms['geocoder_service_handler_' . $name] = array(
+      'title' => t('Can geocode using @handler through AJAX / service', array('@handler' => $handler['title'])),
+    );
+  }
+  return $perms;
+}
+
+/**
+ * Geocoder service check permissions
+ * 
+ * Given a handler, check to see if the user has
+ * permission to execute it via AJAX / services
+ */ 
+function geocoder_service_check_perms($handler) {
+  return (user_access('geocoder_service_all_handlers') || user_access('geocoder_service_handler_' . $handler));
+}
+
+/**
+ * Page callback for AJAX / Geocoder service
+ * 
+ * This service can be accessed at /geocoder/service/<handler>
+ * and takes the query-parameter "data". Optinally a "output"
+ * paramater may also be passed. "output" corresponds to
+ * geoPHP output formats.
+ * 
+ * Some examples:
+ * /geocoder/service/google?data=4925 Gair Ave, Terrace, BC
+ * /geocoder/service/wkt?data=POINT(10 10)
+ * /geocoder/service/yahoo?data=94112&output=wkt 
+ */ 
+function geocoder_service_callback($handler) {
+  if (!isset($_GET['data'])) {
+    throw new Exception(t('No data parameter found'));
+    exit();
+  }
+  
+  $format = isset($_GET['output']) ?  $_GET['output'] : 'json';
+  
+  geophp_load();
+  geocoder_service_check_request($handler, $format);
+  $geom = geocoder($handler, $_GET['data']);
+  
+  header('Content-Type: ' . geocoder_service_get_content_type($format));
+  print $geom->out($format);
+  exit();
+}
+
+/**
+ * Get Content-Type for an output format
+ * 
+ * Given an output format, this helper function passes
+ * a compatible HTTP content-type to be placed in the
+ * header. 
+ */ 
+function geocoder_service_get_content_type($format) {
+  $types = array(
+    'json' => 'application/json',
+    'kml' => 'application/xml',
+    'georss' => 'application/xml',
+    'gpx' => 'application/xml',
+    'wkt' => 'text/plain',
+    'wkb' => 'text/plain',
+    'google_geocode' => 'text/plain',
+  );
+  return $types[$format];
+}
+
+/**
+ * Geocoder Service Check Request
+ * 
+ * Check to make sure the request to the service is valid. This
+ * checks to make sure the handler and the format exists, and 
+ * also checks permission
+ */ 
+function geocoder_service_check_request($handler, $format, $check_ac = TRUE) {
+  if (!geocoder_get_handler($handler)) {
+    drupal_set_message(t('Could not find handler @handler', array('@handler' => $handler)), 'error');
+    drupal_not_found();
+    exit();
+  }
+  if (($format && $format != 'default') && !in_array($format, array_keys(geoPHP::getAdapterMap()))) {
+    throw new Exception(t('Could not find output-format @format', array('@format' => $format)), 'error');
+    exit();
+  }
+  if (!geocoder_service_check_perms($handler)) {
+    drupal_access_denied();
+    exit();
+  }
+}

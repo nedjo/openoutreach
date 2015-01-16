@@ -245,9 +245,19 @@ function panels_common_settings($form, &$form_state, $module_name = 'panels_comm
   }
 
   $default_options['other'] = t('New content of other types');
-  $form['panels_common_default'] = array(
-    '#type' => 'checkboxes',
+
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+  );
+
+  $form['common'] = array(
+    '#type' => 'fieldset',
     '#title' => t('New content behavior'),
+    '#group' => 'additional_settings',
+    '#weight' => -10,
+  );
+  $form['common']['panels_common_default'] = array(
+    '#type' => 'checkboxes',
     '#description' => t('Select the default behavior of new content added to the system. If checked, new content will automatically be immediately available to be added to Panels pages. If not checked, new content will not be available until specifically allowed here.'),
     '#options' => $default_options,
     '#default_value' => array_keys(array_filter($default_types)),
@@ -280,18 +290,23 @@ function panels_common_settings($form, &$form_state, $module_name = 'panels_comm
 
     $form['content_types'] = array(
       '#tree' => TRUE,
-      '#prefix' => '<div class="clearfix">',
-      '#suffix' => '</div>',
     );
+
     // cheat a bit
     $content_types['other'] = array('title' => t('Other'), 'weight' => 10);
     foreach ($content_types as $id => $info) {
       if (isset($allowed[$id])) {
+
         $form['content_types'][$id] = array(
+          '#type' => 'fieldset',
+          '#group' => 'additional_settings',
+          '#title' => t('Allowed @s content', array('@s' => $info['title'])),
+        );
+
+        $form['content_types'][$id]['options'] = array(
           '#prefix' => '<div class="panels-page-type-container">',
           '#suffix' => '</div>',
           '#type' => 'checkboxes',
-          '#title' => t('Allowed @s content', array('@s' => $info['title'])),
           '#options' => $options[$id],
           '#default_value' => array_keys(array_filter($allowed[$id])),
           '#checkall' => TRUE,
@@ -300,7 +315,13 @@ function panels_common_settings($form, &$form_state, $module_name = 'panels_comm
     }
   }
 
+  // Layout selection.
   panels_common_allowed_layouts_form($form, $form_state, $module_name);
+
+  $form['allowed'] = array(
+    '#type' => 'value',
+    '#value' => isset($allowed) ? array_keys($allowed) : array(),
+  );
 
   $form['module_name'] = array(
     '#type' => 'value',
@@ -332,7 +353,12 @@ function panels_common_settings_submit($form, &$form_state) {
   variable_set($module_name . '_default', $form_state['values']['panels_common_default']);
   if (!$form_state['skip']) {
     // merge the broken apart array neatly back together
-    variable_set($module_name . '_allowed_types', call_user_func_array('array_merge', $form_state['values']['content_types']));
+    $allowed = $form_state['values']['allowed'];
+    $allowed_content_types = array();
+    foreach ($form_state['values']['allowed'] as $allowed) {
+      $allowed_content_types = array_merge($allowed_content_types, $form_state['values']['content_types'][$allowed]['options']);
+    }
+    variable_set($module_name . '_allowed_types', $allowed_content_types);
   }
   drupal_set_message(t('Your changes have been saved.'));
 }
@@ -391,9 +417,15 @@ function panels_common_allowed_layouts_form(&$form, &$form_state, $module_name) 
   $form_state['allowed_layouts'] = &$allowed_layouts;
 
   ctools_add_js('layout', 'panels');
-  $form['layouts'] = array(
-    '#type' => 'checkboxes',
+
+  $form['layout_selection'] = array(
+    '#type' => 'fieldset',
     '#title' => t('Select allowed layouts'),
+    '#group' => 'additional_settings',
+    '#weight' => 10,
+  );
+  $form['layout_selection']['layouts'] = array(
+    '#type' => 'checkboxes',
     '#options' => $options,
     '#description' => t('Check the boxes for all layouts you want to allow users choose from when picking a layout. You must allow at least one layout.'),
     '#default_value' => array_keys(array_filter($allowed_layouts->allowed_layout_settings)),
@@ -445,6 +477,7 @@ function panels_common_get_allowed_layout_object($module_name) {
  * Get the allowed layouts for the given module.
  */
 function panels_common_get_allowed_layouts($module_name) {
+  ctools_include('plugins', 'panels');
   $available_layouts = panels_get_layouts();
   if (empty($module_name)) {
     return $available_layouts;
@@ -516,16 +549,21 @@ function theme_panels_common_content_list($vars) {
  * @return
  *   The rendered output.
  */
-function panels_common_print_layout_links($layouts, $base_path, $link_options = array()) {
+function panels_common_print_layout_links($layouts, $base_path, $link_options = array(), $current_layout = NULL) {
   $output = '';
 
   $categories = array();
   ctools_include('cleanstring');
+  $default_category = '';
   foreach ($layouts as $id => $layout) {
     $category = ctools_cleanstring($layout['category']);
 
     $categories[$category] = $layout['category'];
-    $options[$category][$id] = panels_print_layout_link($id, $layout, $base_path . '/' . $id, $link_options);
+    if ($id == $current_layout) {
+      $default_category = $category;
+    }
+
+    $options[$category][$id] = panels_print_layout_link($id, $layout, $base_path . '/' . $id, $link_options, $current_layout);
   }
 
   $form = array();
@@ -535,8 +573,9 @@ function panels_common_print_layout_links($layouts, $base_path, $link_options = 
     '#options' => $categories,
     '#name' => 'categories',
     '#id' => 'edit-categories',
-    '#value' => '',
+    '#value' => $default_category,
     '#parents' => array('categories'),
+    '#access' => (count($categories) > 1) ? TRUE : FALSE,
   );
 
   $output .= drupal_render($form);
@@ -557,7 +596,7 @@ function panels_common_print_layout_links($layouts, $base_path, $link_options = 
 
     $output .= '<div id="panels-layout-category-' . $category . '-wrapper">';
     $output .= '<div id="panels-layout-category-' . $category . '" class="form-checkboxes clearfix">';
-    $output .= '<div class="panels-layouts-category">' . $categories[$category] . '</div>';
+    $output .= (count($categories) > 1) ? '<div class="panels-layouts-category">' . $categories[$category] . '</div>' : '';
 
     foreach ($links as $key => $link) {
       $output .= $link;

@@ -1,4 +1,9 @@
 
+Transliteration 7.x-3.x, xxxx-xx-xx
+-----------------------------------
+#1058064 by msti, smk-ka and amateescu: Transliterate search string and index.
+
+
 Transliteration 7.x-3.0, 2011-10-14
 -----------------------------------
 #881644 by amateescu: Added support for the Redirect module to redirect from old filenames.

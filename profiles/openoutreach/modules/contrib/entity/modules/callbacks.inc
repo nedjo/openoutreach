@@ -20,10 +20,22 @@ function entity_metadata_entity_get_properties($entity, array $options, $name, $
  * @see entity_metadata_book_entity_info_alter()
  */
 function entity_metadata_book_get_properties($node, array $options, $name, $entity_type) {
-  if (!isset($node->book['bid'])) {
-    throw new EntityMetadataWrapperException('This node is no book page.');
+  switch ($name) {
+    case 'book':
+      if (isset($node->book['bid'])) {
+        return $node->book['bid'];
+      }
+      return NULL;
+
+    case 'book_ancestors':
+      $ancestors = array();
+      while (!empty($node->book['plid'])) {
+        $link = book_link_load($node->book['plid']);
+        array_unshift($ancestors, $link['nid']);
+        $node = node_load($link['nid']);
+      }
+      return $ancestors;
   }
-  return $node->book['bid'];
 }
 
 /**
@@ -33,7 +45,7 @@ function entity_metadata_book_get_properties($node, array $options, $name, $enti
 function entity_metadata_comment_get_properties($comment, array $options, $name) {
   switch ($name) {
     case 'name':
-      return $name = ($comment->uid == 0) ? variable_get('anonymous', t('Anonymous')) : $comment->name;
+      return $comment->name;
 
     case 'mail':
       if ($comment->uid != 0) {
@@ -80,7 +92,27 @@ function entity_metadata_comment_get_node_properties($node, array $options, $nam
 
     case 'comment_count_new':
       return comment_num_new($node->nid);
+
+    case 'comments':
+      $select = db_select('comment', 'c')
+        ->fields('c', array('cid'))
+        ->condition('c.nid', $node->nid);
+      return array_keys($select->execute()->fetchAllKeyed(0, 0));
   }
+}
+
+/**
+ * Getter callback for getting global languages.
+ */
+function entity_metadata_locale_get_languages($data, array $options, $name) {
+  return isset($GLOBALS[$name]) ? $GLOBALS[$name]->language : NULL;
+}
+
+/**
+ * Getter callback for getting the preferred user language.
+ */
+function entity_metadata_locale_get_user_language($account, array $options, $name) {
+  return user_preferred_language($account)->language;
 }
 
 /**
@@ -88,8 +120,8 @@ function entity_metadata_comment_get_node_properties($node, array $options, $nam
  */
 function entity_metadata_status_options_list() {
   return array(
-    0 => t('Published'),
-    1 => t('Unpublished'),
+    NODE_PUBLISHED => t('Published'),
+    NODE_NOT_PUBLISHED => t('Unpublished'),
   );
 }
 
@@ -111,6 +143,9 @@ function entity_metadata_node_get_properties($node, array $options, $name, $enti
 
     case 'edit_url':
       return url('node/' . $node->nid . '/edit', $options);
+
+    case 'author':
+      return !empty($node->uid) ? $node->uid : drupal_anonymous_user();
   }
 }
 
@@ -178,6 +213,16 @@ function entity_metadata_statistics_node_get_properties($node, array $options, $
 }
 
 /**
+ * Access callback for restricted node statistics properties.
+ */
+function entity_metadata_statistics_properties_access($op, $property, $entity = NULL, $account = NULL) {
+  if ($property == 'views' && user_access('view post access counter', $account)) {
+    return TRUE;
+  }
+  return user_access('access statistics', $account);
+}
+
+/**
  * Callback for getting site-wide properties.
  * @see entity_metadata_system_entity_info_alter()
  */
@@ -196,7 +241,7 @@ function entity_metadata_system_get_properties($data = FALSE, array $options, $n
       return $GLOBALS['user']->uid ? $GLOBALS['user']->uid : drupal_anonymous_user();
 
     case 'current_date':
-      return time();
+      return REQUEST_TIME;
 
     case 'current_page':
       // Subsequent getters of the struct retrieve the actual values.
@@ -278,10 +323,11 @@ function entity_metadata_taxonomy_term_get_properties($term, array $options, $na
 function entity_metadata_taxonomy_term_setter($term, $name, $value) {
   switch ($name) {
     case 'vocabulary':
-      // Make sure to also update the taxonomy bundle key.
-      $vocabulary = taxonomy_vocabulary_load($value);
+      // Make sure to update the taxonomy bundle key, so load the vocabulary.
+      // Support both, loading by name or ID.
+      $vocabulary = is_numeric($value) ? taxonomy_vocabulary_load($value) : taxonomy_vocabulary_machine_name_load($value);
       $term->vocabulary_machine_name = $vocabulary->machine_name;
-      return $term->vid = $value;
+      return $term->vid = $vocabulary->vid;
     case 'parent':
       return $term->parent = $value;
   }
@@ -327,6 +373,9 @@ function entity_metadata_user_get_properties($account, array $options, $name, $e
 
     case 'roles':
       return isset($account->roles) ? array_keys($account->roles) : array();
+
+    case 'theme':
+      return empty($account->theme) ? variable_get('theme_default', 'bartik') : $account->theme;
   }
 }
 
@@ -370,7 +419,7 @@ function entity_metadata_language_list() {
   $list = array();
   $list[LANGUAGE_NONE] = t('Language neutral');
   foreach (language_list() as $language) {
-    $list[$language->language] = $language->name;
+    $list[$language->language] = t($language->name);
   }
   return $list;
 }
@@ -381,7 +430,8 @@ function entity_metadata_language_list() {
 function entity_metadata_field_property_get($entity, array $options, $name, $entity_type, $info) {
   $field = field_info_field($name);
   $columns = array_keys($field['columns']);
-  $langcode = field_language($entity_type, $entity, $name, isset($options['language']) ? $options['language']->language : NULL);
+  $langcode = isset($options['language']) ? $options['language']->language : LANGUAGE_NONE;
+  $langcode = entity_metadata_field_get_language($entity_type, $entity, $field, $langcode, TRUE);
   $values = array();
   if (isset($entity->{$name}[$langcode])) {
     foreach ($entity->{$name}[$langcode] as $delta => $data) {
@@ -399,20 +449,20 @@ function entity_metadata_field_property_get($entity, array $options, $name, $ent
 /**
  * Callback for setting field property values.
  */
-function entity_metadata_field_property_set($entity, $name, $value, $langcode, $entity_type) {
+function entity_metadata_field_property_set($entity, $name, $value, $langcode, $entity_type, $info) {
   $field = field_info_field($name);
   $columns = array_keys($field['columns']);
-  if (!isset($langcode)) {
-    // Try to figure out the default language used by the entity.
-    // @todo: Update once http://drupal.org/node/1260640 has been fixed.
-    $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-  }
+  $langcode = entity_metadata_field_get_language($entity_type, $entity, $field, $langcode);
   $values = $field['cardinality'] == 1 ? array($value) : (array) $value;
 
   $items = array();
   foreach ($values as $delta => $value) {
     if (isset($value)) {
       $items[$delta][$columns[0]] = $value;
+      if ($info['type'] == 'boolean' || $info['type'] == 'list<boolean>') {
+        // Convert boolean values back to an integer for writing.
+        $items[$delta][$columns[0]] = (integer) $items[$delta][$columns[0]] = $value;
+      }
     }
   }
   $entity->{$name}[$langcode] = $items;
@@ -425,13 +475,31 @@ function entity_metadata_field_property_set($entity, $name, $value, $langcode, $
  * Callback returning the options list of a field.
  */
 function entity_metadata_field_options_list($name, $info) {
+  $field_property_info = $info;
   if (is_numeric($name) && isset($info['parent'])) {
     // The options list is to be returned for a single item of a multiple field.
     $field_property_info = $info['parent']->info();
     $name = $field_property_info['name'];
   }
-  if ($field = field_info_field($name)) {
-    return (array) module_invoke($field['module'], 'options_list', $field);
+  if (($field = field_info_field($name)) && isset($field_property_info['parent'])) {
+    // Retrieve the wrapped entity holding the field.
+    $wrapper = $field_property_info['parent'];
+    try {
+      $entity = $wrapper->value();
+    }
+    catch (EntityMetadataWrapperException $e) {
+      // No data available.
+      $entity = NULL;
+    }
+
+    // Support translating labels via i18n field.
+    if (module_exists('i18n_field') && ($translate = i18n_field_type_info($field['type'], 'translate_options'))) {
+      return $translate($field);
+    }
+    else {
+      $instance = $wrapper->getBundle() ? field_info_instance($wrapper->type(), $name, $wrapper->getBundle()) : NULL;
+      return (array) module_invoke($field['module'], 'options_list', $field, $instance, $wrapper->type(), $entity);
+    }
   }
 }
 
@@ -443,8 +511,9 @@ function entity_metadata_field_verbatim_get($entity, array $options, $name, $ent
   // Set contextual info useful for getters of any child properties.
   $context['instance'] = field_info_instance($context['parent']->type(), $name, $context['parent']->getBundle());
   $context['field'] = field_info_field($name);
+  $langcode = isset($options['language']) ? $options['language']->language : LANGUAGE_NONE;
+  $langcode = entity_metadata_field_get_language($entity_type, $entity, $context['field'], $langcode, TRUE);
 
-  $langcode = field_language($entity_type, $entity, $name, isset($options['language']) ? $options['language']->language : NULL);
   if ($context['field']['cardinality'] == 1) {
     return isset($entity->{$name}[$langcode][0]) ? $entity->{$name}[$langcode][0] : NULL;
   }
@@ -455,13 +524,9 @@ function entity_metadata_field_verbatim_get($entity, array $options, $name, $ent
  * Writes the passed field items in the object. Useful as field level setter
  * to set the whole data structure at once.
  */
-function entity_metadata_field_verbatim_set($entity, $name, $items, $langcode) {
+function entity_metadata_field_verbatim_set($entity, $name, $items, $langcode, $entity_type) {
   $field = field_info_field($name);
-  if (!isset($langcode)) {
-    // Try to figure out the default language used by the entity.
-    // @todo: Update once http://drupal.org/node/1260640 has been fixed.
-    $langcode = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-  }
+  $langcode = entity_metadata_field_get_language($entity_type, $entity, $field, $langcode);
   $value = $field['cardinality'] == 1 ? array($items) : (array) $items;
   // Filter out any items set to NULL.
   $entity->{$name}[$langcode] = array_filter($value);
@@ -469,6 +534,42 @@ function entity_metadata_field_verbatim_set($entity, $name, $items, $langcode) {
   // Empty the static field language cache, so the field system picks up any
   // possible new languages.
   drupal_static_reset('field_language');
+}
+
+/**
+ * Helper for determining the field language to be used.
+ *
+ * Note that we cannot use field_language() as we are not about to display
+ * values, but generally read/write values.
+ *
+ * @param $fallback
+ *   (optional) Whether to fall back to the entity default language, if no
+ *   value is available for the given language code yet.
+ *
+ * @return
+ *   The language code to use.
+ */
+function entity_metadata_field_get_language($entity_type, $entity, $field, $langcode = LANGUAGE_NONE, $fallback = FALSE) {
+  // Try to figure out the default language used by the entity.
+  // With Drupal >= 7.15 we can use entity_language().
+  if (function_exists('entity_language')) {
+    $default_langcode = entity_language($entity_type, $entity);
+  }
+  else {
+    $default_langcode = !empty($entity->language) ? $entity->language : LANGUAGE_NONE;
+  }
+
+  // Determine the right language to use.
+  if ($default_langcode != LANGUAGE_NONE && field_is_translatable($entity_type, $field)) {
+    $langcode = ($langcode != LANGUAGE_NONE) ? field_valid_language($langcode, $default_langcode) : $default_langcode;
+    if (!isset($entity->{$field['field_name']}[$langcode]) && $fallback) {
+      $langcode = $default_langcode;
+    }
+    return $langcode;
+  }
+  else {
+    return LANGUAGE_NONE;
+  }
 }
 
 /**
@@ -517,13 +618,18 @@ function entity_metadata_field_file_set(&$item, $property_name, $value) {
  */
 function entity_metadata_field_file_create_item($property_name, $context) {
   // 'fid' is required, so 'file' has to be set as initial property.
-  return array('display' => $context['field']['settings']['display_default']);
+  return array('display' => isset($context['field']['settings']['display_default']) ? $context['field']['settings']['display_default'] : 0);
 }
 
 /**
  * Callback for validating file field $items.
  */
 function entity_metadata_field_file_validate_item($items, $context) {
+  // Allow NULL values.
+  if (!isset($items)) {
+    return TRUE;
+  }
+
   // Stream-line $items for multiple vs non-multiple fields.
   $items = !entity_property_list_extract_type($context['type']) ? array($items) : (array) $items;
 
@@ -544,16 +650,51 @@ function entity_metadata_field_file_validate_item($items, $context) {
  *
  * This function does not implement hook_node_access(), thus it may not be
  * called entity_metadata_node_access().
+ *
+ * @see entity_access()
+ *
+ * @param $op
+ *   The operation being performed. One of 'view', 'update', 'create' or
+ *   'delete'.
+ * @param $node
+ *   A node to check access for. Must be a node object. Must have nid,
+ *   except in the case of 'create' operations.
+ * @param $account
+ *   The user to check for. Leave it to NULL to check for the global user.
+ *
+ * @throws EntityMalformedException
+ *
+ * @return boolean
+ *   TRUE if access is allowed, FALSE otherwise.
  */
 function entity_metadata_no_hook_node_access($op, $node = NULL, $account = NULL) {
+  // First deal with the case where a $node is provided.
   if (isset($node)) {
-    return node_access($op, $node, $account);
+    if ($op == 'create') {
+      if (isset($node->type)) {
+        return node_access($op, $node->type, $account);
+      }
+      else {
+        throw new EntityMalformedException('Permission to create a node was requested but no node type was given.');
+      }
+    }
+    // If a non-default revision is given, incorporate revision access.
+    $default_revision = node_load($node->nid);
+    if ($node->vid !== $default_revision->vid) {
+      return _node_revision_access($node, $op, $account);
+    }
+    else {
+      return node_access($op, $node, $account);
+    }
   }
-  // Is access to all nodes allowed?
+  // No node is provided. Check for access to all nodes.
+  if (user_access('bypass node access', $account)) {
+    return TRUE;
+  }
   if (!user_access('access content', $account)) {
     return FALSE;
   }
-  if (user_access('bypass node access', $account) || (!isset($account) && $op == 'view' && node_access_view_all_nodes())) {
+  if ($op == 'view' && node_access_view_all_nodes($account)) {
     return TRUE;
   }
   return FALSE;
@@ -568,7 +709,7 @@ function entity_metadata_user_access($op, $entity = NULL, $account = NULL, $enti
   if (isset($entity) && $op != 'delete' && (($entity->uid == $account->uid && $entity->uid) || (!$entity->uid && $op == 'view'))) {
     return TRUE;
   }
-  if (user_access('administer users', $account) || user_access('access user profiles', $account) && $op == 'view') {
+  if (user_access('administer users', $account) || user_access('access user profiles', $account) && $op == 'view' && $entity->status) {
     return TRUE;
   }
   return FALSE;
@@ -606,13 +747,48 @@ function entity_metadata_user_properties_access($op, $property, $entity = NULL, 
  * Access callback for the comment entity.
  */
 function entity_metadata_comment_access($op, $entity = NULL, $account = NULL) {
-  if (isset($entity) && !isset($account) && comment_access($op, $entity)) {
+  // When determining access to a comment, 'comment_access' does not take any
+  // access restrictions to the comment's associated node into account. If a
+  // comment has an associated node, the user must be able to view it in order
+  // to access the comment.
+  if (isset($entity->nid)) {
+    if (!entity_access('view', 'node', node_load($entity->nid), $account)) {
+      return FALSE;
+    }
+  }
+
+  // Comment administrators are allowed to perform all operations on all
+  // comments.
+  if (user_access('administer comments', $account)) {
     return TRUE;
   }
-  if (user_access('administer comments', $account) || user_access('access comments', $account) && $op == 'view') {
+
+  // Unpublished comments can never be accessed by non-admins.
+  if (isset($entity->status) && $entity->status == COMMENT_NOT_PUBLISHED) {
+    return FALSE;
+  }
+
+  if (isset($entity) && $op == 'update') {
+    // Because 'comment_access' only checks the current user, we need to do our
+    // own access checking if an account was specified.
+    if (!isset($account)) {
+      return comment_access('edit', $entity);
+    }
+    else {
+      return $account->uid && $account->uid == $entity->uid && user_access('edit own comments', $account);
+    }
+  }
+  if (user_access('access comments', $account) && $op == 'view') {
     return TRUE;
   }
   return FALSE;
+}
+
+/**
+ * Access callback for restricted comment properties.
+ */
+function entity_metadata_comment_properties_access($op, $property, $entity = NULL, $account = NULL) {
+  return user_access('administer comments', $account);
 }
 
 /**
@@ -622,7 +798,7 @@ function entity_metadata_taxonomy_access($op, $entity = NULL, $account = NULL, $
   if ($entity_type == 'taxonomy_vocabulary') {
     return user_access('administer taxonomy', $account);
   }
-  if (isset($entity) && $op == 'edit' && !isset($account) && taxonomy_term_edit_access($entity)) {
+  if (isset($entity) && $op == 'update' && !isset($account) && taxonomy_term_edit_access($entity)) {
     return TRUE;
   }
   if (user_access('administer taxonomy', $account) || user_access('access content', $account) && $op == 'view') {
@@ -630,6 +806,26 @@ function entity_metadata_taxonomy_access($op, $entity = NULL, $account = NULL, $
   }
   return FALSE;
 }
+
+/**
+ * Access callback for file entities.
+ */
+function entity_metadata_file_access($op, $file = NULL, $account = NULL, $entity_type) {
+  // We can only check access for the current user, so return FALSE on other accounts.
+  global $user;
+  if ($op == 'view' && isset($file) && (!isset($account) || $user->uid == $account->uid)) {
+    // Invoke hook_file_download() to obtain access information.
+    foreach (module_implements('file_download') as $module) {
+      $result = module_invoke($module, 'file_download', $file->uri);
+      if ($result == -1) {
+        return FALSE;
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+
 
 /**
  * Callback to determine access for properties which are fields.
@@ -782,10 +978,17 @@ function entity_metadata_form_comment($comment) {
  * Callback to get the form of a user account.
  */
 function entity_metadata_form_user($account) {
-  // Pre-populate the form-state with the right form include.
+  // If $account->uid is set then we want a user edit form.
+  // Otherwise we want the user register form.
+  if (isset($account->uid)) {
+    $form_id = 'user_profile_form';
+    form_load_include($form_state, 'inc', 'user', 'user.pages');
+  }
+  else {
+    $form_id = 'user_register_form';
+  }
   $form_state['build_info']['args'] = array($account);
-  form_load_include($form_state, 'inc', 'user', 'user.pages');
-  return drupal_build_form('user_profile_form', $form_state);
+  return drupal_build_form($form_id, $form_state);
 }
 
 /**
@@ -801,11 +1004,11 @@ function entity_metadata_form_taxonomy_term($term) {
 /**
  * Callback to get the form of a vocabulary.
  */
-function entity_metadata_form_taxonomy_vocabulary($term) {
+function entity_metadata_form_taxonomy_vocabulary($vocab) {
   // Pre-populate the form-state with the right form include.
-  $form_state['build_info']['args'] = array($term);
+  $form_state['build_info']['args'] = array($vocab);
   form_load_include($form_state, 'inc', 'taxonomy', 'taxonomy.admin');
-  return drupal_build_form('taxonomy_form_term', $form_state);
+  return drupal_build_form('taxonomy_form_vocabulary', $form_state);
 }
 
 /**
@@ -813,7 +1016,7 @@ function entity_metadata_form_taxonomy_vocabulary($term) {
  */
 function entity_metadata_form_entity_ui($entity, $entity_type) {
   $info = entity_get_info($entity_type);
-  $form_state = array();
+  $form_state = form_state_defaults();
   // Add in the include file as the form API does else with the include file
   // specified for the active menu item.
   if (!empty($info['admin ui']['file'])) {
@@ -860,4 +1063,13 @@ function entity_metadata_field_query($entity_type, $property, $value, $limit) {
 
   $result = $query->execute();
   return !empty($result[$entity_type]) ? array_keys($result[$entity_type]) : array();
+}
+
+/**
+ * Implements entity_uri() callback for file entities.
+ */
+function entity_metadata_uri_file($file) {
+  return array(
+    'path' => file_create_url($file->uri),
+  );
 }

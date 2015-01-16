@@ -1,0 +1,960 @@
+<?php
+
+/**
+ * @file
+ * Redhen Memberships main module
+ *
+ */
+
+// Definitions
+define('REDHEN_MEMBERSHIP_INACTIVE', 0);
+define('REDHEN_MEMBERSHIP_ACTIVE', 1);
+define('REDHEN_MEMBERSHIP_EXPIRED', 2);
+
+/**
+ * Implements hook_entity_info().
+ */
+function redhen_membership_entity_info() {
+  return array(
+    'redhen_membership' => array(
+      'label' => t('Membership'),
+      'controller class' => 'RedhenMembershipEntityController',
+      'metadata controller class' => 'RedhenMembershipMetadataController',
+      'entity class' => 'RedhenMembership',
+      'views controller class' => 'RedhenMembershipViewsController',
+      'base table' => 'redhen_membership',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'membership_id',
+        'bundle' => 'type',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'name',
+      ),
+      'bundles' => array(),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full membership'),
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => TRUE,
+        ),
+      ),
+      'uri callback' => 'entity_class_uri',
+      'token type' => 'redhen_membership',
+      'module' => 'redhen_membership',
+      'label callback' => 'entity_class_label',
+      'access callback' => 'redhen_membership_access'
+    ),
+    'redhen_membership_type' => array(
+      'label' => t('Membership type'),
+      'entity class' => 'RedhenMembershipType',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table' => 'redhen_membership_type',
+      'fieldable' => FALSE,
+      'bundle of' => 'redhen_membership',
+      'exportable' => TRUE,
+      'token type' => 'redhen_membership_type',
+      'entity keys' => array(
+        'id' => 'membership_type_id',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      'access callback' => 'redhen_membership_type_access',
+      'module' => 'redhen_membership',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/structure/redhen/membership_types',
+        'file' => 'redhen_membership_type.admin.inc',
+        'file path' => drupal_get_path('module', 'redhen_membership') . '/includes',
+        'controller class' => 'RedhenMembershipTypeUIController',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We are adding the info about the membership types via a hook to avoid a recursion
+ * issue as loading the model types requires the entity info as well.
+ */
+function redhen_membership_entity_info_alter(&$entity_info) {
+  // @todo: we're testing to ensure the schema exists; needed because running gui
+  // install profile was hitting this BEFORE the schema was installed.
+  if (drupal_get_schema('redhen_membership')) {
+    foreach (redhen_membership_get_types() as $type => $info) {
+      $entity_info['redhen_membership']['bundles'][$type] = array(
+        'label' => $info->label,
+        'admin' => array(
+          'path' => 'admin/structure/redhen/membership_types/manage/%redhen_membership_type',
+          'real path' => 'admin/structure/redhen/membership_types/manage/' . $type,
+          'bundle argument' => 5,
+          'access arguments' => array('administer redhen membership types'),
+        ),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_membership_menu() {
+  $items = array();
+
+  $items['redhen/memberships'] = array(
+    'title' => 'Memberships',
+    'page callback' => 'redhen_membership_page',
+    'access arguments' => array('list redhen memberships'),
+    'file' => 'includes/redhen_membership.pages.inc',
+    'weight' => 1,
+  );
+
+  foreach (redhen_entity_types() as $entity_type => $path) {
+    $items["redhen/{$path}/%{$entity_type}/memberships"] = array(
+      'title' => 'Memberships',
+      'page callback' => 'redhen_membership_page',
+      'page arguments' => array(2, $entity_type),
+      'access callback' => $entity_type . '_access',
+      'access arguments' => array('view', 2),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/redhen_membership.pages.inc',
+      'weight' => -3,
+    );
+
+    $items["redhen/{$path}/%{$entity_type}/memberships/add"] = array(
+      'title' => 'Add Membership',
+      'page callback' => 'redhen_membership_types_list_page',
+      'access callback' => 'redhen_membership_access',
+      'access arguments' => array('create', 2),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'includes/redhen_membership.pages.inc',
+    );
+
+    $entity_info = entity_get_info('redhen_membership');
+    foreach ($entity_info['bundles'] as $key => $bundle) {
+      $items["redhen/{$path}/%{$entity_type}/memberships/add/" . $key] = array(
+        'title' => $bundle['label'],
+        'title callback' => 'check_plain',
+        'description' => isset($bundle['description']) ? $bundle['description'] : '',
+        'page callback' => 'redhen_membership_add_page',
+        'page arguments' => array($key, $entity_type, 2),
+        'access callback' => 'redhen_membership_access',
+        'access arguments' => array('create', 2),
+        'file' => 'includes/redhen_membership.pages.inc',
+      );
+    }
+
+    $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership"] = array(
+      'title callback' => 'redhen_membership_membership_title',
+      'title arguments' => array(4),
+      'page callback' => 'redhen_membership_view',
+      'page arguments' => array(4),
+      'access callback' => 'redhen_membership_access',
+      'access arguments' => array('view', 4),
+      'weight' => 10,
+    );
+    $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/view"] = array(
+      'title' => 'View',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    );
+    $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/edit"] = array(
+      'title' => 'Edit Membership',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('redhen_membership_membership_form', 4),
+      'access callback' => 'redhen_membership_access',
+      'access arguments' => array('edit', 4),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/redhen_membership.forms.inc',
+    );
+    $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/delete"] = array(
+      'title' => 'Delete',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('redhen_membership_membership_delete_form', 4),
+      'access callback' => 'redhen_membership_access',
+      'access arguments' => array('delete', 4),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 10,
+      'file' => 'includes/redhen_membership.forms.inc',
+    );
+
+    if (module_exists('devel')) {
+      $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/devel"] = array(
+        'title' => 'Devel',
+        'page callback' => 'redhen_devel_load_object',
+        'page arguments' => array('redhen_membership', 4),
+        'access arguments' => array('access devel information'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 100,
+      );
+      $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/devel/load"] = array(
+        'title' => 'Load',
+        'type' => MENU_DEFAULT_LOCAL_TASK,
+      );
+      $items["redhen/{$path}/%{$entity_type}/membership/%redhen_membership/devel/render"] = array(
+        'title' => 'Render',
+        'page callback' => 'redhen_devel_render_object',
+        'page arguments' => array('redhen_membership', 4),
+        'access arguments' => array('access devel information'),
+        'type' => MENU_LOCAL_TASK,
+        'weight' => 100,
+      );
+    }
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function redhen_membership_theme() {
+  return array(
+    'redhen_membership_add_list' => array(
+      'variables' => array('content' => NULL, 'path' => NULL),
+    ),
+    'redhen_membership_list' => array(
+      'variables' => array('memberships' => NULL, 'header' => NULL),
+    )
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_membership_permission() {
+  return array(
+    'administer redhen membership types' => array(
+      'title' => t('Administer RedHen Membership Types'),
+      'description' => t('Perform administration tasks and manage the structure of RedHen Memberships.'),
+    ),
+    'list redhen memberships' => array(
+      'title' => t('List RedHen Memberships'),
+      'description' => t('List all memberships.'),
+    ),
+   'view redhen org memberships' => array(
+      'title' => t('View RedHen Org Memberships'),
+      'description' => t('View the memberships for an organization.'),
+    ),
+    'view redhen contact memberships' => array(
+      'title' => t('View RedHen Contact Memberships'),
+      'description' => t('View the memberships for a contact.'),
+    ),
+    'edit redhen org memberships' => array(
+      'title' => t('Edit RedHen Org Memberships'),
+      'description' => t('Edit memberships for an organization.'),
+    ),
+    'edit redhen contact memberships' => array(
+      'title' => t('Edit RedHen Contact Memberships'),
+      'description' => t('Edit memberships for a contact.'),
+    ),
+    'create redhen org memberships' => array(
+      'title' => t('Create RedHen Org Memberships'),
+      'description' => t('Create the memberships for an organization.'),
+    ),
+    'create redhen contact memberships' => array(
+      'title' => t('Create RedHen Contact Memberships'),
+      'description' => t('Create the memberships for a contact.'),
+    ),
+    'delete redhen org memberships' => array(
+      'title' => t('Delete RedHen Org Memberships'),
+      'description' => t('Delete memberships for an organization.'),
+    ),
+    'delete redhen contact memberships' => array(
+      'title' => t('Delete RedHen Contact Memberships'),
+      'description' => t('Delete memberships for a contact.'),
+    ),
+  );
+}
+
+/**
+ * Access callback for viewing and managing memberships.
+ *
+ * @param $op
+ * @param $entity
+ *
+ * @return bool
+ */
+function redhen_membership_access($op, $entity = NULL) {
+  if ($entity) {
+    $entity_type = $entity->entityType();
+
+    // If this is a view/edit/delete op on a specific membership, load the entity
+    // the membership references first.
+    if ($entity_type == 'redhen_membership') {
+      $wrapper = entity_metadata_wrapper('redhen_membership', $entity);
+      $entity = $wrapper->entity->value();
+    }
+
+    $type = $entity_type == 'redhen_contact' ? 'contact' : 'org';
+    if (entity_access($op, $entity_type, $entity) && user_access("$op redhen $type memberships")) {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Loads a membership by ID.
+ */
+function redhen_membership_load($membership_id) {
+  if (empty($membership_id)) {
+    return FALSE;
+  }
+
+  $memberships = redhen_membership_load_multiple(array($membership_id), array());
+  return $memberships ? reset($memberships) : FALSE;
+}
+
+/**
+ * Loads multiple memberships by ID or based on a set of matching conditions.
+ *
+ * @see entity_load()
+ *
+ * @param $membership_ids
+ *   An array of membership IDs.
+ * @param $conditions
+ *   An array of conditions on the {redhen_membership} table in the form
+ *     'field' => $value.
+ * @param $reset
+ *   Whether to reset the internal membership loading cache.
+ *
+ * @return
+ *   An array of membership objects indexed by membership_id.
+ */
+function redhen_membership_load_multiple($membership_ids = array(), $conditions = array(), $reset = FALSE) {
+  if (empty($membership_ids) && empty($conditions)) {
+    return array();
+  }
+  return entity_load('redhen_membership', $membership_ids, $conditions, $reset);
+}
+
+/**
+ * Saves a membership to the db.
+ */
+function redhen_membership_save(RedhenMembership $membership) {
+  return entity_save('redhen_membership', $membership);
+}
+
+/**
+ * Deletes multiple memberships by ID.
+ *
+ * @param $membership_ids
+ *   An array of membership IDs to delete.
+ *
+ * @return
+ *   TRUE on success, FALSE otherwise.
+ */
+function redhen_membership_delete_multiple($membership_ids) {
+  $ret = entity_get_controller('redhen_membership')->delete($membership_ids);
+
+  return $ret;
+}
+
+/**
+ * Display a membership.
+ *
+ * @param  $membership
+ *   A Fully loaded membership object.
+ *
+ * @return void
+ */
+function redhen_membership_view(RedhenMembership $membership) {
+  return $membership->view();
+}
+
+/**
+ * Title callback for hook_menu().
+ *
+ * @param  $membership
+ *   A loaded membership object.
+ *
+ * @return void
+ */
+function redhen_membership_membership_title(RedhenMembership $membership) {
+  return $membership->label();
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function redhen_membership_field_extra_fields() {
+  $extra = array();
+
+  foreach (redhen_membership_get_types() as $type => $membership_type) {
+    $extra['redhen_membership'][$type] = array(
+      'form' => array(
+        'note' => array(
+          'label' => t('Membership note'),
+          'description' => t('Membership note'),
+          'weight' => 1,
+        ),
+        'membership_state' => array(
+          'label' => t('State'),
+          'description' => t('Membership state'),
+          'weight' => 0,
+        ),
+        'start_date' => array(
+          'label' => t('Start date'),
+          'description' => t('Membership start date'),
+          'weight' => 2,
+        ),
+        'expire_date' => array(
+          'label' => t('Expiration date'),
+          'description' => t('Membership expiration date'),
+          'weight' => 3,
+        ),
+      ),
+      'display' => array(
+        'name' => array(
+          'label' => t('Name'),
+          'description' => t('Membership name.'),
+          'weight' => 0,
+        ),
+        'membership_state' => array(
+          'label' => t('State'),
+          'description' => t('Membership state'),
+          'weight' => 0,
+        ),
+        'note' => array(
+          'label' => t('Membership note'),
+          'description' => t('Membership note'),
+          'weight' => 1,
+        ),
+        'start_date' => array(
+          'label' => t('Start date'),
+          'description' => t('Membership start date'),
+          'weight' => 2,
+        ),
+        'expire_date' => array(
+          'label' => t('Expiration date'),
+          'description' => t('Membership expiration date'),
+          'weight' => 3,
+        ),
+      ),
+    );
+  }
+
+  return $extra;
+}
+
+/**
+ * Gets an array of all membership types, keyed by the name.
+ *
+ * @param $name
+ *   If set, the type with the given name is returned.
+ */
+function redhen_membership_get_types($name = NULL) {
+  $types = entity_load_multiple_by_name('redhen_membership_type', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function redhen_membership_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer redhen membership types', $account);
+}
+
+/**
+ * Menu argument loader; Load a membership type by string.
+ *
+ * @param $type
+ *   The machine-readable name of a membership type to load.
+ *
+ * @return
+ *   A membership type array or FALSE if $type does not exist.
+ */
+function redhen_membership_type_load($type) {
+  return redhen_membership_get_types($type);
+}
+
+/**
+ * Saves a model type to the db.
+ */
+function redhen_membership_type_save(RedhenMembershipType $type) {
+  $type->save();
+}
+
+/**
+ * Deletes a model type from the db.
+ */
+function redhen_membership_type_delete(RedhenMembershipType $type) {
+  $type->delete();
+}
+
+/**
+ * Implements hook_redhen_settings().
+ *
+ * @return array
+ */
+function redhen_membership_redhen_settings() {
+  return array(
+    'redhen_membership_cron_enable' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically enable memberships on their Start date'),
+      '#description' => t('If checked, RedHen will set Inactive memberships to Active on their Start date during cron runs.'),
+      '#default_value' => variable_get('redhen_membership_cron_enable', FALSE)
+    ),
+    'redhen_membership_cron_expire' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Automatically expire memberships on their Expiration date'),
+      '#description' => t('If checked, RedHen will set Active memberships to Expired on their Expiration date during cron runs.'),
+      '#default_value' => variable_get('redhen_membership_cron_expire', FALSE)
+    ),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function redhen_membership_cron() {
+
+  if (variable_get('redhen_membership_cron_enable', FALSE)) {
+    $memberships = redhen_membership_query(array(
+      'membership_state' => REDHEN_MEMBERSHIP_INACTIVE,
+      'start_date' => strtotime(date('Y-m-d 00:00:00')),
+    ));
+
+    foreach ($memberships as $membership) {
+      $membership->membership_state = REDHEN_MEMBERSHIP_ACTIVE;
+      redhen_membership_save($membership);
+    }
+  }
+
+  if (variable_get('redhen_membership_cron_expire', FALSE)) {
+    $memberships = redhen_membership_query(array(
+      'membership_state' => REDHEN_MEMBERSHIP_ACTIVE,
+      'expire_date' => strtotime(date('Y-m-d 00:00:00')),
+    ));
+
+    foreach ($memberships as $membership) {
+      $membership->membership_state = REDHEN_MEMBERSHIP_EXPIRED;
+      redhen_membership_save($membership);
+    }
+  }
+
+}
+
+/**
+ * Returns HTML for a list of available membership types for membership creation.
+ *
+ * @param $variables
+ *   An associative array containing:
+ *   - content: An array of content types.
+ *
+ * @ingroup themeable
+ */
+function theme_redhen_membership_add_list($variables) {
+  $content = $variables['content'];
+  $path = $variables['path'];
+  $output = '';
+
+  if ($content) {
+    $output = t('Select the type of membership to add:');
+    $output .= '<dl class="node-type-list">';
+    foreach ($content as $type) {
+      $output .= '<dt>' . l($type->label, $path . '/' . $type->name) . '</dt>';
+    }
+    $output .= '</dl>';
+  }
+  else {
+    $output = '<p>' . t('You have not created any membership types yet. Go to the <a href="@create-membership-types">membership type creation page</a> to add a new membership type.', array('@create-membership-types' => url('admin/structure/redhen/membership_types'))) . '</p>';
+  }
+  return $output;
+}
+
+/**
+ * Theme function for membership list.
+ *
+ * @param $variables
+ *
+ * @return string
+ */
+function theme_redhen_membership_list($variables) {
+  $memberships = $variables['memberships'];
+  $header = $variables['header'];
+  if (!empty($memberships)) {
+    $rows = array();
+    $membership_states = redhen_membership_state_options();
+    foreach ($memberships as $membership) {
+      $uri = entity_uri('redhen_membership', $membership);
+      $actions = array(
+        l(t('view'), $uri['path']),
+        l(t('edit'), $uri['path'] . '/edit', array('query' => drupal_get_destination())),
+        l(t('delete'), $uri['path'] . '/delete', array('query' => drupal_get_destination())),
+      );
+
+      $membership_type = redhen_membership_type_load($membership->type);
+      $wrapper = entity_metadata_wrapper('redhen_membership', $membership);
+      $entity = $wrapper->entity->value();
+      $entity_uri = entity_uri($membership->entity_type, $entity);
+      $data = array(
+        $membership_type->label,
+        l($entity->label(), $entity_uri['path']),
+        ($membership->start_date != '') ? date('m/d/Y', $membership->start_date) : '',
+        ($membership->expire_date != '') ? date('m/d/Y', $membership->expire_date) : '',
+        $membership->note,
+        $membership_states[$membership->membership_state],
+        implode(' | ', $actions)
+      );
+
+      $row_classes = array();
+      // Set a class for the row depending on if the membership is active or not
+      $row_classes[] = $membership->membership_state == REDHEN_MEMBERSHIP_ACTIVE ? 'active' : 'inactive';
+
+      $rows[] = array(
+        'data' => $data,
+        'class' => $row_classes,
+      );
+    }
+
+    $render['table'] = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows
+    );
+    $render['pager'] = array(
+      '#theme' => 'pager'
+    );
+  }
+  else {
+    // no results, set a message
+    $render['no-result'] = array(
+      '#type' => 'markup',
+      '#markup' => t('Sorry, there are no memberships that match your criteria.'),
+    );
+  }
+
+  return render($render);
+}
+
+/**
+ * Returns an array of contact ids associated with a membership
+ *
+ * @param RedhenMembership $membership
+ *
+ * @return array
+ */
+function redhen_membership_membership_contacts(RedhenMembership $membership) {
+  $contact_ids = array();
+  if ($membership->entity_type == 'redhen_contact') {
+    $contact_ids[] = $membership->entity_id;
+  }
+  if ($membership->entity_type == 'redhen_org') {
+    $wrapper = entity_metadata_wrapper('redhen_membership', $membership);
+    $entity = $wrapper->entity->value();
+    // Get all affiliated contact ids.
+    $relations = redhen_relation_relations($entity, REDHEN_RELATION_AFFILIATION);
+    foreach ($relations as $relation => $related_entities) {
+      foreach ($related_entities as $id => $related_entity) {
+        $contact_ids[] = $related_entity->internalIdentifier();
+      }
+    }
+  }
+  $contacts = redhen_contact_load_multiple($contact_ids);
+
+  return $contacts;
+}
+
+/**
+ * Standard membership query
+ *
+ * @param array $conditions
+ *  Keyed array of entity properties to use as conditions in the query
+ *
+ * @return array
+ */
+function redhen_membership_query($conditions) {
+
+  $membership_query = new EntityFieldQuery();
+  $memberships = array();
+
+  // build the query
+  $membership_query->entityCondition('entity_type', 'redhen_membership', '=');
+
+  foreach ($conditions as $field => $value) {
+    $membership_query->propertyCondition($field, $value);
+  }
+
+  $membership_results = $membership_query->execute();
+  if (isset($membership_results['redhen_membership'])) {
+    $memberships = redhen_membership_load_multiple(array_keys($membership_results['redhen_membership']));
+  }
+
+  return $memberships;
+}
+
+/**
+ * Returns an array of memberships associated with a contact
+ *
+ * @param RedhenContact $contact
+ * @param $state
+ *  RedHen Membership State constant (ie. REDHEN_MEMBERSHIP_ACTIVE)
+ *
+ * @return array
+ */
+function redhen_membership_contact_memberships(RedhenContact $contact, $state = NULL) {
+
+  $contact_conditions = array(
+    'entity_type' => 'redhen_contact',
+    'entity_id' => $contact->internalIdentifier(),
+  );
+
+  if (isset($state)) {
+    $contact_conditions['membership_state'] = $state;
+  }
+
+  $contact_memberships = redhen_membership_query($contact_conditions);
+
+  // Get any memberships that exist through org affiliations
+  $org_memberships = array();
+  $org_ids = array();
+  // Get all affiliated org ids.
+  $relations = redhen_relation_relations($contact, REDHEN_RELATION_AFFILIATION);
+  foreach ($relations as $relation => $related_entities) {
+    foreach ($related_entities as $id => $related_entity) {
+      $org_ids[] = $related_entity->internalIdentifier();
+    }
+  }
+  if (count($org_ids) > 0) {
+    $org_conditions = array(
+      'entity_type' => 'redhen_org',
+      'entity_id' => $org_ids,
+    );
+
+    if (isset($state)) {
+      $org_conditions['membership_state'] = $state;
+    }
+
+    $org_memberships = redhen_membership_query($org_conditions);
+  }
+
+  return array_merge($contact_memberships, $org_memberships);
+}
+
+/**
+ * Toggles roles on/off for users associated w/ contacts associated w/ a membership
+ *
+ * @param RedhenMembership $membership
+ * @param array $contacts
+ * @param bool $remove
+ *  If the role should be removed regardless of membership_state
+ */
+function redhen_membership_toggle_roles(RedhenMembership $membership, $contacts = array(), $remove = FALSE) {
+  $membership_type = redhen_membership_type_load($membership->type);
+  $membership_rid = $membership_type->role_id;
+  if (!empty($membership_rid)) {
+    // If there is a role set for this membership type check if we need to add/remove that role from any drupal users
+    if (empty($contacts)) {
+      // If no contact(s) provided, get any contacts associated with this membership (directly or through a relation)
+      $contacts = redhen_membership_membership_contacts($membership);
+    }
+    foreach ($contacts as $contact) {
+      // check if the contact has a user linked to them
+      $wrapper = entity_metadata_wrapper('redhen_contact', $contact);
+      $user = $wrapper->user->value();
+      if (isset($user)) {
+        // If the membership is active, we are not forcing removal of roles, and the user doesn't already have the role
+        if (($membership->membership_state == REDHEN_MEMBERSHIP_ACTIVE) && (!$remove)) {
+          // only set if the user doesn't already have this role
+          if (!isset($user->roles[$membership_rid])) {
+            $user->roles[$membership_rid] = TRUE;
+          }
+        }
+        else {
+          // We're not adding a role, so check if we need to remove a role
+
+          // Get all active memberships for this contact so we can check for roles that should be maintained
+          $contact_memberships = redhen_membership_contact_memberships($contact, REDHEN_MEMBERSHIP_ACTIVE);
+
+          // Iterate through the memberships looking for memberships that assign the role we want to delete.
+          $delete = TRUE;
+          if (!$remove) {
+            foreach ($contact_memberships as $contact_membership) {
+              $contact_membership_rid = $membership_types[$contact_membership->type]->role_id;
+              if ((isset($contact_membership_rid)) && ($contact_membership_rid == $membership_rid)) {
+                // Found a matching active membership with the same role, abort the deletion since the user should keep the role
+                $delete = FALSE;
+              }
+            }
+          }
+
+          if ($delete) {
+            // No active memberships with the same role_id were found, so we go ahead and remove the role
+            unset($user->roles[$membership_rid]);
+          }
+        }
+        user_save($user);
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_redhen_contact_user_update().
+ */
+function redhen_membership_redhen_contact_user_update($op, RedhenContact $contact) {
+
+  switch ($op) {
+    case 'insert':
+      $remove = FALSE;
+      break;
+    case 'delete':
+      // Force removal of any roles
+      $remove = TRUE;
+      break;
+  }
+
+  // Get all the memberships associated with this user
+  $memberships = redhen_membership_contact_memberships($contact);
+  foreach ($memberships as $membership) {
+    redhen_membership_toggle_roles($membership, array($contact), $remove);
+  }
+
+}
+
+/**
+ * Implements hook_entity_insert().
+ *
+ * React to entity insertions that require roles to be toggled
+ */
+function redhen_membership_entity_insert($entity, $entity_type) {
+  if (($entity_type == 'relation') && ($entity->relation_type == REDHEN_RELATION_AFFILIATION)) {
+    $remove = ($entity->{REDHEN_RELATION_STATUS_FIELD}[LANGUAGE_NONE][0]['value']) ? FALSE : TRUE;
+    redhen_membership_relation_toggle($entity, $remove);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * React to entity updates that require roles to be toggled
+ */
+function redhen_membership_entity_update($entity, $entity_type) {
+  switch ($entity_type) {
+    case 'relation':
+      if ($entity->relation_type == REDHEN_RELATION_AFFILIATION) {
+        $remove = ($entity->{REDHEN_RELATION_STATUS_FIELD}[LANGUAGE_NONE][0]['value']) ? FALSE : TRUE;
+        redhen_membership_relation_toggle($entity, $remove);
+      }
+      break;
+    case 'redhen_contact':
+    case 'redhen_org':
+      // If the entity is archived, we want to archive their memberships
+      if ($entity->redhen_state != REDHEN_STATE_ACTIVE) {
+        // Get all the memberships associated with this entitity
+        $memberships = redhen_membership_query(array(
+          'entity_type' => $entity_type,
+          'entity_id' => $entity->internalIdentifier(),
+        ));
+        foreach ($memberships as $membership) {
+          if ($membership->membership_state == REDHEN_MEMBERSHIP_ACTIVE) {
+            $membership->setState(REDHEN_MEMBERSHIP_INACTIVE);
+          }
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ *
+ * React to entity deletions that require roles to be toggled
+ */
+function redhen_membership_entity_delete($entity, $entity_type) {
+  if (($entity_type == 'relation') && ($entity->relation_type == REDHEN_RELATION_AFFILIATION)) {
+    // force removal of roles for this relation
+    redhen_membership_relation_toggle($entity, TRUE);
+  }
+}
+
+/**
+ * Implemenets hook_redhen_entity_predelete().
+ *
+ * @param $entity
+ * @param $entity_type
+ */
+function redhen_membership_redhen_entity_predelete($entity, $entity_type) {
+  switch ($entity_type) {
+    case 'redhen_contact':
+      // If the contact has a user associated with them we need to remove all of its roles from memberships.
+      $wrapper = entity_metadata_wrapper('redhen_contact', $entity);
+      $user = $wrapper->user->value();
+      if ($user) {
+        // Get all active memberships impacting this contact
+        $contact_memberships = redhen_membership_contact_memberships($entity, REDHEN_MEMBERSHIP_ACTIVE);
+        foreach ($contact_memberships as $membership) {
+          // Force remove of any roles associated with the membership
+          redhen_membership_toggle_roles($membership, array($entity), TRUE);
+        }
+      }
+    // No break because we want to also remove memberships associated with the contact
+    case 'redhen_org':
+      // Delete memberships that belong to the entity being deleted
+      $memberships = redhen_membership_query(array(
+        'entity_type' => $entity_type,
+        'entity_id' => $entity->internalIdentifier(),
+      ));
+      redhen_membership_delete_multiple(array_keys($memberships));
+      break;
+  }
+}
+
+/**
+ * Toggle memberships based on a specific relation object.
+ *
+ * @param $relation
+ * @param $remove Bool
+ *  If we want to force remove roles from the contact/user.
+ */
+function redhen_membership_relation_toggle($relation, $remove = FALSE) {
+  foreach ($relation->endpoints[LANGUAGE_NONE] as $endpoint) {
+    // Find the organization endpoint
+    if ($endpoint['entity_type'] == 'redhen_org') {
+      $org = redhen_org_load($endpoint['entity_id']);
+    }
+    if ($endpoint['entity_type'] == 'redhen_contact') {
+      $contact = redhen_contact_load($endpoint['entity_id']);
+    }
+  }
+  // Organization or contact may already be deleted
+  if ($org && $contact) {
+    $memberships = redhen_membership_query(array(
+      'entity_type' => 'redhen_org',
+      'entity_id' => entity_id('redhen_org', $org)
+    ));
+    foreach ($memberships as $membership) {
+      redhen_membership_toggle_roles($membership, array($contact), $remove);
+    }
+  }
+
+}
+
+/**
+ * Return an array of options for membership states
+ */
+function redhen_membership_state_options() {
+  return array(
+    REDHEN_MEMBERSHIP_ACTIVE => t('Active'),
+    REDHEN_MEMBERSHIP_INACTIVE => t('Inactive'),
+    REDHEN_MEMBERSHIP_EXPIRED => t('Expired'),
+  );
+}
+
+/**
+ * Callback to get $membership->entity.
+ *
+ * @see redhen_membership_entity_property_info().
+ */
+function redhen_membership_property_host_get(RedhenMembership $membership, array $options, $property_name, $entity_type) {
+  $entity = entity_load_single($membership->entity_type, $membership->entity_id);
+  return ($entity) ? entity_metadata_wrapper($membership->entity_type, $entity): NULL;
+}

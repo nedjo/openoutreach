@@ -5,84 +5,190 @@
  * Installation profile for the Open Outreach distribution.
  */
 
-include_once('openoutreach.features.inc');
 // Include only when in install mode. MAINTENANCE_MODE is defined in
 // install.php and in drush_core_site_install().
-if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install') {
+if (drupal_installation_attempted()) {
   include_once('openoutreach.install.inc');
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function openoutreach_block_info() {
+  $blocks = array();
+  $blocks['powered-by'] = array(
+    'info' => t('Powered by Open Outreach'),
+    'weight' => '10',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * Display the powered by Open Outreach block.
+ */
+function openoutreach_block_view() {
+  global $user;
+  $admin_rid = variable_get('user_admin_role');
+
+  $block = array();
+  $block['subject'] = NULL;
+  $content = '<span class="powered-by">' . t('Powered by <a href="!poweredby">Open Outreach</a>.', array('!poweredby' => 'http://openoutreach.org'));
+
+  // If this is an admin role, show documentation links.
+  if (isset($user->roles[$admin_rid])) {
+    $content .= ' ' . t('Get started with <a href="!docs">user documentation</a>.', array('!docs' => 'http://openoutreach.org/section/using-open-outreach'));
+  }
+  $content .= '</span>';
+  $block['content'] = $content;
+  return $block;
 }
 
 /**
  * Implements hook_modules_installed().
  *
- * When a module is installed, enable the modules it recommends if they are
- * present. For Open Outreach, also install permissions.
+ * Unset distracting messages at install time.
  */
-function openoutreach_modules_installed($modules) {
-  module_load_include('inc', 'openoutreach', 'openoutreach.module_batch');
-  openoutreach_module_batch($modules);
+function openoutreach_modules_enabled($modules) {
+  if (drupal_installation_attempted() && array_intersect($modules, array('captcha', 'date_api', 'metatag', 'superfish'))) {
+    drupal_get_messages('status');
+    drupal_get_messages('warning');
+  }
 }
 
 /**
- * Check that other install profiles are not present to ensure we don't collide with a
- * similar form alter in their profile.
+ * Implements hook_modules_installed().
  *
- * Set Open Outreach as default install profile.
+ * Add custom taxonomy terms to the event_type vocabulary if it is created.
  */
-if (!function_exists('system_form_install_select_profile_form_alter')) {
-  function system_form_install_select_profile_form_alter(&$form, $form_state) {
-    // Only set the value if Open Outreach is the only profile.
-    if (count($form['profile']) == 1) {
-      foreach($form['profile'] as $key => $element) {
-        $form['profile'][$key]['#value'] = 'openoutreach';
+function openoutreach_entity_insert($entity, $type) {
+  if ($type == 'taxonomy_vocabulary') {
+    switch ($entity->machine_name) {
+      // Add custom contact and organization types for the vocabularies created
+      // by debut_redhen.
+      case 'contact_type':
+        $names = array('Staff', 'Volunteer', 'Media', 'Funder');
+        break;
+      case 'org_type':
+        $names = array('Nonprofit', 'Foundation', 'Government', 'Business');
+        break;
+      // Add custom event types for the vocabulary created by debut_event.
+      case 'event_type':
+        $names = array('Conference', 'Meeting', 'Workshop');
+        break;
+      default:
+        $names = array();
+    }
+    foreach ($names as $name) {
+      $term = new StdClass();
+      $term->name = $name;
+      $term->vid = $entity->vid;
+      $term->vocabulary_machine_name = $entity->machine_name;
+      taxonomy_term_save($term);
+    }
+  }
+}
+
+/**
+ * Implements hook_admin_menu_output_build().
+ *
+ * Add links to the admin_menu shortcuts menu.
+ */
+function openoutreach_admin_menu_output_build(&$content) {
+  $content['shortcuts']['shortcuts']['admin-structure-taxonomy'] = array(
+    '#title' => t('Add terms'),
+    '#href' => 'admin/structure/taxonomy',
+    '#access' => user_access('administer taxonomy'),
+  );
+  $content['shortcuts']['shortcuts']['user'] = array(
+    '#title' => t('My account'),
+    '#href' => 'user',
+  );
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function openoutreach_form_update_settings_alter(&$form, &$form_state) {
+  $form['openoutreach_update_show_distro_projects'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show non-security updates for modules and themes included in the distribution'),
+    '#default_value' => variable_get('openoutreach_update_show_distro_projects', FALSE),
+  );
+}
+
+/**
+ * Implements hook_update_projects_alter().
+ *
+ * Cribbed from commerce_kickstart.
+ */
+function openoutreach_update_projects_alter(&$projects) {
+  if (!variable_get('openoutreach_update_show_distro_projects', FALSE)) {
+    // Enable update status for the Open Outreach profile.
+    $modules = system_rebuild_module_data();
+    if (isset($modules['openoutreach'])) {
+      // The module object is shared in the request, so we need to clone it here.
+      $openoutreach = clone $modules['openoutreach'];
+      $openoutreach->info['hidden'] = FALSE;
+      _update_process_info_list($projects, array('openoutreach' => $openoutreach), 'module', TRUE);
+    }
+  }
+}
+
+/**
+ * Implements hook_update_status_alter().
+ *
+ * Disable reporting of projects that are in the distribution, but only
+ * if they have not been updated manually.
+ *
+ * Projects with insecure / revoked / unsupported releases are only shown
+ * after two days, which gives enough time to prepare a new Open Outreach
+ * release which users can install and solve the problem.
+ *
+ * Cribbed from commerce_kickstart.
+ */
+function openoutreach_update_status_alter(&$projects) {
+  if (!variable_get('openoutreach_update_show_distro_projects', FALSE)) {
+    $bad_statuses = array(
+      UPDATE_NOT_SECURE,
+      UPDATE_REVOKED,
+      UPDATE_NOT_SUPPORTED,
+    );
+
+    $make_filepath = drupal_get_path('module', 'openoutreach') . '/drupal-org.make';
+    if (!file_exists($make_filepath)) {
+      return;
+    }
+
+    $make_info = drupal_parse_info_file($make_filepath);
+    foreach ($projects as $project_name => $project_info) {
+      // Never unset the drupal project to avoid hitting an error with
+      // _update_requirement_check(). See http://drupal.org/node/1875386.
+      if ($project_name == 'drupal') {
+        continue;
+      }
+      // Hide Open Outreach features. They have no update status of their own.
+      if (strpos($project_name, 'openoutreach_') !== FALSE) {
+        unset($projects[$project_name]);
+      }
+      // Hide bad releases (insecure, revoked, unsupported) if they are younger
+      // than two days (giving Open Outreach time to prepare an update).
+      elseif (isset($project_info['status']) && in_array($project_info['status'], $bad_statuses)) {
+        $two_days_ago = strtotime('2 days ago');
+        if ($project_info['releases'][$project_info['recommended']]['date'] < $two_days_ago) {
+          unset($projects[$project_name]);
+        }
+      }
+      // Hide projects shipped with Open Outreach if they haven't been manually
+      // updated.
+      elseif (isset($make_info['projects'][$project_name]['version'])) {
+        $version = $make_info['projects'][$project_name]['version'];
+        if (strpos($version, 'dev') !== FALSE || (DRUPAL_CORE_COMPATIBILITY . '-' . $version == $project_info['info']['version'])) {
+          unset($projects[$project_name]);
+        }
       }
     }
   }
 }
-
-/**
- * Implements hook_install_configure_form_alter().
- */
-function openoutreach_form_install_configure_form_alter(&$form, &$form_state) {
-  $form['site_information']['site_name']['#default_value'] = 'Open Outreach';
-  $form['site_information']['site_mail']['#default_value'] = 'admin@'. $_SERVER['HTTP_HOST'];
-  $form['admin_account']['account']['name']['#default_value'] = 'admin';
-  $form['admin_account']['account']['mail']['#default_value'] = 'admin@'. $_SERVER['HTTP_HOST'];
-}
-
-/**
- * Implements hook_context_default_contexts_alter().
- *
- * If the debut_blogger module is enabled, display the shortcut block to users
- * with the blogger role.
- */
-function openoutreach_context_default_contexts_alter(&$contexts) {
-  if (isset($contexts['shortcut']) && module_exists('debut_blog') && !openoutreach_is_recreating('openoutreach')) {
-    $contexts['shortcut']->conditions['user']['values']['blogger'] = 'blogger';
-  }
-}
-
-/**
- * Determine whether a feature is being recreated.
- */
-function openoutreach_is_recreating($feature = NULL) {
-  // Test for Drush usage.
-  if (function_exists('drush_get_command') && $command = drush_get_command()) {
-    switch($command['command']) {
-      case 'features-update-all':
-        return TRUE;
-      case 'features-update':
-        // If a specific feature was requested, test for it. If not, return
-        // true for any feature recreation.
-        return is_null($feature) || in_array($feature, $command['arguments']);
-    }
-  }
-
-  // Test for admin UI usage.
-  $feature = is_null($feature) ? arg(3) : $feature;
-  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
-    return TRUE;
-  }
-  return FALSE;
-}
-

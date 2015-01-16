@@ -18,7 +18,7 @@
  * Plugin which creates a view on the resulting object
  * and formats it as a Calendar node.
  */
-class calendar_plugin_row extends views_plugin_row {
+class calendar_plugin_row extends views_plugin_row_fields {
 
   // Stores the entities loaded with pre_render.
   var $entities = array();
@@ -104,12 +104,12 @@ class calendar_plugin_row extends views_plugin_row {
       foreach ($type_names as $key => $name) {
         $form['colors']['calendar_colors_type'][$key] = array(
           '#title' => check_plain($name),
+          '#default_value' => isset($colors[$key]) ? $colors[$key] : CALENDAR_EMPTY_STRIPE,
+          '#dependency' => array('edit-row-options-colors-legend' => array('type')),
           '#type' => 'textfield',
-          '#default_value' => isset($colors[$key]) ? $colors[$key] : '#ffffff',
           '#size' => 7,
           '#maxlength' => 7,
           '#element_validate' => array('calendar_validate_hex_color'),
-          '#dependency' => array('edit-row-options-colors-legend' => array('type')),
           '#prefix' => '<div class="calendar-colorpicker-wrapper">',
           '#suffix' => '<div class="calendar-colorpicker"></div></div>',
           '#attributes' => array('class' => array('edit-calendar-colorpicker')),
@@ -125,11 +125,14 @@ class calendar_plugin_row extends views_plugin_row {
       }
     }
     if (module_exists('taxonomy')) {
+      // Get the display's field names of taxonomy fields.
       $vocab_field_options = array();
       $fields = $this->display->handler->get_option('fields');
-      foreach ($fields as $name => $field) {
-        if (!empty($field['type']) && $field['type'] == 'taxonomy_term_reference_link') {
-          $vocab_field_options[$field['field']] = $field['field'];
+      foreach ($fields as $name => $field_info) {
+        $field = field_info_field($name);
+        // Select the proper field type.
+        if (!empty($field['type']) && $field['type'] == 'taxonomy_term_reference') {
+          $vocab_field_options[$name] = $field_info['label'];
         }
       }
       $form['colors']['taxonomy_field'] = array(
@@ -144,36 +147,48 @@ class calendar_plugin_row extends views_plugin_row {
         $form['colors']['taxonomy_field']['#options'] = array('' => '');
         $form['colors']['taxonomy_field']['#suffix'] = t('You must add a term field to this view to use taxonomy stripe values. This works best for vocabularies with only a limited number of possible terms.');
       }
-      $taxonomy_field = field_info_field($this->options['colors']['taxonomy_field']);
-      $vocab_names[] = array();
-      foreach ((array) $taxonomy_field['settings']['allowed_values'] as $delta => $options) {
-        $vocab_names[] = $options['vocabulary'];
-      }
-      $taxonomies = taxonomy_get_vocabularies();
-      foreach ($taxonomies as $vid => $vocab) {
-        if (in_array($vocab->machine_name, $vocab_names)) {
-          $this->options['colors']['calendar_colors_vocabulary'][] = $vid;
+
+      // Get the Vocabulary names.
+      $vocab_names = array();
+      foreach ($vocab_field_options as $field_name => $label) {
+        $taxonomy_field = field_info_field($field_name);
+        foreach ((array) $taxonomy_field['settings']['allowed_values'] as $delta => $options) {
+          $vocab_names[$field_name] = $options['vocabulary'];
         }
       }
+
+      // Get the Vocabulary id's.
+      $vocab_vids = array();
+      foreach ($vocab_names as $field_name => $vocab_name) {
+          $vocab = taxonomy_vocabulary_machine_name_load($vocab_name);
+          $vocab_vids[$field_name] = $vocab->vid;
+      }
+
+      $this->options['colors']['calendar_colors_vocabulary'] = $vocab_vids;
+
       $form['colors']['calendar_colors_vocabulary'] = array(
         '#title' => t('Vocabulary Legend Types'),
         '#type' => 'value',
-        '#value' => $this->options['colors']['calendar_colors_vocabulary'],
+        '#value' => $vocab_vids,
       );
 
-      $vocabularies = (array) $this->options['colors']['calendar_colors_vocabulary'];
+      // Get the Vocabulary term id's and map to colors.
       $term_colors = $this->options['colors']['calendar_colors_taxonomy'];
-      foreach ($vocabularies as $vid) {
+      foreach ($vocab_vids as $field_name => $vid) {
         $vocab = taxonomy_get_tree($vid);
-        foreach ($vocab as $tid => $term) {
+        foreach ($vocab as $key => $term) {
           $form['colors']['calendar_colors_taxonomy'][$term->tid] = array(
             '#title' => check_plain(t($term->name)),
+            '#default_value' => isset($term_colors[$term->tid]) ? $term_colors[$term->tid] : CALENDAR_EMPTY_STRIPE,
+            '#access' => !empty($vocab_field_options),
+            '#dependency_count' => 2, // All 2 of the following #dependencies must be met.
+            '#dependency' => array(
+                                   'edit-row-options-colors-legend' => array('taxonomy'),
+                                   'edit-row-options-colors-taxonomy-field' => array($field_name),
+                             ),
             '#type' => 'textfield',
-            '#default_value' => isset($term_colors[$term->tid]) ? $term_colors[$term->tid] : '#ffffff',
             '#size' => 7,
             '#maxlength' => 7,
-            '#access' => !empty($vocab_field_options),
-            '#dependency' => array('edit-row-options-colors-legend' => array('taxonomy')),
             '#element_validate' => array('calendar_validate_hex_color'),
             '#prefix' => '<div class="calendar-colorpicker-wrapper">',
             '#suffix' => '<div class="calendar-colorpicker"></div></div>',
@@ -192,13 +207,37 @@ class calendar_plugin_row extends views_plugin_row {
     }
     if (module_exists('og')) {
       $colors_group = $this->options['colors']['calendar_colors_group'];
-      $groups = og_get_all_group();
-      foreach ($groups as $gid) {
+      $options = array();
+
+      // The 7.1 version of OG.
+      if (function_exists('og_label')) {
+        $gids = og_get_all_group();
+        foreach ($gids as $gid) {
+          $options[$gid] = check_plain(t(og_label($gid)));
+        }
+      }
+
+      // The 7.2 version of OG.
+      else {
+        $types = og_get_all_group_entity();
+        foreach ($types as $entity_type => $name) {
+          $gids = og_get_all_group($entity_type);
+          $entities = entity_load($entity_type, $gids);
+          foreach ($entities as $entity) {
+            list($gid) = entity_extract_ids($entity_type, $entity);
+            $options[$gid] = check_plain(t(entity_label($entity_type, $entity)));
+          }
+        }
+      }
+
+      foreach ($options as $gid => $title) {
         $form['colors']['calendar_colors_group'][$gid] = array(
-          '#title' => check_plain(t(og_label($gid))),
-          '#type' => 'textfield',
-          '#default_value' => isset($colors_group[$gid]) ? $colors_group[$gid] : '#ffffff',
+          '#title' => $title,
+          '#default_value' => isset($colors_group[$gid]) ? $colors_group[$gid] : CALENDAR_EMPTY_STRIPE,
           '#dependency' => array('edit-row-options-colors-legend' => array('group')),
+          '#type' => 'textfield',
+          '#size' => 7,
+          '#maxlength' => 7,
           '#element_validate' => array('calendar_validate_hex_color'),
           '#prefix' => '<div class="calendar-colorpicker-wrapper">',
           '#suffix' => '<div class="calendar-colorpicker"></div></div>',
@@ -218,22 +257,29 @@ class calendar_plugin_row extends views_plugin_row {
 
   function options_submit(&$form, &$form_state) {
     parent::options_submit($form, $form_state);
-
     if ($this->view->base_table == 'node') {
-      $path = $this->view->display_handler->get_option('path');
-      calendar_clear_link_path($path);
-      if (!empty($form_state['values']['row_options']['calendar_date_link'])) {
-        $node_type = $form_state['values']['row_options']['calendar_date_link'];
-        calendar_set_link('node', $node_type, $path);
+      if (isset($this->view->display['default']->display_options['link_display'])) {
+        $default_display = $this->view->display['default']->display_options['link_display'];
+        $path = $this->view->display[$default_display]->handler->get_option('path');
+        // If this display has been set up as a default tab, the current path
+        // is actually the base path, i.e. if the path is 'calendar/month'
+        // and this is a default tab, the path for this display will actually
+        // be 'calendar'.
+        if ($this->view->display[$default_display]->handler->options['menu']['type'] == 'default tab') {
+          $parts = explode('/', $path);
+          array_pop($parts);
+          $path = implode('/', $parts);
+        }
+        calendar_clear_link_path($path);
+        if (!empty($form_state['values']['row_options']['calendar_date_link'])) {
+          $node_type = $form_state['values']['row_options']['calendar_date_link'];
+          calendar_set_link('node', $node_type, $path);
+        }
       }
     }
   }
 
   function pre_render($values) {
-
-    // @TODO When the date is coming in through a relationship, the nid
-    // of the view is not the right node to use, then we need the related node.
-    // Need to sort out how that should be handled.
 
     // Preload each entity used in this view from the cache.
     // Provides all the entity values relatively cheaply, and we don't
@@ -242,6 +288,7 @@ class calendar_plugin_row extends views_plugin_row {
     $ids = array();
     foreach ($values as $row) {
       // Use the $id as the key so we don't create more than one value per entity.
+      // This alias will automatically adjust to be the id of related entity, if applicable.
       $id = $row->{$this->field_alias};
 
       // Node revisions need special loading.
@@ -282,6 +329,10 @@ class calendar_plugin_row extends views_plugin_row {
         }
         else {
           foreach ($handler->options['date_fields'] as $alias) {
+            // If this date field is unknown (as when it has been deleted), ignore it.
+            if (!array_key_exists($alias, $data)) {
+              continue;
+            }
             $info = $data[$alias];
             $field_name  = str_replace(array('_value2', '_value'), '', $info['real_field_name']);
 
@@ -313,6 +364,7 @@ class calendar_plugin_row extends views_plugin_row {
     $rows = array();
     $date_info = $this->date_argument->view->date_info;
     $id = $row->{$this->field_alias};
+
     if (!is_numeric($id)) {
       return $rows;
     }
@@ -327,6 +379,7 @@ class calendar_plugin_row extends views_plugin_row {
       // like an Upcoming block on the same page as a calendar view,
       // will end up acquiring the values we set here.
       $entity = clone($this->entities[$id]);
+
       if (empty($entity)) {
         return $rows;
       }
@@ -357,23 +410,31 @@ class calendar_plugin_row extends views_plugin_row {
       $increment = 1;
       if ($is_field) {
 
-        $delta = isset($row->$delta_field) ? $row->$delta_field : 0;
-        $items = field_get_items($this->view->base_table, $entity, $field_name, $this->language);
+        // Set the date_id for the node, used to identify which field value to display for
+        // fields that have multiple values. The theme expects it to be an array.
+        $date_id = 'date_id_' . $field_name;
+        $date_delta = 'date_delta_' . $field_name;
+        if (isset($row->$date_id)) {
+          $delta = $row->$date_delta;
+          $entity->date_id = array('calendar.' . $row->$date_id . '.' . $field_name. '.' . $delta);
+          $delta_field = $date_delta;
+        }
+        else {
+          $delta = isset($row->$delta_field) ? $row->$delta_field : 0;
+          $entity->date_id = array('calendar.' . $id . '.' . $field_name . '.' . $delta);
+        }
+
+        $items = field_get_items($this->entity_type, $entity, $field_name, $this->language);
         $item  = $items[$delta];
         $db_tz   = date_get_timezone_db($tz_handling, isset($item->$tz_field) ? $item->$tz_field : $date_info->display_timezone_name);
         $to_zone = date_get_timezone($tz_handling, isset($item->$tz_field) ? $item->$tz_field : $date_info->display_timezone_name);
-
-        // Set the date_id for the node, used to identify which field value to display for
-        // fields that have multiple values. The theme expects it to be an array.
-        $entity->date_id = array('calendar.' . $id . '.' . $field_name . '.' . $delta);
-
-        if (!empty($item['value'])) {
+        if (isset($item['value'])) {
           $item_start_date = new dateObject($item['value'], $db_tz);
           $item_end_date   = array_key_exists('value2', $item) ? new dateObject($item['value2'], $db_tz) : $item_start_date;
         }
 
         $cck_field = field_info_field($field_name);
-        $instance = field_info_instance($this->view->base_table, $field_name, $entity->type);
+        $instance = field_info_instance($this->entity_type, $field_name, $this->type);
         $granularity = date_granularity_precision($cck_field['settings']['granularity']);
         $increment = $instance['widget']['settings']['increment'];
 
@@ -410,9 +471,24 @@ class calendar_plugin_row extends views_plugin_row {
       $event->url = $this->url;
       $event->row = $row;
       $event->entity = $entity;
+      $event->stripe = array();
+      $event->stripe_label = array();
 
       // All calendar row plugins should provide a date_id that the theme can use.
       $event->date_id = $entity->date_id[0];
+
+      // We are working with an array of partially rendered items
+      // as we process the calendar, so we can group and organize them.
+      // At the end of our processing we'll need to swap in the fully formatted
+      // display of the row. We save it here and switch it in
+      // template_preprocess_calendar_item().
+      $event->rendered = theme($this->theme_functions(),
+      array(
+        'view' => $this->view,
+        'options' => $this->options,
+        'row' => $row,
+        'field_alias' => isset($this->field_alias) ? $this->field_alias : '',
+      ));
 
       $entities = $this->explode_values($event);
       foreach ($entities as $entity) {
@@ -431,6 +507,7 @@ class calendar_plugin_row extends views_plugin_row {
       }
 
     }
+
     return $rows;
   }
 
@@ -513,11 +590,12 @@ class calendar_plugin_row extends views_plugin_row {
   /**
    * Create a stripe base on node type.
    */
-  function calendar_node_type_stripe(&$entity) {
+  function calendar_node_type_stripe(&$result) {
     $colors = isset($this->options['colors']['calendar_colors_type']) ? $this->options['colors']['calendar_colors_type'] : array();
     if (empty($colors)) {
       return;
     }
+    $entity = $result->entity;
     if (empty($entity->type)) {
       return;
     }
@@ -526,68 +604,39 @@ class calendar_plugin_row extends views_plugin_row {
     $type = $entity->type;
     $label = '';
     $stripe = '';
-    if (!(isset($entity->stripe))) {
-      $entity->stripe = array();
-      $entity->stripe_label = array();
-    }
-    if (array_key_exists($type, $type_names)) {
+    if (array_key_exists($type, $type_names) || $colors[$type] == CALENDAR_EMPTY_STRIPE) {
       $label = $type_names[$type];
     }
     if (array_key_exists($type, $colors)) {
       $stripe = $colors[$type];
     }
 
-    $entity->stripe[] = $stripe;
-    $entity->stripe_label[] = $label;
-    return $stripe;
+    $result->stripe[] = $stripe;
+    $result->stripe_label[] = $label;
+    return;
   }
 
    /**
    * Create a stripe based on a taxonomy term.
    */
 
-  function calendar_taxonomy_stripe(&$entity) {
-    $term_colors = isset($this->options['colors']['calendar_colors_taxonomy']) ? $this->options['colors']['calendar_colors_taxonomy'] : array();
-    if (empty($term_colors)) {
+  function calendar_taxonomy_stripe(&$result) {
+    $colors = isset($this->options['colors']['calendar_colors_taxonomy']) ? $this->options['colors']['calendar_colors_taxonomy'] : array();
+    if (empty($colors)) {
       return;
     }
 
-    $terms = array();
-    if ($this->options['colors']['legend'] == 'taxonomy') {
-      $term_field_name = $this->options['colors']['taxonomy_field'];
-
-      if ($term_field = field_get_items($this->view->base_table, $entity->entity, $term_field_name)) {
-        foreach ($term_field as $delta => $items) {
-          foreach ($items as $item) {
-            $terms[] = $item['tid'];
-          }
-        }
-      }
-    }
-
-    if (empty($terms)) {
-      return;
-    }
-
-    if (!(isset($entity->stripe))) {
-      $entity->stripe = array();
-      $entity->stripe_label = array();
-    }
-    if (count($terms)) {
-      foreach ($terms as $tid) {
-        $term_for_entity = taxonomy_term_load($tid);
-        if (!array_key_exists($term_for_entity->tid, $term_colors)) {
+    $entity = $result->entity;
+    $term_field_name = $this->options['colors']['taxonomy_field'];
+    if ($terms_for_entity = field_get_items($this->view->base_table, $entity, $term_field_name)) {
+      foreach ($terms_for_entity as $delta => $item) {
+        $term_for_entity = taxonomy_term_load($item['tid']);
+        if (!array_key_exists($term_for_entity->tid, $colors) || $colors[$term_for_entity->tid] == CALENDAR_EMPTY_STRIPE) {
           continue;
         }
-        $stripe = $term_colors[$term_for_entity->tid];
-        $stripe_label = $term_for_entity->name;
-        $entity->stripe[] = $stripe;
-        $entity->stripe_label[] = $stripe_label;
+        $result->stripe[] = $colors[$term_for_entity->tid];
+        $result->stripe_label[] = $term_for_entity->name;
       }
-    }
-    else {
-      $entity->stripe[] = '';
-      $entity->stripe_label[] = '';
     }
 
     return;
@@ -596,36 +645,45 @@ class calendar_plugin_row extends views_plugin_row {
   /**
    * Create a stripe based on group.
    */
-  function calendar_group_stripe(&$entity) {
-    $colors_group = isset($this->options['colors']['calendar_colors_group']) ? $this->options['colors']['calendar_colors_group'] : array();
+  function calendar_group_stripe(&$result) {
+    $colors = isset($this->options['colors']['calendar_colors_group']) ? $this->options['colors']['calendar_colors_group'] : array();
 
-    if (empty($colors_group)) {
+    if (empty($colors)) {
       return;
     }
     if (!function_exists('og_get_entity_groups')) {
       return;
     }
+
+    $entity = $result->entity;
     $groups_for_entity = og_get_entity_groups($this->view->base_table, $entity);
-    if (!(isset($entity->stripe))) {
-      $entity->stripe = array();
-      $entity->stripe_label = array();
-    }
-    if (count($groups_for_entity)) {
-      foreach ($groups_for_entity as $gid => $group_name) {
-        if (!array_key_exists($gid, $colors_group)) {
-          continue;
+
+    // The 7.1 version of OG.
+    if (function_exists('og_label')) {
+      if (count($groups_for_entity)) {
+        foreach ($groups_for_entity as $gid => $group_name) {
+          if (!array_key_exists($gid, $colors) || $colors[$gid] == CALENDAR_EMPTY_STRIPE) {
+            continue;
+          }
+          $result->stripe[] = $colors[$gid];
+          $result->stripe_label[] = $group_name;
         }
-        $stripe = $colors_group[$gid];
-        $stripe_label = $group_name;
-        $entity->stripe[] = $stripe;
-        $entity->stripe_label[] = $stripe_label;
       }
     }
+    // The 7.2 version of OG.
     else {
-      $entity->stripe[] = '';
-      $entity->stripe_label[] = '';
+      if (count($groups_for_entity)) {
+        foreach ($groups_for_entity as $entity_type => $gids) {
+          foreach ($gids as $gid => $group_name) {
+            if (!array_key_exists($gid, $colors) || $colors[$gid] == CALENDAR_EMPTY_STRIPE) {
+              continue;
+            }
+            $result->stripe[] = $colors[$gid];
+            $result->stripe_label[] = $group_name;
+          }
+        }
+      }
     }
     return;
   }
 }
-

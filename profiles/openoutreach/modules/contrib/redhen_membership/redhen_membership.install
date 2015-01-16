@@ -1,0 +1,193 @@
+<?php
+
+/**
+ * @file
+ * Schema and installation hooks for redhen_membership module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redhen_membership_schema() {
+  $schema['redhen_membership'] = array(
+    'description' => 'The base table for redhen_membership module.',
+    'fields' => array(
+      'membership_id' => array(
+        'description' => 'The primary identifier for a redhen_membership.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The {redhen_membership_type}.type of this redhen_membership.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this redhen_membership.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '', //@TODO remove when machine names are implemented
+      ),
+      'note' => array(
+        'description' => 'A note on this redhen_membership, always treated as non-markup plain text.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type this membership applies to.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'entity_id' => array(
+        'description' => 'The unique ID of the entity this membership applies to.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'start_date' => array(
+        'description' => 'Date the membership is active.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'expire_date' => array(
+        'description' => 'Date the membership expires.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this redhen_membership.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'membership_state' => array(
+        'description' => 'The state of this redhen_membership.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the redhen_membership was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the redhen_membership was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'redhen_membership_updated' => array('updated'),
+      'redhen_membership_created' => array('created'),
+      'redhen_membership_type' => array(array('type', 4)),
+      'redhen_membership_membership_state' => array('membership_state'),
+      'redhen_membership_entity' => array('entity_type', 'entity_id'),
+    ),
+    'unique keys' => array(
+      'membership_id' => array('membership_id'),
+      //'name' => array('name'), @TODO uncomment when machine names implemented
+    ),
+    'foreign keys' => array(
+      'redhen_membership_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+      'redhen_membership_type' => array(
+        'table' => 'redhen_membership_type',
+        'columns' => array('type' => 'name'),
+      ),
+    ),
+    'primary key' => array('membership_id'),
+  );
+
+  $schema['redhen_membership_type'] = array(
+    'description' => 'Stores information about all defined membership types.',
+    'fields' => array(
+      'membership_type_id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique membership type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this membership type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this membership type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'role_id' => array(
+        'description' => 'The role id associated with this membership type.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this membership type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this membership type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('membership_type_id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+    'foreign keys' => array(
+      'role_id' => array(
+        'table' => 'roles',
+        'columns' => array('role_id' => 'rid'),
+      ),
+    ),
+  );
+
+  return $schema;
+}

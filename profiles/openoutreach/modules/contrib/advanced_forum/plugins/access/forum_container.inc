@@ -22,7 +22,7 @@ $plugin = array(
 /**
  * Settings form for the 'by term_vocabulary' access plugin
  */
-function advanced_forum_forum_container_ctools_access_settings(&$form, &$form_state, $conf) {
+function advanced_forum_forum_container_ctools_access_settings($form, &$form_state, $conf) {
   $form['settings']['container'] = array(
     '#type' => 'select',
     '#title' => t('Container'),
@@ -32,12 +32,14 @@ function advanced_forum_forum_container_ctools_access_settings(&$form, &$form_st
     ),
     '#default_value' => $conf['container'],
   );
+
+  return $form;
 }
 
 /**
  * Compress the term_vocabularys allowed to the minimum.
  */
-function advanced_forum_forum_container_ctools_access_settings_submit(&$form, &$form_state) {
+function advanced_forum_forum_container_ctools_access_settings_submit($form, &$form_state) {
   $form_state['values']['settings']['rids'] = array_keys(array_filter($form_state['values']['settings']['rids']));
 }
 
@@ -63,4 +65,3 @@ function advanced_forum_forum_container_ctools_acesss_summary($conf, $context) {
 
   return t('@id1 @comp a forum container', array('@comp' => $comparison, '@id1' => $context->identifier));
 }
-

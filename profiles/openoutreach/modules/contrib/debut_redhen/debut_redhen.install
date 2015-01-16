@@ -1,0 +1,31 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut_redhen.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Set admin menu access permissions for the CRM roles.
+ *
+ * While these roles will be created by Features, they will not be available
+ * yet when hook_install() is run, so we need to test for and create them
+ * here.
+ *
+ * We use this approach because 'access administration menu' is too broad a
+ * permission to include in debut_redhen.
+ */
+function debut_redhen_install() {
+  foreach (array('crm viewer', 'crm manager') as $name) {
+    // If there isn't an existing role by this name, create one.
+    if (!$role = user_role_load_by_name($name)) {
+      $role = new stdClass();
+      $role->name = $name;
+      user_role_save($role);
+    }
+    user_role_grant_permissions($role->rid, array('access administration menu'));
+  }
+}
+

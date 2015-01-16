@@ -184,7 +184,9 @@ $plugin = array(
   'default conf' => array(
     'title' => t('Panel'),
     'no_blocks' => FALSE,
-    'pipeline' => 'standard',
+    'pipeline' => variable_get('panels_renderer_default', 'standard'),
+    'body_classes_to_remove' => '',
+    'body_classes_to_add' => '',
     'css_id' => '',
     'css' => '',
     'contexts' => array(),
@@ -237,6 +239,28 @@ function &panels_panel_context_get_display(&$handler) {
 }
 
 /**
+ * Build the cache key so that the editor and IPE can properly find
+ * everything needed for this display.
+ */
+function panels_panel_context_cache_key($task_name, $handler_id, $args) {
+  $arguments = array();
+  foreach ($args as $arg) {
+    // Sadly things like panels everywhere actually use non-string arguments
+    // and they basically can't be represented here. Luckily, PE also does
+    // not use a system where this matters, so replace its args with a 0
+    // for a placeholder.
+    if (is_string($arg)) {
+      $arguments[] = $arg;
+    }
+    else {
+      $arguments[] = '0';
+    }
+  }
+  $cache_key = 'panel_context:' . $task_name . '::' . $handler_id . '::' . implode('\\', $arguments) . '::';
+  return $cache_key;
+}
+
+/**
  * Check selection rules and, if passed, render the contexts.
  */
 function panels_panel_context_render($handler, $base_contexts, $args, $test = TRUE) {
@@ -265,7 +289,7 @@ function panels_panel_context_render($handler, $base_contexts, $args, $test = TR
   $display->css_id = $handler->conf['css_id'];
   $task_name = page_manager_make_task_name($handler->task, $handler->subtask);
 
-  $display->cache_key = 'panel_context:' . $task_name . ':' . $handler->name;
+  $display->cache_key = panels_panel_context_cache_key($task_name, $handler->name, $args);
 
   // Check to see if there is any CSS.
   if (!empty($handler->conf['css'])) {
@@ -282,6 +306,23 @@ function panels_panel_context_render($handler, $base_contexts, $args, $test = TR
   panels_get_current_page_display($display);
 
   $renderer = panels_get_renderer($handler->conf['pipeline'], $display);
+  // If the IPE is enabled, but the user does not have access to edit
+  // load the standard renderer instead.
+
+  $parents = class_parents($renderer);
+  if (!empty($parents['panels_renderer_editor']) && !user_access('user page manager') && !user_access('use ipe with page manager')) {
+    $renderer = panels_get_renderer_handler('standard', $display);
+  }
+
+  // Remove and add body element classes
+  $panel_body_css = &drupal_static('panel_body_css');
+
+  if (isset($handler->conf['body_classes_to_remove']) && !isset($panel_body_css['body_classes_to_remove'])) {
+    $panel_body_css['body_classes_to_remove'] = $handler->conf['body_classes_to_remove'];
+  }
+  if (isset($handler->conf['body_classes_to_add']) && !isset($panel_body_css['body_classes_to_add'])) {
+    $panel_body_css['body_classes_to_add'] = $handler->conf['body_classes_to_add'];
+  }
 
   $info = array(
     'content' => panels_render_display($display, $renderer),
@@ -352,7 +393,10 @@ function panels_panel_context_export(&$handler, $indent) {
       unset($handler->conf[$item]);
     }
   }
-  $display->did = 'new';
+  $display = (object) array(
+    'did' => 'new',
+    'uuid' => ctools_uuid_generate(),
+  );
   $handler->conf['display'] = $display;
 }
 
@@ -617,6 +661,8 @@ function panels_panel_context_edit_move($form, &$form_state) {
   $form_state['display'] = &panels_panel_context_get_display($form_state['handler']);
   $form_state['layout'] = $form_state['handler']->conf['temp_layout'];
 
+  $form_state['cache_key'] = panels_panel_context_cache_key($form_state['task_name'], $form_state['handler_id'], array());
+
   ctools_include('common', 'panels');
   ctools_include('display-layout', 'panels');
   ctools_include('plugins', 'panels');
@@ -652,7 +698,7 @@ function panels_panel_context_edit_content($form, &$form_state) {
   ctools_include('context');
   ctools_include('context-task-handler');
 
-  $cache = panels_edit_cache_get('panel_context:' . $form_state['task_name'] . ':' . $form_state['handler_id']);
+  $cache = panels_edit_cache_get(panels_panel_context_cache_key($form_state['task_name'], $form_state['handler_id'], array()));
 
   $form_state['renderer'] = panels_get_renderer_handler('editor', $cache->display);
   $form_state['renderer']->cache = &$cache;
@@ -714,6 +760,22 @@ function panels_panel_context_edit_settings($form, &$form_state) {
     '#description' => t('Check this to have the page disable all regions displayed in the theme. Note that some themes support this setting better than others. If in doubt, try with stock themes to see.'),
   );
 
+  $form['conf']['body_classes_to_remove'] = array(
+    '#type' => 'textfield',
+    '#size' => 128,
+    '#default_value' => $conf['body_classes_to_remove'],
+    '#title' => t('Remove body CSS classes'),
+    '#description' => t('The CSS classes to remove from the body element of this page. Separated by a space. For example: no-sidebars one-sidebar sidebar-first sidebar-second two-sidebars.'),
+  );
+
+  $form['conf']['body_classes_to_add'] = array(
+    '#type' => 'textfield',
+    '#size' => 128,
+    '#default_value' => $conf['body_classes_to_add'],
+    '#title' => t('Add body CSS classes'),
+    '#description' => t('The CSS classes to add to the body element of this page. Separated by a space. For example: no-sidebars one-sidebar sidebar-first sidebar-second two-sidebars.'),
+  );
+
   ctools_include('plugins', 'panels');
   $pipelines = panels_get_renderer_pipelines();
 
@@ -769,6 +831,8 @@ function panels_panel_context_edit_settings($form, &$form_state) {
  */
 function panels_panel_context_edit_settings_submit(&$form, &$form_state) {
   $form_state['handler']->conf['no_blocks'] = $form_state['values']['no_blocks'];
+  $form_state['handler']->conf['body_classes_to_remove'] = $form_state['values']['body_classes_to_remove'];
+  $form_state['handler']->conf['body_classes_to_add'] = $form_state['values']['body_classes_to_add'];
   $form_state['handler']->conf['pipeline'] = $form_state['values']['pipeline'];
   $form_state['handler']->conf['css_id'] = $form_state['values']['css_id'];
   $form_state['handler']->conf['css'] = $form_state['values']['css'];
@@ -836,15 +900,28 @@ function panels_panel_context_get_addressable($task, $subtask_name, $handler, $a
   $display->context = $contexts;
   $display->args = $arguments;
   $display->css_id = $handler->conf['css_id'];
-  $display->cache_key = 'panel_context:' . $task->name . ':' . $handler->name;
+  $display->cache_key = panels_panel_context_cache_key($task->name, $handler->name, $arguments);
 
   $renderer = panels_get_renderer($handler->conf['pipeline'], $display);
-  if ($type == 'content') {
-    $renderer->prepare();
+  $renderer->prepare();
 
+  if ($address) {
     $pid = array_shift($address);
     if (!empty($renderer->prepared['panes'][$pid])) {
-      return $renderer->render_pane($renderer->prepared['panes'][$pid]);
+      if ($type == 'content') {
+        return $renderer->render_pane($renderer->prepared['panes'][$pid]);
+      }
+      elseif ($type == 'pane') {
+        return $renderer->prepared['panes'][$pid];
+      }
+    }
+  }
+  else {
+    if ($type == 'content') {
+      return $renderer->render();
+    }
+    elseif ($type == 'renderer') {
+      return $renderer;
     }
   }
 }

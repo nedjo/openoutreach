@@ -1,5 +1,4 @@
-﻿/* $Id$ */
-
+﻿
 -- SUMMARY --
 
 Provides a central transliteration service to other Drupal modules, and
@@ -105,8 +104,22 @@ Authors:
 * Stefan M. Kudwien (smk-ka) - http://drupal.org/user/48898
 * Daniel F. Kudwien (sun) - http://drupal.org/user/54136
 
+Maintainers:
+* Andrei Mateescu (amateescu) - http://drupal.org/user/729614
+
 UTF-8 normalization is based on UtfNormal.php from MediaWiki
 (http://www.mediawiki.org) and transliteration uses data from Sean M. Burke's
 Text::Unidecode CPAN module
 (http://search.cpan.org/~sburke/Text-Unidecode-0.04/lib/Text/Unidecode.pm).
 
+
+-- USEFUL RESOURCES --
+
+Unicode Code Converter:
+http://people.w3.org/rishida/tools/conversion/
+
+UTF-8 encoding table and Unicode characters:
+http://www.utf8-chartable.de/unicode-utf8-table.pl
+
+Country codes:
+http://www.loc.gov/standards/iso639-2/php/code_list.php

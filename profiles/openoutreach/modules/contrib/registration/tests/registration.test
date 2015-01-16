@@ -1,0 +1,611 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Registration module
+ */
+
+class RegistrationTestCase extends DrupalWebTestCase {
+  function setUpEntity() {
+    // Create registration bundle
+    $this->registration_type_name = $this->randomName();
+    $label = drupal_strtoupper($this->registration_type_name);
+    $this->registration_type = entity_create('registration_type', array(
+      'name' => $this->registration_type_name,
+      'label' => $label,
+    ));
+    entity_save('registration_type', $this->registration_type);
+
+    // Field
+    $field_name = 'test_registration_field';
+    $this->field = field_create_field(array(
+      'field_name' => $field_name,
+      'type' => 'registration',
+    ));
+
+    // Create main entity
+    $this->host_entity_type = 'node';
+    $this->host_entity = $this->drupalCreateNode();
+    list($this->host_entity_id, , $this->host_entity_bundle) = entity_extract_ids($this->host_entity_type, $this->host_entity);
+
+    // Field instance
+    $this->field_instance = field_create_instance(array(
+      'field_name' => $field_name,
+      'entity_type' => $this->host_entity_type,
+      'bundle' => $this->host_entity_bundle,
+      'display' => array(
+        'default' => array(
+          'type' => 'registration_form',
+        ),
+      ),
+    ));
+
+    // Set registration type for entity
+    $this->host_entity->{$field_name}[LANGUAGE_NONE][0]['registration_type'] = $this->registration_type_name;
+    entity_save($this->host_entity_type, $this->host_entity);
+
+    $uri = entity_uri($this->host_entity_type, $this->host_entity);
+    $this->host_entity_path = $uri['path'];
+  }
+
+  function entityLastId($entity_type) {
+    $query = new EntityFieldQuery;
+    $result = $query
+      ->entityCondition('entity_type', $entity_type)
+      ->entityOrderBy('entity_id', 'DESC')
+      ->range(0, 1)
+      ->execute();
+    return key($result[$entity_type]);
+  }
+
+  function setHostEntitySettings(array $settings = array()) {
+    // @todo: Remove ['settings']. Settings must be set in schema. registration_update_entity_settings() currently requires this.
+    $settings['settings'] = serialize(isset($settings['settings']) ? $settings['settings'] : array());
+    registration_update_entity_settings($this->host_entity_type, $this->host_entity_id, $settings);
+  }
+
+  /**
+   * Create a Registration programmatically
+   *
+   * @param array $values
+   *   Additional properties to add to registration entity.
+   */
+  function createRegistration(array $values = array()) {
+    $registration = entity_create('registration', array(
+      'entity_type' => $this->host_entity_type,
+      'entity_id' => $this->host_entity_id,
+      'type' => $this->registration_type_name,
+    ) + $values);
+    entity_save('registration', $registration);
+    return $registration;
+  }
+
+  /**
+   * Loads a registration from the database, avoiding the cache.
+   *
+   * @param int $registration_id
+   *   A registrations' unique identifier.
+   */
+  function loadRegistration($registration_id) {
+    $this->resetRegistration();
+    return registration_load($registration_id);
+  }
+
+  /**
+   * Reset session cache of registration entities.
+   */
+  function resetRegistration() {
+    entity_get_controller('registration')->resetCache();
+  }
+}
+
+/**
+ * Creates a registration type
+ * Create node entity type
+ * ensure registration type exists
+ */
+class RegistrationStandardTestCase extends RegistrationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Registration module',
+      'description' => 'Test Registration module.',
+      'group' => 'Registration',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('registration'));
+    $this->setUpEntity();
+  }
+
+  /**
+   * Tests if registration fields were created successfully, and associated with an entity.
+   */
+  function testRegistrationFieldCreate() {
+    $field_name = &$this->field['field_name'];
+    $entity = &$this->host_entity;
+
+    // Field created
+    $this->assertTrue(isset($this->field['id']), t('Registration field created'), 'Registration');
+
+    // Instance created
+    $read_instance = field_read_instance($this->host_entity_type, $field_name, $entity->type);
+    $this->assertNotIdentical(FALSE, $read_instance, t('Create registration instance'), 'Registration');
+
+    // Get Instance
+    $registration_instances = registration_get_registration_instances(array(
+      'entity_type' => $this->host_entity_type,
+      'bundle' => $entity->type
+    ));
+    $this->assertTrue(count($registration_instances) == 1, t('Read registration field instances'), 'Registration');
+    $this->assertTrue($registration_instances[0]['field_name'] == $field_name, t('Validate registration field instance data.'), 'Registration');
+  }
+
+  /**
+   * Tests if registration type is set.
+   */
+  function testRegistrationType() {
+    // Save
+    $this->assertTrue(is_numeric($this->registration_type->id), t('registration bundle has ID'), 'Registration');
+
+    // Load
+    $registration_type_load = entity_load_single('registration_type', $this->registration_type->id);
+    $this->assertNotIdentical(FALSE, $registration_type_load, t('registration bundle loaded'), 'Registration');
+    $this->assertEqual($this->registration_type->id, $registration_type_load->id, t('registration bundle matches previously saved bundle.'), 'Registration');
+
+    // Get all types
+    $types = registration_get_types();
+    $this->assertTrue(isset($types[$this->registration_type_name]), t('Load all registration types'), 'Registration');
+
+    // Ensure value on field saves
+    $this->resetRegistration();
+    $entity2 = entity_load_single($this->host_entity_type, $this->host_entity_id);
+    $this->assertEqual(registration_get_entity_registration_type($this->host_entity_type, $entity2), $this->registration_type_name, t('Saved registration type in registration field.'), 'Registration');
+
+    // Ensure permissions exist for registration type
+    $this->checkPermissions(array('administer ' . $this->registration_type_name . ' registration'), TRUE);
+  }
+
+  /**
+   * Tests entity update helper.
+   */
+  function testHostEntitySettings() {
+    $settings = array(
+      'status' => 1,
+      'settings' => array('random_string' => $this->randomName()),
+    );
+
+    $this->setHostEntitySettings($settings);
+    $db_settings = registration_entity_settings($this->host_entity_type, $this->host_entity_id);
+    $this->assertTrue($settings['settings']['random_string'] === $db_settings['settings']['random_string'], t('Saving host entity registration settings'), 'Registration');
+
+    // Tests static caching
+    $settings = array(
+      'status' => 0,
+      'settings' => array('random_string' => $this->randomName()),
+    );
+
+    $this->setHostEntitySettings($settings);
+    $db_settings = registration_entity_settings($this->host_entity_type, $this->host_entity_id, TRUE);
+    $this->assertTrue($settings['settings']['random_string'] === $db_settings['settings']['random_string'], t('Saving host entity registration settings.'), 'Registration');
+  }
+
+  function testHostEntitySettingsForm() {
+    $permissions = array(
+      'administer ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($user);
+
+    // display form
+    $this->drupalGet($this->host_entity_path . '/registrations/settings');
+    $this->assertResponse(200, t('User can access host entity registration settings page.'), 'Registration');
+    $this->assertFieldByName('status');
+
+    // submit form
+    $test_date1 = '2011-06-04 09:42:33';
+    $test_date2 = '2012-06-30 12:34:56';
+    $edit = array(
+      'status' => TRUE,
+      'scheduling[open]' => $test_date1,
+      'scheduling[close]' => $test_date2
+    );
+    $this->drupalPost($this->host_entity_path . '/registrations/settings', $edit, t('Save Settings'));
+    $this->assertText(t('Registration settings have been saved.'), t('Host entity registration settings form saved.'), 'Registration');
+
+    // verify settings saved to database
+    $settings = registration_entity_settings($this->host_entity_type, $this->host_entity_id);
+    $this->assertTrue($settings['status'], t('Host entity settings: status saved.'), 'Registration');
+    $this->assertTrue($settings['open'] == $test_date1, t('Host entity settings: open date saved.'), 'Registration');
+    $this->assertTrue($settings['close'] == $test_date2, t('Host entity settings: close date saved.'), 'Registration');
+  }
+
+  /**
+   * Tests email broadcast functionality.
+   *
+   * Generates registrations for a host entity, and confirms that emails
+   * were sent out to all registrants.
+   */
+  function testHostEntityBroadcastForm() {
+    $permissions = array(
+      'administer ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($user);
+
+    // Create registration, Drupal user
+    $user_a = $this->drupalCreateUser($permissions);
+    $this->createRegistration(array(
+      'author_uid' => $user->uid,
+      'user_uid' => $user_a->uid,
+    ));
+
+    // Create registration, anonymous user
+    $anonymous_mail = $this->randomName() . '@example.com';
+    $this->createRegistration(array(
+      'author_uid' => $user->uid,
+      'anon_mail' => $anonymous_mail,
+    ));
+
+    // display form
+    $this->drupalGet($this->host_entity_path . '/registrations/broadcast');
+    $this->assertResponse(200, t('User can access host entity broadcast settings page.'), 'Registration');
+    $this->assertFieldByName('subject');
+    $this->assertFieldByName('message');
+
+    // submit form
+    $edit = array(
+      'subject' => $this->randomName(16),
+      'message' => $this->randomString()
+    );
+    $this->drupalPost($this->host_entity_path . '/registrations/broadcast', $edit, t('Send'));
+    $this->assertText(t('Registration broadcast sent to @count registrants.', array('@count' => 2)), t('Host entity broadcast form submitted.'), 'Registration');
+
+    // verify emails were sent
+    $mails = $this->drupalGetMails();
+    $address_sent = array();
+    foreach ($mails as $mail) {
+      $address_sent[] = $mail['to'];
+    }
+
+    $this->assertTrue(in_array($user_a->mail, $address_sent), t('Registration email broadcast to authenticated account.'), 'Registration');
+    $this->assertTrue(in_array($anonymous_mail, $address_sent), t('Registration email broadcast to anonymous person.'), 'Registration');
+  }
+
+  /**
+   * Check internal status modifiers.
+   *
+   * Capacity, opening, and closing dates.
+   */
+  function testHostRegistrationStatus() {
+    global $user;
+
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $basic_user = $this->drupalCreateUser($permissions);
+
+    $permissions = array(
+      'administer ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $admin_user = $this->drupalCreateUser($permissions);
+
+    // Start with the basic user
+    $user = $basic_user;
+
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Default host entity status is closed.'), 'Registration');
+
+    $this->setHostEntitySettings(array('status' => 1, 'capacity' => 10));
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity main status is opened.'), 'Registration');
+
+    // fill capacity
+    $registrations = array();
+    for ($i = 0; $i < 5; $i++) {
+      $registrations[$i] = $this->createRegistration(array('count' => 2));
+    }
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, filled with registrations.'), 'Registration');
+
+    // Switch to admin user
+    $user = $admin_user;
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open for user with admin permission, filled with registrations.'), 'Registration');
+
+    // Switch back to basic user
+    $user = $basic_user;
+
+    // unfill capacity by one registration
+    entity_delete('registration', end($registrations)->registration_id);
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Deleted a registration, capacity now not at maximum.'), 'Registration');
+
+    // Test dates
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => date('Y-m-d H:i:s', (time() + 3600)),
+      'close' => NULL,
+    ));
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, open time has not passed.'), 'Registration');
+
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => date('Y-m-d H:i:s', (time() - 3600)),
+      'close' => date('Y-m-d H:i:s', (time() + 3600)),
+    ));
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, in between open and closing times.'), 'Registration');
+
+
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => NULL,
+      'close' => date('Y-m-d H:i:s', (time() - 3600)),
+    ));
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, closing time has passed.'), 'Registration');
+  }
+
+  function testRegistrationCreateAccess() {
+    // With permissions
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration',
+      'create ' . $this->registration_type_name . ' registration other users',
+      'create ' . $this->registration_type_name . ' registration other anonymous'
+    );
+    $this->checkPermissions($permissions, TRUE); // Reset permission cache
+    $user = $this->drupalCreateUser($permissions);
+
+    $this->drupalLogin($user);
+    $this->drupalGet($this->host_entity_path . '/register');
+    $this->assertResponse(403, t('Close default host entity status (database).'), 'Registration');
+
+    $this->setHostEntitySettings(array('status' => 1));
+    $this->drupalGet($this->host_entity_path . '/register');
+    $this->assertResponse(200, t('Open default host entity status (database).'), 'Registration');
+    $this->assertRaw(t('Save Registration'), t('User with create permissions access register tab.'), 'Registration');
+    $this->assertFieldByName('who_is_registering');
+  }
+
+  function testRegistrationForm() {
+    // Setup environment
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration',
+      'view own ' . $this->registration_type_name . ' registration',
+      'update own ' . $this->registration_type_name . ' registration',
+      'delete own ' . $this->registration_type_name . ' registration',
+      'create ' . $this->registration_type_name . ' registration other users',
+      'create ' . $this->registration_type_name . ' registration other anonymous'
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $user = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($user);
+
+    $user_no_permission = $this->drupalCreateUser();
+
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'capacity' => 2,
+      'settings' => array(
+        'maximum_spaces' => 1,
+      ),
+    ));
+
+    // Submit a Registration form.
+    $this->drupalGet($this->host_entity_path . '/register');
+    $this->assertResponse(200, t('Register page loaded.'), 'Registration');
+    $registration_form = array(
+      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_ME,
+    );
+    $this->drupalPost($this->host_entity_path . '/register', $registration_form, t('Save Registration'));
+    $this->assertText(t('Registration has been saved'), t('Registration saved.'), 'Registration');
+
+    $registration_a_id = $this->entityLastId('registration');
+
+    $registration_c = $this->createRegistration(array(
+      'author_uid' => $user->uid,
+      'user_uid' => $user->uid,
+    ));
+
+    // Edit a registration
+    // TODO: These two tests are failing as the drupalPost() is not working. Needs to be resolved.
+//    $this->drupalGet('registration/' . $registration_c->registration_id . '/edit');
+//    $this->assertResponse(200, t('User can access registration edit page.'), 'Registration');
+//    $edit = array(
+//      'who_is_registering' => REGISTRATION_REGISTRANT_TYPE_USER,
+//      'user' => $user_no_permission->name,
+//    );
+//    $this->drupalPost('registration/' . $registration_c->registration_id . '/edit', $edit, t('Save Registration'));
+//    $this->assertText(t('Registration has been saved'), t('Registration form saved'), 'Registration');
+//
+//    $this->resetRegistration();
+//    $registration_c = entity_load_single('registration', $registration_c->registration_id);
+//    $this->drupalGet('registration/' . $registration_c->registration_id);
+//    $this->assertEqual($registration_c->user_uid, $user_no_permission->uid, t('Changed user on registration form.'), 'Registration');
+
+    // Delete a registration
+    $this->drupalGet('registration/' . $registration_c->registration_id . '/delete');
+    $this->assertResponse(200, 'User can access registration delete confirmation page.', 'Registration');
+    $this->drupalPost('registration/' . $registration_c->registration_id . '/delete', array(), t('Delete'));
+
+    $this->resetRegistration();
+    $this->assertFalse(entity_load_single('registration', $registration_c->registration_id), t('Deleted registration via form'), 'Registration');
+
+    // No permission
+    $this->drupalLogin($user_no_permission);
+    $this->drupalGet($this->host_entity_path . '/register');
+    $this->assertResponse(403, t('User without permission cannot create registration.'), 'Registration');
+    $this->drupalGet('registration/' . $registration_a_id);
+    $this->assertResponse(403, t('User without permission cannot view registration.'), 'Registration');
+    $this->drupalGet('registration/' . $registration_a_id . '/edit');
+    $this->assertResponse(403, t('User without permission cannot edit registration.'), 'Registration');
+    $this->drupalGet('registration/' . $registration_a_id . '/delete');
+    $this->assertResponse(403, t('User without permission cannot delete registration.'), 'Registration');
+
+    // Load registration
+    $permissions = array(
+      'view ' . $this->registration_type_name . ' registration',
+    );
+    $this->checkPermissions($permissions, TRUE);
+    $user2 = $this->drupalCreateUser($permissions);
+    $this->drupalLogin($user2);
+
+    $this->drupalGet('registration/' . $registration_a_id);
+    $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
+
+    $this->assertTrue(registration_has_room($this->host_entity_type, $this->host_entity_id), t('Space available'), 'Registration');
+
+    // Create another registration programmatically
+    $registration_b = $this->createRegistration(array(
+      'user_uid' => $user_no_permission->uid,
+      'count' => 1,
+    ));
+
+    $access_people = registration_access_people($registration_b, $user_no_permission);
+    $this->assertTrue((isset($access_people[REGISTRATION_REGISTRANT_TYPE_ME]) && count($access_people) == 1), t('Check valid people types for unsaved registration.'));
+
+    $this->drupalGet('registration/' . $registration_b->registration_id);
+    $this->assertResponse(200, t('User with permission can view registration'), 'Registration');
+
+    // Test registered users
+    $this->resetRegistration();
+    $registration_a = entity_load_single('registration', $registration_a_id);
+    unset($registration_a->registration_id); // registration_is_registered will exclude passed registration
+    $user3 = $this->drupalCreateUser();
+
+    $this->assertFalse(registration_is_registered($registration_a, NULL, $user3->uid), t('New user not registered for host entity'), 'Registration');
+    $this->assertTrue(registration_is_registered($registration_a, NULL, $user->uid), t('User registered for host entity'), 'Registration');
+    $this->assertTrue(registration_is_registered($registration_a, NULL, $user_no_permission->uid), t('User registered for host entity'), 'Registration');
+  }
+
+  function testRegistrationHostDelete() {
+    $user_a = $this->drupalCreateUser();
+    $this->drupalLogin($user_a);
+
+    // Delete the host entity
+    $user_b = $this->drupalCreateUser();
+    $registration_a = $this->createRegistration(array(
+      'author_uid' => $user_a->uid,
+      'user_uid' => $user_b->uid,
+    ));
+
+    entity_delete($this->host_entity_type, $this->host_entity_id);
+    entity_get_controller($this->host_entity_type)->resetCache();
+    $this->resetRegistration();
+
+    $this->assertFalse(entity_load_single($this->host_entity_type, $this->host_entity_id), t('Delete host entity.'), 'Registration');
+    $this->assertFalse(entity_load_single('registration', $registration_a->registration_id), t('Delete registration when host entity is deleted.'), 'Registration');
+  }
+
+  /**
+   * Ensure registrations are processed when a user is cancelled.
+   *
+   * Tests authorship, and people association, of registrations.
+   */
+  function testUserCancel() {
+    $admin = $this->drupalCreateUser(array('administer users'));
+    $this->drupalLogin($admin);
+
+    // Blocking a user
+    $user = $this->drupalCreateUser();
+    $registration = $this->createRegistration(array('author_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_block');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_reload = $this->loadRegistration($registration->registration_id);
+    $this->assertTrue($registration_reload instanceof Registration, t('Blocking a user does not modify his registrations.'));
+
+    // Reassign a users content
+    $user = $this->drupalCreateUser();
+    $registration_author = $this->createRegistration(array('author_uid' => $user->uid));
+    $registration_people = $this->createRegistration(array('user_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_reassign');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_author_db = $this->loadRegistration($registration_author->registration_id);
+    $this->assertTrue($registration_author_db->author_uid == 0, t('Cancelling user, and reassigning registrations he is author, to anonymous.'));
+
+    $registration_people_db = $this->loadRegistration($registration_people->registration_id);
+    $this->assertTrue($registration_people_db->user_uid == NULL, t('Cancelling user, and reassigning registrations he is associated, to anonymous.'));
+
+    // Delete a users content
+    $user = $this->drupalCreateUser();
+    $registration_author = $this->createRegistration(array('author_uid' => $user->uid));
+    $registration_people = $this->createRegistration(array('user_uid' => $user->uid));
+
+    $edit = array('user_cancel_method' => 'user_cancel_delete');
+    $this->drupalPost('user/' . $user->uid . '/cancel', $edit, t('Cancel account'));
+
+    $registration_author_db = $this->loadRegistration($registration_author->registration_id);
+    $this->assertFalse($registration_author_db, t('Deleting user, deletes registrations he authored.'));
+
+    $registration_people_db = $this->loadRegistration($registration_people->registration_id);
+    $this->assertTrue($registration_people_db->user_uid == NULL, t('Deleting user, and reassigning registrations he is associated, to anonymous.'));
+  }
+}
+
+class RegistrationAPITestCase extends RegistrationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Registration API',
+      'description' => 'Test hooks provided by Registration.',
+      'group' => 'Registration',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('registration_test_api'));
+    $this->setUpEntity();
+  }
+
+  /**
+   * Test hook_registration_access().
+   */
+  function testHookAccess() {
+    $account = $this->drupalCreateUser();
+    $crud = array('create', 'view', 'update', 'delete');
+    $registration_values = array('user_uid' => $account->uid);
+
+    // Test hook
+    $registration = $this->createRegistration($registration_values);
+    $random = $this->randomString();
+    $registration->hook_registration_access = $random;
+    $this->assertEqual($random, module_invoke('registration_test_api', 'registration_access', 'view', $registration, $account), t('Manually invoke hook_registration_access()'), 'Registration');
+
+    // Default access (none)
+    foreach ($crud as $op) {
+      $registration = $this->createRegistration();
+      $this->assertFalse(entity_access($op, 'registration', $registration, $account), t('User cannot @op registration.', array('@op' => $op)), 'Registration');
+    }
+
+    // Force allow access
+    foreach ($crud as $op) {
+      $registration = $this->createRegistration($registration_values);
+      $registration->hook_registration_access = TRUE;
+      $this->assertTrue(entity_access($op, 'registration', $registration, $account), t('User can @op registration.', array('@op' => $op)), 'Registration');
+    }
+  }
+
+  /**
+   * Test hook_registration_status().
+   */
+  function testHookStatus() {
+    // Testing host status, no hook.
+    $this->setHostEntitySettings(array('status' => 1));
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open.'), 'Registration');
+
+    // Host main status is opened, hook closes.
+    variable_set('registration_test_api_registration_status_alter', FALSE);
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, hook overrides'), 'Registration');
+
+    // Hook should still be invoked if main status is closed.
+    $this->setHostEntitySettings(array('status' => 0));
+    variable_set('registration_test_api_registration_status_alter', TRUE);
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, hook overrides.'), 'Registration');
+  }
+}

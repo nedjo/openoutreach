@@ -1,9 +1,8 @@
 Creates calendar displays of Views results.
 
-Create a new calendar by enabling or cloning the default calendar,
-changing the date argument to use the correct date field(s), and setting
-up the year, month, day, week, and block views with the desired styles
-and fields.
+Create a new calendar by using the calendar template for the desired
+date field. See a link to create a view from a template at the top
+of the Views listing page.
 
 If the Calendar iCal module is enabled, an iCal feed can be
 attached to the view.
@@ -13,36 +12,31 @@ the Date Tools Wizard to create a content type with a date field
 and a calendar that displays that field, all in a single step!
 
 
+=========================================================
+CACHING & PERFORMANCE
+=========================================================
 
-NOTES WHEN SWITCHING FROM 7.2 to 7.3
+Calendars are very time-consuming to process, so caching is recommended.
+You can set up caching options for your calendar in the Advanced section
+of the View settings. Even setting a lifetime of 1 hour will provide some 
+benefits if you can live with a calendar that is 1 hour out of date. 
+Set the lifetime to the longest value possible. You will need to clear 
+the caches manually or using custom code if the content of the calendar 
+changes before the cache lifetime expires. 
 
-The views created in the 7.2 version of Calendar won't work in 7.3
-because all the handlers have changed. If you are using the default
-view, you will need to revert it to pick up the changes.
+The recommended settings for time-based caching are:
 
-If you have calendars that were created by the Date Tools module, they are
-default views. Go to each one and revert them so they pick up the new code.
+- Query results
+Cache the query only when not using ajax. Do not cache the query
+on any display that uses ajax for its results.
 
-If you are using custom (non-default) views it will probably be easier to
-delete them and just start over than to try to find all the places where the
-plugins and handlers need to be altered. Start with the new default
-calendar (after reverting it so any previous changes have been
-removed). Then clone it and make the following changes:
+- Rendered output:
+Always try to cache rendered output. Rendering the output is the most
+time-consuming part of building a calendar. This is especially
+important for the Year view, less important for the Day view.
 
-- In the 'Fields' section, remove the node updated date and add your calendar date.
-- Click on each display (Year, Month, Day, Week, Block) and edit the contextual
-  filter for the display. Uncheck the node updated date in the list of date fields
-  and check instead the date you want to use in the calendar.
-- Click on the Upcoming display and edit the filter. Uncheck the node updated date
-  and check instead the date you want to use in the calendar.
-- If you have the iCal module enabled, click on the iCal display. Edit the
-  Row plugin settings and select the date field you want to use in the iCal feed.
+As with all caching options, please test to be sure that caching
+is working as desired.
 
-After you have made these changes, go to the Views Tools tab and clear the Views
-caches. Also go to admin/config/regional/settings, make sure the right
-first day of the week is selected, and resubmit that page even if you
-don't make any changes. That step is to fix a bug that might have set that date
-to the wrong value.
-
-After that your new views should work correctly and you can try out the
-new settings to make whatever additional changes you like.
+If performance is a problem, or you have a lot of items in the calendar,
+you may want to remove the Year view completely.

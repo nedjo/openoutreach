@@ -1,0 +1,22 @@
+name = RedHen Relation
+description = Manage RedHen relationships.
+package = RedHen
+core = 7.x
+
+dependencies[] = redhen_contact
+dependencies[] = redhen_org
+
+dependencies[] = relation
+dependencies[] = relation_ui
+dependencies[] = list
+
+files[] = includes/redhen_relation.forms.inc
+files[] = includes/views/redhen_relation_handler_field_primary_contact.inc
+files[] = includes/views/redhen_relation_handler_sort_primary_contact.inc
+
+; Information added by Drupal.org packaging script on 2014-08-19
+version = "7.x-1.8"
+core = "7.x"
+project = "redhen"
+datestamp = "1408492460"
+

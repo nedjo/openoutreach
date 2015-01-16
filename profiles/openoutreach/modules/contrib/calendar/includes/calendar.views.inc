@@ -57,11 +57,13 @@ function calendar_views_plugins() {
         'uses options' => TRUE,
         'uses fields' => TRUE,
         'type' => 'normal',
+        'no ui' => TRUE,
       ),
       'calendar_entity' => array(
         'title' => t('Calendar Entities'),
         'help' => t('Displays each selected entity as a Calendar item.'),
         'handler' => 'calendar_plugin_row',
+        'theme' => 'views_view_fields',
         'path' => "$module_path/includes",
         'base' => $base,
         'uses options' => TRUE,

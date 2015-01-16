@@ -92,6 +92,7 @@ function file_field_instance_settings_form($field, $instance) {
     '#description' => t('Separate extensions with a space or comma and do not include the leading dot.'),
     '#element_validate' => array('_file_generic_settings_extensions'),
     '#weight' => 1,
+    '#maxlength' => 256,
     // By making this field required, we prevent a potential security issue
     // that would allow files of any type to be uploaded.
     '#required' => TRUE,
@@ -186,7 +187,7 @@ function file_field_load($entity_type, $entities, $field, $instances, $langcode,
         $items[$id][$delta] = NULL;
       }
       else {
-        $items[$id][$delta] = array_merge($item, (array) $files[$item['fid']]);
+        $items[$id][$delta] = array_merge((array) $files[$item['fid']], $item);
       }
     }
   }
@@ -215,8 +216,16 @@ function file_field_presave($entity_type, $entity, $field, $instance, $langcode,
   // Make sure that each file which will be saved with this object has a
   // permanent status, so that it will not be removed when temporary files are
   // cleaned up.
-  foreach ($items as $item) {
+  foreach ($items as $delta => $item) {
+    if (empty($item['fid'])) {
+      unset($items[$delta]);
+      continue;
+    }
     $file = file_load($item['fid']);
+    if (empty($file)) {
+      unset($items[$delta]);
+      continue;
+    }
     if (!$file->status) {
       $file->status = FILE_STATUS_PERMANENT;
       file_save($file);
@@ -261,11 +270,16 @@ function file_field_update($entity_type, $entity, $field, $instance, $langcode, 
     $current_fids[] = $item['fid'];
   }
 
-  // Create a bare-bones entity so that we can load its previous values.
-  $original = entity_create_stub_entity($entity_type, array($id, $vid, $bundle));
-  field_attach_load($entity_type, array($id => $original), FIELD_LOAD_CURRENT, array('field_id' => $field['id']));
-
-  // Compare the original field values with the ones that are being saved.
+  // Compare the original field values with the ones that are being saved. Use
+  // $entity->original to check this when possible, but if it isn't available,
+  // create a bare-bones entity and load its previous values instead.
+  if (isset($entity->original)) {
+    $original = $entity->original;
+  }
+  else {
+    $original = entity_create_stub_entity($entity_type, array($id, $vid, $bundle));
+    field_attach_load($entity_type, array($id => $original), FIELD_LOAD_CURRENT, array('field_id' => $field['id']));
+  }
   $original_fids = array();
   if (!empty($original->{$field['field_name']}[$langcode])) {
     foreach ($original->{$field['field_name']}[$langcode] as $original_item) {
@@ -630,10 +644,9 @@ function file_field_widget_process($element, &$form_state, $form) {
   // Add the description field if enabled.
   if (!empty($instance['settings']['description_field']) && $item['fid']) {
     $element['description'] = array(
-      '#type' => 'textfield',
+      '#type' => variable_get('file_description_type', 'textfield'),
       '#title' => t('Description'),
       '#value' => isset($item['description']) ? $item['description'] : '',
-      '#type' => variable_get('file_description_type', 'textfield'),
       '#maxlength' => variable_get('file_description_length', 128),
       '#description' => t('The description may be used as the label of the link to the file.'),
     );
@@ -756,7 +769,7 @@ function file_field_widget_submit($form, &$form_state) {
   $langcode = $element['#language'];
   $parents = $element['#field_parents'];
 
-  $submitted_values = drupal_array_get_nested_value($form_state['values'], array_slice($button['#array_parents'], 0, -2));
+  $submitted_values = drupal_array_get_nested_value($form_state['values'], array_slice($button['#parents'], 0, -2));
   foreach ($submitted_values as $delta => $submitted_value) {
     if (!$submitted_value['fid']) {
       unset($submitted_values[$delta]);
@@ -767,7 +780,7 @@ function file_field_widget_submit($form, &$form_state) {
   $submitted_values = array_values($submitted_values);
 
   // Update form_state values.
-  drupal_array_set_nested_value($form_state['values'], array_slice($button['#array_parents'], 0, -2), $submitted_values);
+  drupal_array_set_nested_value($form_state['values'], array_slice($button['#parents'], 0, -2), $submitted_values);
 
   // Update items.
   $field_state = field_form_get_state($parents, $field_name, $langcode, $form_state);

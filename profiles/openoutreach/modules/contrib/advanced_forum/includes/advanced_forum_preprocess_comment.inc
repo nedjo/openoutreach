@@ -5,7 +5,6 @@
  * Holds the contents of a preprocess function moved into its own file
  * to ease memory requirements and having too much code in one file.
  */
-
 function _advanced_forum_preprocess_comment(&$variables) {
   /* Easy links to the comment and parent node */
   $comment = $variables['comment'];
@@ -16,7 +15,7 @@ function _advanced_forum_preprocess_comment(&$variables) {
   $variables['top_post'] = FALSE;
 
   /* Determine the template file to use for the comment. */
-  if (arg(1) == 'reply' || arg(1) == 'edit') {
+  if (arg(1) == 'reply' || arg(2) == 'edit') {
     // Use the preview version
     advanced_forum_add_template_suggestions("post-preview", $variables);
   }
@@ -53,10 +52,7 @@ function _advanced_forum_preprocess_comment(&$variables) {
   // Set the post ID for theming / targetting
   $variables['post_id'] = "post-$comment->cid";
 
-  /* Linked post number */
-  if (!isset($post_number)) {
-    static $post_number = 1;
-  }
+  
 
   $num_comments = $node->comment_count;
   $posts_per_page = variable_get('comment_default_per_page_' . $node->type, 50);
@@ -70,23 +66,32 @@ function _advanced_forum_preprocess_comment(&$variables) {
   if (!$page_number) {
     $page_number = 0;
   }
-
+  
+  /* Linked post number */
+  if (!isset($post_number)) {
+    static $post_number = 1;
+  }
+ 
+  // check if node type is forum
+  $topic_id = advanced_forum_node_is_styled($variables['node']);
+  $post_number_delta = ($topic_id) ? 1 : 0;
+   
+  $linktext = '#' . (($page_number * $posts_per_page) + $post_number + $post_number_delta);
+  
   $post_number++;
-
-  $linktext = '#' . (($page_number * $posts_per_page) + $post_number);
-
+  
   // Permalink
   //  You can erase next 3 lines if you wish to use built-in Permalink.
   //  Template adjusted: $post_link -> $permalink
   $uri = entity_uri('comment', $comment);
-  $uri['options'] += array('attributes' => array('class' => 'permalink', 'rel' => 'bookmark'));
+  $uri['options'] += array('attributes' => array('class' => array('permalink'), 'rel' => 'bookmark'));
   $variables['permalink'] = l($linktext, $uri['path'], $uri['options']);
 
   /* In reply to */
   $variables['in_reply_to'] = "";
   if ($comment->pid > 0) {
     // Find the display position of the parent post;.
-    $post_position = advanced_forum_post_position($node->nid, $comment->pid);
+    $post_position = advanced_forum_post_position($node, $comment);
 
     // This extra if test is a sanity check in case the comment being replied
     // to no longer exists.
@@ -117,6 +122,7 @@ function _advanced_forum_preprocess_comment(&$variables) {
     $variables['title'] = check_plain($comment->subject);
   }
 
+  $variables['account'] = new stdClass();
   /* User information / author pane */
   if ($comment->uid == 0) {
     // Anonymous user. Make a fake user object for theme_username
@@ -136,8 +142,9 @@ function _advanced_forum_preprocess_comment(&$variables) {
       'caller' => 'advanced_forum',
       'picture_preset' => variable_get('advanced_forum_user_picture_preset', ''),
       'context' => $comment,
-      'disable_css' => TRUE
-    ));
+      'disable_css' => TRUE,
+      'join_date_type' => variable_get('advanced_forum_author_pane_join_date_type', 'short'),
+        ));
   }
   else {
     $variables['author_pane'] = theme('advanced_forum_simple_author_pane', array('context' => $comment));

@@ -86,11 +86,12 @@ function drush_subprofiles_site_install_subprofile($profile = NULL, $subprofile 
   if (is_null($subprofile)) {
     $subprofile = 'standard';
   }
-  
+
   define('MAINTENANCE_MODE', 'install');
   require_once DRUPAL_ROOT . '/includes/install.core.inc';
 
-  $db_spec = drush_core_site_install_db_spec();
+  // Function was renamed to _drush_sql_get_db_spec. Support older versions.
+  $db_spec = function_exists('_drush_sql_get_db_spec') ? _drush_sql_get_db_spec() : drush_core_site_install_db_spec();
 
   $account_pass = drush_get_option('account-pass', 'admin');
   $settings = array(

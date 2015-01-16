@@ -1,0 +1,876 @@
+<?php
+
+/**
+ * @file
+ * Defines email, phone and address field types for RedHen CRM.
+ */
+
+define('REDHEN_CONTACT_EMAIL_FIELD', 'redhen_contact_email');
+
+/**
+ * Implements hook_field_info().
+ */
+function redhen_fields_field_info() {
+  return array(
+    'redhen_email' => array(
+      'label' => t('RedHen Email'),
+      'description' => t("This field allows you to store multiple email values with labels "),
+      'settings' => array('labels' => array()),
+      'default_widget' => 'redhen_email_widget',
+      'default_formatter' => 'redhen_email_formatter',
+      'default_token_formatter' => 'redhen_email_primary',
+      // Integrate with the Entity Metadata module.
+      'property_type' => 'redhen_email',
+      'property_callbacks' => array('redhen_fields_email_property_info_callback'),
+    ),
+  );
+}
+
+/**
+ * Property callback for redhen_email field.
+ */
+function redhen_fields_email_property_info_callback(&$info, $entity_type, $field, $instance, $field_type) {
+  $name = $field['field_name'];
+  $property = &$info[$entity_type]['bundles'][$instance['bundle']]['properties'][$name];
+
+  $property['type'] = ($field['cardinality'] != 1) ? 'list<redhen_email>' : 'redhen_email';
+  $property['getter callback'] = 'entity_metadata_field_verbatim_get';
+  $property['setter callback'] = 'entity_metadata_field_verbatim_set';
+  $property['auto creation'] = 'redhen_fields_email_default_values';
+  $property['property info'] = redhen_fields_email_data_property_info();
+
+  unset($property['query callback']);
+}
+
+/**
+ * Defines info for the properties of the redhen_email field structure.
+ */
+function redhen_fields_email_data_property_info($name = NULL) {
+
+  $properties = array();
+
+  $properties['value'] = array(
+    'type' => 'text',
+    'label' => t('Email'),
+    'description' => 'Email address',
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+  $properties['default'] = array(
+    'type' => 'integer',
+    'label' => t('Default'),
+    'description' => 'Is this value the default email',
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+  $properties['hold'] = array(
+    'type' => 'integer',
+    'label' => t('Hold'),
+    'description' => 'Hold on this email address',
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+  $properties['bulk'] = array(
+    'type' => 'integer',
+    'label' => t('Bulk'),
+    'description' => 'Bulk mailing address',
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+  $properties['label_id'] = array(
+    'type' => 'integer',
+    'label' => t('Label'),
+    'description' => 'Label ID for this address',
+    'setter callback' => 'entity_property_verbatim_set',
+  );
+
+  return $properties;
+}
+
+/**
+ * Default values for new redhen fields.
+ */
+function redhen_fields_email_default_values() {
+  return array(
+    'value' => '',
+    'default' => 1,
+    'hold' => 0,
+    'bulk' => 0,
+    'label_id' => 0,
+
+  );
+}
+
+/**
+ * Implements hook_field_settings_form().
+ */
+function redhen_fields_field_settings_form($field, $instance, $has_data) {
+  $settings = $field['settings'];
+
+  $form = array();
+  if ($field['type'] == 'redhen_email') {
+    $form['labels'] = array(
+      '#type' => 'textarea',
+      '#rows' => 10,
+      '#title' => t('Labels'),
+      '#default_value' => redhen_fields_allowed_labels_string($settings['labels']),
+      '#required' => FALSE,
+      '#description' => t('The possible labels for values in this field. Enter one value per line, in the format key|label. Key must be an integer.'),
+      '#element_validate' => array('redhen_fields_allowed_labels_setting_validate'),
+      '#field_has_data' => $has_data,
+      '#field' => $field,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Generates a string representation of an array of 'labels'.
+ *
+ * This string format is suitable for edition in a textarea.
+ *
+ * @param array $values
+ *   An array of values, where array keys are values and array values are
+ *   labels.
+ *
+ * @return string
+ *   The string representation of the $values array:
+ *    - Values are separated by a carriage return.
+ *    - Each value is in the format "value|label" or "value".
+ */
+function redhen_fields_allowed_labels_string($values) {
+  $lines = array();
+  foreach ($values as $key => $value) {
+    $lines[] = "$key|$value";
+  }
+  return implode("\n", $lines);
+}
+
+/**
+ * Element validate callback; check that the entered values are valid.
+ */
+function redhen_fields_allowed_labels_setting_validate($element, &$form_state) {
+  $field = $element['#field'];
+  $has_data = $element['#field_has_data'];
+  $generate_keys = !$has_data;
+
+  $values = redhen_fields_extract_allowed_labels($element['#value'], $generate_keys);
+
+  if (!is_array($values)) {
+    form_error($element, t('Allowed labels list: invalid input.'));
+  }
+  else {
+    // Check that keys are valid for the field type.
+    foreach ($values as $key => $value) {
+      if (!preg_match('/^-?\d+$/', $key) || $key === 0) {
+        form_error($element, t('Allowed labels list: keys must be positive integers greater than zero.'));
+        break;
+      }
+    }
+
+    // Prevent removing values currently in use.
+    if ($has_data) {
+      $lost_keys = array_diff(array_keys($field['settings']['labels']), array_keys($values));
+      if (redhen_fields_labels_in_use($field, $lost_keys)) {
+        form_error($element, t('Allowed labels list: some labels are being removed while currently in use.'));
+      }
+    }
+
+    form_set_value($element, $values, $form_state);
+  }
+}
+
+/**
+ * Parses a string of 'allowed labels' into an array.
+ *
+ * @param string $string
+ *   The list of allowed labels in string format descibed in
+ *   redhen_fields_allowed_labels_string().
+ * @param bool $generate_keys
+ *   Boolean value indicating whether to generate keys based on the position of
+ *   the value if a key is not manually specified, and if the value cannot be
+ *   used as a key.
+ *
+ * @return array
+ *   The array of extracted key/value pairs, or NULL if the string is invalid.
+ *
+ * @see redhen_fields_allowed_labels_string()
+ */
+function redhen_fields_extract_allowed_labels($string, $generate_keys) {
+  $values = array();
+
+  $list = explode("\n", $string);
+  $list = array_map('trim', $list);
+  $list = array_filter($list, 'strlen');
+
+  $generated_keys = $explicit_keys = FALSE;
+  foreach ($list as $position => $text) {
+    $value = $key = FALSE;
+
+    // Check for an explicit key.
+    $matches = array();
+    if (preg_match('/(.*)\|(.*)/', $text, $matches)) {
+      $key = $matches[1];
+      $value = $matches[2];
+      $explicit_keys = TRUE;
+    }
+    // Otherwise see if we can use the value as the key. Detecting true integer
+    // strings takes a little trick.
+    elseif ((is_numeric($text) && (float) $text == intval($text))) {
+      $key = $value = $text;
+      $explicit_keys = TRUE;
+    }
+    // Otherwise see if we can generate a key from the position.
+    elseif ($generate_keys) {
+      $key = (string) $position;
+      $value = $text;
+      $generated_keys = TRUE;
+    }
+    else {
+      return;
+    }
+    $values[$key] = $value;
+  }
+
+  // We generate keys only if the list contains no explicit key at all.
+  if ($explicit_keys && $generated_keys) {
+    return;
+  }
+
+  return $values;
+}
+
+/**
+ * Checks if a list of values are being used in actual field values.
+ */
+function redhen_fields_labels_in_use($field, $values) {
+  if ($values) {
+    $query = new EntityFieldQuery();
+    $found = $query
+      ->fieldCondition($field['field_name'], 'label_id', $values)
+      ->range(0, 1)
+      ->execute();
+    return !empty($found);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_instance_settings_form().
+ */
+function redhen_fields_field_instance_settings_form($field, $instance) {
+  return array();
+}
+
+/**
+ * Implements hook_field_validate().
+ */
+function redhen_fields_field_validate($entity_type, $entity, $field, $instance, $langcode, $items, &$errors) {
+  switch ($field['type']) {
+    case 'redhen_email':
+      $default = $email_entered = FALSE;
+      $emails = array();
+      foreach ($items as $delta => $item) {
+        if (!empty($item['value'])) {
+          $emails[] = $item['value'];
+
+          // Ensure email is valid.
+          if (filter_var($item['value'], FILTER_VALIDATE_EMAIL) === FALSE) {
+            $errors[$field['field_name']][$langcode][$delta][] = array(
+              'error' => 'redhen_fields_invalid_email',
+              'message' => t('%name: Not a valid email address.', array('%name' => t($instance['label']))),
+              'delta' => $delta,
+            );
+          }
+
+          // Check to see if email is already in use.
+          if (redhen_fields_email_in_use($field, $entity_type, $entity, $item['value'])) {
+            $errors[$field['field_name']][$langcode][$delta][] = array(
+              'error' => 'redhen_fields_invalid_email',
+              'message' => t('%name: Email address already in use.', array('%name' => t($instance['label']))),
+              'delta' => $delta,
+            );
+          }
+
+          // Ensure only a single default email is selected.
+          if ($default && $item['default']) {
+            $errors[$field['field_name']][$langcode][$delta][] = array(
+              'error' => 'redhen_fields_multiple_default',
+              'message' => t('Only one email may be marked as primary.'),
+              'delta' => $delta,
+            );
+          }
+
+          if (!$default) {
+            $default = (bool) $item['default'];
+          }
+        }
+      }
+
+      // Email is required and one has not been provided.
+      if (redhen_contact_email_required() && empty($emails)) {
+        $errors[$field['field_name']][$langcode][0][] = array(
+          'error' => 'redhen_fields_invalid_email',
+          'message' => t('At least one email is required.'),
+          'delta' => 0,
+        );
+      }
+
+      if (!empty($emails)) {
+        // Ensure at least one email is marked as primary.
+        if (!$default) {
+          $errors[$field['field_name']][$langcode][0][] = array(
+            'error' => 'redhen_fields_invalid_email',
+            'message' => t('One email must be marked as primary.'),
+            'delta' => 0,
+          );
+        }
+
+        // Check for duplicates for same contact record.
+        if (count(array_unique($emails)) < count($emails)) {
+          $errors[$field['field_name']][$langcode][0][] = array(
+            'error' => 'redhen_fields_invalid_email',
+            'message' => t('A contact cannot have a duplicate %name.', array('%name' => t($instance['label']))),
+            'delta' => 0,
+          );
+        }
+      }
+
+      break;
+  }
+}
+
+/**
+ * Helper to ensure an email isn't already in use for a given entity type.
+ *
+ * @param array $field
+ *   Field instance.
+ * @param string $entity_type
+ *   Entity type.
+ * @param object $entity
+ *   Fully loaded entity object.
+ * @param mixed $value
+ *   Field value.
+ *
+ * @return bool
+ *   Whether or not the field value is in use.
+ */
+function redhen_fields_email_in_use($field, $entity_type, $entity, $value) {
+  if ($value) {
+    list($entity_id, ,) = entity_extract_ids($entity_type, $entity);
+    $query = new EntityFieldQuery();
+    $found = $query
+      ->entityCondition('entity_type', $entity_type, '=')
+      ->entityCondition('entity_id', $entity_id, '!=')
+      ->fieldCondition($field['field_name'], 'value', $value)
+      ->range(0, 1)
+      ->execute();
+    return !empty($found);
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_field_load().
+ *
+ * Where possible, generate the sanitized version of each field early so that
+ * it is cached in the field cache. This avoids looking up from the filter cache
+ * separately.
+ *
+ * @see text_field_formatter_view()
+ */
+function redhen_fields_field_load($entity_type, $entities, $field, $instances, $langcode, &$items) {
+  foreach ($entities as $id => $entity) {
+    foreach ($items[$id] as $delta => $item) {
+      (isset($field['settings']['labels'][$item['label_id']])) ?
+        $items[$id][$delta]['label'] = $field['settings']['labels'][$item['label_id']] : '';
+    }
+  }
+}
+
+/**
+ * Implements hook_field_is_empty().
+ */
+function redhen_fields_field_is_empty($item, $field) {
+  return (!isset($item['value']) || $item['value'] === '');
+}
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function redhen_fields_field_formatter_info() {
+  return array(
+    'redhen_email_formatter' => array(
+      'label' => t('Default'),
+      'field types' => array('redhen_email'),
+    ),
+    'redhen_email_primary' => array(
+      'label' => t('Primary email'),
+      'field types' => array('redhen_email'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function redhen_fields_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+  $element = array();
+
+  switch ($display['type']) {
+    case 'redhen_email_formatter':
+      $element['#theme'] = 'field__redhen_fields_email_formatter';
+      foreach ($items as $delta => $item) {
+        $output = theme('redhen_fields_email_formatter_row', array(
+          'item' => $item,
+          'delta' => $delta,
+        ));
+        $element[$delta] = array('#markup' => $output);
+      }
+      $element['#attached']['css'] = array(drupal_get_path('module', 'redhen_fields') . '/redhen_fields.css');
+      break;
+
+    case 'redhen_email_primary':
+      foreach ($items as $delta => $item) {
+        if ($item['default']) {
+          $element[$delta] = array('#markup' => l($item['value'], 'mailto:' . $item['value']));
+          break;
+        }
+      }
+      break;
+  }
+
+  return $element;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function redhen_fields_theme($existing, $type, $theme, $path) {
+  return array(
+    'redhen_fields_email_formatter_row' => array(
+      'variables' => array('item' => NULL, 'delta' => NULL),
+      'template' => 'redhen-fields-email-formatter-row',
+    ),
+    'field__redhen_fields_email_formatter' => array(
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_info().
+ */
+function redhen_fields_field_widget_info() {
+  return array(
+    'redhen_email_widget' => array(
+      'label' => t('Email field'),
+      'field types' => array('redhen_email'),
+      'settings' => array(),
+      'behaviors' => array(
+        'default value' => FIELD_BEHAVIOR_NONE,
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_widget_form().
+ */
+function redhen_fields_field_widget_form(&$form, &$form_state, $field, $instance, $langcode, $items, $delta, $element) {
+  switch ($instance['widget']['type']) {
+    case 'redhen_email_widget':
+      $field_class = drupal_html_class($field['type']);
+      if ($field['cardinality'] == 1) {
+        $element_class = $field_class . '-single-value';
+        $element['#prefix'] = '<div class="'. $element_class . '">';
+        $element['#suffix'] = '</div>';
+      }
+      $element['value'] = array(
+        '#title' => t("@label", array('@label' => $instance['label'])),
+        '#type' => 'textfield',
+        '#default_value' => isset($items[$delta]['value']) ? $items[$delta]['value'] : NULL,
+        '#size' => 35,
+        '#weight' => -1,
+      );
+      $fieldset_info = element_info('fieldset');
+      $process = array_merge($fieldset_info['#process'], array('redhen_fields_flatten_email_options'));
+      $element['options'] = array(
+        '#type' => 'container',
+        '#attributes' => array(
+          'class' => array(
+            $field_class . '-options',
+          ),
+        ),
+        '#weight' => 1,
+        '#process' => $process,
+      );
+      if (!empty($field['settings']['labels'])) {
+        $label_options[0] = '- None -';
+        $label_options = $label_options + $field['settings']['labels'];
+        $element['options']['label_id'] = array(
+          '#title' => t('Label'),
+          '#type' => 'select',
+          '#multiple' => FALSE,
+          '#options' => $label_options,
+          '#default_value' => isset($items[$delta]['label_id']) ? $items[$delta]['label_id'] : 0,
+          '#weight' => 1,
+        );
+      }
+      $element['options']['hold'] = array(
+        '#title' => t('Hold'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($items[$delta]['hold']) ? $items[$delta]['hold'] : 0,
+        '#weight' => 2,
+      );
+      $element['options']['bulk'] = array(
+        '#title' => t('Bulk'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($items[$delta]['bulk']) ? $items[$delta]['bulk'] : 0,
+        '#weight' => 2,
+      );
+      $element['options']['default'] = array(
+        '#title' => t('Primary'),
+        '#type' => 'checkbox',
+        '#default_value' => isset($items[$delta]['default']) ? $items[$delta]['default'] : $delta == 0,
+        '#weight' => 2,
+      );
+      break;
+  }
+
+  $path = drupal_get_path('module', 'redhen_fields');
+  $element['#attached']['js'] = array($path . '/redhen_fields.js');
+  $element['#attached']['css'] = array($path . '/redhen_fields.css');
+
+  return $element;
+}
+
+/**
+ * Fieldset process to flatten the e-mail options array.
+ */
+function redhen_fields_flatten_email_options(&$form, &$form_state, $complete) {
+  array_pop($form['#parents']);
+  return $form;
+}
+
+/**
+ * Implements hook_field_widget_error().
+ */
+function redhen_fields_field_widget_error($element, $error, $form, &$form_state) {
+  switch ($error['error']) {
+    case 'redhen_fields_invalid_email':
+      $error_element = $element['value'];
+      break;
+
+    case 'redhen_fields_multiple_default':
+      $error_element = $element['default'];
+      break;
+
+    default:
+      $error_element = $element;
+      break;
+  }
+
+  form_error($error_element, $error['message']);
+}
+
+/**
+ * Preprocess variables for redhen-fields-email-formatter-row.tpl.php.
+ */
+function template_preprocess_redhen_fields_email_formatter_row(&$variables) {
+  $item = $variables['item'];
+
+  $image = theme('image', array(
+    'path' => 'misc/watchdog-ok.png',
+    'alt' => t('Enabled'),
+  ));
+
+  $variables['default'] = (isset($item['default']) && $item['default']) ? $image : '&nbsp;';
+  $variables['hold'] = (isset($item['hold']) && $item['hold']) ? $image : '&nbsp;';
+  $variables['bulk'] = (isset($item['bulk']) && $item['bulk']) ? $image : '&nbsp;';
+  $variables['label'] = (isset($item['label_id']) && isset($item['label']) && $item['label_id']) ? $item['label'] : '&nbsp;';
+}
+
+
+/**
+ * Theme preprocess function for theme_field__redhen_fields_email_formatter().
+ *
+ * @see theme_field__redhen_fields_email_formatter()
+ */
+function template_preprocess_field__redhen_fields_email_formatter(&$variables, $hook) {
+  $element = $variables['element'];
+
+  // There's some overhead in calling check_plain() so only call it if the label
+  // variable is being displayed. Otherwise, set it to NULL to avoid PHP
+  // warnings if a theme implementation accesses the variable even when it's
+  // supposed to be hidden. If a theme implementation needs to print a hidden
+  // label, it needs to supply a preprocess function that sets it to the
+  // sanitized element title or whatever else is wanted in its place.
+  $variables['label_hidden'] = ($element['#label_display'] == 'hidden');
+  $variables['label'] = $variables['label_hidden'] ? NULL : check_plain($element['#title']);
+
+  // We want other preprocess functions and the theme implementation to have
+  // fast access to the field item render arrays. The item render array keys
+  // (deltas) should always be a subset of the keys in #items, and looping on
+  // those keys is faster than calling element_children() or looping on all keys
+  // within $element, since that requires traversal of all element properties.
+  $variables['items'] = array();
+  foreach ($element['#items'] as $delta => $item) {
+    if (!empty($element[$delta])) {
+      $variables['items'][$delta] = $element[$delta];
+    }
+  }
+
+  // Add default CSS classes. Since there can be many fields rendered on a page,
+  // save some overhead by calling strtr() directly instead of
+  // drupal_html_class().
+  $variables['field_name_css'] = strtr($element['#field_name'], '_', '-');
+  $variables['field_type_css'] = strtr($element['#field_type'], '_', '-');
+  $variables['classes_array'] = array(
+    'field',
+    'field-name-' . $variables['field_name_css'],
+    'field-type-' . $variables['field_type_css'],
+    'field-label-' . $element['#label_display'],
+  );
+  // Add a "clearfix" class to the wrapper since we float the label and the
+  // field items in field.css if the label is inline.
+  if ($element['#label_display'] == 'inline') {
+    $variables['classes_array'][] = 'clearfix';
+  }
+
+  // Add specific suggestions that can override the default implementation.
+  $variables['theme_hook_suggestions'] = array(
+    'field__' . $element['#field_type'],
+    'field__' . $element['#field_name'],
+    'field__' . $element['#bundle'],
+    'field__' . $element['#field_name'] . '__' . $element['#bundle'],
+  );
+}
+
+/**
+ * Theme process function for theme_field__redhen_fields_email_formatter().
+ *
+ * @see theme_field__redhen_fields_email_formatter()
+ */
+function template_process_field__redhen_fields_email_formatter(&$variables, $hook) {
+  // The default theme implementation is a function, so template_process() does
+  // not automatically run, so we need to flatten the classes and attributes
+  // here. For best performance, only call drupal_attributes() when needed, and
+  // note that template_preprocess_field() does not initialize the
+  // *_attributes_array variables.
+  $variables['classes'] = implode(' ', $variables['classes_array']);
+  $variables['attributes'] = empty($variables['attributes_array']) ? '' : drupal_attributes($variables['attributes_array']);
+  $variables['title_attributes'] = empty($variables['title_attributes_array']) ? '' : drupal_attributes($variables['title_attributes_array']);
+  $variables['content_attributes'] = empty($variables['content_attributes_array']) ? '' : drupal_attributes($variables['content_attributes_array']);
+  foreach ($variables['items'] as $delta => $item) {
+    $variables['item_attributes'][$delta] = empty($variables['item_attributes_array'][$delta]) ? '' : drupal_attributes($variables['item_attributes_array'][$delta]);
+  }
+}
+
+/**
+ * Theme function for redhen_email field formatter.
+ */
+function theme_field__redhen_fields_email_formatter($variables) {
+  $output = '';
+
+  // Render the label, if it's not hidden.
+  if (!$variables['label_hidden']) {
+    $output .= '<div class="field-label"' . $variables['title_attributes'] . '>' . $variables['label'] . ':&nbsp;</div>';
+  }
+
+  $output .= '<div class="legend"><div class="email-address">' . t('Address') . '</div>';
+  $output .= '<div class="email-label">' . t('Label') . '</div>';
+  $output .= '<div class="bulk-label">' . t('Bulk mailings?') . '</div>';
+  $output .= '<div class="hold-label">' . t('On hold?') . '</div>';
+  $output .= '<div class="primary-label">' . t('Primary') . '</div></div>';
+  // Render the items.
+  $output .= '<div class="field-items"' . $variables['content_attributes'] . '>';
+  foreach ($variables['items'] as $delta => $item) {
+    $classes = 'field-item ' . ($delta % 2 ? 'odd' : 'even');
+    $output .= '<div class="' . $classes . '"' . $variables['item_attributes'][$delta] . '>' . drupal_render($item) . '</div>';
+  }
+  $output .= '</div>';
+
+  // Render the top-level DIV.
+  $output = '<div class="' . $variables['classes'] . '"' . $variables['attributes'] . '>' . $output . '</div>';
+
+  return $output;
+}
+
+/**
+ * Implements hook_action_info().
+ */
+function redhen_fields_action_info() {
+  $actions = array(
+    'redhen_fields_email_action' => array(
+      'type' => 'system',
+      'label' => t('Send RedHen Email'),
+      'configurable' => TRUE,
+      'triggers' => array('any'),
+    ),
+  );
+
+  return $actions;
+}
+
+/**
+ * Return a form definition so the Send email action can be configured.
+ *
+ * @param array $context
+ *   Default values (if we are editing an existing action instance).
+ *
+ * @return array
+ *   Form definition.
+ *
+ * @see redhen_fields_email_action_submit()
+ */
+function redhen_fields_email_action_form($context) {
+  // Set default values for form.
+  if (!isset($context['subject'])) {
+    $context['subject'] = '';
+  }
+  if (!isset($context['message'])) {
+    $context['message'] = '';
+  }
+
+  if ($context['entity_type'] == 'redhen_contact') {
+    $msg = t('This message will be sent to the configured email field for each selected contact.');
+  }
+  else {
+    $msg = t('This message will be sent to the default email address of the primary contact for each selected organization.');
+  }
+
+  $form['info'] = array(
+    '#type' => 'item',
+    '#markup' => $msg,
+  );
+
+  $form['subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Subject'),
+    '#default_value' => $context['subject'],
+    '#maxlength' => '254',
+    '#description' => t('The subject of the message.'),
+  );
+  $form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#default_value' => $context['message'],
+    '#cols' => '80',
+    '#rows' => '20',
+    '#description' => t('The message that should be sent. You may include placeholders like [node:title], [user:name], and [comment:body] to represent data that will be different each time message is sent. Not all placeholders will be available in all contexts.'),
+  );
+  return $form;
+}
+
+/**
+ * Process system_send_email_action form submissions.
+ */
+function redhen_fields_email_action_submit($form, $form_state) {
+  $form_values = $form_state['values'];
+  // Process the HTML form to store configuration. The keyed array that
+  // we return will be serialized to the database.
+  $params = array(
+    'subject' => $form_values['subject'],
+    'message' => $form_values['message'],
+  );
+  return $params;
+}
+
+/**
+ * Sends an e-mail message.
+ *
+ * @param object $entity
+ *   An optional node object, which will be added as $context['node'] if
+ *   provided.
+ * @param array $context
+ *   Array with the following elements:
+ *   - 'subject': The subject of the message. This will be passed through
+ *     token_replace().
+ *   - 'message': The message to send. This will be passed through
+ *     token_replace().
+ *   - Other elements will be used as the data for token replacement.
+ *
+ * @ingroup actions
+ */
+function redhen_fields_email_action($entity, $context) {
+  if (empty($context['node'])) {
+    $context['node'] = $entity;
+  }
+
+  $recipient = FALSE;
+  switch ($entity->entityType()) {
+    case 'redhen_org':
+      // If we have a primary contact, send email to them.
+      if (isset($entity->primary_contact)) {
+        $recipient = $entity->primary_contact->email();
+      }
+      break;
+
+    case 'redhen_contact':
+      $recipient = $entity->email();
+      break;
+  }
+
+  if ($recipient) {
+    // If the recipient is a registered user with a language preference, use
+    // the recipient's preferred language. Otherwise, use the system default
+    // language.
+    $recipient_account = user_load_by_mail($recipient);
+    if ($recipient_account) {
+      $language = user_preferred_language($recipient_account);
+    }
+    else {
+      $language = language_default();
+    }
+    $params = array('context' => $context);
+
+    if (drupal_mail('system', 'redhen_email_action', $recipient, $language, $params)) {
+      watchdog('action', 'Sent email to %recipient', array('%recipient' => $recipient));
+    }
+    else {
+      watchdog('error', 'Unable to send email to %recipient', array('%recipient' => $recipient));
+    }
+  }
+}
+
+/**
+ * Create the redhen_email field.
+ */
+function redhen_fields_create_email_field() {
+  // Clear the field cache so the redhen_email type is found.
+  field_cache_clear();
+
+  // If the field doesn't already exist, create required email field to be used
+  // with contacts.
+  $prior_field = field_read_field(REDHEN_CONTACT_EMAIL_FIELD, array('include_inactive' => TRUE));
+  if (empty($prior_field)) {
+    $email_field = array(
+      'field_name' => REDHEN_CONTACT_EMAIL_FIELD,
+      'type' => 'redhen_email',
+      'locked' => TRUE,
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'settings' => array(
+        'labels' => array(
+          1 => 'home',
+          2 => 'work'),
+      ),
+    );
+    field_create_field($email_field);
+  }
+}
+
+/**
+ * Create an instance of the redhen_email field for a redhen_contact bundle.
+ */
+function redhen_fields_create_email_instance($bundle_name) {
+  $instance = field_info_instance('redhen_contact', REDHEN_CONTACT_EMAIL_FIELD, $bundle_name);
+  if (!$instance) {
+    $email_field = array(
+      'field_name' => REDHEN_CONTACT_EMAIL_FIELD,
+      'entity_type' => 'redhen_contact',
+      'bundle' => $bundle_name,
+      'label' => t('Email'),
+    );
+    field_create_instance($email_field);
+  }
+}

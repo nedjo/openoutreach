@@ -16,6 +16,10 @@ blockquote:before {
 blockquote:after {
   content: "\201C";
 }
+tr td,
+tr th {
+  text-align: right;
+}
 
 /* ------------------ List Styles ------------------ */
 
@@ -221,10 +225,10 @@ ul.action-links li a {
 
 /* Animated throbber */
 html.js input.form-autocomplete {
-  background-position: 1% 4px;
+  background-position: 1% center;
 }
 html.js input.throbbing {
-  background-position: 1% -16px;
+  background-position: 1% center;
 }
 
 /* Comment form */

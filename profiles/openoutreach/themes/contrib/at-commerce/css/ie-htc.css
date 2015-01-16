@@ -1,0 +1,63 @@
+/* IE htc */
+.rc-4 .node,
+.rc-4 .comment,
+.rc-4 .block-inner,
+.rc-4 .breadcrumb,
+.rc-4 .block-title-wrapper,
+.rc-4 .block-title,
+div.admin-panel,
+.rc-8 .node,
+.rc-8 .comment,
+.rc-8 .block-inner,
+.rc-8 .breadcrumb,
+.rc-8 .block-title-wrapper,
+.rc-8 .block-title,    
+.rc-12 .node,
+.rc-12 .comment,
+.rc-12 .block-inner,
+.rc-12 .breadcrumb,
+.rc-12 .block-title-wrapper,
+.rc-12 .block-title,
+.rc-4 #secondary-content-wrapper .block-title-wrapper,
+.rc-4 #secondary-content-wrapper .block-title,
+.rc-4 .node-teaser .node-inner,
+.rc-8 #secondary-content-wrapper .block-title-wrapper,
+.rc-8 #secondary-content-wrapper .block-title,
+.rc-8 .node-teaser .node-inner,
+.rc-12 #secondary-content-wrapper .block-title-wrapper,
+.rc-12 #secondary-content-wrapper .block-title,
+.rc-12 .node-teaser .node-inner,
+.rc-4 .node-footer,
+.rc-4 .node-footer .node-inner,
+.rc-8 .node-footer,
+.rc-8 .node-footer .node-inner,
+.rc-12 .node-footer,
+.rc-12 .node-footer .node-inner,
+.rc-4 .block .block-content.no-title,
+.rc-4 .region-secondary-content .block,
+.rc-4 .region-tertiary-content .block,
+.rc-8 .block .block-content.no-title,
+.rc-8 .region-secondary-content .block,
+.rc-8 .region-tertiary-content .block,
+.rc-12 .block .block-content.no-title,
+.rc-12 .region-secondary-content .block,
+.rc-12 .region-tertiary-content .block,
+.view-content .calendar-calendar ul.inline li  {
+  /* Uncomment the following line and add make the path to PIE.htc absolute. */
+  /* behavior: url("<-- add your path here -->/sites/all/libraries/PIE/PIE.htc"); */
+  zooom: 1;
+}
+
+/* Kill other things PIE might enable that we really don't want */
+.bs-l #page,
+.bs-d #page,
+section.breadcrumb,
+#secondary-content-wrapper .block > .block-inner,
+#breadcrumb-wrapper .block > .block-inner,
+#content-wrapper .block > .block-inner,
+#quadpanel-wrapper .block > .block-inner,
+#tertiary-content-wrapper .block > .block-inner {
+  -webkit-box-shadow:0 0 0 transparent;
+  -moz-box-shadow:0 0 0 transparent;
+  box-shadow:0 0 0 transparent;
+}

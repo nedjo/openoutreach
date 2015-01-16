@@ -1,0 +1,425 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_dedupe_menu() {
+  $items['redhen/dedupe'] = array(
+    'title' => 'Find duplicate contacts',
+    'page callback' => 'redhen_dedupe_list_page',
+    'access arguments' => array('administer redhen contacts'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['redhen/dedupe/merge/%'] = array(
+    'title' => 'Select a primary contact',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_dedupe_merge_form', 3),
+    'access arguments' => array('administer redhen contacts'),
+    'file' => 'includes/redhen_dedupe.form.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback for listing duplicate contacts.
+ *
+ * @return array
+ *   Render array for a table of duplicates.
+ */
+function redhen_dedupe_list_page() {
+  $results = FALSE;
+  $contacts = array();
+  $properties = array();
+  $fields = array();
+  $active = TRUE;
+  if (!isset($_POST['form_id'])) {
+    if (isset($_GET['properties'])) {
+      $properties = $_GET['properties'];
+    }
+    if (isset($_GET['fields'])) {
+      $fields = $_GET['fields'];
+    }
+    if (empty($properties) && empty($fields)) {
+      drupal_set_message(t('Please select at least on Property or Field to match on.'), 'warning', FALSE);
+    }
+    if (!empty($properties) || !empty($fields)) {
+      $active = isset($_GET['active']) ? $_GET['active'] : TRUE;
+      $results = redhen_dedupe_get_duplicates($properties, $fields, $active);
+    }
+  }
+
+  if (!empty($results)) {
+    $message = t('The following sets of duplicate contacts have been found. Select the corresponding merge action to merge contact records.');
+    $info = entity_get_property_info('redhen_contact');
+
+    $rows = array();
+    $header = array();
+    // Build our header array from the selected properties.
+    foreach ($properties as $property) {
+      $header[] = $info['properties']{$property}['label'];
+    }
+    $rh_entity_info = entity_get_property_info('redhen_contact');
+    foreach ($fields as $field) {
+      $field_pieces = explode(":", $field);
+      $field = array_shift($field_pieces);
+      $info = field_info_field($field);
+      $instance = field_info_instance('redhen_contact', $field, $info['bundles']['redhen_contact'][0]);
+      $label = $instance['label'];
+      if (count($field_pieces)) {
+        $label .= ' -- ' . $rh_entity_info['bundles'][$info['bundles']['redhen_contact'][0]]['properties'][$field]['property info'][$field_pieces[0]]['label'];
+      }
+      $header[] = $label;
+    }
+    $header[] = t('Count (IDs)');
+    $header[] = '';
+    // Display each result basing our row on the selected properties.
+    foreach ($results as $result) {
+      $ids = explode(',', $result->ids);
+      // Dedupe by values:
+      $ids = array_flip(array_flip($ids));
+      if (count($ids) > 1) {
+        $result->ids = implode(',', $ids);
+        $col = array();
+        foreach ($properties as $property) {
+          $col[] = $result->{$property};
+        }
+        foreach ($fields as $field) {
+          $field_pieces = explode(':', $field);
+          $name = array_shift($field_pieces);
+          if (count($field_pieces)) {
+            foreach ($field_pieces as $piece) {
+              $name .= '_' . $piece;
+            }
+          }
+          else {
+            reset($info['columns']);
+            $name .= "_" . key($info['columns']);
+          }
+          $col[] = $result->{$name};
+        }
+        $id_links = array();
+        foreach ($ids as $id) {
+          $id_links[] = l($id, 'redhen/contact/' . $id);
+        }
+        $count = $result->count . ' (' . implode(', ', $id_links) . ')';
+        $col[] = $count;
+        $col[] = l(t('merge'), 'redhen/dedupe/merge/' . $result->ids);
+
+        $rows[] = $col;
+      }
+    }
+
+    $contacts = array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+  }
+  else {
+    $message = t('There are no duplicate contacts based on the selected properties. Expand your search or relax, you have no duplicates!');
+  }
+
+  return array(
+    'form' => drupal_get_form('redhen_dedupe_filter_form', $properties, $fields, $active),
+    'message' => array('#markup' => $message),
+    'contacts' => $contacts,
+  );
+}
+
+/**
+ * Dedupe filter form.
+ */
+function redhen_dedupe_filter_form($form, &$form_state, $properties, $fields, $active) {
+  $info = entity_get_property_info('redhen_contact');
+  $excluded_props = array('contact_id', 'revision_id', 'redhen_state');
+  $prop_options = $field_options = array();
+  foreach ($info['properties'] as $name => $property) {
+    if (isset($property['schema field']) && !in_array($name, $excluded_props)) {
+      $prop_options[$name] = $property['label'];
+    }
+  }
+
+  foreach ($info['bundles'] as $type) {
+    foreach ($type['properties'] as $name => $field) {
+      $field_options[$name] = $field['label'];
+      $type = isset($field['type']) ? entity_property_extract_innermost_type($field['type']) : 'text';
+      $is_entity = ($type == 'entity') || (bool) entity_get_info($type);
+      // Leave entities out of this.
+      if (!$is_entity) {
+        if (isset($field['field']) && $field['field'] && !empty($field['property info'])) {
+          unset($field_options[$name]);
+          foreach ($field['property info'] as $sub_key => $sub_prop) {
+            $field_options[$name . ':' . $sub_key] = $field['label'] . ' -- ' . $sub_prop['label'];
+          }
+        }
+        else {
+          $field_options[$name] = $field['label'];
+        }
+      }
+    }
+  }
+
+  $form['properties'] = array(
+    '#title' => t('Contact properties'),
+    '#type' => 'checkboxes',
+    '#options' => $prop_options,
+    '#default_value' => $properties,
+    '#required' => FALSE,
+    '#description' => t('Selected properties will be used to query duplicates. E.g., selecting first and last name will look for contacts with the same first and last names.'),
+  );
+  $form['fields'] = array(
+    '#title' => t('Contact fields'),
+    '#type' => 'checkboxes',
+    '#options' => $field_options,
+    '#default_value' => $fields,
+    '#required' => FALSE,
+    '#description' => t('Selected fields will be used to query duplicates along with the select Properties.'),
+  );
+  $form['active'] = array(
+    '#title' => t('Active'),
+    '#type' => 'checkbox',
+    '#description' => t('Limit query to active contacts.'),
+    '#default_value' => $active,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit handler for redhen_contact_filter_form().
+ */
+function redhen_dedupe_filter_form_submit($form, &$form_state) {
+  $query = array('properties' => array_filter($form_state['values']['properties']),
+    'fields' => array_filter($form_state['values']['fields']),
+    'active' => $form_state['values']['active']);
+  $form_state['redirect'] = array($_GET['q'], array('query' => $query));
+}
+
+/**
+ * Get duplicate contacts.
+ *
+ * @return array
+ *   Array of objects containing first, last, and ids.
+ */
+function redhen_dedupe_get_duplicates($properties, $fields = array(), $active = TRUE) {
+  $query = db_select('redhen_contact', 'rc');
+  $query->addTag('redhen_dedupe');
+  $query->addExpression('COUNT(*)', 'count');
+
+  // PostGres doesn't support GROUP_CONCAT and aliases can't be used in
+  // conditional clauses so we need to repeat the aggregate function.
+  if (db_driver() == 'pgsql') {
+    $query->addExpression('array_to_string(array_agg(contact_id), \',\')', 'ids');
+    $query->having('COUNT(*) > 1');
+
+  }
+  else {
+    $query->addExpression('GROUP_CONCAT(contact_id SEPARATOR \',\')', 'ids');
+    $query->havingCondition('count', '1', '>');
+  }
+
+  if ($active) {
+    $query->condition('redhen_state', '1');
+  }
+
+  foreach ($properties as $property) {
+    $query->addField('rc', $property);
+    $query->groupBy($property);
+  }
+  // To prevent adding the same field twice, we loop through all fields:
+  $join_fields = array();
+  foreach ($fields as $field) {
+    $field_pieces = explode(':', $field);
+    $field = array_shift($field_pieces);
+    $join_fields[$field] = $field;
+  }
+  foreach ($join_fields as $field) {
+    $query->leftJoin('field_data_' . $field, $field, $field . '.entity_id = rc.contact_id');
+  }
+  foreach ($fields as $field) {
+    $field_pieces = explode(':', $field);
+    $field = array_shift($field_pieces);
+    $info = field_info_field($field);
+    if (count($field_pieces)) {
+      $column = reset($field_pieces);
+    }
+    else {
+      reset($info['columns']);
+      $column = key($info['columns']);
+    }
+    $query->addField($field, $field . '_' . $column);
+    $query->groupBy($field . '_' . $column);
+
+  }
+  $query->orderBy('count', 'DESC');
+
+  return $query->execute()->fetchAll();
+}
+
+/**
+ * Merge values from contacts into master contact and handle related entities.
+ *
+ * @param RedhenContact $master
+ *   The master RedHen Contact.
+ * @param array $contacts
+ *   The contacts being merged into the master.
+ * @param array $values
+ *   Values to update the master contact with.
+ * @param array $related_entities
+ *   Array of entity types to update to the master contact.
+ *
+ * @return bool
+ *   Result of the merge attempt.
+ */
+function redhen_dedupe_merge(RedhenContact $master, $contacts, $values, $related_entities) {
+  $master_wrapper = entity_metadata_wrapper('redhen_contact', $master);
+  $master_id = $master_wrapper->getIdentifier();
+
+  $transaction = db_transaction();
+  try {
+    // Iterate through all contacts and update or delete related entities.
+    foreach ($contacts as $contact) {
+      $contact_id = $contact->internalIdentifier();
+
+      // Update related entities:
+      foreach ($related_entities as $entity_type) {
+        switch ($entity_type) {
+          case 'redhen_note':
+          case 'redhen_engagement':
+          case 'redhen_membership':
+            $query = new EntityFieldQuery();
+            $query->entityCondition('entity_type', $entity_type);
+            $query->propertyCondition('entity_type', 'redhen_contact');
+            $query->propertyCondition('entity_id', $contact_id);
+            $result = $query->execute();
+            if (!empty($result)) {
+              $rel_entities = entity_load($entity_type, array_keys($result[$entity_type]));
+              // Determine the property to change.
+              $entity_key = ($entity_type == 'redhen_engagement') ? 'contact_id' : 'entity_id';
+              foreach ($rel_entities as $rel_entity) {
+                $rel_entity->{$entity_key} = $master_id;
+                $rel_entity->save();
+              }
+            }
+            break;
+
+          case 'relation':
+            // Look for relations with one end point including the dupe contact.
+            $query = relation_query('redhen_contact', $contact_id);
+            $results = $query->execute();
+
+            if ($results) {
+              $relations = relation_load_multiple(array_keys($results));
+              foreach ($relations as $relation) {
+                $endoints = field_get_items('relation', $relation, 'endpoints');
+                foreach ($endoints as $key => $endpoint) {
+                  // Iterate through endpoints and replace the endpoint that
+                  // matches with the master contact.
+                  if ($endpoint['entity_type'] == 'redhen_contact' && $endpoint['entity_id'] == $contact_id) {
+                    $relation->endpoints[LANGUAGE_NONE][$key]['entity_id'] = $master_id;
+                  }
+                }
+                relation_update($relation);
+              }
+            }
+            break;
+
+          // @TODO entity_reference
+          // case 'entity_reference'
+        }
+      }
+    }
+
+    // Delete old contacts.
+    redhen_contact_delete_multiple(array_keys($contacts));
+
+    // Set the new values on the master contact.
+    foreach ($values as $id => $value) {
+      if ($value['type'] == 'direct') {
+        if (!isset($master_wrapper->{$id}->itemType) || $master_wrapper->{$id}->itemType != 'field_collection') {
+          $master_wrapper->{$id}->set($value['value']);
+        }
+        else {
+          _redhen_dedupe_set_field_collection_value($master, $id, $value['value']);
+        }
+      }
+      if ($value['type'] == 'combine') {
+        if (isset($value['value'][$master_id])) {
+          // This assures that the "Master" record value is at the 0-index:
+          $all_vals = $value['value'][$master_id];
+          unset($value['value'][$master_id]);
+        }
+        else {
+          $all_vals = array();
+        }
+        foreach ($value['value'] as $val) {
+          $all_vals = array_merge($all_vals, $val);
+        }
+        if (!is_array(reset($all_vals)) && !is_object(reset($all_vals))) {
+          $all_vals = array_unique($all_vals);
+        }
+        $field_info = field_info_field($id);
+        if ($field_info['type'] != 'field_collection') {
+          $master_wrapper->{$id}->set($all_vals);
+        }
+        else {
+          // Field Collections are completely obnoxious.
+          $originals = array();
+          foreach ($master_wrapper->{$id} as $original_val) {
+            $originals[] = $original_val->item_id->value();
+          }
+          foreach ($all_vals as $val) {
+            _redhen_dedupe_set_field_collection_value($master, $id, $val);
+          }
+          entity_delete_multiple('field_collection_item', $originals);
+        }
+      }
+    }
+
+    $master_wrapper->save();
+
+    return TRUE;
+  }
+  catch (Exception $e) {
+    $transaction->rollback();
+    watchdog_exception('redhen_dedupe', $e);
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function redhen_dedupe_theme($existing, $type, $theme, $path) {
+  return array(
+    'redhen_dedupe_form_table' => array(
+      'render element' => 'elements',
+      'file' => 'includes/redhen_dedupe.form.inc',
+    ),
+  );
+}
+
+/**
+ * Helper function for setting stubborn field collection fields.
+ */
+function _redhen_dedupe_set_field_collection_value($entity, $field, $value) {
+  $fc_item = entity_create('field_collection_item', array('field_name' => $field));
+  $fc_item->setHostEntity('redhen_contact', $entity);
+  $fc_item_wrapper = entity_metadata_wrapper('field_collection_item', $fc_item);
+  $val_wrapper = entity_metadata_wrapper('field_collection_item', $value);
+  $val_properties = $val_wrapper->getPropertyInfo();
+  foreach ($val_properties as $property => $prop_details) {
+    if (isset($prop_details['field']) && $prop_details['field']) {//} && ($val_wrapper->{$property}->value() != NULL)) {
+      //@todo support multi-value fields needed?
+      //@todo support additional field collections?
+      $fc_item_wrapper->{$property}->set($val_wrapper->{$property}->value());
+    }
+  }
+}

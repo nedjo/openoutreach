@@ -80,6 +80,34 @@ function profile2_page_menu() {
         'context' => MENU_CONTEXT_INLINE,
         'file' => 'profile2_page.inc',
       );
+      // Devel integration.
+      if (module_exists('devel')) {
+        $devel_path = drupal_get_path('module', 'devel');
+        $items[$path . '/%profile2_by_uid/devel'] = array(
+          'title' => 'Devel',
+          'page callback' => 'devel_load_object',
+          'file' => 'devel.pages.inc',
+          'file path' => $devel_path,
+          'page arguments' => array('profile2', $count),
+          'access arguments' => array('access devel information'),
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 100,
+        );
+        $items[$path . '/%profile2_by_uid/devel/load'] = array(
+          'title' => 'Load',
+          'type' => MENU_DEFAULT_LOCAL_TASK,
+        );
+        $items[$path . '/%profile2_by_uid/devel/render'] = array(
+          'title' => 'Render',
+          'page callback' => 'devel_render_object',
+          'page arguments' => array('profile2', $count),
+          'access arguments' => array('access devel information'),
+          'file' => 'devel.pages.inc',
+          'file path' => $devel_path,
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 100,
+        );
+      }
     }
   }
   return $items;
@@ -180,6 +208,7 @@ function profile2_page_uri_callback($profile) {
  */
 function profile2_page_form_callback($profile) {
   // Pre-populate the form-state with the right form include.
+  $form_state = form_state_defaults();
   form_load_include($form_state, 'inc', 'profile2_page');
   return entity_ui_get_form('profile2', $profile, 'edit', $form_state);
 }
@@ -192,7 +221,7 @@ function profile2_page_title($type_name, $profile2 = NULL) {
   // If no profile is given, we are at the general path pointing to the own
   // profile.
   if (!isset($profile2)) {
-    return t('My @profile-label', array('@profile-label' => drupal_strtolower($type->label)));
+    return t('My @profile-label', array('@profile-label' => drupal_strtolower($type->getTranslation('label'))));
   }
   return drupal_ucfirst($profile2->label());
 }
@@ -209,4 +238,37 @@ function profile2_page_form_profile2_type_form_alter(&$form, &$form_state) {
     '#default_value' => !empty($type->is_new) || !empty($type->data['use_page']),
   );
   $form['data']['#tree'] = TRUE;
+}
+
+/**
+ * Implements hook_profile2_type_insert().
+ */
+function profile2_page_profile2_type_insert(ProfileType $type) {
+  // Do not directly issue menu rebuilds here to avoid potentially multiple
+  // rebuilds. Instead, let menu_get_item() issue the rebuild on the next page.
+  if (!empty($type->data['use_page'])) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
+}
+
+/**
+ * Implements hook_profile2_type_update().
+ */
+function profile2_page_profile2_type_update(ProfileType $type) {
+  // Rebuild the menu if use_page or the type name has been changed.
+  // @see profile2_page_profile2_type_insert()
+  if (empty($type->data['use_page']) != empty($type->original->data['use_page']) || ($type->data['use_page'] &&  $type->type != $type->original->type)) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
+}
+
+/**
+ * Implements hook_profile2_type_delete()
+ */
+function profile2_page_profile2_type_delete($type) {
+  // Do not directly issue menu rebuilds here to avoid potentially multiple
+  // rebuilds. Instead, let menu_get_item() issue the rebuild on the next page.
+  if (!empty($type->data['use_page'])) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
 }

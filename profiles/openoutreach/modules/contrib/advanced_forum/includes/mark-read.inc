@@ -45,13 +45,11 @@ function advanced_forum_markasread($tid = NULL) {
   $query_node->join('forum', 'f', 'n.vid = f.vid');
   $query_node->join('taxonomy_term_data', 't', 'f.tid = t.tid');
   $query_node->join('node_comment_statistics', 'ncs', 'n.nid = ncs.nid');
-  $query_node->condition(db_or()
-    ->condition('n.changed', NODE_NEW_LIMIT, '>')
-    ->condition('ncs.last_comment_timestamp', NODE_NEW_LIMIT, '>')
-  );
+
   if (isset($tid)) {
     $query_node->condition('f.tid', $tid);
   }
+  
   $query_node->condition('t.vid', $vid);
   $query_node->addField('n', 'nid');
   // Select query objects are one-shot, so clone for INSERT below.
@@ -64,7 +62,7 @@ function advanced_forum_markasread($tid = NULL) {
 
   // Now insert the nids into the history table.
   $query_history_insert->addExpression(':uid', 'uid', array(':uid' => $user->uid));
-  $query_history_insert->addExpression(':time', 'timestamp', array(':time' => time()));
+  $query_history_insert->addExpression(':time', 'timestamp', array(':time' => REQUEST_TIME));
 
   db_insert('history')
     ->fields(array('nid', 'uid', 'timestamp'))

@@ -80,7 +80,7 @@ function profile2_form_submit_delete($form, &$form_state) {
  */
 function profile2_page_delete_confirm_form($form, &$form_state, $profile) {
   $form_state += array('profile2' => $profile);
-  $confirm_question = t('Are you sure you want to delete profile %label?', array('%label' => $profile->label));
+  $confirm_question = t('Are you sure you want to delete profile %label?', array('%label' => $profile->label()));
   return confirm_form($form, $confirm_question, $profile->path());
 }
 

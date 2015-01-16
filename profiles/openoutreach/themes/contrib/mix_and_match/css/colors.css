@@ -1,0 +1,1000 @@
+
+
+/* =============================================================================
+*   DEFAULTS (WHITE BACKGROUND AND GRAY ACCENTS)
+* ========================================================================== */
+
+body,
+#header {
+  background-color: #FFF;
+  color: #333;
+}
+
+a {
+  color: #767676;
+}
+
+#site-name a  {
+  color: #333;
+}
+
+#site-slogan {
+  color: #33;
+}
+
+#menu-bar {
+  background: #CCC url(images/nav-bg-gray.gif) top left repeat-x;
+  color: #333;
+}
+
+#menu-bar ul li a {
+  border-right: 1px solid #CCC; 
+  color: #555;
+}
+
+#menu-bar ul li a:hover,
+#menu-bar ul.sf-menu ul,
+#menu-bar ul.sf-menu li.sfHover a {
+  background-color: #CCC;
+}
+
+#menu-bar ul.sf-menu ul li a:hover {
+  background-color: #AFAFAF;
+}
+
+#menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #AFAFAF;
+}
+
+/* NODE LINKS */
+.node ul.links {
+  background: #E1E1E1;
+}
+
+/* FORM SUBMIT BUTTONS */
+form input.form-submit {
+  background: #CCC url(images/nav-bg-gray.gif) top left repeat-x;
+  border: 1px solid #D2D2D2;
+  color: #000;
+}
+
+form input.form-submit:hover {
+  background-image: none;
+  background-color: #BBB;
+}
+
+/* =============================================================================
+*   BODY BACKGROUNDS
+* ========================================================================== */
+
+/* GRAY */
+.gy-bod,
+.gy-bod #header,
+.gy-bod #menu-bar {
+  background-color: #EEE;
+}
+
+.gy-bod .node ul.links {
+  background-color: #DADADA;
+}
+
+/* TAN */
+.tn-bod,
+.tn-bod #header,
+.tn-bod #menu-bar {
+  background-color: #EAE6D7;
+}
+
+.tn-bod .node ul.links {
+  background-color: #C9C1AE;
+}
+
+/* BLACK */
+.bk-bod,
+.bk-bod #header,
+.bk-bod #menu-bar {
+  background-color: #1e1e1e;
+}
+
+.bk-bod .node ul.links {
+  background-color: #242424;
+}
+
+/* BROWN */
+.br-bod,
+.br-bod #header {
+  background-color: #3D362F;
+}
+
+.br-bod .node ul.links {
+  background-color: #4E453C;
+}
+
+/* RED*/
+.rd-bod,
+.rd-bod #header {
+  background-color: #911B1D;
+}
+
+.rd-bod .node ul.links {
+  background-color: #B01C1C;
+}
+
+/* BLUE */
+.bl-bod,
+.bl-bod #header {
+  background-color: #1A3B6F;
+}
+
+.bl-bod .node ul.links {
+  background-color: #0E53A6;
+}
+
+/* GREEN */
+.gr-bod,
+.gr-bod #header {
+  background-color: #1E4A0D;
+}
+
+.gr-bod .node ul.links {
+  background-color: #367512;
+}
+
+/* TEAL */
+.tl-bod,
+.tl-bod #header {
+  background-color: #375457;
+}
+
+.tl-bod .node ul.links {
+  background-color: #45676B;
+}
+
+/*  MAROON */
+.mr-bod,
+.mr-bod #header {
+  background-color: #642C38;
+}
+
+.mr-bod .node ul.links {
+  background-color: #793B48;
+}
+
+/* PURPLE */
+.pr-bod,
+.pr-bod #header {
+  background-color: #3F3257;
+}
+
+.pr-bod .node ul.links {
+  background-color: #554675;
+}
+
+/* ADD TEXTURE TO BODY BG */
+.txt-bod,
+.txt-bod #header {
+  background-image: url(images/texture.png);
+}
+
+/* Change text to white for dark backgrounds */
+.bk-bod #site-slogan,
+.br-bod #site-slogan,
+.rd-bod #site-slogan,
+.bl-bod #site-slogan,
+.gr-bod #site-slogan,
+.tl-bod #site-slogan,
+.mr-bod #site-slogan,
+.pr-bod #site-slogan,
+.bk-bod #site-name a,
+.br-bod #site-name a,
+.rd-bod #site-name a,
+.bl-bod #site-name a,
+.gr-bod #site-name a,
+.tl-bod #site-name a,
+.mr-bod #site-name a,
+.pr-bod #site-name a,
+.bk-bod,
+.br-bod,
+.rd-bod,
+.bl-bod,
+.gr-bod,
+.tl-bod,
+.mr-bod,
+.pr-bod {
+  color: #FFF;
+}
+/* =============================================================================
+*   CONTENT AREA BACKGROUNDS
+* ========================================================================== */
+
+.wh-pbg #main {
+  background-color: #FFF;
+  color: #323232;
+}
+
+.tn-pbg #main {
+  background-color: #F1EEE5;
+  color: #323232;
+}
+
+.gy-pbg #main {
+  background-color: #F0F0F0;
+  color: #323232;
+}
+
+.wh-pbg .node ul.links {
+  background: #F2F2F2;
+}
+
+.gy-pbg .node ul.links {
+  background: #D2D2D2;
+}
+
+.tn-pbg .node ul.links {
+  background-color: #CDC2AA;
+}
+
+/* =============================================================================
+*   PAGE ACCENTS AND BLOCK HEADERS
+* ========================================================================== */
+
+/* GRAY */
+body.gy-bhd h2.block-title {
+  background: #CCC url(images/nav-bg-gray.gif) top left repeat-x;
+  color: #333;
+}
+
+/* BLACK */
+body.bk-acc #menu-bar,
+body.bk-bhd h2.block-title,
+body.bk-acc form input.form-submit {
+  background: #272727 url(images/nav-bg-black.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.bk-acc #menu-bar ul li a {
+  border-right: 1px solid  #181818;
+  color: #FFF;
+}
+
+body.bk-acc #menu-bar ul li a:hover,
+body.bk-acc #menu-bar ul.sf-menu ul,
+body.bk-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #1e1e1e;
+}
+
+body.bk-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #333;
+}
+
+body.bk-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #333;
+}
+
+body.bk-acc form input.form-submit {
+  border: 1px solid #333;
+  color: #FFF;
+}
+
+body.bk-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #222;
+}
+
+body.bk-acc #block-search-form form input.form-submit {
+  background-color: #444;
+}
+
+/* BROWN  */
+body.br-acc #menu-bar,
+body.br-bhd h2.block-title,
+body.br-acc form input.form-submit   {
+  background: #423a34 url(images/nav-bg-brown.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.br-acc #menu-bar ul li a {
+  border-right: 1px solid #352F2A; 
+  color: #FFF;
+}
+
+body.br-acc #menu-bar ul li a:hover,
+body.br-acc #menu-bar ul.sf-menu ul,
+body.br-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #443A31;
+}
+
+body.br-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #5D5148;
+}
+
+body.br-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #5D5148;
+}
+
+body.br-acc form input.form-submit {
+  border: 1px solid #433A32;
+  color: #FFF;
+}
+
+body.br-acc form input.form-submit:hover  {
+  background-image: none;
+  background-color: #3D342E;
+}
+
+body.br-acc #block-search-form form input.form-submit {
+  background-color: #4E453C;
+}
+
+/* BLUE  */
+body.bl-acc #menu-bar,
+body.bl-bhd h2.block-title,
+body.bl-acc form input.form-submit {
+  background: #2C2C2C url(images/nav-bg-blue.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.bl-acc #menu-bar ul li a {
+  border-right: 1px solid #064287; 
+  color: #FFF;
+}
+
+body.bl-acc #menu-bar ul a:hover,
+body.bl-acc #menu-bar ul.sf-menu ul,
+body.bl-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #1C4587;
+}
+
+body.bl-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #18569E;
+}
+
+body.bl-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #18569E;
+}
+
+body.bl-acc form input.form-submit {
+  border: 1px solid #0F55A6;
+  color: #FFF;
+}
+
+body.bl-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #0E52A0;
+}
+
+body.bl-acc #block-search-form form input.form-submit {
+  background-color: #0B4D9A;
+}
+
+/* DARK BLUE */
+body.dbl-acc #menu-bar,
+body.dbl-bhd h2.block-title,
+body.dbl-acc form input.form-submit {
+  background: #103058 url(images/nav-bg-dkblue.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.dbl-acc #menu-bar ul li a {
+  border-right: 1px solid #132840; 
+  color: #FFF;
+}
+
+body.dbl-acc #menu-bar ul a:hover,
+body.dbl-acc #menu-bar ul.sf-menu ul,
+body.dbl-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #162F50;
+}
+
+body.dbl-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #304B6D;
+}
+
+body.dbl-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #304B6D;
+}
+
+body.dbl-acc form input.form-submit {
+  border: 1px solid #17375C;
+  color: #FFF;
+}
+
+body.dbl-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #153355;
+}
+
+body.dbl-acc #block-search-form form input.form-submit {
+  background-color: #103058;
+}
+
+/* GREEN */
+body.gr-acc #menu-bar,
+body.gr-bhd h2.block-title,
+body.gr-acc form input.form-submit  {
+  background: #2B6B0B url(images/nav-bg-green.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.gr-acc #menu-bar ul li a {
+  border-right: 1px solid #285C0C; 
+  color: #FFF;
+}
+
+body.gr-acc #menu-bar ul a:hover,
+body.gr-acc #menu-bar ul.sf-menu ul,
+body.gr-acc #menu-bar ul.sf-menu li.sfHover a{
+  background-color: #28600B;
+}
+
+body.gr-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #3F7C1C;
+}
+
+body.gr-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #3F7C1C;
+}
+
+body.gr-acc form input.form-submit {
+  border: 1px solid #337311;
+  color: #FFF;
+}
+
+body.gr-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #294419;
+}
+
+body.gr-acc #block-search-form form input.form-submit {
+  background-color: #367512;
+}
+
+/* DARK GREEN */
+body.dgr-acc #menu-bar,
+body.dgr-bhd h2.block-title,
+body.dgr-acc form input.form-submit {
+  background: #1c481d url(images/nav-bg-dkgreen.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.dgr-acc #menu-bar ul li a {
+  border-right: 1px solid #213D0F; 
+  color: #FFF;
+}
+
+body.dgr-acc #menu-bar ul a:hover,
+body.dgr-acc #menu-bar ul.sf-menu ul,
+body.dgr-acc #menu-bar ul.sf-menu li.sfHover a{
+  background-color: #264019;
+}
+
+body.dgr-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #3B572B;
+}
+
+body.dgr-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #3B572B;
+}
+
+body.dgr-acc form input.form-submit {
+  border: 1px solid #314F23;
+  color: #FFF;
+}
+
+body.dgr-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #294419;
+}
+
+body.dgr-acc #block-search-form form input.form-submit {
+  background-color: #1D491E;
+}
+
+/* TEAL */
+body.tl-acc #menu-bar,
+body.tl-bhd h2.block-title,
+body.tl-acc form input.form-submit{
+  background: #3e5f63 url(images/nav-bg-teal.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.tl-acc #menu-bar ul li a {
+  border-right: 1px solid #364F53; 
+  color: #FFF;
+}
+
+body.tl-acc #menu-bar ul a:hover,
+body.tl-acc #menu-bar ul.sf-menu ul,
+body.tl-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #385458;
+}
+
+body.tl-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #517478;
+}
+
+body.tl-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #517478;
+}
+
+body.tl-acc form input.form-submit {
+  border: 1px solid #46686B;
+  color: #FFF;
+}
+
+body.tl-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #3F5C5F;
+}
+
+body.tl-acc #block-search-form form input.form-submit {
+  background-color: #446569;
+}
+
+/* RED */
+body.rd-acc #menu-bar,
+body.rd-bhd h2.block-title,
+body.rd-acc form input.form-submit {
+  background: #A51D1D url(images/nav-bg-red.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.rd-acc #menu-bar ul li a {
+  border-right: 1px solid #980F19; 
+  color: #FFF;
+}
+
+body.rd-acc #menu-bar ul a:hover,
+body.rd-acc #menu-bar ul.sf-menu ul,
+body.rd-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #9B131C;
+}
+
+body.rd-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #B92022;
+}
+
+body.rd-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #B92022;
+}
+
+body.rd-acc form input.form-submit {
+  border: 1px solid #A4141E;
+  color: #FFF;
+}
+
+body.rd-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #A81C1C;
+}
+
+body.rd-acc #block-search-form form input.form-submit {
+  background-color: #B72121;
+}
+
+/* ORANGE */
+body.or-acc #menu-bar,
+body.or-bhd h2.block-title,
+body.or-acc form input.form-submit {
+  background: #c85522 url(images/nav-bg-orange.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.or-acc #menu-bar ul li a {
+  border-right: 1px solid #C14F1E; 
+  color: #FFF;
+}
+
+body.or-acc #menu-bar ul li a:hover,
+body.or-acc #menu-bar ul.sf-menu ul,
+body.or-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #C14F1E;
+}
+
+body.or-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #A63B0A;
+}
+
+body.or-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #A63B0A;
+}
+
+body.or-acc form input.form-submit {
+  border: 1px solid #CC5822;
+  color: #FFF;
+}
+
+body.or-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #CC5822;
+}
+
+body.or-acc #block-search-form form input.form-submit {
+  background-color: #D15B25;
+}
+
+
+/* MAROON */
+body.mr-acc #menu-bar,
+body.mr-bhd h2.block-title,
+body.mr-acc form input.form-submit{
+  background: #672D39 url(images/nav-bg-maroon.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.mr-acc #menu-bar ul li a {
+  border-right: 1px solid #5B2833; 
+  color: #FFF;
+}
+
+body.mr-acc #menu-bar ul a:hover,
+body.mr-acc #menu-bar ul.sf-menu ul,
+body.mr-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #5F2A34;
+}
+
+body.mr-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #773C48;
+}
+
+body.mr-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #773C48;
+}
+
+body.mr-acc form input.form-submit {
+  border: 1px solid #6A313C;
+  color: #FFF;
+}
+
+body.mr-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #642E39;
+}
+
+body.mr-acc #block-search-form form input.form-submit {
+  background-color: #6B313D;
+}
+
+/* PURPLE */
+body.pr-acc #menu-bar,
+body.pr-bhd h2.block-title,
+body.pr-acc form input.form-submit {
+  background: #4b3e68 url(images/nav-bg-purple.gif) top left repeat-x;
+  color: #FFF;
+}
+
+body.pr-acc #menu-bar ul li a {
+  border-right: 1px solid #3F355A; 
+  color: #FFF;
+}
+
+body.pr-acc #menu-bar ul a:hover,
+body.pr-acc #menu-bar ul.sf-menu ul,
+body.pr-acc #menu-bar ul.sf-menu li.sfHover a {
+  background-color: #44375F;
+}
+
+body.pr-acc #menu-bar ul.sf-menu ul li a:hover {
+  background-color: #51426F;
+}
+
+body.pr-acc #menu-bar ul.sf-menu ul li a {
+  border-top: 1px solid #51426F;
+}
+
+body.pr-acc form input.form-submit {
+  border: 1px solid #4E406B;
+  color: #FFF;
+}
+
+body.pr-acc form input.form-submit:hover {
+  background-image: none;
+  background-color: #3C3252;
+}
+
+body.pr-acc #block-search-form form input.form-submit {
+  background-color: #534372;
+}
+
+/* =============================================================================
+*   REGION AND BLOCK BACKGROUNDS
+* ========================================================================== */
+
+.wh-sec .region-secondary-content,
+.wh-ter .region-tertiary-content,
+.wh-ftr #footer,
+.wh-bbg #main .block-inner {
+  background-color: #fff;
+  color: #333;
+}
+
+.lgy-sec .region-secondary-content,
+.lgy-ter .region-tertiary-content,
+.lgy-ftr #footer,
+.lgy-bbg #main .block-inner {
+  background-color: #F2F2F2;
+  color: #333;
+}
+
+.gy-sec .region-secondary-content,
+.gy-ter .region-tertiary-content,
+.gy-ftr #footer,
+.gy-bbg #main .block-inner {
+  background-color: #D2D2D2;
+  color: #333;
+}
+
+.dgy-sec .region-secondary-content,
+.dgy-ter .region-tertiary-content,
+.dgy-ftr #footer,
+.dgy-bbg #main .block-inner {
+  background-color: #747474;
+  color: #fff;
+}
+
+.bk-sec .region-secondary-content,
+.bk-ter .region-tertiary-content,
+.bk-ftr #footer,
+.bk-bbg #main .block-inner {
+  background-color: #242424;
+  color: #fff;
+}
+
+.ltn-sec .region-secondary-content,
+.ltn-ter .region-tertiary-content,
+.ltn-ftr #footer,
+.ltn-bbg #main .block-inner {
+  background-color: #F1EEE5;
+  color: #333;
+}
+
+.tn-sec .region-secondary-content,
+.tn-ter .region-tertiary-content,
+.tn-ftr #footer,
+.tn-bbg #main .block-inner {
+  background-color: #CDC2AA;
+  color: #333;
+}
+
+.dtn-sec .region-secondary-content,
+.dtn-ter .region-tertiary-content,
+.dtn-ftr #footer,
+.dtn-bbg #main .block-inner {
+  background-color: #A6977E;
+  color: #fff;
+}
+
+.brn-sec .region-secondary-content,
+.brn-ter .region-tertiary-content,
+.brn-ftr #footer,
+.brn-bbg #main .block-inner {
+  background-color: #4E453C;
+  color: #FFF;
+}
+
+.lbl-sec .region-secondary-content,
+.lbl-ter .region-tertiary-content,
+.lbl-ftr #footer,
+.lbl-bbg #main .block-inner {
+  background-color: #B5CFEF;
+  color: #333;
+}
+
+.bl-sec .region-secondary-content,
+.bl-ter .region-tertiary-content,
+.bl-ftr #footer,
+.bl-bbg #main .block-inner {
+  background-color: #0E53A6;
+  color: #fff;
+}
+
+.dbl-sec .region-secondary-content,
+.dbl-ter .region-tertiary-content,
+.dbl-ftr #footer,
+.dbl-bbg #main .block-inner {
+  background-color: #143865;
+  color: #fff;
+}
+
+.lgr-sec .region-secondary-content,
+.lgr-ter .region-tertiary-content,
+.lgr-ftr #footer,
+.lgr-bbg #main .block-inner {
+  background-color: #c5dbad;
+  color: #333;
+}
+
+.gr-sec .region-secondary-content,
+.gr-ter .region-tertiary-content,
+.gr-ftr #footer,
+.gr-bbg #main .block-inner {
+  background-color: #367512;
+  color: #fff;
+}
+
+.dgr-sec .region-secondary-content,
+.dgr-ter .region-tertiary-content,
+.dgr-ftr #footer,
+.dgr-bbg #main .block-inner {
+  background-color: #1F5120;
+  color: #fff;
+}
+
+.ltl-sec .region-secondary-content,
+.ltl-ter .region-tertiary-content,
+.ltl-ftr #footer,
+.ltl-bbg #main .block-inner {
+  background-color: #BCD0CE;
+  color: #333;
+}
+
+.tl-sec .region-secondary-content,
+.tl-ter .region-tertiary-content,
+.tl-ftr #footer,
+.tl-bbg #main .block-inner {
+  background-color: #45676B;
+  color: #fff;
+}
+
+.red-sec .region-secondary-content,
+.red-ter .region-tertiary-content,
+.red-ftr #footer,
+.red-bbg #main .block-inner {
+  background-color: #B01C1C;
+  color: #fff;
+}
+
+.lor-sec .region-secondary-content,
+.lor-ter .region-tertiary-content,
+.lor-ftr #footer,
+.lor-bbg #main .block-inner {
+  background-color: #F2B789;
+  color: #333;
+}
+
+.or-sec .region-secondary-content,
+.or-ter .region-tertiary-content,
+.or-ftr #footer,
+.or-bbg #main .block-inner {
+  background-color: #E9620F;
+  color: #fff;
+}
+
+.lmr-sec .region-secondary-content,
+.lmr-ter .region-tertiary-content,
+.lmr-ftr #footer,
+.lmr-bbg #main .block-inner {
+  background-color: #D5B4B9;
+  color: #333;
+}
+
+.mr-sec .region-secondary-content,
+.mr-ter .region-tertiary-content,
+.mr-ftr #footer,
+.mr-bbg #main .block-inner {
+  background-color: #793B48;
+  color: #fff;
+}
+
+.lpr-sec .region-secondary-content,
+.lpr-ter .region-tertiary-content,
+.lpr-ftr #footer,
+.lpr-bbg #main .block-inner {
+  background-color: #C4BBD9;
+  color: #333;
+}
+
+.pr-sec .region-secondary-content,
+.pr-ter .region-tertiary-content,
+.pr-ftr #footer,
+.pr-bbg #main .block-inner {
+  background-color: #554675;
+  color: #fff;
+}
+
+/* =============================================================================
+*   TEXT COLORS
+* ========================================================================== */
+
+/* PAGE TITLES AND BLOCK HEADERS */
+body.wh-pt h1#page-title, 
+body.wh-bht h2.block-title {
+  color: #FFF;
+}
+
+body.gy-pt h1#page-title, 
+body.by-bht h2.block-title {
+  color: #767676;
+}
+
+body.bk-pt h1#page-title, 
+body.bk-bht h2.block-title {
+  color: #323232;
+}
+
+body.br-pt h1#page-title, 
+body.br-bht h2.block-title {
+  color: #594D42;
+}
+
+body.bl-pt h1#page-title, 
+body.bl-bht h2.block-title {
+  color: #1A59B1;
+}
+
+body.dbl-pt h1#page-title, 
+body.dbl-bht h2.block-title {
+  color: #2D4A6B;
+}
+
+body.gr-pt h1#page-title, 
+body.gr-bht h2.block-title {
+  color: #2A9400;
+}
+
+body.dgr-pt h1#page-title, 
+body.dgr-bht h2.block-title {
+  color: #3A572D;
+}
+
+body.tl-pt h1#page-title, 
+body.tl-bht h2.block-title {
+  color: #37676D;
+}
+
+body.rd-pt h1#page-title, 
+body.rd-bht h2.block-title {
+  color: #BF1D20;
+}
+
+body.mr-pt h1#page-title, 
+body.mr-bht h2.block-title {
+  color: #773743;
+}
+
+body.pr-pt h1#page-title, 
+body.pr-bht h2.block-title {
+  color: #624F88;
+}
+
+body.or-pt h1#page-title, 
+body.or-bht h2.block-title {
+  color: #DD5C0B;
+}
+
+/* LINKS */
+body.wh-lnk a {
+  color: #fff;
+}
+
+body.br-lnk a {
+  color: #82654B;
+}
+
+body.bl-lnk a {
+  color: #135DB1;
+}
+
+body.gr-lnk a  {
+  color: #2A9400;
+}
+
+body.tl-lnk a  {
+  color: #2A7E87;
+}
+
+body.rd-lnk a {
+  color: #BF1D20;
+}
+
+body.mr-lnk a {
+  color: #85283B;
+}
+
+body.pr-lnk a {
+  color: #755AAF;
+}
+
+body.or-lnk a {
+  color: #E6683B;
+}

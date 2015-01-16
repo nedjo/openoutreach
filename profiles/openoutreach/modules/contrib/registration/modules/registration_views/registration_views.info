@@ -1,0 +1,27 @@
+name = Registration Views
+description = Entity Registration Views integration
+package = Registration
+core = 7.x
+
+dependencies[] = registration
+dependencies[] = views
+
+; Views: Registration
+files[] = includes/registration_handler_field_registration_link.inc
+files[] = includes/registration_handler_field_registration_link_edit.inc
+files[] = includes/registration_handler_field_registration_link_delete.inc
+
+; Views: Registration Host Entity
+files[] = includes/registration_handler_relationship.inc
+files[] = includes/registration_handler_field_entity_capacity_used.inc
+files[] = includes/registration_handler_field_entity_capacity_total.inc
+files[] = includes/registration_handler_field_entity_datetime.inc
+files[] = includes/registration_handler_field_entity_settings_link.inc
+files[] = includes/registration_handler_field_entity_registration_status.inc
+
+; Information added by Drupal.org packaging script on 2014-02-06
+version = "7.x-1.3"
+core = "7.x"
+project = "registration"
+datestamp = "1391709507"
+

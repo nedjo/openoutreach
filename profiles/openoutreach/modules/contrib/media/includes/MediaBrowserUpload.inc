@@ -1,27 +1,32 @@
 <?php
 
+/**
+ * @file
+ * Definition of MediaBrowserUpload.
+ */
+
+/**
+ * Media browser plugin for showing the upload form.
+ *
+ * @deprecated
+ */
 class MediaBrowserUpload extends MediaBrowserPlugin {
-
-  function view() {
-    $path = drupal_get_path('module', 'media');
-
-    module_load_include('inc', 'media', 'includes/media.admin');
-    module_load_include('inc', 'media', 'includes/media.pages');
-
-    $attached = array();
-    if ($this->params['multiselect'] && module_exists('plupload')) {
-      $upload_form_id = 'media_add_upload_multiple';
-      $attached['js'] = array($path . '/js/plugins/media.upload_multiple.js');
-    }
-    else {
-      $upload_form_id = 'media_add_upload';
-    }
-
-    $upload_form = drupal_get_form($upload_form_id, $this->params);
-    return array(
-      'form' => $upload_form,
-      '#attached' => $attached,
-    );
+  /**
+   * Implements MediaBrowserPluginInterface::access().
+   */
+  public function access($account = NULL) {
+    return file_entity_access('create', NULL, $account);
   }
 
+  /**
+   * Implements MediaBrowserPlugin::view().
+   */
+  public function view() {
+    module_load_include('inc', 'file_entity', 'file_entity.pages');
+
+    $build = array();
+    $build['form'] = drupal_get_form('file_entity_add_upload', $this->params);
+
+    return $build;
+  }
 }

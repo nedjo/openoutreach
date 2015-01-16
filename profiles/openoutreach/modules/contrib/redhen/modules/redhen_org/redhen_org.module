@@ -1,0 +1,656 @@
+<?php
+
+/**
+ * @file
+ * Redhen Organizations main module
+ *
+ */
+
+module_load_include('inc', 'redhen_org', 'includes/redhen_org.forms');
+
+/**
+ * Implements hook_entity_info().
+ */
+function redhen_org_entity_info() {
+  return array(
+    'redhen_org' => array(
+      'label' => t('Organization'),
+      'plural label' => t('Organizations'),
+      'controller class' => 'RedhenOrgEntityController',
+      'rules controller class' => 'EntityDefaultRulesController',
+      'metadata controller class' => 'RedhenOrgMetadataController',
+      'entity class' => 'RedhenOrg',
+      'base table' => 'redhen_org',
+      'revision table' => 'redhen_org_revision',
+      'fieldable' => TRUE,
+      'entity keys' => array(
+        'id' => 'org_id',
+        'revision' => 'revision_id',
+        'bundle' => 'type',
+        'label' => 'label',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'name',
+      ),
+      'bundles' => array(),
+      'view modes' => array(
+        'full' => array(
+          'label' => t('Full organization'),
+          'custom settings' => FALSE,
+        ),
+        'teaser' => array(
+          'label' => t('Teaser'),
+          'custom settings' => TRUE,
+        ),
+      ),
+      'uri callback' => 'entity_class_uri',
+      'token type' => 'redhen_org',
+      'module' => 'redhen_org',
+      'label callback' => 'entity_class_label',
+      'access callback' => 'redhen_org_access',
+    ),
+    'redhen_org_type' => array(
+      'label' => t('Organization type'),
+      'entity class' => 'RedhenOrgType',
+      'controller class' => 'RedhenOrgTypeController',
+      'base table' => 'redhen_org_type',
+      'fieldable' => FALSE,
+      'bundle of' => 'redhen_org',
+      'exportable' => TRUE,
+      'token type' => 'redhen_org_type',
+      'entity keys' => array(
+        'id' => 'org_type_id',
+        'name' => 'name',
+        'label' => 'label',
+      ),
+      'access callback' => 'redhen_org_type_access',
+      'module' => 'redhen_org',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/structure/redhen/org_types',
+        'file' => 'redhen_org_type.admin.inc',
+        'file path' => drupal_get_path('module', 'redhen_org') . '/includes',
+        'controller class' => 'RedhenOrgTypeUIController',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ *
+ * We are adding the info about the organization types via a hook to avoid a
+ * recursion issue as loading the model types requires the entity info as well.
+ */
+function redhen_org_entity_info_alter(&$entity_info) {
+  // We're testing to ensure the schema exists; needed because running gui
+  // install profile was hitting this BEFORE the schema was installed.
+  if (drupal_get_schema('redhen_org')) {
+    foreach (redhen_org_get_types() as $type => $info) {
+      $entity_info['redhen_org']['bundles'][$type] = array(
+        'label' => $info->label,
+        'admin' => array(
+          'path' => 'admin/structure/redhen/org_types/manage/%redhen_org_type',
+          'real path' => 'admin/structure/redhen/org_types/manage/' . $type,
+          'bundle argument' => 5,
+          'access arguments' => array('administer redhen_org types'),
+        ),
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_org_menu() {
+  $items = array();
+
+  // Add a org.
+  $items['redhen/org'] = array(
+    'title' => 'Organizations',
+    'description' => 'View RedHen CRM Organizations.',
+    'page callback' => 'redhen_org_page',
+    'file' => 'includes/redhen_org.pages.inc',
+    'access arguments' => array('access redhen orgs'),
+  );
+
+  // Add a org.
+  $items['redhen/org/add'] = array(
+    'title' => 'Add an organization',
+    'description' => 'Add a new organization.',
+    'page callback' => 'redhen_org_types_list_page',
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('create'),
+    'file' => 'includes/redhen_org.pages.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  $entity_info = entity_get_info('redhen_org');
+  foreach ($entity_info['bundles'] as $key => $bundle) {
+    $items['redhen/org/add/' . $key] = array(
+      'title' => $bundle['label'],
+      'title callback' => 'check_plain',
+      'description' => isset($bundle['description']) ? $bundle['description'] : '',
+      'page callback' => 'redhen_org_add_page',
+      'page arguments' => array($key),
+      'access callback' => 'redhen_org_access',
+      'access arguments' => array('create'),
+      'file' => 'includes/redhen_org.pages.inc',
+    );
+  }
+
+  $items['redhen/org/%redhen_org'] = array(
+    'title callback' => 'redhen_org_org_title',
+    'title arguments' => array(2),
+    'page callback' => 'redhen_org_view',
+    'page arguments' => array(2),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('view', 2),
+    'weight' => -20,
+  );
+  $items['redhen/org/%redhen_org/view'] = array(
+    'title' => 'Summary',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -20,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+
+  $items['redhen/org/%redhen_org/view/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_org_delete_form', 2),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('delete', 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['redhen/org/%redhen_org/view/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_org_form', 2),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('edit', 2),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  $items['redhen/org/%redhen_org/view/archive'] = array(
+    'title' => 'Archive',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_org_archive_form', 2),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('archive', 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 9,
+  );
+  $items['redhen/org/%redhen_org/revisions'] = array(
+    'title' => 'Revisions',
+    'type' => MENU_LOCAL_TASK,
+    'page callback' => 'redhen_org_revision_list',
+    'page arguments' => array(2),
+    'access callback' => 'user_access',
+    'access arguments' => array('access redhen orgs'),
+    'file' => 'includes/redhen_org.pages.inc',
+    'weight' => 4,
+  );
+  $items['redhen/org/%redhen_org/revisions/%redhen_org_revision'] = array(
+    'title callback' => 'redhen_org_org_title',
+    'title arguments' => array(4),
+    'page callback' => 'redhen_org_view',
+    'page arguments' => array(4),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('view', 4),
+  );
+  $items['redhen/org/%redhen_org/revisions/%redhen_org_revision/view'] = array(
+    'title' => 'Summary',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+  );
+  $items['redhen/org/%redhen_org/revisions/%redhen_org_revision/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_org_form', 4),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('edit', 4),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  $items['redhen/org/%redhen_org/revisions/%redhen_org_revision/delete'] = array(
+    'title' => 'Delete',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_org_delete_form', 4),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('delete', 4),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 10,
+  );
+  $items['redhen/org/%redhen_org/primary/%redhen_contact'] = array(
+    'title callback' => 'Change primary contact',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_org_set_primary_form', 2, 4),
+    'access callback' => 'redhen_org_access',
+    'access arguments' => array('edit', 2),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['redhen/org/autocomplete'] = array(
+    'title' => 'Autocomplete for RedHen Organizations',
+    'page callback' => '_redhen_org_autocomplete',
+    'access callback' => 'redhen_org_access',
+    // TODO: Or whatever permission makes sense.
+    'access arguments' => array('edit'),
+    'type' => MENU_CALLBACK,
+    'file' => 'includes/redhen_org.pages.inc',
+  );
+
+  if (module_exists('devel')) {
+    $items['redhen/org/%redhen_org/devel'] = array(
+      'title' => 'Devel',
+      'page callback' => 'redhen_devel_load_object',
+      'page arguments' => array('redhen_org', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 100,
+    );
+    $items['redhen/org/%redhen_org/devel/load'] = array(
+      'title' => 'Load',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+    );
+    $items['redhen/org/%redhen_org/devel/render'] = array(
+      'title' => 'Render',
+      'page callback' => 'redhen_devel_render_object',
+      'page arguments' => array('redhen_org', 2),
+      'access arguments' => array('access devel information'),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 100,
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Changing the redhen/org/add menu item to type MENU_LOCAL_ACTION would
+ * break display of child items. Instead, dynamically add the local action.
+ */
+function redhen_org_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link to 'redhen/org/add' on 'redhen/contact' page.
+  if ($root_path == 'redhen/org') {
+    $item = menu_get_item('redhen/org/add');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function redhen_org_theme() {
+  return array(
+    'redhen_org_add_list' => array(
+      'variables' => array('content' => NULL),
+      'file' => 'includes/redhen_org.forms.inc',
+    ),
+    'redhen_org_list' => array(
+      'variables' => array('orgs' => NULL, 'header' => NULL, 'rows' => NULL),
+    ),
+  );
+}
+
+/**
+ * Loads an org by ID.
+ */
+function redhen_org_load($org_id) {
+  if (empty($org_id)) {
+    return FALSE;
+  }
+
+  $orgs = redhen_org_load_multiple(array($org_id), array());
+  return $orgs ? reset($orgs) : FALSE;
+}
+
+/**
+ * Loads multiple orgs by ID or based on a set of matching conditions.
+ *
+ * @see entity_load()
+ *
+ * @param array $org_ids
+ *   An array of org IDs.
+ * @param array $conditions
+ *   An array of conditions on the {redhen_org} table in the form
+ *     'field' => $value.
+ * @param bool $reset
+ *   Whether to reset the internal org loading cache.
+ *
+ * @return array
+ *   An array of org objects indexed by org_id.
+ */
+function redhen_org_load_multiple($org_ids = array(), $conditions = array(), $reset = FALSE) {
+  if (empty($org_ids) && empty($conditions)) {
+    return array();
+  }
+
+  return entity_load_multiple_by_name('redhen_org', $org_ids, $conditions, $reset);
+}
+
+/**
+ * Loads an org revision by ID.
+ */
+function redhen_org_revision_load($revision_id) {
+  if (empty($revision_id)) {
+    return FALSE;
+  }
+  return entity_revision_load('redhen_org', $revision_id);
+}
+
+/**
+ * Deletes multiple orgs by ID.
+ *
+ * @param array $org_ids
+ *   An array of org IDs to delete.
+ *
+ * @return bool
+ *   TRUE on success, FALSE otherwise.
+ */
+function redhen_org_delete_multiple($org_ids) {
+  $ret = entity_get_controller('redhen_org')->delete($org_ids);
+
+  return $ret;
+}
+
+/**
+ * Create a new org object.
+ *
+ * @param array $values
+ *   Associative array of values. At least include array('type' => $type)
+ *
+ * @return RedhenOrg
+ *   New org entity.
+ */
+function redhen_org_create(array $values = array()) {
+  return entity_get_controller('redhen_org')->create($values);
+}
+
+/**
+ * Saves a org.
+ *
+ * @param RedhenOrg $org
+ *   The full org object to save.
+ *
+ * @return RedhenOrg
+ *   The saved org object.
+ */
+function redhen_org_save(RedhenOrg $org) {
+  $org->save();
+  return $org;
+}
+
+/**
+ * Checks org access for various operations.
+ *
+ * @param string $op
+ *   The operation being performed. One of 'view', 'update', 'create' or
+ *   'delete'.
+ * @param RedhenOrg $org
+ *   Optionally a org to check access for or for the create operation the
+ *   org type. If nothing is given access permissions for all orgs are returned.
+ * @param stdClass $account
+ *   The user to check for. Leave it to NULL to check for the current user.
+ */
+function redhen_org_access($op, $org = NULL, $account = NULL) {
+  global $user;
+  $account = isset($account) ? $account : $user;
+
+  // If it's already archived, no one can archive it again.
+  if (($op == 'archive') && ($org->redhen_state == REDHEN_STATE_ARCHIVED)) {
+    return FALSE;
+  }
+
+  if (user_access('administer redhen orgs', $account)) {
+    return TRUE;
+  }
+
+  if (isset($org) && !$org->isDefaultRevision()) {
+    if ($op == 'view' && user_access('access redhen org revisions', $account)) {
+      return TRUE;
+    }
+
+    if ($op == 'edit' && user_access('manage redhen org revisions', $account) && ($org->redhen_state != REDHEN_STATE_ARCHIVED)) {
+      return TRUE;
+    }
+
+    if ($op == 'delete' && user_access('manage redhen org revisions', $account)) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
+  if ($op == 'view' && user_access('access redhen orgs', $account)) {
+    return TRUE;
+  }
+
+  if (($op == 'edit' || $op == 'archive') && user_access('manage redhen orgs', $account) && ($org->redhen_state != REDHEN_STATE_ARCHIVED)) {
+    return TRUE;
+  }
+
+  if (($op == 'create' || $op == 'delete') && user_access('manage redhen orgs', $account)) {
+    return TRUE;
+  }
+
+  if (isset($org) && is_string($org) && $op == 'create' && user_access('create ' . $org . ' orgs', $account)) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_org_permission() {
+  return array(
+    'administer redhen_org types' => array(
+      'title' => t('Administer RedHen Organization Types'),
+      'description' => t('Manage RedHen organization types and their structure.'),
+    ),
+    'administer redhen orgs' => array(
+      'title' => t('Administer RedHen Organizations'),
+      'description' => t('Perform administration tasks for RedHen Organizations.'),
+    ),
+    'manage redhen orgs' => array(
+      'title' => t('Manage RedHen Organizations'),
+      'description' => t('Create, update or delete RedHen Organizations.'),
+    ),
+    'manage redhen org revisions' => array(
+      'title' => t('Manage RedHen Organization Revisions'),
+      'description' => t('Update or delete RedHen Organization revisions.'),
+    ),
+    'access redhen orgs' => array(
+      'title' => t('Access Redhen Organizations'),
+      'description' => t('View for Redhen Organizations.'),
+    ),
+    'access redhen org revisions' => array(
+      'title' => t('Access Redhen Organization Revisions'),
+      'description' => t('View for Redhen Organizations revisions'),
+    ),
+  );
+}
+
+/**
+ * Display an organization.
+ */
+function redhen_org_view(RedhenOrg $org, $view_mode = 'full', $langcode = NULL, $page = NULL) {
+  return entity_view('redhen_org', array($org), $view_mode, $langcode, $page);
+}
+
+/**
+ * Title callback for hook_menu().
+ *
+ * @param string $org
+ *   A loaded org object.
+ *
+ * @return string
+ *   Org title.
+ */
+function redhen_org_org_title(RedhenOrg $org) {
+  return $org->label();
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function redhen_org_field_extra_fields() {
+  $extra = array();
+
+  foreach (redhen_org_get_types() as $type => $org_type) {
+    $extra['redhen_org'][$type] = array(
+      'form' => array(
+        'name' => array(
+          'label' => t('Organization name'),
+          'description' => t('Organization name'),
+          'weight' => 0,
+        ),
+      ),
+      'display' => array(
+        'name' => array(
+          'label' => t('Name'),
+          'description' => t('Organization name.'),
+          'weight' => 0,
+        ),
+        'redhen_state' => array(
+          'label' => t('State'),
+          'description' => t('Organization state'),
+          'weight' => 0,
+        ),
+        'primary_contact' => array(
+          'label' => t('Primary Contact'),
+          'description' => t('Primary contact display'),
+          'weight' => 0,
+        ),
+      ),
+    );
+  }
+
+  return $extra;
+}
+
+/**
+ * Gets an array of all org types, keyed by the name.
+ *
+ * @param string $name
+ *   If set, the type with the given name is returned.
+ */
+function redhen_org_get_types($name = NULL) {
+  $types = entity_load_multiple_by_name('redhen_org_type', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
+}
+
+/**
+ * Return org types suitable for use in an options list.
+ *
+ * @return array
+ *   Associative array keyed by name with a label value.
+ */
+function redhen_org_type_options_list() {
+  $options = array();
+  foreach (redhen_org_get_types() as $type) {
+    $options[$type->name] = $type->label();
+  }
+
+  return $options;
+}
+
+/**
+ * Access callback for the entity API.
+ */
+function redhen_org_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer redhen_org types', $account);
+}
+
+/**
+ * Menu argument loader; Load an organization type by string.
+ *
+ * @param string $type
+ *   The machine-readable name of an organization type to load.
+ *
+ * @return array
+ *   An organization type array or FALSE if $type does not exist.
+ */
+function redhen_org_type_load($type) {
+  return redhen_org_get_types($type);
+}
+
+/**
+ * Saves a model type to the db.
+ */
+function redhen_org_type_save(RedhenOrgType $type) {
+  $type->save();
+}
+
+/**
+ * Deletes a model type from the db.
+ */
+function redhen_org_type_delete(RedhenOrgType $type) {
+  $type->delete();
+}
+
+/**
+ * Returns HTML for a list of available org types for org creation.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - content: An array of content types.
+ *
+ * @ingroup themeable
+ */
+function theme_redhen_org_add_list($variables) {
+  $content = $variables['content'];
+  $output = '';
+
+  if ($content) {
+    $output = '<dl class="node-type-list">';
+    foreach ($content as $item) {
+      $output .= '<dt>' . l($item['title'], $item['href'], $item['localized_options']) . '</dt>';
+      $output .= '<dd>' . filter_xss_admin($item['description']) . '</dd>';
+    }
+    $output .= '</dl>';
+  }
+  else {
+    $output = '<p>' . t('You have not created any organization types yet. Go to the <a href="@link">organization type creation page</a> to add a new RedHen organization type.',
+      array('@link' => url('admin/structure/redhen/org_types'))) . '</p>';
+  }
+  return $output;
+}
+
+/**
+ * Theme function for organization list.
+ *
+ * @param array $variables
+ *   Contains header and row arrays.
+ *
+ * @return string
+ *   Rendered markup.
+ */
+function theme_redhen_org_list($variables) {
+  $header = $variables['header'];
+  $rows = $variables['rows'];
+
+  $render['table'] = array(
+    '#theme' => 'table',
+    '#header' => $header,
+    '#rows' => $rows,
+    '#empty' => t('No organizations available.'),
+  );
+  $render['pager'] = array(
+    '#theme' => 'pager',
+  );
+
+  return render($render);
+}

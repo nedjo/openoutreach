@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * @file
+ * Tests for file_admin.module.
+ */
+
+/**
+ * Base class for all other tests.
+ */
+class FileAdminBaseTestCase extends DrupalWebTestCase {
+  protected $admin_user;
+
+  /**
+   * Implementation of setUp().
+   */
+  function setUp() {
+    // Enable a couple modules.
+    parent::setUp('file_admin');
+    menu_rebuild();
+
+    // Create an admin user with all the permissions needed to run tests.
+    $this->admin_user = $this->drupalCreateUser(array('create files', 'administer files'));
+    $this->drupalLogin($this->admin_user);
+  }
+}
+
+class FileAdminOptionsTestCase extends FileAdminBaseTestCase {
+  /**
+   * Implements getInfo().
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('File Admin Options Test'),
+      'description' => t('Test the options are present on forms.'),
+      'group' => t('File Admin'),
+    );
+  }
+
+  public function testOptionsPresent() {
+    $this->drupalGet('file/add');
+    $real_path = realpath('misc/druplicon.png');
+    $edit = array('files[upload]' => $real_path);
+    // Step 1: Upload file
+    $this->drupalPost('file/add', $edit, t('Upload'));
+    // Step 2: Submit file
+    $this->drupalPost(NULL, array(), 'Next');
+    // Step 3: Private/public
+    $this->drupalPost(NULL, array(), 'Next');
+    $this->assertText('Workflow', 'Workflow options were found');
+  }
+}

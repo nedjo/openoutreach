@@ -4,7 +4,11 @@
 ______________________________________________________________________________
 
 NAME:       Forward
-AUTHORS:    Sean Robertson <seanr@ngpsoftware.com>
+AUTHORS:    Drupal 7 version:
+            John Oltman <john.oltman@sitebasin.com>
+
+            Drupal 6 version:
+            Sean Robertson <seanr@ngpsoftware.com>
             Peter Feddo
 ______________________________________________________________________________
 
@@ -39,7 +43,7 @@ Step 4)
 
   If you wish to customize the emails, copy 'forward.tpl.php' into your theme
   directory. Then you can customize the function as needed and those changes
-  will only appear went sent by a user using that theme.
+  will only appear when sent by a user using that theme.
 
   If you check the 'custom display' box on the configuration page, the Forward
   view mode which defines the fields that will be sent in Forward emails can
@@ -81,25 +85,85 @@ Step 6)
 
 Step 7)
   If the Views module is enabled for your site, go to "admin/structure/views"
-  to optionally enable and configure Forward related views.  These views
-  are available:
-
-  forward_forwards - most popular nodes to forward
-  forward_recent - recently forwarded nodes or pages
-  forward_clickthroughs - forwarded nodes with most clicks from sent emails
+  to optionally enable and configure Forward related views:
+  
+  Most forwarded
+  Most recently forwarded
+  Most clickthroughs
 
 Step 8)
   Go to "admin/structure/block" to optionally enable and configure Forward
   blocks for your theme.  Several blocks are available:
 
-  Forward: Form - places the forward link or forward form in a block
+  Forward: Interface - places the forward link or forward form in a block
   Forward: Statistics - most recently emailed or most emailed of all time
 
   If you enabled views in step 7, these blocks are also available:
 
-  forward_forwards:Block - a Views list of most popular nodes to forward
-  forward_recent:Block - a Views list of recently forwarded nodes or pages
-  forward_clickthroughs:Block - a Views list of nodes with most clicks
+  View: Most forwarded
+  View: Most recently forwarded
+  View: Most clickthroughs
+
+
+SENDING FORWARD EMAILS AS HTML
+
+  By default, Forward will install a new mail system named ForwardMailSystem
+  that is configured to send email as HTML. If you installed a different
+  mail system module for sending emails, you should visit the Mail System
+  configuration page at "admin/config/system/mailsystem" to change the mail
+  system setup.  For example, if you installed the HTMLMail module, you could
+  change the default site wide mail system to HTMLMailSystem. The Mail System
+  module also allows you to use one mail system as a default but a different
+  mail system on a module by module basis.  This would allow you to use a
+  special mail handler for Forward emails while not affecting emails sent
+  from the rest of your site.
+
+ 
+THEMEING
+
+Sent email   - copy forward.tpl.php into your theme and modify
+Forward page - add yourtheme_forward_page($variables) to template.php
+Forward link - add yourtheme_forward_link($variables) to template.php
+
+Forward links generated using Panels, Display Suite or Views integration
+are fully themeable. Forward links generated into the node inline links
+render array are not directly themeable; to override these links you
+can write a preprocess_node function. However, the ability to provide
+a custom icon and any text for the links via the Forward configuration
+page should make this unnecessary for most use cases.
+
+
+TEMPLATES
+
+Forward links can be hardcoded into your theme templates as needed:
+
+print theme('forward_link', array('node' => $node)); // for nodes
+print theme('forward_link', array('path' => $path)); // for non-nodes
+
+However, the use of Display Suite or Panels is recommended instead of
+writing PHP code.
+
+  
+VIEWS INTEGRATION
+
+The Forward Log is now integrated with Views 3 for Drupal 7. You can create
+a view with log data including users who forwarded, the forwarded path, the
+data and time the forwarding occurred, and other information.
+
+You can also add a Forward link if you are using fields as the row style.
+
+
+DISPLAY SUITE INTEGRATION
+
+Forward link is now a field that is available within DS layouts.
+
+
+PANELS INTEGRATION
+
+Forward link is now available when adding content to a panel, both as a
+node field and also a widget. If your panel is working within a node context,
+such as when overriding a standard node view with a panel, use the node
+field instead of the widget.
 
 
 DYNAMIC BLOCK ACCESS CONTROL
@@ -138,10 +202,5 @@ tracking features and various other edits.  Thanks also to Nick White for his
 EmailPage module, some code from which was used in this module, as well as the
 numerous other users who have submitted issues and patches for forward.
 
-John Oltman of sitebasin.com assisted with development of the Drupal 7 version.
-
 All issues with this module should be reported via the following form:
 http://drupal.org/node/add/project_issue/forward
-
-______________________________________________________________________________
-http://www.ngpsystems.com

@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Profile2 i18n integration module via entity API i18n support.
+ *
+ * @see EntityDefaultI18nController
+ */
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function profile2_i18n_entity_info_alter(&$info) {
+  // Enable i18n support via the entity API.
+  $info['profile2_type']['i18n controller class'] = 'EntityDefaultI18nStringController';
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function profile2_i18n_entity_property_info_alter(&$info) {
+  // Mark some properties as translatable, but also denote that translation
+  // works with i18n_string.
+  foreach (array('label') as $name) {
+    $info['profile2_type']['properties'][$name]['translatable'] = TRUE;
+    $info['profile2_type']['properties'][$name]['i18n string'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_profile2_type_insert().
+ */
+function profile2_i18n_profile2_type_insert($profile_type) {
+  i18n_string_object_update('profile2_type', $profile_type);
+}
+
+/**
+ * Implements hook_profile2_type_update().
+ */
+function profile2_i18n_profile2_type_update($profile_type) {
+  // Account for name changes.
+  if ($profile_type->original->type != $profile_type->type) {
+    i18n_string_update_context("profile2:profile2_type:{$profile_type->original->type}:*", "profile2:profile2_type:{$profile_type->type}:*");
+  }
+  i18n_string_object_update('profile2_type', $profile_type);
+}
+
+/**
+ * Implements hook_profile2_type_delete().
+ */
+function profile2_i18n_profile2_type_delete($profile_type) {
+  i18n_string_object_remove('profile2_type', $profile_type);
+}

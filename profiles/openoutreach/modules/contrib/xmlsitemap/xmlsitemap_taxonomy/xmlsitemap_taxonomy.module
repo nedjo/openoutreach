@@ -50,7 +50,7 @@ function xmlsitemap_taxonomy_xmlsitemap_process_taxonomy_term_links(array $tids)
   $terms = taxonomy_term_load_multiple($tids);
   foreach ($terms as $term) {
     $link = xmlsitemap_taxonomy_create_link($term);
-    xmlsitemap_link_save($link);
+    xmlsitemap_link_save($link, array($link['type'] => $term));
   }
 }
 
@@ -107,7 +107,7 @@ function xmlsitemap_taxonomy_vocabulary_update(stdClass $vocabulary) {
  */
 function xmlsitemap_taxonomy_term_insert(stdClass $term) {
   $link = xmlsitemap_taxonomy_create_link($term);
-  xmlsitemap_link_save($link);
+  xmlsitemap_link_save($link, array($link['type'] => $term));
 }
 
 /**
@@ -115,7 +115,7 @@ function xmlsitemap_taxonomy_term_insert(stdClass $term) {
  */
 function xmlsitemap_taxonomy_term_update(stdClass $term) {
   $link = xmlsitemap_taxonomy_create_link($term);
-  xmlsitemap_link_save($link);
+  xmlsitemap_link_save($link, array($link['type'] => $term));
 }
 
 /**

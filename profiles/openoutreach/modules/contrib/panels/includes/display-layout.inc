@@ -125,6 +125,10 @@ function panels_choose_layout($form, &$form_state) {
     );
 
     foreach ($radios as $key => $choice) {
+      // Set the first available layout as default value.
+      if (empty($display->layout)) {
+        $display->layout = $key;
+      }
       // Generate the parents as the autogenerator does, so we will have a
       // unique id for each radio button.
       $form['layout'][$category][$key] = array(
@@ -176,16 +180,54 @@ function panels_choose_layout_submit($form, &$form_state) {
  *   The Drupal $form_state
  */
 function panels_change_layout($form, &$form_state) {
-  $display = &$form_state['display'];
+  // Provide a temporary display and renderer.
+  $form_state['layout_display'] = $display = panels_new_display();
+  if (isset($form_state['cache_key'])) {
+    $display->cache_key = $form_state['cache_key'];
+  }
 
   $new_layout = panels_get_layout($form_state['layout']);
-  $new_layout_panels = panels_get_regions($new_layout, $display);
+  $new_layout_regions = panels_get_regions($new_layout, $display);
 
-  $options = $new_layout_panels;
-  $keys = array_keys($options);
-  $default = current($options);
+  $old_layout = panels_get_layout($form_state['display']->layout);
+  $old_layout_regions = panels_get_regions($old_layout, $form_state['display']);
 
-  $old_layout = panels_get_layout($display->layout);
+  $display->layout = $form_state['layout'];
+  $renderer = panels_get_renderer_handler('editor', $display);
+
+  $renderer->meta_location = 'inline';
+
+  ctools_add_css('panels_admin', 'panels');
+  ctools_add_css('panels_dnd', 'panels');
+  ctools_add_css('dropdown');
+
+  // For every region that had content in the old layout, create a custom pane
+  // in the new layout that represents that region.
+  $keys = array_keys($new_layout_regions);
+  $default_region = reset($keys);
+  foreach ($old_layout_regions as $region_id => $region_name) {
+    if (!empty($form_state['display']->panels[$region_id])) {
+      $pane = panels_new_pane('custom', 'custom', TRUE);
+      $pane->pid = $region_id;
+      $pane->configuration['title'] = t('Panes');
+      $pane->configuration['admin_title'] = $region_name;
+      // Get a list of pane titles used.
+      $titles = array();
+      foreach ($form_state['display']->panels[$region_id] as $pid) {
+        $content_type = ctools_get_content_type($form_state['display']->content[$pid]->type);
+        $titles[$pid] = ctools_content_admin_title($content_type, $form_state['display']->content[$pid]->subtype, $form_state['display']->content[$pid]->configuration, $form_state['display']->context);
+      }
+      $pane->configuration['body'] = '<ul><li>' . implode('</li><li>', $titles) . '</li></ul>';
+
+      // If the region id matches, make it the same; otherwise, put it
+      // in the default region.
+      $pane->panel = empty($new_layout_regions[$region_id]) ? $default_region : $region_id;
+
+      // Add the pane to the approprate spots.
+      $display->content[$pane->pid] = $pane;
+      $display->panels[$pane->panel][] = $pane->pid;
+    }
+  }
 
   $form['container'] = array(
     '#prefix' => '<div class="change-layout-display clearfix">',
@@ -193,7 +235,7 @@ function panels_change_layout($form, &$form_state) {
   );
 
   $form['container']['old_layout'] = array(
-    '#markup' => panels_print_layout_icon($display->layout, $old_layout, check_plain($old_layout['title'])),
+    '#markup' => panels_print_layout_icon($form_state['display']->layout, $old_layout, check_plain($old_layout['title'])),
   );
 
   $form['container']['right_arrow'] = array(
@@ -203,29 +245,17 @@ function panels_change_layout($form, &$form_state) {
     '#markup' => panels_print_layout_icon($form_state['layout'], $new_layout, check_plain($new_layout['title'])),
   );
 
-  $form['old'] = array(
-    '#tree' => true,
-    '#prefix' => '<div class="panels-layout-list">',
-    '#suffix' => '</div>',
+  $edit_form_state = array(
+    'display' => $display,
+    'renderer' => $renderer,
+    'no buttons' => TRUE,
+    'no preview' => TRUE,
+    'no display settings' => TRUE,
+    'display_title' => '',
   );
 
-  $old_layout_panels = panels_get_regions($old_layout, $display);
-  if (empty($display->panels)) {
-    $form['old'] = array(
-      '#prefix' => '<div>',
-      '#markup' => t('There is no content in the panel display. If there were content, you would be given an opportunity to select where in the new layout the old content would be placed. Select "Save" or "Continue" to proceed. This change will not be processed if you do not continue.'),
-      '#suffix' => '</div>',
-    );
-  }
-
-  foreach ($display->panels as $id => $content) {
-    $form['old'][$id] = array(
-      '#type' => 'select',
-      '#title' => t('Move content in @layout to', array('@layout' => $old_layout_panels[$id])),
-      '#options' => $options,
-      '#default_value' => array_key_exists($id, $options) ? $id : $default,
-    );
-  }
+  ctools_include('display-edit', 'panels');
+  $form = panels_edit_display_form($form, $edit_form_state);
 
   if (empty($form_state['no buttons'])) {
     $form['back'] = array(
@@ -250,23 +280,44 @@ function panels_change_layout($form, &$form_state) {
  * This submit handler will move panes around and save the display.
  */
 function panels_change_layout_submit($form, &$form_state) {
-  $display = &$form_state['display'];
+  $display = $form_state['display'];
+  $layout_display = $form_state['layout_display'];
 
-  if (!empty($form_state['values']['old'])) {
-    foreach ($form_state['values']['old'] as $id => $new_id) {
-      if (isset($display->panels[$id])) {
-        if (!isset($content[$new_id])) {
-          $content[$new_id] = array();
+  $switch = array();
+
+  // Calculate the pids submitted by the display and make a list of
+  // translation to the regions. Remember the 'pid' of the pane
+  // is the region id in the old layout.
+  if (!empty($form_state['values']['panel']['pane'])) {
+    foreach ($form_state['values']['panel']['pane'] as $region_id => $panes) {
+      if ($panes) {
+        $pids = explode(',', $panes);
+        // need to filter the array, b/c passing it in a hidden field can generate trash
+        foreach (array_filter($pids) as $pid) {
+          $switch[$pid] = $region_id;
         }
-        $content[$new_id] = array_merge($content[$new_id], $display->panels[$id]);
-      }
-      foreach ($content[$new_id] as $pid) {
-        $display->content[$pid]->panel = $new_id;
       }
     }
-
-    $display->panels = $content;
   }
+
+  $content = array();
+  foreach ($switch as $region_id => $new_region_id) {
+    if (isset($display->panels[$region_id])) {
+      if (!isset($content[$new_region_id])) {
+        $content[$new_region_id] = array();
+      }
+      $content[$new_region_id] = array_merge($content[$new_region_id], $display->panels[$region_id]);
+    }
+  }
+
+  // Go through each pane and make sure its region id is correct.
+  foreach ($content as $region_id => $region) {
+    foreach ($region as $pid) {
+      $display->content[$pid]->panel = $region_id;
+    }
+  }
+
+  $display->panels = $content;
 
   $display->layout = $form_state['layout'];
 }

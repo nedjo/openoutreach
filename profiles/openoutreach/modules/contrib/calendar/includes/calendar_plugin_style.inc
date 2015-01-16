@@ -43,6 +43,7 @@ class calendar_plugin_style extends views_plugin_style {
     $options['groupby_times'] = array('default' => 'hour');
     $options['groupby_times_custom'] = array('default' => '');
     $options['groupby_field'] = array('default' => '');
+    $options['multiday_hidden'] = array('default' => array());
     return $options;
   }
 
@@ -82,7 +83,13 @@ class calendar_plugin_style extends views_plugin_style {
     $form['max_items'] = array(
       '#title' => t('Maximum items'),
       '#type' => 'select',
-      '#options' => array(0 => t('Unlimited'), 1 => t('1 item'), 3 => t('3 items'), 5 => t('5 items'), 10 => t('10 items')),
+      '#options' => array(
+         0 => t('Unlimited'),
+         1 => format_plural( 1, '1 item', '@count items'),
+         3 => format_plural( 3, '1 item', '@count items'),
+         5 => format_plural( 5, '1 item', '@count items'),
+        10 => format_plural(10, '1 item', '@count items'),
+      ),
       '#default_value' => $this->options['calendar_type'] != 'day' ? $this->options['max_items'] : 0,
       '#description' => t('Maximum number of items to show in calendar cells, used to keep the calendar from expanding to a huge size when there are lots of items in one day.'),
       '#dependency' => array('edit-style-options-calendar-type' => array('month')),
@@ -121,11 +128,9 @@ class calendar_plugin_style extends views_plugin_style {
 
     // Create a list of fields that are available for grouping,
     $field_options = array();
-    $i = 1;
     $fields = $this->display->handler->get_option('fields');
     foreach ($fields as $field_name => $field) {
-      $field_options[$i] = $field['field'];
-      $i++;
+      $field_options[$field_name] = $field['field'];
     }
     $form['groupby_field'] = array(
       '#title' => t('Field grouping'),
@@ -142,6 +147,14 @@ class calendar_plugin_style extends views_plugin_style {
       '#options' => array(0 => t('Display multi-day item as a single column'), 1 => t('Display multi-day item as a multiple column row')),
       '#description' => t('If selected, items which span multiple days will displayed as a multi-column row.  If not selected, items will be displayed as an individual column.'),
       '#dependency' => array('edit-style-options-calendar-type' => array('month', 'week')),
+      );
+    $form['multiday_hidden'] = array(
+      '#title' => t('Fields to hide in Multi-day rows'),
+      '#default_value' => $this->options['multiday_hidden'],
+      '#type' => 'checkboxes',
+      '#options' => $field_options,
+      '#description' => t('Choose fields to hide when displayed in multi-day rows. Usually you only want to see the title or Colorbox selector in multi-day rows and would hide all other fields.'),
+      '#dependency' => array('edit-style-options-calendar-type' => array('month', 'week', 'day')),
       );
   }
 
@@ -160,6 +173,10 @@ class calendar_plugin_style extends views_plugin_style {
       form_set_value($form['groupby_times_custom'], NULL, $form_state);
     }
 
+  }
+
+  function options_submit(&$form, &$form_state, &$options = array()) {
+    $form_state['values']['style_options']['multiday_hidden'] = array_filter($form_state['values']['style_options']['multiday_hidden']);
   }
 
   /**
@@ -276,31 +293,23 @@ class calendar_plugin_style extends views_plugin_style {
     date_timezone_set($date, $display_timezone);
     $this->date_info->max_zone_string = date_format($date, DATE_FORMAT_DATE);
 
-    // Identify the fields that need to be displayed on each item.
-    $keys = array();
-    foreach ($this->view->field as $key => $handler) {
-      if (empty($handler->options['exclude'])) {
-        $keys[] = $key;
-      }
-    }
+    // Let views render fields the way it thinks they should look before we start massaging them.
+    $this->render_fields($this->view->result);
 
     // Invoke the row plugin to massage each result row into calendar items.
     // Gather the row items into an array grouped by date and time.
     $items = array();
     foreach ($this->view->result as $row_index => $row) {
       $this->view->row_index = $row_index;
-      foreach ($this->row_plugin->render($row) as $item) {
+      $rows = $this->row_plugin->render($row);
+      foreach ($rows as $key => $item) {
         $item->granularity = $this->date_info->granularity;
         $rendered_fields = array();
         $item_start = date_format($item->calendar_start_date, DATE_FORMAT_DATE);
         $item_end = date_format($item->calendar_end_date, DATE_FORMAT_DATE);
         $time_start = date_format($item->calendar_start_date, 'H:i:s');
-        foreach ($keys as $field) {
-          $rendered_fields[] = $this->get_field($row_index, $field);
-        }
-        $item->rendered_fields = $rendered_fields;
+        $item->rendered_fields = $this->rendered_fields[$row_index];
         $items[$item_start][$time_start][] = $item;
-        $this->view->row_index++;
       }
     }
 
@@ -361,6 +370,7 @@ class calendar_plugin_style extends views_plugin_style {
    * Build one month.
    */
   function calendar_build_month() {
+    $translated_days = date_week_days_ordered(date_week_days(TRUE));
     $month = date_format($this->curday, 'n');
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
     $weekdays = calendar_untranslated_days($this->items, $this->view);
@@ -391,8 +401,9 @@ class calendar_plugin_style extends views_plugin_style {
         // If we're displaying the week number, add it as the
         // first cell in the week.
         if ($i == 0 && !empty($this->date_info->style_with_weekno) && !in_array($this->date_info->granularity, array('day', 'week'))) {
-          $url = $this->view->get_path() . '/' . $this->date_info->year . '-W' . $week;
-          if (!empty($this->date_info->display_types['week'])) {
+          $path = calendar_granularity_path($this->view, 'week');
+          if (!empty($path)) {
+            $url = $path . '/' . $this->date_info->year . '-W' . $week;
             $weekno = l($week, $url, array('query' => !empty($this->date_info->append) ? $this->date_info->append : ''));
           }
           else {
@@ -404,7 +415,7 @@ class calendar_plugin_style extends views_plugin_style {
             'colspan' => 1,
             'rowspan' => $total_rows + 1,
             'id' => $this->view->name . '-weekno-' . $curday_date,
-            'class' => 'week'
+            'class' => 'week',
           );
           $inner .= theme('calendar_month_col', array('item' => $item));
         }
@@ -436,7 +447,9 @@ class calendar_plugin_style extends views_plugin_style {
               'rowspan' => 1,
               'class' => 'date-box',
               'date' => $curday_date,
-              'id' => $this->view->name . '-' . $curday_date . '-date-box'
+              'id' => $this->view->name . '-' . $curday_date . '-date-box',
+              'header_id' => $translated_days[$wday],
+              'day_of_month' => $this->curday->format('j'),
             );
             $item['class'] .= ($curday_date == $today && $in_month ? ' today' : '') .
               ($curday_date < $today ? ' past' : '') .
@@ -519,7 +532,9 @@ class calendar_plugin_style extends views_plugin_style {
                 'rowspan' => $rowspan,
                 'class' => $class,
                 'date' => $curday_date,
-                'id' => $this->view->name . '-' . $curday_date . '-' . $index
+                'id' => $this->view->name . '-' . $curday_date . '-' . $index,
+                'header_id' => $translated_days[$wday],
+                'day_of_month' => $this->curday->format('j'),
               );
 
               // Hack for ie to help it properly space single day rows
@@ -728,6 +743,7 @@ class calendar_plugin_style extends views_plugin_style {
                   // Add continuation attributes
                   $item->continuation =  ($item->date_start < $this->curday);
                   $item->continues = ( $days > $bucket_cnt );
+                  $item->is_multi_day = TRUE;
 
                   // Assign the item to the available bucket
                   $multiday_buckets[$wday][$bucket_index] = array(
@@ -831,6 +847,7 @@ class calendar_plugin_style extends views_plugin_style {
             }
             if (empty($this->date_info->mini) && ($max_events == CALENDAR_SHOW_ALL || $count <= $max_events || ($count > 0 && $max_events == CALENDAR_HIDE_ALL))) {
               if ($item->calendar_all_day) {
+                $item->is_multi_day = TRUE;
                 $all_day[] = $item;
               }
               else {
@@ -908,6 +925,23 @@ class calendar_plugin_style extends views_plugin_style {
     $day_wday = date_format($this->curday, 'w');
     date_modify($this->curday, '-' . strval((7 + $day_wday - $first_day) % 7) . ' days');
     $curday_date = date_format($this->curday, DATE_FORMAT_DATE);
+
+    if (!empty($this->date_info->style_with_weekno)) {
+      $path = calendar_granularity_path($this->view, 'week');
+      if (!empty($path)) {
+        $url = $path . '/' . $this->date_info->year . '-W' . $week;
+        $weekno = l($week, $url, array('query' => !empty($this->date_info->append) ? $this->date_info->append : ''));
+      }
+      else {
+        // Do not link week numbers, if Week views are disabled.
+        $weekno = $week;
+      }
+      $rows[$week][] = array(
+        'data' => $weekno,
+        'class' => 'mini week',
+        'id' => $this->view->name . '-weekno-' . $curday_date,
+      );
+    }
 
     for ($i = 0; $i < 7; $i++) {
       $curday_date = date_format($this->curday, DATE_FORMAT_DATE);

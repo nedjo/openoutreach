@@ -52,7 +52,7 @@ abstract class DateFieldBasic extends DrupalWebTestCase {
     $repeat = !empty($repeat) ? $repeat : 0;
     $todate = !empty($todate) ? $todate : 'optional';
     $widget_type = !empty($widget_type) ? $widget_type : 'date_select';
-    $tz_handling = !empty($tz_handing) ? $tz_handling : 'site';
+    $tz_handling = !empty($tz_handling) ? $tz_handling : 'site';
     $granularity = !empty($granularity) ? $granularity : array('year', 'month', 'day', 'hour', 'minute');
     $year_range = !empty($year_range) ? $year_range : '2010:+1';
     $input_format = !empty($input_format) ? $input_format : date_default_format($widget_type);

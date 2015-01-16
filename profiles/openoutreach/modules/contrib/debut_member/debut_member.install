@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut_member. Includes creation of tags vocabulary.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function debut_member_install() {
+  // Set content_access view permissions for the member_page content type.
+  // While these roles will be created by Features, they will not be available
+  // yet when hook_install() is run, so we need to test for and create them
+  // here.
+  $roles = array();
+  foreach (array('member', 'membership administrator') as $name) {
+    // If there isn't an existing role by this name, create one.
+    if (!$role = user_role_load_by_name($name)) {
+      $role = new stdClass();
+      $role->name = $name;
+      user_role_save($role);
+    }
+    $roles[] = $role->rid;
+  }
+
+  // Don't create an administrator role, but use one if it exists.
+  if ($admin_role = user_role_load_by_name('administrator')) {
+    $roles[] = $admin_role->rid;
+  }
+
+  // Set only the 'view' and 'view_own' access. Other access will be managed by
+  // regular user permissions.
+  $settings = array(
+    'view' => $roles,
+    'view_own' => $roles,
+  );
+
+  variable_set('content_access_member_page', $settings);
+}
+
+/**
+ * Implements hook_enable().
+ */
+function debut_member_enable() {
+  // Rebuild the features static caches.
+  features_include(TRUE);
+
+  $module = 'debut_member';
+  $feature = feature_load($module);
+  // Retain the order of component types, which is needed for example to ensure
+  // that user roles are created ahead of user permissions that reference them.
+  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
+  _features_restore('enable', $items);
+  _features_restore('rebuild', $items);
+}
+
+/**
+ * Enable the Apps compatible module.
+ */
+function debut_member_update_7000() {
+  if (!module_exists('apps_compatible') && !module_enable(array('apps_compatible'))) {
+    throw new Exception('This version of Debut Member requires the Apps compatible module but it could not be enabled.');
+  }
+}
+

@@ -1,0 +1,75 @@
+header#header div#branding {
+  float: none;
+  margin: auto;
+  text-align: center; 
+}
+header#header div.region-header {
+  display: table;
+  float: none;
+  margin: 15px auto 0;
+  text-align: center;
+  width: auto;
+}
+header#header div.region-header .block {
+  clear: none;
+  display: inline;
+  margin: auto;
+  padding: 0 0 15px !important;
+  text-align: left;
+  width: auto;
+}
+header#header div.region-header .block-inner {
+  margin: 0 20px;
+}
+header#header div#logo,
+header#header h1#site-name,
+header#header h2#site-slogan {
+  float: none;
+  margin: 0;
+  padding: 0 0 6px;
+  text-align: center;
+}
+.hl-r #logo {
+  padding: 0 3px 7px 10px;
+}
+.hl-l #logo {
+  padding: 0 10px 7px 3px;
+}
+#site-name {
+  font-size: 1.8em;
+}
+#secondary-content-wrapper .block-content-inner  .image-right,
+#secondary-content-wrapper .block-content-inner  .image-left,
+#secondary-content-wrapper .block-content-inner  .field-type-image,
+#secondary-content-wrapper .block-content-inner  figure  {
+  max-width: 50%;
+}
+#secondary-content-wrapper .block-content-inner img {
+  max-width: 100%;
+}
+.flexslider ul.flex-direction-nav {
+  top: 25% !important;
+}
+/* Force tableviews-view-grid to not be like a table anymore */
+table.views-view-grid,
+table.views-view-grid thead,
+table.views-view-grid tbody,
+table.views-view-grid th,
+table.views-view-grid td,
+table.views-view-grid tr {
+  display: block;
+  padding: 0;
+}
+/* Hide table headers */
+table.views-view-grid thead tr {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+.views-view-grid td {
+  float: left;
+}
+.views-view-grid .field-type-image img {
+  padding-left: 0;
+  padding-right: 0;
+}

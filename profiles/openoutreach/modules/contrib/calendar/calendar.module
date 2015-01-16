@@ -1,6 +1,7 @@
 <?php
 define('CALENDAR_SHOW_ALL', 0);
 define('CALENDAR_HIDE_ALL', -1);
+define('CALENDAR_EMPTY_STRIPE', '#ffffff');
 
 /**
  * @file
@@ -14,16 +15,10 @@ function calendar_menu() {
   $items['admin/config/date/calendar'] = array(
     'title' => 'Calendar',
     'description' => 'Calendar administration.',
-    'page callback' => 'calendar_admin',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('calendar_admin_settings'),
     'access callback' => 'user_access',
     'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/config/date/calendar/remove'] = array(
-    'title'    => 'Remove calendar',
-    'access arguments'   => array('administer views'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('calendar_remove_form', 4),
-    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -31,85 +26,35 @@ function calendar_menu() {
 /**
  * General Calendar administration.
  */
-function calendar_admin() {
-
-  $content = '<h2>Calendar Administration</h2>';
-  $content .= t('This is the future home for calendar administration tasks.');
-
-  $calendar_options = variable_get('calendar_default_view_options', array());
-
-  if (!empty($calendar_options)) {
-    $content .= t('<h2>Deleting Calendars</h2>Calendars that were created using older versions of the !date_wizard cannot be deleted in the Views listing. You can delete them using the links below. The newer version of the Date Wizard creates views from templates that can be deleted normally.', array('!date_wizard' => l(t('Date wizard'), 'admin/config/date/tools/date_wizard')));
-
-    $calendars = array();
-    $node_types = node_type_get_names();
-    foreach ($calendar_options as $key => $option) {
-      $bundle = str_replace(array('calendar_', 'cal_'), '', $key);
-      if (array_key_exists($bundle, $node_types)) {
-        $type = $node_types[$bundle];
-        $calendars[] = array(
-          l($type, 'admin/structure/types/manage/' . $bundle . '/fields'),
-          l($key, 'admin/structure/views/edit/' . $key),
-          t('The calendar %view is a default calendar created for the content type %bundle. ', array('%view' => $key, '%bundle' => $type)),
-          l(t('remove !view', array('!view' => $key)), 'admin/structure/date/remove/' . $key),
-        );
-      }
-      else {
-        // Do some cleanup while we're here if we have default calendars
-        // for non-existent content types.
-        calendar_remove($bundle);
-      }
-    }
-    if (!empty($calendars)) {
-      $header = array(t('Content Type'), t('Calendar'), t('Description'), t('Operations'));
-      $content .= theme('table', array('header' => $header, 'rows' => $calendars));
-    }
-
-  }
-  return $content;
-}
-
-/**
- * Form constructor for the date field removal form.
- *
- * Path: admin/config/date/tools/remove
- *
- * @see date_tools_remove_form_submit()
- */
-function calendar_remove_form($form, &$form_state, $view_name) {
+function calendar_admin_settings() {
   $form = array();
-  $form['view_name'] = array(
-    '#type' => 'value',
-    '#value' => $view_name,
-  );
-  $output = confirm_form($form,
-    t('Are you sure you want to remove the view %view?', array('%view' => $view_name)),
-    'admin/config/date/calendar',
-    t('This action cannot be undone.'),
-    t('Remove'), t('Cancel')
-  );
 
-  return $output;
-}
+  $form['#prefix']  = '<h2>Calendar Administration</h2>';
 
-/**
- * Form submission handler for date_tools_remove_form().
- */
-function calendar_remove_form_submit($form, &$form_state) {
-  $form_values = $form_state['values'];
-  $view_name = $form_values['view_name'];
-  if ($view_name && $form_values['confirm']) {
-    calendar_remove($view_name);
-    drupal_set_message(t('Removed calendar %calendar.', array('%calendar' => $view_name)));
-  }
-  $form_state['redirect'] = 'admin/config/date';
+  $form['calendar_track_date'] = array(
+    '#title' => t('Track current date in session'),
+    '#type' => 'radios',
+    '#options' => array(0 => t("Never"), 1 => t('For authenticated users'), 2 => t('For all users')),
+    '#default_value' => variable_get('calendar_track_date', 0),
+    '#description' => t("Store session information about the user's current date as they move back and forth through the calendar. Without this setting users will revert to the current day each time they choose a new calendar period (year, month, week, or day). With this option set they will move to a day that conforms to the time period they were viewing before they switched. Requires session tracking which is not ordinarily enabled for anonymous users."),
+    );
+
+  $form['calendar_add_colorbox'] = array(
+    '#title' => t('Add Colorbox settings to Node calendar templates'),
+    '#default_value' => variable_get('calendar_add_colorbox'),
+    '#type' => 'radios',
+    '#options' => array(0 => t('No'), 1 => t('Yes')),
+    '#description' => t('To try the Colorbox settings, choose the option to add Colorbox settings to the calendar templates. Install and enable the Colorbox module, following the instructions on the Colorbox project page, then create a new calendar from a template using any date field in the Node base table. The calendar will be set up to display the calendar items in a Colorbox.'),
+    );
+
+  return system_settings_form($form);
 }
 
 /**
  * Implements hook_preprocess_date_views_pager().
  *
  * Creates a calendar_links array which is stored in the session and used
- * in calendar_menu_local_tasks_alter() to display the links as action items and dynamic tabs.
+ * in calendar_menu_local_tasks_alter() to display the links as action items.
  * The links can be altered or deleted using hook_calendar_links_alter().
  *
  */
@@ -121,37 +66,20 @@ function calendar_preprocess_date_views_pager(&$vars) {
     return;
   }
 
-  $options = $view->style_options;
-  $pager_format = $view->date_info->date_pager_format;
-
   // If we're not on a view with a path (a page), no links are needed.
   $current_path = !empty($view->display_handler->options['path']) ? $view->display_handler->options['path'] : '';
   if (empty($current_path)) {
     return;
   }
 
-  // Find all the displays in this view that use the calendar style and have a path and create links to each.
-  $calendar_links[$current_path] = array();
-  $base = array('attributes' => array('rel' => 'nofollow'));
-  foreach ($view->display as $id => $display) {
-    // Check for !empty() in case the view is not fully formed or has displays that are marked to be deleted.
-    if (!empty($display->deleted) || empty($display->display_options['style_plugin']) || (isset($display->display_options['enabled']) && $display->display_options['enabled'] == FALSE)) {
-      continue;
-    }
-    if ($display->display_plugin != 'feed' && !empty($display->display_options['path'])) {
-      //$path = $display->display_options['path'];
-      $title = $display->display_title;
-      foreach ($display->display_options['arguments'] as $name => $argument) {
-        if (!empty($argument['granularity'])) {
-          $type = $argument['granularity'];
-        }
-      }
-
-      //$type = !empty($display->display_options['style_options']['calendar_type']) ? $display->display_options['style_options']['calendar_type'] : '';
-      $path = calendar_granularity_path($view, $type);
-      $calendar_links[$current_path]['tabs'][$type] = array('title' => $title, 'path' => $path);
-      $calendar_links[$current_path]['types'][] = $type;
-    }
+  // If this display has been set up as a default tab, the current path
+  // is actually the base path, i.e. if the path is 'calendar/month'
+  // and this is a default tab, the path for this display will actually
+  // be 'calendar'.
+  if ($view->display_handler->options['menu']['type'] == 'default tab') {
+    $parts = explode('/', $current_path);
+    array_pop($parts);
+    $current_path = implode('/', $parts);
   }
 
   // If an 'Add new ... link is provided, add it here.
@@ -165,9 +93,62 @@ function calendar_preprocess_date_views_pager(&$vars) {
   // Pass this through drupal_alter() so it can be adjusted in custom code or in the theme.
   drupal_alter('calendar_links', $calendar_links);
 
-  // Add the value to the session so it can be used to create the tabs.
+  // Add the value to the session so it can be used to create the action links.
   if (!empty($calendar_links[$current_path])) {
     $_SESSION['calendar_links'][$current_path] = $calendar_links[$current_path];
+  }
+}
+
+/**
+ * Implements hook_date_default_argument_alter().
+ *
+ * Adjust the default date for a view based on the stored session value.
+ */
+function calendar_date_default_argument_alter(&$argument, &$value) {
+  global $user;
+  $style_options = $argument->view->display_handler->get_option('style_options');
+  $tracking = variable_get('calendar_track_date', 0);
+  if (!empty($tracking) && ($tracking == 2 || !empty($user->uid))) {
+
+    // If this is a default date, i.e. we are visiting a new calendar display,
+    // set the default date for the display. See if we already have a session
+    // date to use. If so, use it. Otherwise the default is the current date.
+    if (!empty($_SESSION[$argument->view->name]['default_date'])) {
+      $default_date = $_SESSION[$argument->view->name]['default_date'];
+    }
+    else {
+      $default_date = date_now();
+      $_SESSION[$argument->view->name]['default_date'] = $default_date;
+    }
+    // Get the current date from the session.
+    $value = $default_date->format($argument->arg_format);
+  }
+}
+
+/**
+ * Implements hook_views_pre_render().
+ *
+ * Track the current date as the user moves from calendar display to calendar display.
+ */
+function calendar_views_pre_render(&$view) {
+  global $user;
+
+  $style_options = $view->display_handler->get_option('style_options');
+  $tracking = variable_get('calendar_track_date', 0);
+  if (!empty($tracking) && ($tracking == 2 || !empty($user->uid))) {
+    foreach ($view->argument as $id => &$argument) {
+
+      // If this is not a default date, i.e. we have browsed to a new calendar
+      // period on a display we were already on, store the midpoint of the current
+      // view as the current date in a session.
+      if (date_views_handler_is_date($argument, 'argument') && empty($argument->is_default)) {
+        $date_range = $argument->date_handler->arg_range($argument->argument);
+        $session_date = $date_range[0];
+        $days = intval(($date_range[1]->format('U') - $date_range[0]->format('U')) / 3600 / 24 / 2);
+        date_modify($session_date, "+$days days");
+        $_SESSION[$view->name]['default_date'] = $session_date;
+      }
+    }
   }
 }
 
@@ -175,12 +156,8 @@ function calendar_preprocess_date_views_pager(&$vars) {
  * Implements hook_menu_local_tasks_alter().
  *
  * Takes the calendar links created in calendar_preprocess_date_views_pager()
- * and reconfigures them as action items and tabs. The links can be altered
+ * and reconfigures them as action items. The links can be altered
  * before they are displayed using hook_calendar_links_alter().
- *
- * We do this with an alter rather than in hook_menu() because the
- * specific path we want to go to will vary depending on the page we
- * are looking at at the time.
  */
 function calendar_menu_local_tasks_alter(&$data, $router_item, $root_path) {
   if (!empty($_SESSION['calendar_links']) && array_key_exists($root_path, $_SESSION['calendar_links'])) {
@@ -192,6 +169,9 @@ function calendar_menu_local_tasks_alter(&$data, $router_item, $root_path) {
         // The add new content page would redirect to the new event
         // if we did not override that here. This way they will
         // redirect back to the calendar.
+	if (!isset($item['localized_options'])) {
+          $item['localized_options'] = array();
+        }
         $item['localized_options'] += array('query' => array());
         $item['localized_options']['query'] += drupal_get_destination();
         if (array_key_exists('access', $item) && $item['access']) {
@@ -200,48 +180,6 @@ function calendar_menu_local_tasks_alter(&$data, $router_item, $root_path) {
             '#link' => $item,
           );
         }
-      }
-    }
-    if (!empty($calendar_data['tabs'])) {
-      $delta = !empty($data['tabs'][0]['count']) ? $data['tabs'][0]['count'] - 1 : 0;
-      foreach ($calendar_data['tabs'] as $tab) {
-        $clean_path = str_replace('?q=', '', $tab['path']);
-        $item = menu_get_item($clean_path);
-        if (!empty($item)) {
-          $item['title'] = $tab['title'];
-          // If we have moved off the default page for the calendar, the
-          // links to the other views will have been adjusted to keep information
-          // about the right year/month/week/day to go to.
-          $item['href'] = $clean_path;
-          if (array_key_exists('access', $item) && $item['access']) {
-            $data['tabs'][0]['output'][$delta] = array(
-              '#theme' => 'menu_local_task',
-              '#link' => $item,
-            );
-            $path_parts = explode('/', $root_path);
-            if (in_array('%', $path_parts)) {
-              $clean_parts = explode('/', $clean_path);
-              $count = count($clean_parts);
-              $match = TRUE;
-              foreach ($path_parts as $key => $part) {
-                if (empty($clean_parts[$key])) {
-                  $match = FALSE;
-                }
-                elseif ($part != '%' &&  $part != $clean_parts[$key]) {
-                  $match = FALSE;
-                }
-              }
-              if ($match) {
-                $data['tabs'][0]['output'][$delta]['#active'] = TRUE;
-              }
-            }
-            elseif (strpos($clean_path, $root_path) === 0) {
-              $data['tabs'][0]['output'][$delta]['#active'] = TRUE;
-            }
-            $delta++;
-          }
-        }
-        $data['tabs'][0]['count'] = $delta + 1;
       }
     }
   }
@@ -299,7 +237,7 @@ function calendar_theme() {
       'variables' => array('curday' => NULL, 'view' => NULL),
       ),
     'calendar_stripe_legend' => $base + array(
-      'variables' => array('stripe_labels' => NULL),
+      'variables' => array('view' => NULL),
       ),
     'calendar_stripe_stripe' => $base + array(
       'variables' => array('node' => NULL),
@@ -403,6 +341,12 @@ function calendar_clear_link_path($path = NULL) {
       variable_del($row['name']);
     }
   }
+  if (isset($_SESSION['calendar_links'][$path]['actions'])) {
+    unset($_SESSION['calendar_links'][$path]['actions']);
+    if (empty($_SESSION['calendar_links'][$path])) {
+      unset($_SESSION['calendar_links'][$path]);
+    }
+  }
 }
 
 /**
@@ -417,18 +361,19 @@ function calendar_week_header($view) {
 
   // create week header
   $untranslated_days = calendar_untranslated_days();
+  $full_translated_days = date_week_days_ordered(date_week_days(TRUE));
   if ($len == 99) {
-    $translated_days = date_week_days_ordered(date_week_days(TRUE));
+    $translated_days = $full_translated_days;
   }
   else {
     $translated_days = date_week_days_ordered(date_week_days_abbr(TRUE));
   }
   if ($with_week) {
-    $row[] = array('header' => TRUE, 'class' => "days week", 'data' => '&nbsp;');
+    $row[] = array('header' => TRUE, 'class' => "days week", 'data' => '&nbsp;', 'header_id' => 'Week');
   }
   foreach ($untranslated_days as $delta => $day) {
     $label = $len < 3 ? drupal_substr($translated_days[$delta], 0 , $len) : $translated_days[$delta];
-    $row[] = array('header' => TRUE, 'class' => "days " . $day, 'data' => $label);
+    $row[] = array('header' => TRUE, 'class' => "days " . $day, 'data' => $label, 'header_id' => $full_translated_days[$delta]);
   }
   return $row;
 }
@@ -470,15 +415,58 @@ function calendar_groupby_times($type = '') {
   return $times;
 }
 
+function calendar_list_views() {
+  $calendar_views = array();
+  $views = views_get_enabled_views();
+  foreach ($views as $view) {
+    $displays = array();
+    $view->init_display();   // Make sure all the handlers are set up
+    foreach ($view->display as $display_id => $display) {
+      if ($display_id != 'default' && !empty($display->display_options['style_plugin']) && $display->display_options['style_plugin'] == 'calendar_style') {
+        $index = $view->name . ':' . $display_id;
+        $calendar_views[$index] = ucfirst($view->name) . ' ' . strtolower($view->display[$display_id]->display_title) . ' [' . $view->name . ':' . $display_id . ']';
+      }
+    }
+  }
+  return $calendar_views;
+}
+
 /**
  *  Implementation of hook_block_info()
  */
 function calendar_block_info() {
   $blocks['calendar_legend'] = array(
     'info' => t('Calendar Legend'),
-    'cache' => DRUPAL_NO_CACHE,
   );
   return $blocks;
+}
+
+/**
+ * Implementation of hook_block_configure().
+ */
+function calendar_block_configure($delta = '') {
+  switch ($delta) {
+    case 'calendar_legend':
+    $options = calendar_list_views();
+    $form['calendar_legend_view'] = array(
+      '#type' => 'select',
+      '#title' => t('Legend View'),
+      '#description' => t('Choose the view display that contains the settings for the stripes that should be displayed in a legend in this block. Note that if you change the stripe values in that view you will need to clear the cache to pick up the new values in this block.'),
+      '#default_value' => variable_get('calendar_legend_view_' . $delta, ''),
+      '#options' => $options,
+    );
+    return $form;
+  }
+}
+
+/**
+ * Implementation of hook_block_save().
+ */
+function calendar_block_save($delta, $edit = array()) {
+  if ($delta == 'calendar_legend') {
+    variable_set('calendar_legend_view_' . $delta, $edit['calendar_legend_view']);
+    drupal_set_message(t('The view for the calendar legend has been set.'));
+  }
 }
 
 /**
@@ -487,10 +475,12 @@ function calendar_block_info() {
 function calendar_block_view($delta = '') {
   switch ($delta) {
     case 'calendar_legend':
+      // Create the content before returning the block
+      // so empty content won't still create the block.
+      $view = variable_get('calendar_legend_view_' . $delta, '');
+      $content = theme('calendar_stripe_legend', array('view' => $view));
       $block['subject'] = t('Calendar Legend');
-      $block['content'] = array(
-        '#theme' => 'calendar_stripe_legend',
-      );
+      $block['content'] = $content;
       return $block;
   }
 }
@@ -508,7 +498,10 @@ function calendar_granularity_path(&$view, $granularity) {
         continue;
       }
 
-      if ($display->display_plugin != 'feed' && !empty($display->display_options['path'])) {
+      if ($display->display_plugin != 'feed' && !empty($display->display_options['path']) && !empty($display->display_options['arguments'])) {
+
+        // Set to the default value, reset below if another value is found.
+        $type = 'month';
         foreach ($display->display_options['arguments'] as $name => $argument) {
           if (!empty($argument['granularity'])) {
             $type = $argument['granularity'];
@@ -534,23 +527,6 @@ function calendar_granularity_path(&$view, $granularity) {
     }
   }
   return $paths[$view->name][$granularity];
-}
-
-/**
- * Callback to remove a default calendar from the system.
- */
-function calendar_remove($view_name) {
-  // Remove any variable that creates a default view with this name.
-  $calendar_options = variable_get('calendar_default_view_options', array());
-  if (array_key_exists($view_name, $calendar_options)) {
-    unset($calendar_options[$view_name]);
-  }
-  variable_set('calendar_default_view_options', $calendar_options);
-  // Delete it from the database, if stored there.
-  if ($view = views_get_view($view_name)) {
-    $view->delete();
-  }
-  views_invalidate_cache();
 }
 
 /**

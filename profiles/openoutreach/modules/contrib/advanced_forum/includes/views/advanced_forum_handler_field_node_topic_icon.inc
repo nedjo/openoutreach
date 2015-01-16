@@ -39,10 +39,10 @@
     $new_posts = advanced_forum_reply_num_new($values->nid);
     return theme('forum_icon', array(
       'new_posts' => $new_posts,
-      // fixes notice when statistics module is enabled.
-      'num_posts' => empty($values->node_counter_totalcount) ? 0 : $values->node_counter_totalcount,
+      'num_posts' => empty($values->node_comment_statistics_comment_count) ? 1 : $values->node_comment_statistics_comment_count + 1,
       'comment_mode' => $values->node_comment,
-      'sticky' => $values->node_sticky
+      'sticky' => $values->node_sticky,
+      'node_type' => $values->node_type,
     ));
   }
 }

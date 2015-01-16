@@ -13,6 +13,7 @@ function panels_views_plugins() {
         'path' => drupal_get_path('module', 'panels') . '/plugins/views',
         'theme' => 'views_view_fields',
         'theme path' => drupal_get_path('module', 'views') . '/theme',
+        'register theme' => FALSE,
         'uses fields' => TRUE,
         'uses options' => TRUE,
         'type' => 'normal',

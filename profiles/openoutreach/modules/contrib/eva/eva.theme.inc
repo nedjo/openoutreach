@@ -12,3 +12,7 @@ function template_preprocess_eva_display_entity_view(&$vars) {
   $vars['title'] = $display->get_option('show_title') ? filter_xss_admin($view->get_title()) : '';
 }
 
+function template_process_eva_display_entity_view(&$vars) {
+  template_process_views_view($vars);
+}
+

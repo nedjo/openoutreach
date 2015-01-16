@@ -29,6 +29,7 @@ function debut_wysiwyg_wysiwyg_default_profiles() {
           'NumberedList' => 1,
           'Link' => 1,
           'Unlink' => 1,
+          'Image' => 1,
           'Format' => 1,
         ),
         'drupal' => array(
@@ -75,6 +76,7 @@ function debut_wysiwyg_wysiwyg_default_profiles() {
           'Indent' => 1,
           'Link' => 1,
           'Unlink' => 1,
+          'Image' => 1,
           'PasteText' => 1,
           'Format' => 1,
           'Table' => 1,

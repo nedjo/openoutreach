@@ -1,0 +1,9 @@
+"title","promote","path","image","image_title","image_alt","tags","body","address_country","address_street","address_city","address_province_state","longitude","latitude","wkt","location_type","location_region"
+"Montreal",0,,,,,,,"CA",,,,-73.58,45.5,,"City",
+"Portland",0,,,,,,,"US",,,,-122.676,45.5183,,"City",
+"Amsterdam",0,,,,,,,"NL",,,,4.88969,52.37403,,"City",
+"Tokyo",0,,,,,,,"JP",,,,139.7333,35.6833,,"City",
+"Trinidad",0,,,,,,,"CU",,,,-79.9844,21.8031,,"UNESCO World Heritage Site",
+"Quito",0,,,,,,,"EC",,,,-78.483,-0.133,,"UNESCO World Heritage Site",
+"Stonehenge",0,,,,,,,"GB",,,,-1.8253,51.1789,,"UNESCO World Heritage Site",
+"Robben Island",0,,,,,,,"ZA",,,,18.3667,-33.8,,"UNESCO World Heritage Site",

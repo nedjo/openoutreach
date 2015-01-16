@@ -1,0 +1,41 @@
+/* AT */
+/* color_scheme_form */
+#color_scheme_form h2,
+#color_scheme_form #preview {
+  display: none;
+}
+
+#preview {
+  overflow: hidden;
+  max-width: 100%;
+}
+#preview, #preview #img {
+  height: 270px;
+  width: 593px;
+}
+#preview #gradient-0 {
+  position: absolute;
+  overflow: hidden;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 89px;
+  z-index: 2;
+}
+#preview #text {
+  height: 120px;
+  left: 190px;
+  position: absolute;
+  top: 97px;
+  width: 390px;
+  z-index: 4;
+}
+#preview #gradient-0 .gradient-line {
+  height: 13px;
+  overflow: hidden;
+}
+#preview #img {
+  background: url("color-preview.png") no-repeat 0 0;
+  position: relative;
+  z-index: 3;
+}

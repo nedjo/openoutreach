@@ -1,0 +1,374 @@
+<?php
+
+/**
+ * @file
+ * Defines basic functionality common to all parts of the Redhen CRM.
+ */
+
+define('REDHEN_STATE_ACTIVE', 1);
+define('REDHEN_STATE_ARCHIVED', 0);
+
+/**
+ * Variable name for list items per page.
+ */
+define('REDHEN_ITEMS_PAGE', 'redhen_items_page');
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_menu() {
+  $items = array();
+
+  // Menu items that are basically just menu blocks.
+  $items['redhen'] = array(
+    'title' => 'CRM Dashboard',
+    'description' => 'RedHen CRM Dashboard',
+    'weight' => -8,
+    'page callback' => 'redhen_landing_page',
+    'access arguments' => array('access redhen'),
+    'file' => 'includes/redhen.admin.inc',
+  );
+  $items['admin/structure/redhen'] = array(
+    'title' => 'RedHen CRM',
+    'description' => 'Administer RedHen CRM items, such as contacts, organizations, memberships, etc.',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer redhen'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/redhen'] = array(
+    'title' => 'RedHen CRM',
+    'description' => 'Settings for RedHen modules.',
+    'position' => 'right',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/redhen/crm'] = array(
+    'title' => 'RedHen CRM settings',
+    'description' => 'Configure RedHen CRM.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_settings'),
+    'access arguments' => array('administer redhen'),
+    'file' => 'includes/redhen.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_admin_menu_output_build().
+ *
+ * Add RedHen to the admin menu.
+ */
+function redhen_admin_menu_output_build(&$content) {
+  // Load menu builder functions.
+  module_load_include('inc', 'admin_menu');
+  // Because it isn't assigned an explicit menu, the 'redhen' menu item is
+  // added to the 'navigation' menu by default. However, in case it has been
+  // moved to a different menu, query to find the menu name.
+  if ($menu_name = db_query("SELECT menu_name FROM {menu_links} WHERE router_path = 'redhen'")->fetchField()) {
+    $items = admin_menu_links_menu(admin_menu_tree($menu_name));
+    if (isset($items['redhen'])) {
+      // Peg position to that of the admin/people menu item.
+      if (isset($content['menu']['admin/people'])) {
+        $items['redhen']['#weight'] = $content['menu']['admin/people']['#weight'];
+      }
+      // Change title from "CRM Dashboard". No need for t() here because it's a
+      // product name.
+      $items['redhen']['#title'] = 'RedHen';
+      $content['menu']['redhen'] = $items['redhen'];
+    }
+  }
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function redhen_admin_paths() {
+  // Set RedHen admin paths based on configuration.
+  if (variable_get('redhen_admin_path', FALSE)) {
+    $paths = array(
+      'redhen' => TRUE,
+      'redhen/*' => TRUE,
+    );
+    return $paths;
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_permission() {
+  return array(
+    'administer redhen' => array(
+      'title' => t('Administer RedHen'),
+      'description' => t('Perform administration tasks for my redhen.'),
+    ),
+    'access redhen' => array(
+      'title' => t('Access RedHen'),
+      'description' => t('Access RedHen CRM.'),
+    ),
+  );
+}
+
+/**
+ * Wrapper for devel_load_object which is in an include file.
+ */
+function redhen_devel_load_object($type, $object, $name = NULL) {
+  if (module_exists('devel')) {
+    module_load_include('inc', 'devel', 'devel.pages');
+    return devel_load_object($type, $object, $name);
+  }
+}
+
+/**
+ * Wrapper function for devel_render_object which is in an include file.
+ */
+function redhen_devel_render_object($type, $object, $name = NULL) {
+  if (module_exists('devel')) {
+    module_load_include('inc', 'devel', 'devel.pages');
+    return devel_render_object($type, $object, $name);
+  }
+}
+
+/**
+ * Implements hook_theme().
+ */
+function redhen_theme() {
+  return array(
+    'redhen_property_field' => array(
+      'variables' => array(
+        'label_hidden' => FALSE,
+        'title_attributes' => NULL,
+        'label' => '',
+        'content_attributes' => NULL,
+        'items' => array(),
+        'item_attributes' => array(0 => ''),
+        'classes' => '',
+        'attributes' => '',
+      ),
+    ),
+    'redhen_home' => array('items' => NULL),
+  );
+}
+
+/**
+ * Theme function for redhen properties.
+ *
+ * Simple wrapper around theme_field that sets default values and ensures
+ * properties render consistently with fields.
+ */
+function theme_redhen_property_field($variables) {
+  return theme_field($variables);
+}
+
+/**
+ * Executes a filter query against the provided attributes.
+ *
+ * Used to filter Redhen entity list pages.
+ *
+ * @param string $entity_type
+ *   Entity type to filter by,
+ * @param array $header
+ *   Header array for sorting. Should match the table header used in output.
+ * @param string $bundle
+ *   Entity bundle.
+ * @param array $properties
+ *   Associative array of key/value pairs.
+ * @param array $fields
+ *   Entity fields to filter by.
+ * @param int $items_page
+ *   Results per page.
+ *
+ * @return array
+ *   Executed query object.
+ */
+function redhen_filter_query($entity_type, $header, $bundle = '', $properties = array(), $fields = array()) {
+  $query = new EntityFieldQuery();
+
+  $query
+    ->entityCondition('entity_type', $entity_type, '=')
+    ->tablesort($header)
+    ->pager(variable_get(REDHEN_ITEMS_PAGE, 10));
+
+  if (!empty($bundle)) {
+    $query->entityCondition('bundle', $bundle, '=');
+  }
+
+  // Add property filters.
+  foreach ($properties as $key => $value) {
+    $property_info = entity_get_all_property_info($entity_type);
+    if ($value != '') {
+      // Processing for date ranges.
+      if ($property_info[$key]['type'] == 'date') {
+        if ($value['from'] != '') {
+          $conditions = array(
+            strtotime($value['from']),
+            // Add 24 hours for full day search.
+            strtotime($value['to']) + 86400,
+          );
+          $query->propertyCondition($key, $conditions, 'BETWEEN');
+        }
+      }
+      else {
+        // NULL operator will allow literal or array for $value.
+        $operator = NULL;
+        if (isset($property_info[$key]['filter_operator']) && !is_array($value)) {
+          $operator = $property_info[$key]['filter_operator'];
+        }
+        $query->propertyCondition($key, $value, $operator);
+      }
+    }
+  }
+  // Add field filters.
+  foreach ($fields as $key => $field) {
+    $field_info = field_info_field($key);
+
+    switch ($field_info['type']) {
+      // Special handling for date fields, which have a two-value range.
+      case 'date':
+      case 'datestamp':
+      case 'datetime':
+        if ($field[LANGUAGE_NONE][0]['value'] != '' && $field[LANGUAGE_NONE][0]['value2'] != '') {
+          $value = array(
+            $field[LANGUAGE_NONE][0]['value'],
+            $field[LANGUAGE_NONE][0]['value2'],
+          );
+          $query->fieldCondition($key, 'value', $value, 'BETWEEN', $key);
+        }
+        break;
+
+      case 'list_boolean':
+        foreach ($field[LANGUAGE_NONE][0] as $column => $value) {
+          // Accommodate the skip option introduced in redhen_filter_form().
+          if ($value != 'skip') {
+            $query->fieldCondition($key, $column, (int) $value, '=', $key);
+          }
+        }
+        break;
+
+      default:
+        // Accept only valid columns. Some field types add non-column data.
+        $field[LANGUAGE_NONE][0] = array_intersect_key($field[LANGUAGE_NONE][0], $field_info['columns']);
+        foreach ($field[LANGUAGE_NONE][0] as $column => $value) {
+          // Only accept fields for which a value has been entered.
+          if ($value != '') {
+            $query->fieldCondition($key, $column, $value, 'CONTAINS', $key);
+          }
+        }
+        break;
+    }
+  }
+
+  return $query->execute();
+}
+
+/**
+ * Return an array of Redhen entity types useful for defining menu callbacks.
+ *
+ * @return array
+ *   Associative array keyed by entity type, with a value of the entity path.
+ */
+function redhen_entity_types() {
+  $types = array(
+    'redhen_org' => 'org',
+    'redhen_contact' => 'contact',
+  );
+  $active = array();
+  foreach ($types as $key => $type) {
+    if (module_exists($key)) {
+      $active[$key] = $type;
+    }
+  }
+
+  return $active;
+}
+
+/**
+ * Callback to return an array of options for redhen states.
+ */
+function redhen_state_options() {
+  return array(
+    REDHEN_STATE_ACTIVE => t('Active'),
+    REDHEN_STATE_ARCHIVED => t('Archived'),
+  );
+}
+
+/**
+ * Theme handler for Redhen landing page.
+ *
+ * @param array $variables
+ *   Variables to theme.
+ *
+ * @return array
+ *   Render array.
+ */
+function theme_redhen_home($variables) {
+  $items = $variables['items'];
+  $list = array();
+  $path = drupal_get_path('module', 'redhen');
+  foreach ($items as $item) {
+    $list[] = l($item['title'], $item['path']) .
+      '<div>' . $item['description'] . '</div>';
+  }
+  $render = array(
+    'logo' => array(
+      '#theme' => 'image',
+      '#path' => $path . '/misc/redhen_logo.png',
+      '#alt' => t('Redhen CRM'),
+      '#attributes' => array('id' => 'redhen-logo'),
+    ),
+    'links' => array(
+      '#theme' => 'item_list',
+      '#items' => $list,
+    ),
+    '#attached' => array(
+      'css' => array($path . '/misc/redhen.css'),
+    )
+  );
+
+  return $render;
+}
+
+/**
+ * Implements hook_help().
+ */
+function redhen_help($path, $arg) {
+  switch ($path) {
+    case 'redhen':
+    case 'admin/help#redhen':
+      return '<p>' . t(
+        '<a href="@redhen">RedHen CRM</a> is an open source CRM <em>framework</em> built natively in <a href="@drupal">Drupal</a>. RedHen CRM is packed with <a href="@wikipedia_ams">association management</a> (AMS) features for managing detailed information on contacts and organizations, membership services, event registrations, and constituent engagement.',
+        array(
+          '@redhen' => 'http://drupal.org/project/redhen',
+          '@drupal' => 'http://drupal.org',
+          '@wikipedia_ams' => 'http://en.wikipedia.org/wiki/Association_management_system',
+        )) . '</p>';
+  }
+}
+
+/**
+ * Consistent date formats for RedHen. Used in all tabular listings.
+ *
+ * @param int $timestamp
+ *   Timestamp to format.
+ *
+ * @return string
+ *   Formatted date.
+ */
+function redhen_format_date($timestamp, $type = 'short') {
+  if ($timestamp >= strtotime("today")) {
+    $date = t("Today at !date", array('!date' => date('g:ia', $timestamp)));
+  }
+  elseif ($timestamp >= strtotime("yesterday")) {
+    $date = t("Yesterday at !date", array('!date' => date('g:ia', $timestamp)));
+  }
+  else {
+    $date = format_date($timestamp, $type);
+  }
+
+  return $date;
+}

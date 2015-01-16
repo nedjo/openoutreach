@@ -1,0 +1,231 @@
+<?php
+
+/**
+ * @file
+ * RedhenEngagement install file.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redhen_engagement_schema() {
+  $schema = array();
+
+  $schema['redhen_engagement'] = array(
+    'description' => 'The base table for redhen engagements.',
+    'fields' => array(
+      'engagement_id' => array(
+        'description' => 'The primary identifier for an engagement.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The type of this engagement.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'description' => array(
+        'description' => 'The description of this engagement.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'contact_id' => array(
+        'description' => 'The unique ID of the contact this engagement applies to.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'engagement_score' => array(
+        'description' => 'The {redhen_engagement_score}.name of this redhen_engagement.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the source entity that triggered this engagement.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the source entity that triggered this engagement.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this engagement.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the redhen_engagement was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'engagement_type' => array('type'),
+      'engagement_redhen_contact' => array('contact_id'),
+      'engagement_author' => array('author_uid'),
+      'engagement_engagement_score' => array('engagement_score'),
+    ),
+    'foreign keys' => array(
+      'engagement_redhen_contact' => array(
+        'table' => 'redhen_contact',
+        'columns' => array('contact_id' => 'contact_id'),
+      ),
+      'engagement_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+      'engagement_engagement_score' => array(
+        'table' => 'redhen_engagement_score',
+        'columns' => array('engagement_score' => 'name'),
+      ),
+    ),
+    'primary key' => array('engagement_id'),
+  );
+
+  $schema['redhen_engagement_score'] = array(
+    'description' => 'The base table for engaement scores.',
+    'fields' => array(
+      'engagement_score_id' => array(
+        'description' => 'The primary identifier for an engagement score.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The label of this engagement score.',
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this engagement score.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'score' => array(
+        'description' => 'The numeric score value for this engagement score.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'engagement_score_score' => array('score'),
+    ),
+    'primary key' => array('engagement_score_id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function redhen_engagement_install() {
+  // Add an engagement score field to redhen_contact.
+  $field = array(
+    'description' => 'The total engagement score for a contact.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('redhen_contact', 'engagement_score', $field);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redhen_engagement_uninstall() {
+  // Drop engagement score field from redhen_contact.
+  db_drop_field('redhen_contact', 'engagement_score');
+}
+
+/**
+ * Change engagement_score_id from int to varchar/change column name.
+ *
+ * Required to use machine names for engagement scores.
+ */
+function redhen_engagement_update_7100(&$sandbox) {
+  module_load_include('module', 'redhen_engagement');
+
+  db_change_field('redhen_engagement', 'engagement_score_id', 'engagement_score',
+    array(
+      'description' => 'The {redhen_engagement_score}.name of this redhen_engagement.',
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+
+  $scores = redhen_engagement_get_scores();
+
+  // Iterate through each defined engagement score and update redhen_engagement
+  // with machine names of the scores.
+  foreach ($scores as $score) {
+    $num_updated = db_update('redhen_engagement')
+      ->fields(array('engagement_score' => $score->identifier()))
+      ->condition('engagement_score', $score->engagement_score_id)
+      ->execute();
+  }
+}
+
+/**
+ * Add an engagement_score field to {redhen_contact}.
+ *
+ * Set the engagement_score value for existing contacts.
+ */
+function redhen_engagement_update_7101(&$sandbox) {
+  if (!db_field_exists('redhen_contact', 'engagement_score')) {
+    $field = array(
+      'description' => 'The total engagement score for a contact.',
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    );
+    db_add_field('redhen_contact', 'engagement_score', $field);
+  }
+
+  $sql = 'UPDATE {redhen_contact} rc SET engagement_score = COALESCE((SELECT SUM(score) FROM {redhen_engagement} re JOIN {redhen_engagement_score} res on re.engagement_score = res.name WHERE re.contact_id = rc.contact_id), 0)';
+  db_query($sql);
+}
+
+
+/**
+ * Create indexes for foreign keys.
+ */
+function redhen_engagement_update_7102(&$sandbox) {
+  db_add_index('redhen_engagement', 'engagement_redhen_contact', array('contact_id'));
+  db_add_index('redhen_engagement', 'engagement_author', array('author_uid'));
+  db_add_index('redhen_engagement', 'engagement_engagement_score', array('engagement_score'));
+}

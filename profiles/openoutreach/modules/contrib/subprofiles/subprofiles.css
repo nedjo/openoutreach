@@ -1,0 +1,36 @@
+#install-configure-form select[name="subprofile"] {
+  font-size: 1.4em;
+}
+
+#install-configure-form .form-item-subprofile {
+  float: left;
+  margin-right: 15px;
+}
+
+#install-configure-form div.subprofile-description {
+  display: inline;
+  clear: right;
+  padding-left: 10px;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+#install-configure-form #edit-features div.form-type-checkbox {
+  border: 1px solid #C0C0C0;
+  float: left;
+  margin-right: 10px;
+  margin-bottom: 10px;
+  padding: 5px;
+  width: 238px;
+}
+
+#install-configure-form #edit-features div.form-type-checkbox img {
+  float: left;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+#install-configure-form #edit-features {
+  clear: both;
+  padding: 0;
+}

@@ -37,7 +37,7 @@ function xmlsitemap_user_xmlsitemap_process_user_links(array $uids) {
   $accounts = user_load_multiple($uids);
   foreach ($accounts as $account) {
     $link = xmlsitemap_user_create_link($account);
-    xmlsitemap_link_save($link);
+    xmlsitemap_link_save($link, array($link['type'] => $account));
   }
 }
 
@@ -51,7 +51,7 @@ function xmlsitemap_user_user_presave(&$edit, $account, $category) {
       $link = $edit['xmlsitemap'] + $link;
       unset($edit['xmlsitemap']);
     }
-    xmlsitemap_link_save($link);
+    xmlsitemap_link_save($link, array($link['type'] => $account));
   }
 }
 
@@ -60,7 +60,7 @@ function xmlsitemap_user_user_presave(&$edit, $account, $category) {
  */
 function xmlsitemap_user_user_insert(&$edit, $account, $category) {
   $link = xmlsitemap_user_create_link($account);
-  xmlsitemap_link_save($link);
+  xmlsitemap_link_save($link, array($link['type'] => $account));
 }
 
 /**
@@ -68,7 +68,7 @@ function xmlsitemap_user_user_insert(&$edit, $account, $category) {
  */
 function xmlsitemap_user_user_update(&$edit, $account, $category) {
   $link = xmlsitemap_user_create_link($account);
-  xmlsitemap_link_save($link);
+  xmlsitemap_link_save($link, array($link['type'] => $account));
 }
 
 /**

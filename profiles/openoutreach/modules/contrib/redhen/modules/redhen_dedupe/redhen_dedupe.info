@@ -1,0 +1,14 @@
+name = RedHen Dedupe
+description = Provides RedHen contact deduping functionality.
+package = RedHen
+core = 7.x
+
+dependencies[] = redhen_contact
+
+
+; Information added by Drupal.org packaging script on 2014-08-19
+version = "7.x-1.8"
+core = "7.x"
+project = "redhen"
+datestamp = "1408492460"
+

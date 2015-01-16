@@ -157,7 +157,7 @@ function comment_notify_update_7003() {
       variable_set($variable, $text);
     }
   }
-  return 'Comment notify token strings updated.';
+  return 'Comment Notify token strings updated.';
 }
 
 /**
@@ -165,4 +165,20 @@ function comment_notify_update_7003() {
  */
 function comment_notify_update_7004() {
   db_change_field('comment_notify', 'notified', 'notified',  array('type' => 'int', 'size' => 'small', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+}
+
+/**
+ * Fix minor schema inconsistencies caused by the last update.
+ */
+function comment_notify_update_7005() {
+  // Previous update altered size and unsigned unnecessarily.
+  $notified_field = array(
+    'type' => 'int',
+    'description' => 'A boolean indicator for whether or not a notification for the comment has been sent: 1 means yes, 0 means no.',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'disp-width' => '11',
+  );
+  db_change_field('comment_notify', 'notified', 'notified', $notified_field);
 }

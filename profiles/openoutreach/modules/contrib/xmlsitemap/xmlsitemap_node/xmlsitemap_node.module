@@ -40,7 +40,7 @@ function xmlsitemap_node_xmlsitemap_process_node_links(array $nids) {
   $nodes = node_load_multiple($nids);
   foreach ($nodes as $node) {
     $link = xmlsitemap_node_create_link($node);
-    xmlsitemap_link_save($link);
+    xmlsitemap_link_save($link, array($link['type'] => $node));
   }
 }
 
@@ -56,7 +56,7 @@ function xmlsitemap_node_node_insert(stdClass $node) {
  */
 function xmlsitemap_node_node_update(stdClass $node) {
   $link = xmlsitemap_node_create_link($node);
-  xmlsitemap_link_save($link);
+  xmlsitemap_link_save($link, array($link['type'] => $node));
 }
 
 /**
@@ -146,7 +146,7 @@ function xmlsitemap_node_form_node_form_alter(array &$form, array &$form_state) 
  *   An array of UNIX timestamp integers.
  */
 function xmlsitemap_node_get_timestamps(stdClass $node) {
-  static $timestamps = array();
+  $timestamps = &drupal_static(__FUNCTION__, array());
 
   if (!isset($timestamps[$node->nid])) {
     $timestamps[$node->nid] = db_query("SELECT nr.timestamp FROM {node_revision} nr WHERE nr.nid = :nid", array(':nid' => $node->nid))->fetchCol();

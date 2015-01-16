@@ -161,7 +161,7 @@ function advanced_forum_find_style_templates($style = NULL) {
         $theme_path = $theme_path . "/$key";
       }
       // 2. check for <theme>/advanced-forum-<template>.tpl.php
-      else if (file_exists($theme_path . "/" . $theme_base_file . $extension)) {
+      elseif (file_exists($theme_path . "/" . $theme_base_file . $extension)) {
         $theme_file = $theme_base_file;
       }
       // 3. check for advanced_forum/styles/<style>/... template
@@ -321,13 +321,13 @@ function advanced_forum_comment_is_styled($comment, $master_topic_id) {
 
 function advanced_forum_is_forum_tagged($node, $preview = FALSE) {
   // Is this a forum node at all?
-  if (!isset($node->taxonomy_forums)) {
+  if (empty($node->taxonomy_forums)) {
     return FALSE;
   }
   $vid = variable_get('forum_nav_vocabulary');
 
   // Check for language used
-  if (!isset($node->taxonomy_forums[$node->language])) {
+  if (empty($node->taxonomy_forums[$node->language])) {
     $langcode = LANGUAGE_NONE;
   }
   else {
@@ -412,14 +412,14 @@ function _advanced_forum_add_files() {
         // style, look for the style specific CSS file first in the active
         // theme and then in the style directory.
         foreach ($lineage AS $key => $path) {
-          $css_file = "/advanced-forum.$key.$css_type";
+          $css_file = "advanced-forum.$key.$css_type";
           if (file_exists("$theme_path/$css_file")) {
             // If the style specific file is in the theme, use that.
             drupal_add_css("$theme_path/$css_file");
           }
           elseif (file_exists("$path/$css_file")) {
             // Otherwise look in the style for it.
-            drupal_add_css("$path" . "$css_file");
+            drupal_add_css("$path/$css_file");
           }
         }
       }

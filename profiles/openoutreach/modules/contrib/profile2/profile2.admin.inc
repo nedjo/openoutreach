@@ -64,6 +64,13 @@ function profile2_type_form($form, &$form_state, $profile_type, $op = 'edit') {
     '#value' => t('Save profile type'),
     '#weight' => 40,
   );
+  $form['weight'] = array(
+    '#type' => 'weight',
+    '#title' => t('Weight'),
+    '#default_value' => $profile_type->weight,
+    '#description' => t('When showing profiles, those with lighter (smaller) weights get listed before profiles with heavier (larger) weights.'),
+    '#weight' => 10,
+  );
 
   if (!$profile_type->isLocked() && $op != 'add' && $op != 'clone') {
     $form['actions']['delete'] = array(

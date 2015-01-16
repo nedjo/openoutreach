@@ -43,6 +43,13 @@ function entity_views_data() {
     if ($table) {
       $data['entity_' . $type] = $table;
     }
+    // Generally expose properties marked as 'entity views field'.
+    $data['views_entity_' . $type] = array();
+    foreach (entity_get_all_property_info($type) as $key => $property) {
+      if (!empty($property['entity views field'])) {
+        entity_views_field_definition($key, $property, $data['views_entity_' . $type]);
+      }
+    }
   }
 
   // Expose generally usable entity-related fields.
@@ -62,6 +69,19 @@ function entity_views_data() {
       );
     }
   }
+
+  $data['entity__global']['table']['group'] = t('Entity');
+  $data['entity__global']['table']['join'] = array(
+    // #global let's it appear all the time.
+    '#global' => array(),
+  );
+  $data['entity__global']['entity'] = array(
+    'title' => t('Rendered entity'),
+    'help' => t('Displays a single chosen entity.'),
+    'area' => array(
+      'handler' => 'entity_views_handler_area_entity',
+    ),
+  );
 
   return $data;
 }
@@ -98,6 +118,10 @@ function entity_views_data() {
  *
  * @param $type
  *   The entity type whose table definition should be returned.
+ * @param $exclude
+ *   Whether properties already exposed as 'entity views field' should be
+ *   excluded. Defaults to TRUE, as they are available for all views tables for
+ *   the entity type anyways.
  *
  * @return
  *   An array containing the data selection Views table definition for the
@@ -105,7 +129,7 @@ function entity_views_data() {
  *
  * @see entity_views_field_definition()
  */
-function entity_views_table_definition($type) {
+function entity_views_table_definition($type, $exclude = TRUE) {
   // As other modules might want to copy these tables as a base for their own
   // Views integration, we statically cache the tables to save some time.
   $tables = &drupal_static(__FUNCTION__, array());
@@ -124,7 +148,9 @@ function entity_views_table_definition($type) {
       'entity type' => $type,
     );
     foreach (entity_get_all_property_info($type) as $key => $property) {
-      entity_views_field_definition($key, $property, $tables[$type]);
+      if (!$exclude || empty($property['entity views field'])) {
+        entity_views_field_definition($key, $property, $tables[$type]);
+      }
     }
   }
 
@@ -283,10 +309,20 @@ function _entity_views_field_identifier($field, array $table) {
  * Implements hook_views_plugins().
  */
 function entity_views_plugins() {
-  foreach (views_fetch_data() as $table => $data) {
-    if (!empty($data['table']['entity type']) && !empty($data['table']['base'])) {
-      $base_tables[] = $table;
+  // Have views cache the table list for us so it gets
+  // cleared at the appropriate times.
+  $data = views_cache_get('entity_base_tables', TRUE);
+  if (!empty($data->data)) {
+    $base_tables = $data->data;
+  }
+  else {
+    $base_tables = array();
+    foreach (views_fetch_data() as $table => $data) {
+      if (!empty($data['table']['entity type']) && !empty($data['table']['base'])) {
+        $base_tables[] = $table;
+      }
     }
+    views_cache_set('entity_base_tables', $base_tables, TRUE);
   }
   if (!empty($base_tables)) {
     return array(
@@ -339,9 +375,12 @@ class EntityDefaultViewsController {
       $data[$table]['table']['group']  = drupal_ucfirst($this->info['label']);
       $data[$table]['table']['entity type'] = $this->type;
 
+      // If the plural label isn't available, use the regular label.
+      $label = isset($this->info['plural label']) ? $this->info['plural label'] : $this->info['label'];
       $data[$table]['table']['base'] = array(
         'field' => $this->info['entity keys']['id'],
-        'title' => drupal_ucfirst($this->info['label']),
+        'access query tag' => $this->type . '_access',
+        'title' => drupal_ucfirst($label),
         'help' => isset($this->info['description']) ? $this->info['description'] : '',
       );
       $data[$table]['table']['entity type'] = $this->type;
@@ -349,6 +388,50 @@ class EntityDefaultViewsController {
 
       // Add in any reverse-relationships which have been determined.
       $data += $this->relationships;
+    }
+    if (!empty($this->info['revision table']) && !empty($this->info['entity keys']['revision'])) {
+      $revision_table = $this->info['revision table'];
+
+      $data[$table]['table']['default_relationship'] = array(
+        $revision_table => array(
+          'table' => $revision_table,
+          'field' => $this->info['entity keys']['revision'],
+        ),
+      );
+
+      // Define the base group of this table. Fields that don't
+      // have a group defined will go into this field by default.
+      $data[$revision_table]['table']['group']  = drupal_ucfirst($this->info['label']) . ' ' . t('Revisions');
+      $data[$revision_table]['table']['entity type'] = $this->type;
+
+      // If the plural label isn't available, use the regular label.
+      $label = isset($this->info['plural label']) ? $this->info['plural label'] : $this->info['label'];
+      $data[$revision_table]['table']['base'] = array(
+        'field' => $this->info['entity keys']['revision'],
+        'access query tag' => $this->type . '_access',
+        'title' => drupal_ucfirst($label) . ' ' . t('Revisions'),
+        'help' => (isset($this->info['description']) ? $this->info['description'] . ' ' : '') . t('Revisions'),
+      );
+      $data[$revision_table]['table']['entity type'] = $this->type;
+      $data[$revision_table] += $this->schema_revision_fields();
+
+      // Add in any reverse-relationships which have been determined.
+      $data += $this->relationships;
+
+      // For other base tables, explain how we join.
+      $data[$revision_table]['table']['join'] = array(
+        // Directly links to base table.
+        $table => array(
+          'left_field' => $this->info['entity keys']['revision'],
+          'field' => $this->info['entity keys']['revision'],
+        ),
+      );
+      $data[$revision_table]['table']['default_relationship'] = array(
+        $table => array(
+          'table' => $table,
+          'field' => $this->info['entity keys']['id'],
+        ),
+      );
     }
     return $data;
   }
@@ -373,6 +456,27 @@ class EntityDefaultViewsController {
   }
 
   /**
+   * Try to come up with some views fields with the help of the revision schema
+   * and the entity property information.
+   */
+  protected function schema_revision_fields() {
+    $data = array();
+    if (!empty($this->info['revision table'])) {
+      $schema = drupal_get_schema($this->info['revision table']);
+      $properties = entity_get_property_info($this->type) + array('properties' => array());
+
+      foreach ($properties['properties'] as $name => $property_info) {
+        if (isset($property_info['schema field']) && isset($schema['fields'][$property_info['schema field']])) {
+          if ($views_info = $this->map_from_schema_info($name, $schema['fields'][$property_info['schema field']], $property_info)) {
+            $data[$name] = $views_info;
+          }
+        }
+      }
+    }
+    return $data;
+  }
+
+  /**
    * Comes up with views information based on the given schema and property
    * info.
    */
@@ -388,7 +492,7 @@ class EntityDefaultViewsController {
 
     $description = array(
       'title' => $property_info['label'],
-      'help' => $property_info['description'],
+      'help' => isset($property_info['description']) ? $property_info['description'] : NULL,
     );
 
       // Add in relationships to related entities.
@@ -546,11 +650,17 @@ class EntityDefaultViewsController {
       break;
     }
 
-    // If there is an options list callback, add to the filter.
+    // If there is an options list callback, add to the filter and field.
     if (isset($return['filter']) && !empty($property_info['options list'])) {
       $return['filter']['handler'] = 'views_handler_filter_in_operator';
       $return['filter']['options callback'] = array('EntityDefaultViewsController', 'optionsListCallback');
       $return['filter']['options arguments'] = array($this->type, $property_name, 'view');
+    }
+    // @todo: This class_exists is needed until views 3.2.
+    if (isset($return['field']) && !empty($property_info['options list']) && class_exists('views_handler_field_machine_name')) {
+      $return['field']['handler'] = 'views_handler_field_machine_name';
+      $return['field']['options callback'] = array('EntityDefaultViewsController', 'optionsListCallback');
+      $return['field']['options arguments'] = array($this->type, $property_name, 'view');
     }
     return $return;
   }

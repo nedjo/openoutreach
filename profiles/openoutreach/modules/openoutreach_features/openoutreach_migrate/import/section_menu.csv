@@ -1,0 +1,3 @@
+"mlid","ref_parent","menu_name","path","title","description","weight"
+1,0,"main-menu","section/about","About","Find out about us",-9
+2,1,"main-menu","section/mission","Mission","Find out about our mission",0

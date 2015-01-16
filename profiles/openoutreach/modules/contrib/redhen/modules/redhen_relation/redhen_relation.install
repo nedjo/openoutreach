@@ -1,0 +1,130 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the redhen relations module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function redhen_relation_install() {
+  // Add default relationships
+  $relation_types_info = array(
+    array(
+      'relation_type' => REDHEN_RELATION_CONNECTION,
+      'label' => t('Personal connection'),
+      'source_bundles' => array('redhen_contact:*'),
+      'r_unique' => TRUE,
+    ),
+    array(
+      'relation_type' => REDHEN_RELATION_AFFILIATION,
+      'label' => t('Organizational affiliation'),
+      'reverse_label' => t('Affiliated with'),
+      'directional' => TRUE,
+      'r_unique' => TRUE,
+      'source_bundles' => array('redhen_contact:*'),
+      'target_bundles' => array('redhen_org:*'),
+    ),
+  );
+  foreach ($relation_types_info as $relation_type_info) {
+    $relation_type = relation_type_create($relation_type_info);
+    relation_type_save($relation_type);
+  }
+
+  // add relation status field
+  $status_field = array(
+    'field_name' => REDHEN_RELATION_STATUS_FIELD,
+    'type' => 'list_boolean',
+    'locked' => TRUE,
+    'cardinality' => 1,
+    'settings' => array(
+      'allowed_values' => array('Inactive', 'Active')
+    )
+  );
+  field_create_field($status_field);
+
+  $bundles = array(
+    REDHEN_RELATION_AFFILIATION => 'Affiliation Status',
+    REDHEN_RELATION_CONNECTION => 'Connection Status'
+  );
+  foreach ($bundles as $key => $label) {
+    field_create_instance(array(
+      'field_name' => REDHEN_RELATION_STATUS_FIELD,
+      'entity_type' => 'relation',
+      'bundle' => $key,
+      'label' => $label,
+      'required' => 0,
+      'default_value' => array(array('value' => 1)),
+      'widget' => array(
+        'type' => 'options_onoff',
+        'settings' => array('display_label' => 1)
+      )
+    ));
+  }
+
+  // add relation role field
+  $role_field = array(
+    'field_name' => REDHEN_RELATION_ROLES_FIELD,
+    'type' => 'list_text',
+    'locked' => TRUE,
+    'cardinality' => 1,
+    'settings' => array(
+      'allowed_values' => array('Admin', 'Member')
+    )
+  );
+  field_create_field($role_field);
+
+  field_create_instance(array(
+    'field_name' => REDHEN_RELATION_ROLES_FIELD,
+    'entity_type' => 'relation',
+    'bundle' => REDHEN_RELATION_AFFILIATION,
+    'label' => 'Organization Role',
+    'required' => 1,
+    'default_value' => array(array('value' => 1)),
+    'widget' => array(
+      'type' => 'options_select',
+    ),
+    'description' => t('This is a placeholder field to control what actions a contact in an organization can perform. Access control to be implemented.')
+  ));
+
+  entity_info_cache_clear();
+}
+
+/**
+ * Implements hook_uninstall()
+ */
+function redhen_relation_uninstall() {
+
+  // get all the relationship_types (bundles), find all fields
+  // delete them
+  $query = db_select('relation_bundles', 'rb')->
+    fields('rb', array('relation_type'))->
+    condition('rb.entity_type', 'redhen_contact')->
+    distinct()->
+    execute();
+
+  while ($record = $query->fetchAssoc()) {
+    $relationship_type[] = $record['relation_type'];
+  }
+
+  foreach ($relationship_type as $type) {
+    // look into the database for each type
+    $relationship_query = db_select('relation', 'r')->
+      fields('r', array('rid'))->
+      condition('r.relation_type', $type)->
+      execute();
+
+    while ($result = $relationship_query->fetchAssoc()) {
+      // delete all the relationships of that type
+      relation_delete($result['rid']);
+    }
+    // finally delete the relationshp_type
+    relation_type_delete($type);
+  }
+
+  // delete status field
+  field_delete_field('redhen_relation_status');
+
+  entity_info_cache_clear();
+}

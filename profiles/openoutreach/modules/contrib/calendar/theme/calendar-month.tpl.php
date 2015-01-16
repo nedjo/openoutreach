@@ -23,8 +23,8 @@
 <table class="full">
   <thead>
     <tr>
-      <?php foreach ($day_names as $cell): ?>
-        <th class="<?php print $cell['class']; ?>">
+      <?php foreach ($day_names as $id => $cell): ?>
+        <th class="<?php print $cell['class']; ?>" id="<?php print $cell['header_id'] ?>">
           <?php print $cell['data']; ?>
         </th>
       <?php endforeach; ?>

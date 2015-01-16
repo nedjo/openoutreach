@@ -1,6 +1,11 @@
 <?php
 
 /**
+ * @file
+ * Definition of views_handler_field_file_type.
+ */
+
+/**
  * Field handler to translate a file type into its readable form.
  */
 class views_handler_field_file_type extends views_handler_field_file {
@@ -31,7 +36,7 @@ class views_handler_field_file_type extends views_handler_field_file {
     */
   function render_name($data, $values) {
     if ($this->options['machine_name'] != 1 && $data !== NULL && $data !== '') {
-      return t($this->sanitize_value(file_type_get_name($data)));
+      return t($this->sanitize_value(file_entity_type_get_name($data)));
     }
     return $this->sanitize_value($data);
   }

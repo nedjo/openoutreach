@@ -234,7 +234,6 @@
 
 .calendar-calendar .day-view .full td.multi-day .calendar.dayview .contents div,
 .calendar-calendar .week-view .full td.multi-day .calendar.weekview .contents div {
-  float: left;
 }
 
 .calendar-calendar .week-view .full td.multi-day .inner .weekview .continuation {

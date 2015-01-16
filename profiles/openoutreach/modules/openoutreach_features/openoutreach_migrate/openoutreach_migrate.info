@@ -1,0 +1,15 @@
+name = Open Outreach Migrate
+description = Provide migration support for Open Outreach content.
+core = 7.x
+
+dependencies[] = migrate
+
+files[] = openoutreach_migrate.migrate.inc
+files[] = plugins/destinations/fields.inc
+
+; Information added by Drupal.org packaging script on 2015-01-13
+version = "7.x-1.14"
+core = "7.x"
+project = "openoutreach"
+datestamp = "1421181195"
+

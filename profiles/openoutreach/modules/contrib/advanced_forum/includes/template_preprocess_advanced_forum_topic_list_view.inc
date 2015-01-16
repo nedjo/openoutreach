@@ -52,9 +52,11 @@ function _template_preprocess_advanced_forum_topic_list_view(&$variables) {
     // Grab the teaser so it can be used on the title of the td as a popup
     // preview. By default, the view provides the teaser as a popup on the
     // title link.
-    $teaser = $renders[$count]['teaser'];
-    $teaser = htmlentities($teaser);
-    $teasers[$count] = $teaser;
+    if (!empty($renders[$count]['teaser'])) {
+      $teaser = $renders[$count]['teaser'];
+      $teaser = htmlentities($teaser);
+      $teasers[$count] = $teaser;
+    }
 
     // Determine stickiness.
     if (!$stickies_done) {
@@ -79,7 +81,7 @@ function _template_preprocess_advanced_forum_topic_list_view(&$variables) {
       $variables['shadow'][$count] = theme('advanced_forum_shadow_topic', array(
         'title' => $row->node_title,
         'nid' => $row->nid,
-        'new_forum' => $term->name
+        'new_forum' => empty($term->name) ? "" : $term->name
           ));
     }
     else {
@@ -89,7 +91,7 @@ function _template_preprocess_advanced_forum_topic_list_view(&$variables) {
 
   // Make the sticky variable available to the template.
   $variables['sticky'] = $sticky;
-  $variables['teasers'] = $teasers;
+  $variables['teasers'] = empty($teasers) ? NULL : $teasers;
 
   foreach ($columns as $field => $column) {
     // Create a second variable so we can easily find what fields we have and what the

@@ -65,9 +65,10 @@ function debut_highlighted_field_default_fields() {
       'entity_type' => 'node',
       'field_name' => 'field_content_image',
       'label' => 'Image',
-      'required' => 0,
+      'required' => 1,
       'settings' => array(
         'alt_field' => 0,
+        'default_image' => 0,
         'file_directory' => '',
         'file_extensions' => 'png gif jpg jpeg',
         'max_filesize' => '',

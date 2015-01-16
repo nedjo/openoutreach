@@ -68,6 +68,7 @@ function panels_edit_display_form($form, &$form_state) {
     $links = $renderer->get_display_links();
   }
   else {
+    $renderer->no_edit_links = TRUE;
     $links = '';
   }
   $form['hide']['display-settings'] = array(

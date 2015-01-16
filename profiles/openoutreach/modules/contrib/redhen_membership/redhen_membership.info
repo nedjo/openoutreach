@@ -1,0 +1,26 @@
+name = RedHen Memberships
+description = Handles RedHen memberships and related features.
+package = RedHen
+core = 7.x
+
+dependencies[] = redhen_org
+dependencies[] = redhen_relation
+
+; Classes
+files[] = lib/redhen_membership.controller.inc
+files[] = lib/redhen_membership.entity.inc
+files[] = lib/redhen_membership.metadata.inc
+files[] = lib/redhen_membership.views.inc
+files[] = lib/redhen_membership_type.entity.inc
+files[] = lib/redhen_membership_type.ui_controller.inc
+
+; Views
+files[] = includes/views/redhen_membership_handler_relationship.inc
+files[] = includes/views/redhen_membership_handler_field_active_member_type.inc
+
+; Information added by drupal.org packaging script on 2013-02-07
+version = "7.x-1.0"
+core = "7.x"
+project = "redhen_membership"
+datestamp = "1360195904"
+

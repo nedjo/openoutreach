@@ -1,35 +1,40 @@
 <?php
 
 /**
+ * @file
+ * Extends the MediaInternetBaseHandler class to handle YouTube videos.
+ */
+
+/**
  * Implementation of MediaInternetBaseHandler.
  *
  * @see hook_media_internet_providers().
  */
 class MediaInternetYouTubeHandler extends MediaInternetBaseHandler {
   public function parse($embedCode) {
+    // http://youtube.com/watch/*
+    // http://youtube.com/embed/*
+    // http://youtube.com/v/*
+    // http://youtube.com/?v=*
+    // http://youtu.be/*
+    // http://gdata.youtube.com/feeds/api/videos/*
     $patterns = array(
       '@youtube\.com/watch[#\?].*?v=([^"\& ]+)@i',
       '@youtube\.com/embed/([^"\&\? ]+)@i',
       '@youtube\.com/v/([^"\&\? ]+)@i',
       '@youtube\.com/\?v=([^"\& ]+)@i',
-      '@youtu.be/([^"\&\? ]+)@i',
+      '@youtu\.be/([^"\&\? ]+)@i',
+      '@gdata\.youtube\.com/feeds/api/videos/([^"\&\? ]+)@i',
     );
+
     foreach ($patterns as $pattern) {
       preg_match($pattern, $embedCode, $matches);
-      if (isset($matches[1]) && $this->valid_id($matches[1])) {
+      // @TODO: Parse is called often. Refactor so that valid ID is checked
+      // when a video is added, but not every time the embedCode is parsed.
+      if (isset($matches[1]) && self::validId($matches[1])) {
         return file_stream_wrapper_uri_normalize('youtube://v/' . $matches[1]);
       }
     }
-  }
-
-  public function valid_id($id) {
-    $url = 'http://gdata.youtube.com/feeds/api/videos/'. $id;
-    $headers = get_headers($url);
-    $valid = strpos($headers[0], '200') !== FALSE;
-    if (!$valid) {
-      throw new MediaInternetValidationException(t('The YouTube video ID is invalid or the video was deleted.'));
-    }
-    return $valid;
   }
 
   public function claim($embedCode) {
@@ -38,44 +43,22 @@ class MediaInternetYouTubeHandler extends MediaInternetBaseHandler {
     }
   }
 
-  public function save() {
-    $file = $this->getFileObject();
-    // If a user enters a duplicate YouTube URL, the object will be saved again.
-    // Set the timestamp to the current time, so that the media item shows up
-    // at the top of the media library, where they would expect to see it.
-    $file->timestamp = REQUEST_TIME;
-    file_save($file);
+  public function getFileObject() {
+    $uri = $this->parse($this->embedCode);
+    $file = file_uri_to_object($uri, TRUE);
+
+    // Try to default the file name to the video's title.
+    if (empty($file->fid) && $info = $this->getOEmbed()) {
+      $file->filename = truncate_utf8($info['title'], 255);
+    }
+
     return $file;
   }
 
-  public function getFileObject() {
-    $uri = $this->parse($this->embedCode);
-    return file_uri_to_object($uri, TRUE);
-  }
-
   /**
-   * Returns information about the media. See http://video.search.yahoo.com/mrss.
+   * Returns information about the media.
    *
-   * @return
-   *   If ATOM+MRSS information is available, a SimpleXML element containing
-   *   ATOM and MRSS elements, as per those respective specifications.
-   *
-   * @todo Would be better for the return value to be an array rather than a
-   *   SimpleXML element, but media_retrieve_xml() needs to be upgraded to
-   *   handle namespaces first.
-   */
-  public function getMRSS() {
-    $uri = $this->parse($this->embedCode);
-    $video_id = arg(1, file_uri_target($uri));
-    $rss_url = url('http://gdata.youtube.com/feeds/api/videos/' . $video_id, array('query' => array('v' => '2')));
-    // @todo Use media_retrieve_xml() once it's upgraded to include elements
-    //   from all namespaces, not just the document default namespace.
-    $entry = simplexml_load_file($rss_url);
-    return $entry;
-  }
-
-  /**
-   * Returns information about the media. See http://www.oembed.com/.
+   * See http://www.oembed.com.
    *
    * @return
    *   If oEmbed information is available, an array containing 'title', 'type',
@@ -84,11 +67,39 @@ class MediaInternetYouTubeHandler extends MediaInternetBaseHandler {
    */
   public function getOEmbed() {
     $uri = $this->parse($this->embedCode);
-    $external_url = drupal_realpath($uri);
+    $external_url = file_create_url($uri);
     $oembed_url = url('http://www.youtube.com/oembed', array('query' => array('url' => $external_url, 'format' => 'json')));
     $response = drupal_http_request($oembed_url);
+
     if (!isset($response->error)) {
       return drupal_json_decode($response->data);
     }
+    else {
+      throw new Exception("Error Processing Request. (Error: {$response->code}, {$response->error})");
+      return;
+    }
+  }
+
+  /**
+   * Check if a YouTube video ID is valid.
+   *
+   * @return boolean
+   *   TRUE if the video ID is valid, or throws a
+   *   MediaInternetValidationException otherwise.
+   */
+  static public function validId($id) {
+    $uri = file_stream_wrapper_uri_normalize('youtube://v/' . check_plain($id));
+    $external_url = file_create_url($uri);
+    $oembed_url = url('http://www.youtube.com/oembed', array('query' => array('url' => $external_url, 'format' => 'json')));
+    $response = drupal_http_request($oembed_url, array('method' => 'HEAD'));
+
+    if ($response->code == 401) {
+      throw new MediaInternetValidationException('Embedding has been disabled for this YouTube video.');
+    }
+    elseif ($response->code != 200) {
+      throw new MediaInternetValidationException('The YouTube video ID is invalid or the video was deleted.');
+    }
+
+    return TRUE;
   }
 }

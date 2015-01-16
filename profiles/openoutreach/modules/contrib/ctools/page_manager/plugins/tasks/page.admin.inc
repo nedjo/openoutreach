@@ -237,7 +237,7 @@ function page_manager_page_add_subtask($task_name = NULL, $step = NULL) {
   if ($task_name) {
     $page = page_manager_get_page_cache($task_name);
     if (empty($page)) {
-      return drupal_not_found();
+      return MENU_NOT_FOUND;
     }
 
     $form_info['path'] = "admin/structure/pages/add/$task_name/%step";
@@ -443,7 +443,7 @@ function page_manager_page_form_basic($form, &$form_state) {
       '#type' => 'checkbox',
       '#default_value' => !empty($page->make_frontpage),
       '#title' => t('Make this your site home page.'),
-      '#description' => t('To set this panel as your home page you must create a unique path name with no % placeholders in the path. The site home page is currently set to %homepage on the !siteinfo configuration form.', array('!siteinfo' => l(t('Site Information'), 'admin/settings/site-information'), '%homepage' => '/' . $frontpage)),
+      '#description' => t('To set this panel as your home page you must create a unique path name with no % placeholders in the path. The site home page is currently set to %homepage on the !siteinfo configuration form.', array('!siteinfo' => l(t('Site Information'), 'admin/config/system/site-information'), '%homepage' => '/' . $frontpage)),
     );
     $form['admin_paths'] = array(
       '#type' => 'checkbox',
@@ -1056,7 +1056,6 @@ function page_manager_page_subtask_argument_ajax($step = NULL, $task_name = NULL
 
     $clone_state = $form_state;
     $clone_state['allow temp'] = TRUE;
-    page_manager_page_form_argument($form, $clone_state);
     $form = drupal_build_form('page_manager_page_form_argument', $form_state);
 
     // Render just the table portion.

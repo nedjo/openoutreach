@@ -116,7 +116,8 @@ function _advanced_forum_preprocess_node(&$variables) {
             'caller' => 'advanced_forum',
             'picture_preset' => variable_get('advanced_forum_user_picture_preset', ''),
             'context' => $node,
-            'disable_css' => TRUE
+            'disable_css' => TRUE,
+            'join_date_type' => variable_get('advanced_forum_author_pane_join_date_type', 'short'),
           ));
     }
 

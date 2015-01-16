@@ -21,10 +21,17 @@ function _subprofiles_install_tasks($install_state) {
   else {
     $profile = st('profile');
   }
+
+  $args = array('!profile' => $profile);
   $tasks = array(
+    // Enable the selected features.
     'subprofiles_install_profile_features' => array(
-      'display_name' => st('Install !profile features', array('!profile' => $profile)),
+      'display_name' => st('Install !profile features', $args),
       'type' => 'batch',
+    ),
+    // Subprofiles is no longer needed when it's done its work, so disable.
+    'subprofiles_disable_self' => array(
+      'display' => FALSE,
     ),
   );
   return $tasks;
@@ -68,75 +75,113 @@ function subprofiles_install_profile_features(&$install_state) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_FORM_ID_alter() for install_configure_form.
  *
  * Alter the site configuration form to enable selecting of a subprofile and
  * specific subprofile features to be enabled.
  */
 function subprofiles_form_install_configure_form_alter(&$form, $form_state) {
-  // Pre-populate the site name with the server name.
-  $form['site_information']['site_name']['#default_value'] = $_SERVER['SERVER_NAME'];
-
   if ($subprofiles = subprofiles_get_subprofiles()) {
     $info = install_profile_info(drupal_get_profile());
-    
-    $form['subprofile'] = array(
+    $form['subprofiles'] = array(
       '#type' => 'fieldset',
-      '#title' => st('!profile flavours', array('!profile' => $info['name'])),
-      '#description' => st('Select the flavour of !profile you wish to install.', array('!profile' => $info['name'])),
-      '#weight' => -1,
+      '#title' => t('Select the type of !profile site you wish to install.', array('!profile' => $info['name'])),
+      '#tree' => FALSE,
+      '#weight' => -30,
     );
+    // Add a custom suprofile that will show as options all available features
+    // that were included in at least one subprofile.
+    $subprofiles['custom'] = array(
+      'name' => t('Custom'),
+      'description' => t('Customize your own install.'),
+      'features' => array(),
+    );
+
     // Extract features checkboxes from the features admin form.
     module_load_include('inc', 'features', 'features.admin');
     $features_admin_form = features_admin_form(array(), array());
-    $features = $features_admin_form['features']['status'];
+    $features = array();
+    foreach (element_children($features_admin_form) as $child) {
+      if (isset($features_admin_form[$child]['#type']) && $features_admin_form[$child]['#type'] == 'fieldset') {
+        unset($features_admin_form[$child]['status']['#tree']);
+        $features = array_merge($features, $features_admin_form[$child]['status']);
+      }
+    }
+    ksort($features);
+    $form['subprofiles']['subprofile'] = array(
+      '#type' => 'select',
+      '#default_value' => isset ($subprofiles['standard']) ? 'standard' : 'custom',
+      // Hide by default for non-js usage.
+      '#attributes' => array('class' => array('element-hidden')),
+    );
+    $options = array();
     foreach ($subprofiles as $subprofile_name => $subprofile) {
-      $title = $subprofile['name'];
-      $form['subprofile'][$title] = array(
-        '#type' => 'radio',
-        '#default_value' => 'standard',
-        '#return_value' => $subprofile_name,
-        '#title' => $title,
-        '#description' => isset($subprofile['description']) ? $subprofile['description'] : NULL,
-        '#parents' => array('subprofile'),
-      );
-      $subprofile_features = $features;
+      $options[$subprofile_name] = $subprofile['name'];
+      if (isset($subprofile['description'])) {
+        $form['subprofiles']['subprofile_' . $subprofile_name] = array(
+          '#type' => 'item',
+          '#markup' => $subprofile['description'],
+          '#states' => array(
+            'visible' => array('select[name=subprofile]' => array('value' => $subprofile_name)),
+          ),
+        );
+      }
       // Reduce selectable features to those specified in the selected subprofile
       // and set their default enabled status to that in the .info file.
-      foreach (array_keys($subprofile_features) as $name) {
-        if (!isset($subprofile['features'][$name])) {
-          unset($subprofile_features[$name]);
-        }
-        else {
-          $subprofile_features[$name]['#default_value'] = $subprofile['features'][$name];
+      foreach ($subprofile['features'] as $name => $enable) {
+        if (isset($features[$name])) {
+          $features[$name]['#use'] = TRUE;
+          $features[$name]['#states']['visible']['select[name=subprofile]'][] = array('value' => $subprofile_name);
+          if ($enable) {
+            $features[$name]['#states']['checked']['select[name=subprofile]'][] = array('value' => $subprofile_name);
+          }
         }
       }
-      $form[$subprofile_name . '_features'] = array(
-        '#type' => 'fieldset',
-        '#title' => st('Customize !title features', array('!title' => $title)),
-        '#description' => st('Select the features you wish to enable. You will also have a chance to enable or disable features after installing.'),
-        '#weight' => -1,
-        // Show the fieldset only when the corresponding subprofile is selected.
-        '#states' => array(
-          'visible' => array(
-            ':input[name=subprofile]' => array('value' => $subprofile_name),
-          ),
-        ),
-        '#tree' => TRUE,
-      ) + $subprofile_features;
     }
-
+    $form['subprofiles']['subprofile']['#options'] = $options;
+    foreach ($features as $key => $info) {
+      // Remove unused features and features whose element is disabled because
+      // they are missing or already enabled.
+      if (!isset($info['#use']) || isset($info['#disabled']) && $info['#disabled']) {
+        unset($features[$key]);
+      }
+      // If it's offered in any of the subprofiles, process it.
+      else {
+        // Show it for the 'custom' option.
+        $features[$key]['#states']['visible']['select[name=subprofile]'][] = array('value' => 'custom');
+        // Add a logo.
+        $info = system_get_info('module', $key);
+        // Like theme screenshots, support a custom path specified in the
+        // feature's .info file. If no path is specified, default to
+        // 'logo.png'.
+        $logo_path = drupal_get_path('module', $key) . '/' . (isset($info['logo']) ? $info['logo'] : 'logo.png');
+        if (file_exists($logo_path)) {
+          $logo = theme('image', array('path' => $logo_path, 'width' => '80px', 'height' => '80px'));
+        }
+        else {
+          $logo = '';
+        }
+        $features[$key]['#title'] = '<strong>' . strip_tags($features[$key]['#title']) . '</strong><p><div>' . $logo . $features[$key]['#description'] . '</div></p>';
+        unset($features[$key]['#description']);
+      }
+    }
+    $form['subprofiles']['features'] = array(
+      '#type' => 'container',
+      '#tree' => TRUE,
+    ) + $features;
+    $path = drupal_get_path('module', 'subprofiles');
+    $form['#attached']['js'][] = $path . '/subprofiles.js';
+    $form['#attached']['css'][] = $path . '/subprofiles.css';
     $form['#submit'][] = 'subprofiles_install_configure_form_submit';
   }
 }
 
 /**
- * Submit handler for install_configure_form. Set a variable specifying the
- * features to be installed.
+ * Submit handler for subprofiles_install_configure_form_submit. Set a variable
+ * specifying the features to be installed.
  */
 function subprofiles_install_configure_form_submit($form, &$form_state) {
-  $subprofile = $form_state['values']['subprofile'];
-  $features = array_keys(array_filter($form_state['values'][$subprofile . '_features']));
+  $features = array_keys(array_filter($form_state['values']['features']));
   variable_set('subprofiles_install_profile_features', $features);
 }
 
@@ -178,4 +223,11 @@ function subprofiles_get_subprofile($profile = NULL, $subprofile = 'standard') {
  */
 function _subprofiles_get_profile($profile) {
   return empty($profile) ? drupal_get_profile() : $profile;
+}
+
+/**
+ * Disable subprofiles when it's done its work.
+ */
+function subprofiles_disable_self() {
+  module_disable(array('subprofiles'));
 }

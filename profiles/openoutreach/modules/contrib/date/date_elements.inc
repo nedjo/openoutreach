@@ -55,8 +55,13 @@ function date_field_widget_form(&$form, &$form_state, $field, $instance, $langco
   // if $items is empty, because it might have been set that way on purpose.
   // @see date_field_widget_properties_alter() where we flagged if this is a new entity.
 
+  // We check !isset($items[$delta]['value']) because entity translation may create
+  // a new translation entity for an existing entity and we don't want to clobber
+  // values that were already set in that case.
+  // @see http://drupal.org/node/1478848.
+
   $is_default = FALSE;
-  if (!empty($instance['widget']['is_new'])) {
+  if (!empty($instance['widget']['is_new']) && !isset($items[$delta]['value'])) {
     $items = date_default_value($field, $instance, $langcode);
     $is_default = TRUE;
   }
@@ -72,7 +77,7 @@ function date_field_widget_form(&$form, &$form_state, $field, $instance, $langco
   // lose all but the first value by doing this, so store the original values in case we need to replace them later.
   if (!empty($field['settings']['repeat'])) {
     if ($delta == 0) {
-      $form['#after_build'] = array('date_repeat_after_build');
+      $form['#after_build'][] = 'date_repeat_after_build';
       $form_state['storage']['repeat_fields'][$field_name] = array_merge($form['#parents'], array($field_name));
       $form_state['storage']['date_items'][$field_name][$langcode] = $items;
     }
@@ -181,7 +186,7 @@ function date_default_value($field, $instance, $langcode) {
   $item[0]['timezone'] = date_get_timezone($field['settings']['tz_handling']);
   $item[0]['timezone_db'] = date_get_timezone_db($field['settings']['tz_handling']);
   $item[0]['date_type'] = $field['type'];
-  if (empty($item[0]['value2'])) {
+  if (!isset($item[0]['value2'])) {
     $item[0]['value2'] = $item[0]['value'];
   }
   return $item;
@@ -236,8 +241,13 @@ function date_default_value_part($item, $field, $instance, $langcode, $part = 'v
  * Process an individual date element.
  */
 function date_combo_element_process($element, &$form_state, $form) {
-
+    
   if (date_hidden_element($element)) {
+    // A hidden value for a new entity that had its end date set to blank
+    // will not get processed later to populate the end date, so set it here.
+    if (isset($element['#value']['value2']) && empty($element['#value']['value2'])) {
+      $element['#value']['value2'] = $element['#value']['value'];
+    }
     return $element;
   }
 
@@ -291,7 +301,7 @@ function date_combo_element_process($element, &$form_state, $form) {
     unset($element['#default_value'][$to_field]);
   }
 
-  $show_todate = !empty($form_state['values']['show_todate']) || !empty($element['#default_value'][$to_field]) || $instance['required'];
+  $show_todate = !empty($form_state['values']['show_todate']) || !empty($element['#default_value'][$to_field]) || $field['settings']['todate'] == 'required';
   $element['show_todate'] = array(
     '#title' => t('Show End Date'),
     '#type' => 'checkbox',
@@ -310,7 +320,7 @@ function date_combo_element_process($element, &$form_state, $form) {
     '#field'         => $field,
     '#instance'      => $instance,
     '#weight'        => $instance['widget']['weight'],
-    '#required'      => ($instance['required'] && $delta == 0) ? 1 : 0,
+    '#required'      => ($element['#required'] && $delta == 0) ? 1 : 0,
     '#default_value' => isset($element['#default_value'][$from_field]) ? $element['#default_value'][$from_field] : '',
     '#delta'         => $delta,
     '#date_timezone' => $element['#date_timezone'],
@@ -321,7 +331,8 @@ function date_combo_element_process($element, &$form_state, $form) {
     '#date_label_position' => $instance['widget']['settings']['label_position'],
     );
 
-  $description =  !empty($instance['description']) ? t($instance['description']) : '';
+  $description =  !empty($element['#description']) ? t($element['#description']) : '';
+  unset($element['#description']);
 
   // Give this element the right type, using a Date API
   // or a Date Popup element type.
@@ -334,14 +345,17 @@ function date_combo_element_process($element, &$form_state, $form) {
       $element[$from_field]['#type'] = 'date_select';
       $element[$from_field]['#theme_wrappers'] = array('date_select');
       $element['#attached']['js'][] = drupal_get_path('module', 'date') . '/date.js';
+      $element[$from_field]['#ajax'] = !empty($element['#ajax']) ? $element['#ajax'] : FALSE;
       break;
     case 'date_popup':
       $element[$from_field]['#type'] = 'date_popup';
       $element[$from_field]['#theme_wrappers'] = array('date_popup');
+      $element[$from_field]['#ajax'] = !empty($element['#ajax']) ? $element['#ajax'] : FALSE;
       break;
     default:
       $element[$from_field]['#type'] = 'date_text';
       $element[$from_field]['#theme_wrappers'] = array('date_text');
+      $element[$from_field]['#ajax'] = !empty($element['#ajax']) ? $element['#ajax'] : FALSE;
       break;
   }
 
@@ -350,8 +364,8 @@ function date_combo_element_process($element, &$form_state, $form) {
   // is the 'Start' and which is the 'End' .
 
   if (!empty($field['settings']['todate'])) {
-    $element[$from_field]['#title'] = '';
     $element[$to_field] = $element[$from_field];
+    $element[$from_field]['#title_display'] = 'none';
     $element[$to_field]['#title'] = t('to:');
     $element[$from_field]['#wrapper_attributes']['class'][] = 'start-date-wrapper';
     $element[$to_field]['#wrapper_attributes']['class'][] = 'end-date-wrapper';
@@ -387,7 +401,7 @@ function date_combo_element_process($element, &$form_state, $form) {
     $element[$to_field]['#date_title'] = t('@field_name End date', array('@field_name' => $instance['label']));
   }
   else {
-    $element[$from_field]['#date_title'] = $instance['label'];
+    $element[$from_field]['#date_title'] = t('@field_name', array('@field_name' => $instance['label']));
   }
 
   $context = array(
@@ -438,8 +452,8 @@ function date_combo_validate($element, &$form_state) {
     return;
   }
 
-  $item = $form_values[$field_name][$langcode][$delta];
-  $posted = $form_input[$field_name][$langcode][$delta];
+  $item = drupal_array_get_nested_value($form_state['values'], $element['#parents']);
+  $posted = drupal_array_get_nested_value($form_state['input'], $element['#parents']);
 
   $field = field_widget_field($element, $form_state);
   $instance = field_widget_instance($element, $form_state);

@@ -89,6 +89,10 @@ function metatag_config_overview() {
     // Add a summary of the configuration's defaults.
     $summary = array();
     foreach ($config->config as $metatag => $data) {
+      // Skip meta tags that were disabled.
+      if (empty($metatags[$metatag])) {
+        continue;
+      }
       $summary[] = array(
         check_plain($metatags[$metatag]['label']) . ':',
         check_plain(metatag_get_value($metatag, $data, array('raw' => TRUE))),
@@ -173,7 +177,6 @@ function metatag_config_overview() {
     ),
     '#rows' => $rows,
     '#empty' => t('No meta tag defaults available yet.'),
-    '#caption' => '<div class="js-show">' . t('To view a summary of the default meta tags and the inheritance, click on a meta tag type.') . '</div>',
     '#attributes' => array(
       'class' => array('metatag-config-overview'),
     ),
@@ -270,7 +273,16 @@ function metatag_config_edit_form($form, &$form_state, $config) {
   $contexts = explode(':', $config->instance);
   $options['context'] = $contexts[0];
   if ($contexts[0] != 'global') {
-    $options['token types'] = array(token_get_entity_mapping('entity', $contexts[0]));
+    // The context part of the instance may not map to an entity type, so allow
+    // the token_get_entity_mapping() function to fallback to the provided type.
+    if ($token_type = token_get_entity_mapping('entity', $contexts[0], TRUE)) {
+      $options['token types'] = array($token_type);
+    }
+    else {
+      $options['token types'] = array($contexts[0]);
+    }
+    // Allow hook_metatag_token_types_alter() to modify the defined tokens.
+    drupal_alter('metatag_token_types', $options);
   }
 
   // Ensure that this configuration is properly compared to its parent 'default'
@@ -296,6 +308,10 @@ function metatag_config_edit_form($form, &$form_state, $config) {
   metatag_metatags_form($form, $config->instance, $config->config, $options);
   $form['metatags']['#type'] = 'container';
 
+  // Make the token browser available.
+  $form['metatags']['#prefix'] = $form['metatags'][LANGUAGE_NONE]['#description'];
+  unset($form['metatags'][LANGUAGE_NONE]['#description']);
+
   $form['actions']['#type'] = 'actions';
   $form['actions']['save'] = array(
     '#type' => 'submit',
@@ -316,8 +332,8 @@ function metatag_config_edit_form_submit($form, &$form_state) {
   form_state_values_clean($form_state);
   $config = (object) $form_state['values'];
   // @todo Consider renaming the config field from 'config' to 'metatags'
-  $config->config = $config->metatags;
-  unset($config->metatags);
+  $config->config = $config->metatags[LANGUAGE_NONE];
+  unset($config->metatags[LANGUAGE_NONE]);
   metatag_config_save($config);
 
   $label = metatag_config_instance_label($config->instance);
@@ -381,4 +397,254 @@ function metatag_config_delete_form_submit($form, &$form_state) {
 function metatag_config_export_form($config) {
   ctools_include('export');
   return drupal_get_form('ctools_export_form', ctools_export_crud_export('metatag_config', $config), t('Export'));
+}
+
+/**
+ * Form constructor to revert nodes to their default metatags.
+ *
+ * @see metatag_bulk_revert_form_submit()
+ * @ingroup forms
+ */
+function metatag_bulk_revert_form() {
+  // Get the list of entity:bundle options
+  $options = array();
+  foreach (entity_get_info() as $entity_type => $entity_info) {
+    foreach (array_keys($entity_info['bundles']) as $bundle) {
+      if (metatag_entity_supports_metatags($entity_type, $bundle)) {
+        $options[$entity_type . ':' . $bundle] =
+          $entity_info['label'] . ': ' . $entity_info['bundles'][$bundle]['label'];
+      }
+    }
+  }
+
+  $form['update'] = array(
+    '#type' => 'checkboxes',
+    '#required' => TRUE,
+    '#title' => t('Select the entities to revert'),
+    '#options' => $options,
+    '#default_value' => array(),
+    '#description' => t('All meta tags will be removed for all content of the selected entities.'),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Revert'),
+  );
+
+  return $form;
+}
+
+/**
+ * Form submit handler for metatag reset bulk revert form.
+ *
+ * @see metatag_batch_revert_form()
+ * @see metatag_bulk_revert_batch_finished()
+ */
+function metatag_bulk_revert_form_submit($form, &$form_state) {
+  $batch = array(
+    'title' => t('Bulk updating metatags'),
+    'operations' => array(),
+    'finished' => 'metatag_bulk_revert_batch_finished',
+    'file' => drupal_get_path('module', 'metatag') . '/metatag.admin.inc',
+  );
+
+  // Set a batch operation per entity:bundle.
+  foreach (array_filter($form_state['values']['update']) as $option) {
+    list($entity_type, $bundle) = explode(':', $option);
+    $batch['operations'][] = array('metatag_bulk_revert_batch_operation', array($entity_type, $bundle));
+  }
+
+  batch_set($batch);
+}
+
+/**
+ * Batch callback: delete custom metatags for selected bundles.
+ */
+function metatag_bulk_revert_batch_operation($entity_type, $bundle, &$context) {
+  if (!isset($context['sandbox']['current'])) {
+    $context['sandbox']['count'] = 0;
+    $context['sandbox']['current'] = 0;
+  }
+
+  // Query the selected entity table.
+  $entity_info = entity_get_info($entity_type);
+  $query = new EntityFieldQuery();
+  $query->entityCondition('entity_type', $entity_type)
+    ->propertyCondition($entity_info['entity keys']['id'], $context['sandbox']['current'], '>')
+    ->propertyOrderBy($entity_info['entity keys']['id']);
+  if ($entity_type != 'user') {
+    /**
+     * Entities which do not define a bundle such as User fail returning no results.
+     * @see http://drupal.org/node/1054168#comment-5266208
+     */
+    $query->entityCondition('bundle', $bundle);
+  }
+  // Get the total amount of entities to process.
+  if (!isset($context['sandbox']['total'])) {
+    $context['sandbox']['total'] = $query->count()->execute();
+    $query->count = FALSE;
+
+    // If there are no bundles to revert, stop immediately.
+    if (!$context['sandbox']['total']) {
+      $context['finished'] = 1;
+      return;
+    }
+  }
+
+  // Process 25 entities per iteration.
+  $query->range(0, 25);
+  $result = $query->execute();
+  $entity_ids = !empty($result[$entity_type]) ? array_keys($result[$entity_type]) : array();
+  foreach ($entity_ids as $entity_id) {
+    $metatags = metatag_metatags_load($entity_type, $entity_id);
+    if (!empty($metatags)) {
+      db_delete('metatag')->condition('entity_type', $entity_type)
+        ->condition('entity_id', $entity_id)
+        ->execute();
+      metatag_metatags_cache_clear($entity_type, $entity_id);
+      $context['results'][] = t('Reverted metatags for @bundle with id @id.', array(
+        '@bundle' => $entity_type . ': ' . $bundle,
+        '@id' => $entity_id,
+      ));
+    }
+  }
+
+  $context['sandbox']['count'] += count($entity_ids);
+  $context['sandbox']['current'] = max($entity_ids);
+
+  if ($context['sandbox']['count'] != $context['sandbox']['total']) {
+    $context['finished'] = $context['sandbox']['count'] / $context['sandbox']['total'];
+  }
+}
+
+/**
+ * Batch finished callback.
+ */
+function metatag_bulk_revert_batch_finished($success, $results, $operations) {
+  if ($success) {
+    if (!count($results)) {
+      drupal_set_message(t('No metatags were reverted.'));
+    }
+    else {
+      $message = theme('item_list', array('items' => $results));
+      drupal_set_message($message);
+    }
+  }
+  else {
+    $error_operation = reset($operations);
+    drupal_set_message(t('An error occurred while processing @operation with arguments : @args',
+      array('@operation' => $error_operation[0], '@args' => print_r($error_operation[0], TRUE))));
+  }
+}
+
+/**
+ * Misc settings page.
+ */
+function metatag_admin_settings_form() {
+  $form = array();
+
+  $form['#attached'] = array(
+    'js' => array(
+      drupal_get_path('module', 'metatag') . '/metatag.admin.js',
+    ),
+    'css' => array(
+      drupal_get_path('module', 'metatag') . '/metatag.admin.css',
+    ),
+  );
+
+  $form['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['advanced']['metatag_load_all_pages'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Output meta tags even if only global settings apply'),
+    '#description' => t('By default Metatag will load the global default values for all pages that do not have meta tags assigned via the normal entity display or via Metatag Context. This may be disabled so that meta tags will only be output on pages that specifically have meta tags configured for them.'),
+    '#default_value' => variable_get('metatag_load_all_pages', TRUE),
+  );
+
+  $form['advanced']['metatag_tag_admin_pages'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Output meta tags on admin pages'),
+    '#description' => t('By default meta tags will not be output on admin pages, but it may be beneficial for some sites to do so.'),
+    '#default_value' => variable_get('metatag_tag_admin_pages', FALSE),
+  );
+
+  $form['advanced']['metatag_extended_permissions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Advanced permissions'),
+    '#description' => t('Optionally add a permission for each individual meta tag. This provides tremendous flexibility for the editorial process, at the expense of making the permissions configuration more tedious.'),
+    '#default_value' => variable_get('metatag_extended_permissions', FALSE),
+  );
+
+  $form['advanced']['metatag_entity_no_lang_default'] = array(
+    '#type' => 'checkbox',
+    '#title' => t("Don't load entity's default language values if no languages match"),
+    '#description' => t("On a site with multiple languages it is possible for an entity to not have meta tag values assigned for the language of the current page. By default the meta tags for an entity's default language value will be used in this scenario, with the canonical URL pointing to the URL. This option may be disabled, i.e. to only load meta tags for languages that specifically have them assigned, otherwise using defaults."),
+    '#default_value' => variable_get('metatag_entity_no_lang_default', FALSE),
+  );
+
+  $form['entities'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Master controls for all entities'),
+    '#description' => t('By enabling and disabling items here, it is possible to control which entities (e.g. nodes, taxonomy terms) and bundles (e.g. content types, vocabularies) will have meta tags available to them.<br />Note: the entities first have to have meta tags enabled via hook_entity_info; see the API documentation for full details.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  foreach (entity_get_info() as $entity_name => $entity_info) {
+    // Only show entities that have been enabled via the hooks.
+    if (!empty($entity_info['metatags'])) {
+      $form['entities']['metatag_enable_' . $entity_name] = array(
+        '#type' => 'checkbox',
+        '#title' => t($entity_info['label']),
+        '#default_value' => variable_get('metatag_enable_' . $entity_name, TRUE),
+        '#description' => t('Enable meta tags for all pages this entity type.'),
+      );
+
+      if (!empty($entity_info['bundles'])) {
+        $desc_added = FALSE;
+        foreach ($entity_info['bundles'] as $bundle_name => $bundle_info) {
+          // Some entities, e.g. User, (core) File, have a bundle with the same
+          // name as the entity, so
+          if ($bundle_name != $entity_name) {
+            // Add an extra line to the description introducing the entity
+            // bundles.
+            if (!$desc_added) {
+              $form['entities']['metatag_enable_' . $entity_name]['#disabled'] = TRUE;
+              $form['entities']['metatag_enable_' . $entity_name]['#default_value'] = TRUE;
+              $form['entities']['metatag_enable_' . $entity_name]['#description'] =  t('Each bundle for this entity must be controlled individually.');
+              $desc_added = TRUE;
+            }
+            $form['entities']['metatag_enable_' . $entity_name . '__' . $bundle_name] = array(
+              '#type' => 'checkbox',
+              '#title' => t($bundle_info['label']),
+              '#default_value' => variable_get('metatag_enable_' . $entity_name . '__' . $bundle_name, isset($bundle_info['metatags']) ? $bundle_info['metatags'] : TRUE),
+              '#attributes' => array(
+                // Add some theming that'll indent this bundle.
+                'class' => array('metatag-bundle-checkbox'),
+              ),
+            );
+          }
+        }
+      }
+    }
+  }
+
+  // Extra submission logic.
+  $form['#submit'][] = 'metatag_admin_settings_form_submit';
+
+  return system_settings_form($form);
+}
+
+/**
+ * Form API submission callback for metatag_admin_settings_form().
+ */
+function metatag_admin_settings_form_submit() {
+  cache_clear_all('entity_info:', 'cache', TRUE);
+  cache_clear_all('*', 'cache_metatag', TRUE);
+  drupal_set_message(t('The Metatag cache has been cleared, so all meta tags can be reloaded.'));
 }

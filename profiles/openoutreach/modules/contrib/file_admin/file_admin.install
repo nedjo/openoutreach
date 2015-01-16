@@ -7,6 +7,8 @@
 
 /**
  * Implements hook_install().
+ *
+ * Add fields to the file_managed table.
  */
 function file_admin_install() {
   $table = 'file_managed';
@@ -65,3 +67,14 @@ function file_admin_schema_alter(&$schema) {
     'default' => 0,
   );
 }
+
+/**
+ * Rename the view own unpublished files permission.
+ */
+function file_admin_update_7000() {
+  db_update('role_permission')
+    ->fields(array('permission' => 'view own unpublished files'))
+    ->condition('permission', 'view own unpublished media')
+    ->execute();
+}
+

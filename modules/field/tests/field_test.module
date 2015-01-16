@@ -204,10 +204,7 @@ function field_test_dummy_field_storage_query(EntityFieldQuery $query) {
 }
 
 /**
- * Entity label callback.
- *
- * @param $entity
- *   The entity object.
+ * Implements callback_entity_info_label().
  *
  * @return
  *   The label of the entity prefixed with "label callback".
@@ -258,4 +255,26 @@ function field_test_field_widget_form_alter(&$element, &$form_state, $context) {
       drupal_set_message('Widget type: ' . $context['instance']['widget']['type']);
       break;
   }
+}
+
+/**
+ * Implements hook_query_TAG_alter() for tag 'efq_table_prefixing_test'.
+ *
+ * @see EntityFieldQueryTestCase::testTablePrefixing()
+ */
+function field_test_query_efq_table_prefixing_test_alter(&$query) {
+  // Add an additional join onto the entity base table. This will cause an
+  // exception if the EFQ does not properly prefix the base table.
+  $query->join('test_entity','te2','%alias.ftid = test_entity.ftid');
+}
+
+/**
+ * Implements hook_query_TAG_alter() for tag 'store_global_test_query'.
+ */
+function field_test_query_store_global_test_query_alter($query) {
+  // Save the query in a global variable so that it can be examined by tests.
+  // This can be used by any test which needs to check a query, but see
+  // FieldSqlStorageTestCase::testFieldSqlStorageMultipleConditionsSameColumn()
+  // for an example.
+  $GLOBALS['test_query'] = $query;
 }

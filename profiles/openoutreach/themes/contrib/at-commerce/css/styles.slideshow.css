@@ -1,0 +1,123 @@
+/* Slideshow CSS */
+
+/* Center and remove padding */
+article.flexible-slideshow,
+article.flexible-slideshow .node-inner,
+.flexible-slideshow .node-content,
+.flexslider {
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Captions */
+.slideshow-caption {
+  position: absolute;
+  bottom: 15px;
+  background: rgba(0,0,0,0.85);
+  text-align: left;
+  overflow: hidden;
+  padding: 1.5% 3%;
+}
+.slideshow-caption p {
+  font-size: 1em;
+  font-weight: 700;
+  margin: 0;
+  color: #fff;
+}
+
+/* Nav controls */
+.flexslider ol.flex-control-nav,
+.flexslider ol.flex-control-nav li,
+.flexslider ul.flex-direction-nav,
+.flexslider ul.flex-direction-nav li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Control nav (the dots along the bottom) */
+.flexslider {
+  padding-bottom: 20px;
+}
+body.hide-ss-nav .flexslider {
+  padding-bottom: 0;
+}
+.flexslider ol.flex-control-nav {
+  position: absolute;
+  bottom: 1px;
+  right: 7px;
+  z-index: 20;
+}
+.flexslider ol.flex-control-nav li {
+  display: inline;
+}
+.flexslider ol.flex-control-nav li a {
+  display: inline-block;
+  background: url(images/slideshow-control.png) no-repeat center center;
+  height: 10px;
+  width: 10px;
+  text-indent: -99999em;
+  overflow: hidden;
+  outline: 0;
+  margin: 0 3px;
+  cursor: pointer;
+}
+.flexslider ol.flex-control-nav li a.active {
+  background: url(images/slideshow-control-active.png) no-repeat center center;
+}
+
+/* Direction nav (the arrows) */
+.flexslider ul.flex-direction-nav {
+  position: absolute;
+  top: 35%;
+  z-index: 9;
+  width: 100%;
+  height: 30px;
+}
+.flexslider ul.flex-direction-nav li {}
+.flexslider ul.flex-direction-nav li a {
+  cursor: pointer;
+  display: block;
+  width: 30px;
+  height: 30px;
+  background: url(images/slideshow-directional-arrows.png) no-repeat;
+  text-indent: -99999em;
+  border: 0;
+  overflow: hidden;
+  outline: 0;
+  position: absolute;
+}
+.flexslider ul.flex-direction-nav li a.prev {
+  left: 12px;
+  background-position: 0 0;
+}
+.flexslider ul.flex-direction-nav li a.next {
+  right: 12px;
+  background-position: -30px 0;
+}
+
+/* Be careful going below here, it could blow up... */
+.flexible-slideshow .node-content {
+  position: relative;
+}
+.flexslider ul,
+.flexslider li {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Center the whole shebang */
+article.flexible-slideshow .node-inner {
+  margin: auto;
+  text-align: center;
+}
+
+/* Do evil and hide stuff with CSS, FTW! */
+body.hide-ss-nav .flexslider ol.flex-control-nav {
+  display: none !important;
+}
+body.hide-ss-dir .flexslider ul.flex-direction-nav {
+  display: none !important;
+}

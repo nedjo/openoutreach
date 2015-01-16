@@ -22,10 +22,7 @@ function debut_bio_ctools_plugin_api() {
  * Implements hook_views_api().
  */
 function debut_bio_views_api() {
-  list($module, $api) = func_get_args();
-  if ($module == "views" && $api == "views_default") {
-    return array("version" => "3.0");
-  }
+  return array("version" => "3.0");
 }
 
 /**
@@ -40,7 +37,6 @@ function debut_bio_default_profile2_type() {
     "label" : "Author bio",
     "weight" : "0",
     "data" : { "registration" : 0 },
-    "metatags" : [],
     "rdf_mapping" : []
   }');
   return $items;

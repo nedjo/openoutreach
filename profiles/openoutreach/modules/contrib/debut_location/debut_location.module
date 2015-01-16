@@ -1,0 +1,105 @@
+<?php
+/**
+ * @file
+ * Code for the Debut Location feature.
+ */
+
+include_once 'debut_location.features.inc';
+
+/**
+ * Implements hook_menu
+ */
+function debut_location_menu() {
+  $items = array();
+
+  $items['admin/config/regional/debut-location'] = array(
+    'title' => 'Debut Location map settings',
+    'description' => "Settings for the site's default map display.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('debut_location_map_settings'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => -15,
+    'file' => 'debut_location.app.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Add an action link to 'node/add/location' on 'location-map' page.
+ */
+function debut_location_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'location-map') {
+    $item = menu_get_item('node/add/location');
+    if ($item['access']) {
+      $item['title'] = t('Add a new location');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_openlayers_maps_alter().
+ *
+ * Swap in local settings for center and bounds on maps used for location input
+ * and display.
+ */
+function debut_location_openlayers_maps_alter(&$items) {
+  if (($settings = variable_get('debut_location_map_settings')) && !apps_compatible_feature_is_recreating('debut_location')) {
+    foreach (array('location_map', 'geofield_formatter_map', 'geofield_widget_map') as $map_name) {
+      if (isset($items[$map_name])) {
+        $items[$map_name]->data['center'] = $settings;
+      }
+      // For the formatter, set the zoom level on the zoomtolayer behavior.
+      if ($map_name == 'geofield_formatter_map') {
+        $items[$map_name]->data['behaviors']['openlayers_behavior_zoomtolayer']['point_zoom_level'] = $settings['initial']['zoom'];
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_views_exposed_form_alter().
+ *
+ * Generate CSS to add icons to the exposed filter taxonomy term checkboxes.
+ */
+function debut_location_form_views_exposed_form_alter(&$form, $form_state) {
+  static $called = FALSE;
+
+  if (!$called && $form['#id'] == 'views-exposed-form-location-map-page') {
+    // Hide the form if no terms have been added to the location_type
+    // vocabulary.
+    if (empty($form['term_node_tid_depth']['#options'])) {
+      $form['#access'] = FALSE;
+      return;
+    }
+    $path = drupal_get_path('module', 'debut_location');
+    // The cookie library is used for collapse state persistence.
+    $form['#attached']['library'][] = array('system', 'jquery.cookie');
+    $form['#attached']['js'][] = $path . '/debut_location.js';
+    $form['#attached']['css'][] = $path . '/debut_location.css';
+    $css = array();
+    $view = views_get_view('location_legend');
+    $view->init_display();
+    $view->pre_execute();
+    $view->execute();
+    foreach ($view->result as $row) {
+      if (!empty($row->file_managed_field_data_field_location_icon_uri)) {
+        $path = image_style_url('icon_small', $row->file_managed_field_data_field_location_icon_uri);
+        $css[] = "#views-exposed-form-location-map-page label[for=edit-term-node-tid-depth-{$row->tid}]{padding-left: 35px; background-image: url({$path});}";
+      }
+    }
+    $form['#attached']['css'][implode('', $css)] = array('type' => 'inline');
+
+    // Add conditional stylesheet for IE. Assign a high weight so it will load
+    // after the stylesheet it's overriding.
+    $form['#attached']['css'][$path . '/debut_location.ie.css'] = array('weight' => 10, 'browsers' => array('IE' => 'lte IE 7', '!IE' => FALSE), 'preprocess' => FALSE);
+    $called = TRUE;
+  }
+}
+

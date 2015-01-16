@@ -1,10 +1,13 @@
 name = Subprofiles
 description = Provide multiple variations of a single installation profile.
 core = 7.x
+hidden = TRUE
+dependencies[] = features
 
-; Information added by drupal.org packaging script on 2011-09-28
-version = "7.x-1.0"
+
+; Information added by  packaging script on 2013-11-26
+version = "7.x-1.1"
 core = "7.x"
 project = "subprofiles"
-datestamp = "1317241907"
+datestamp = "1385507608"
 

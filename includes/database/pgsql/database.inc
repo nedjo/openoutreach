@@ -6,7 +6,7 @@
  */
 
 /**
- * @ingroup database
+ * @addtogroup database
  * @{
  */
 
@@ -62,8 +62,6 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
       PDO::ATTR_EMULATE_PREPARES => TRUE,
       // Convert numeric values to strings when fetching.
       PDO::ATTR_STRINGIFY_FETCHES => TRUE,
-      // Force column names to lower case.
-      PDO::ATTR_CASE => PDO::CASE_LOWER,
     );
     parent::__construct($dsn, $connection_options['username'], $connection_options['password'], $connection_options['pdo']);
 
@@ -74,6 +72,17 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
     if (isset($connection_options['init_commands'])) {
       $this->exec(implode('; ', $connection_options['init_commands']));
     }
+  }
+
+  public function prepareQuery($query) {
+    // mapConditionOperator converts LIKE operations to ILIKE for consistency
+    // with MySQL. However, Postgres does not support ILIKE on bytea (blobs)
+    // fields.
+    // To make the ILIKE operator work, we type-cast bytea fields into text.
+    // @todo This workaround only affects bytea fields, but the involved field
+    //   types involved in the query are unknown, so there is no way to
+    //   conditionally execute this for affected queries only.
+    return parent::prepareQuery(preg_replace('/ ([^ ]+) +(I*LIKE|NOT +I*LIKE) /i', ' ${1}::text ${2} ', $query));
   }
 
   public function query($query, array $args = array(), $options = array()) {
@@ -137,7 +146,7 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
 
   public function queryTemporary($query, array $args = array(), array $options = array()) {
     $tablename = $this->generateTemporaryTableName();
-    $this->query(preg_replace('/^SELECT/i', 'CREATE TEMPORARY TABLE {' . $tablename . '} AS SELECT', $query), $args, $options);
+    $this->query('CREATE TEMPORARY TABLE {' . $tablename . '} AS ' . $query, $args, $options);
     return $tablename;
   }
 
@@ -210,5 +219,5 @@ class DatabaseConnection_pgsql extends DatabaseConnection {
 }
 
 /**
- * @} End of "ingroup database".
+ * @} End of "addtogroup database".
  */

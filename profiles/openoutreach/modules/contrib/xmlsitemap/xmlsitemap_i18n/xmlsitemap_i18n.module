@@ -86,24 +86,24 @@ function xmlsitemap_i18n_query_xmlsitemap_generate_alter(QueryAlterableInterface
   switch ($mode) {
     case 'simple':
       // Current language and language neutral.
-      $query->condition('language', array($current, LANGUAGE_NONE));
+      $query->condition('x.language', array($current, LANGUAGE_NONE));
       break;
     case 'mixed':
       // Mixed current language (if available) or default language (if not) and language neutral.
-      $query->condition('language', array($current, $default, LANGUAGE_NONE));
+      $query->condition('x.language', array($current, $default, LANGUAGE_NONE));
       break;
     case 'default':
       // Only default language and language neutral.
-      $query->condition('language', array($default, LANGUAGE_NONE));
+      $query->condition('x.language', array($default, LANGUAGE_NONE));
       break;
     case 'strict':
       // Only current language (for nodes), simple for all other types.
       $node_condition = db_and();
-      $node_condition->condition('type', 'node');
-      $node_condition->condition('language', $current);
+      $node_condition->condition('x.type', 'node');
+      $node_condition->condition('x.language', $current);
       $normal_condition = db_and();
-      $normal_condition->condition('type', 'node', '<>');
-      $normal_condition->condition('language', array($current, LANGUAGE_NONE));
+      $normal_condition->condition('x.type', 'node', '<>');
+      $normal_condition->condition('x.language', array($current, LANGUAGE_NONE));
       $condition = db_or();
       $condition->condition($node_condition);
       $condition->condition($normal_condition);

@@ -1,5 +1,4 @@
- <?php
-
+<?php
 /**
  * @file
  * Theme implementation to display information about the post/profile author.
@@ -19,7 +18,7 @@
 
 <div class="author-pane">
  <div class="author-pane-inner">
-   <?php /* General section */ ?>
+    <?php /* General section */ ?>
     <div class="author-pane-section author-pane-general">
       <?php /* Account name */ ?>
       <div class="author-pane-line author-name">
@@ -38,10 +37,17 @@
         </div>
       <?php endif; ?>
 
+      <?php /* Last active */ ?>
+      <?php if (!empty($last_active)): ?>
+        <div class="author-pane-line">
+           <span class="author-pane-label"><?php print t('Last seen'); ?>:</span> <?php print t('!time ago', array('!time' => $last_active)); ?>
+        </div>
+      <?php endif; ?>
+
       <?php /* User title */ ?>
       <?php if (!empty($user_title)): ?>
         <div class="author-pane-line author-title">
-          <?php print $user_title; ?>
+          <span class="author-pane-label"><?php print t('Title'); ?>:</span> <?php print $user_title; ?>
         </div>
       <?php endif; ?>
 
@@ -49,13 +55,6 @@
       <?php if (!empty($user_badges)): ?>
         <div class="author-pane-line author-badges">
           <?php print $user_badges; ?>
-        </div>
-      <?php endif; ?>
-
-      <?php /* Location */ ?>
-      <?php if (!empty($location_user_location)): ?>
-        <div class="author-pane-line author-location">
-          <?php print $location_user_location;  ?>
         </div>
       <?php endif; ?>
 
@@ -98,9 +97,9 @@
       <?php endif; ?>
 
       <?php /* User relationships */ ?>
-      <?php if (!empty($user_relationships_api)): ?>
+      <?php if (!empty($user_relationships)): ?>
         <div class="author-pane-line author-pane-link-line author-user-relationship">
-          <?php print $user_relationships_api; ?>
+          <?php print $user_relationships; ?>
         </div>
       <?php endif; ?>
 
@@ -124,11 +123,6 @@
      <?php /* Fasttoggle block */ ?>
      <?php if (!empty($fasttoggle_block_author)): ?>
         <div class="author-fasttoggle-block"><?php print $fasttoggle_block_author; ?></div>
-      <?php endif; ?>
-
-     <?php /* Troll ban */ ?>
-      <?php if (!empty($troll_ban_author)): ?>
-        <div class="author-pane-line author-troll-ban"><?php print $troll_ban_author; ?></div>
       <?php endif; ?>
     </div>
   </div>

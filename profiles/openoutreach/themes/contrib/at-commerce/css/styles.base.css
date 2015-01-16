@@ -1,0 +1,819 @@
+/* Base */
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  line-height: 1.5;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  text-rendering: optimizeLegibility\9; /* Only IE, can mess with Android */
+}
+
+/* Gutters - if gutters are set in theme settings they will override these
+   values: see Extensions > Modify Output > Design */
+#main-content,
+.block-inner,
+.pane-inner,
+.menu-wrapper,
+.branding-elements,
+.breadcrumb-wrapper,
+.attribution,
+.at-panel .rounded-corner,
+.block-panels-mini > .block-title,
+div.messages {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/* Panel pages need negative margin equal to the gutter width applied to #content,
+  this is taken care of in theme settings as per above for normal gutters */
+#content .panel-display,
+#content .panel-flexible {
+  margin-left: -10px;
+  margin-right: -10px;
+}
+
+/* Micro reset */
+h1, h2, h3, h4, h5, h6,
+h1 img, h2 img, h3 img, h4 img, h5 img, h6 img,
+em, dfn, del, ins,
+figure, figcaption {
+  margin: 0;
+  padding: 0;
+}
+
+/* Reset HTML5 elements */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
+}
+
+/* Headings */
+h1 {
+  font-size: 2em;
+}
+h2 {
+  font-size: 1.5em;
+}
+h3 {
+  font-size: 1.25em;
+}
+h4 {
+  font-size: 1.1em;
+}
+h5, h6 {
+  font-size: 1em;
+}
+
+p {
+  margin: 0 0 0.75em;
+  padding: 0;
+}
+blockquote p {
+  margin: 0;
+}
+strong {
+  font-weight: bold;
+}
+em, dfn {
+  font-style: italic;
+}
+dfn {
+  font-weight: bold;
+}
+sup, sub {
+  line-height: 0;
+}
+del {
+  color: #666;
+}
+ins {
+  border-bottom: none;
+  text-decoration: none;
+}
+pre, code {
+  margin: 1.5em 0;
+  padding: 0;
+  white-space: pre;
+}
+pre, code, tt, p code  {
+  font: 1em Consolas, Monaco, "Courier New", Courier, monospace, serif;
+}
+sup {
+  vertical-align: text-top;
+}
+sub {
+  vertical-align: text-bottom;
+}
+li li, li p, td p, blockquote p {
+  font-size: 1em;
+}
+blockquote, q {
+  font-style: italic;
+  margin: 0 0 1.5em;
+  padding: 0 0 0 3em;
+}
+blockquote:before,
+blockquote:after,
+q:before, q:after {
+  content: "";
+}
+blockquote, q {
+  quotes: "" "";
+}
+table {
+  border-spacing: 0;
+  margin: 0 0 10px;
+  padding: 0;
+  width: 100%;
+}
+td, th {
+ padding: 5px;
+}
+th {
+  border-bottom: 0 none;
+}
+tr.even, tr.odd {
+  background-color: rgba(0,0,0,0.01);
+  padding: 0;
+}
+
+/* Global Link Styles */
+ a {
+  margin: 0;
+  padding: 0;
+  text-decoration: none;
+}
+a img {
+  border: none;
+}
+
+/* Lists */
+ul, ol {
+  margin: 0 0 1em 15px;
+  padding: 0;
+}
+li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set nested list indentation */
+ul ul, ul ol,
+ol ol, ol ul,
+.block ul ul,
+.block ul ol,
+.block ol ol,
+.block ol ul,
+.item-list ul ul,
+.item-list ul ol,
+.item-list ol ol,
+.item-list ol ul {
+  margin: 0 0 0 15px;
+}
+
+/* Set nested list list-style-types */
+ul {
+  list-style-type: disc;
+}
+ul ul {
+  list-style-type: circle;
+}
+ul ul ul {
+  list-style-type: square;
+}
+ul ul ul ul {
+  list-style-type: circle;
+}
+ol {
+  list-style-type: decimal;
+}
+ol ol {
+  list-style-type: lower-alpha;
+}
+ol ol ol {
+  list-style-type: decimal;
+}
+dt {
+  font-weight: bold;
+}
+dd {
+  margin: 0 0 1em 15px;
+}
+.item-list ul,
+.item-list ol {
+  margin: 0 0 0 15px;
+  padding: 0;
+}
+.item-list ul li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Special case some regions to remove bullets, margin and paddng */
+.three-3x33 ul,
+.three-3x33 ul li,
+.four-4x25 ul,
+.four-4x25 ul li {
+  list-style: none;
+  list-style-type: none; /* IE6/7 */
+  margin: 0;
+}
+
+/**
+ * Flexible Media and Cross browser improvements
+ * - This can cause issues in table cells where no width is set on the column,
+ *   only in some versions of webkit and IE 7/8.
+ * - declaring the width attribute on image elements and using max-width causes
+ *   the "dissappering images" bug in IE8.
+ * - Google maps break also, see below for fixes.
+ */
+img {
+  max-width: 100%;
+  height: auto;
+  -ms-interpolation-mode: bicubic;
+}
+
+/* /ht Ethan Marcotte - http://front.ie/l8rJaA */
+img,
+embed,
+object,
+video {
+  max-width: 100%;
+}
+
+/* Disable flexiblity for IE8 and below */
+.lt-ie9 img,
+.lt-ie9 object,
+.lt-ie9 embed,
+.lt-ie9 video {
+  max-width: none;
+}
+
+/* Override max-width 100% for map displays and widgets */
+#map img,
+.gmap img,
+.view-gmap img,
+.openlayers-map img,
+#getlocations_map_canvas img,
+#locationmap_map img,
+.geofieldMap img,
+.views_horizontal_slider img,
+.field-widget-imagefield-crop-widget img {
+  max-width: none !important;
+}
+
+/* Improve IE's resizing of images */
+svg:not(:root) {
+  overflow: hidden;
+}
+
+/* Corrects inline-block display not defined in IE6/7/8/9 & FF3 */
+audio,
+canvas,
+video {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
+
+/* Prevents modern browsers from displaying 'audio' without controls */
+audio:not([controls]) {
+  display: none;
+}
+
+/* Forms */
+input.form-text,
+textarea {
+  padding: 4px;
+  max-width: 100%;
+}
+select {
+  padding: 3px;
+}
+.form-textarea-wrapper textarea {
+  font-size: 130%;
+}
+fieldset.filter-wrapper {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+.filter-help {
+  padding: 10px 0 0 0;
+}
+.filter-wrapper .form-item {
+  padding: 0 0 10px 2px;
+}
+.filter-guidelines {
+  padding: 0 10px 10px 2px;
+}
+.form-submit {
+  border: 0;
+  margin: 5px 10px 5px 0;
+  padding: 2px 10px;
+  cursor: pointer;
+  -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  -webkit-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+}
+.form-submit:focus,
+.form-submit:hover {
+  -moz-box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.1);
+}
+#block-user-login .form-submit:focus,
+#block-user-login .form-submit:hover {
+  -moz-box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+  -webkit-box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.1);
+}
+input.form-text,
+textarea,
+select {
+  -webkit-box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+  box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+  -moz-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  -webkit-transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+  transition: border 0.2s linear 0s, box-shadow 0.2s linear 0s;
+}
+.resizable-textarea .grippie {
+  display: none;
+}
+fieldset {
+  margin-bottom: 15px;
+  padding: 15px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+  -webkit-box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+  -moz-box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+  box-shadow: inset 0 1px 2px 2px rgba(0, 0, 0, 0.07);
+}
+fieldset.collapsed {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+input#edit-checkout,
+input#edit-continue {
+  font-size: 1.231em;
+  font-weight: 700;
+  margin-right: 0;
+}
+input#edit-submit[value*="Update cart"],
+input#edit-cancel {
+  font-size: 1.231em;
+}
+
+/* Toggle Draw */
+.region-draw {
+  padding: 25px 20px 0;
+}
+.region-draw a:hover,
+.region-draw a:focus {
+  text-decoration: underline;
+}
+.region-draw .block {
+  float: left;
+  display: inline-block;
+  min-width: 25%;
+  max-width: 50%;
+}
+#draw {
+  display: block;
+  width: 100%;
+}
+html.js #draw,
+#toggle-wrapper {
+  display: none;
+}
+html.js #toggle-wrapper {
+  display: block;
+}
+#draw-wrapper a {
+  text-decoration: underline;
+}
+#toggle-wrapper a {
+  display: block;
+  padding: 0 10px 2px;
+  font-size: 0.923em;
+  outline: 0;
+  -moz-border-radius: 0 0 6px 6px;
+  border-radius: 0 0 6px 6px;
+}
+
+/* Site Header */
+#header-wrapper {
+  border-bottom: 1px solid #fff;
+}
+#header-wrapper header {
+  margin: 0 10px;
+}
+#branding {
+  margin: 25px 0 18px;
+}
+#logo {
+  padding-top: 0.214em;
+}
+#site-name {
+  font-size: 3em; /* 39px */
+}
+#site-slogan {
+  font-size: 2.3em; /* trying for the x-height of the site name, but this won't always match */
+  padding-left: 10px;
+  padding-right: 10px;
+}
+#site-name,
+#site-slogan {
+  display: inline-block;
+  line-height: 1;
+  padding-top: 5px;
+}
+#branding.with-logo.site-name-hidden.with-site-slogan .h-group,
+#branding.with-logo.site-name-hidden.with-site-slogan .h-group #site-slogan {
+  float: none;
+  display: block;
+  clear: both;
+  padding: 0;
+}
+#branding.with-logo.site-name-hidden.with-site-slogan .h-group #site-slogan {
+  font-size: 1.231em;
+  padding-top: 5px;
+}
+
+/**
+ * Main menu region
+ * The theme can't do much, otherwise we run into issues with Superfish which
+ * is more important to support out of the box, we try always to work with
+ * Superfish and not fight it; bertha, its bigger than both of us...
+ */
+#menu-wrapper {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 100;
+  top: 1.25em;
+  min-height: 2.5em;
+  clear: both;
+  -moz-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.4);
+  -webkit-box-shadow: 0 5px 5px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 5px 5px rgba(0, 0, 0, 0.4);
+}
+#menu-bar .block {
+  position: static;
+  text-transform: uppercase;
+}
+#menu-bar ul ul {
+  margin-left: 0;
+}
+#menu-bar .sf-menu {
+  margin-bottom: 0;
+}
+#menu-bar .block-menu,
+#menu-bar .block-menu ul,
+#menu-bar .block-menu ul li {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav .block-menu ul li {
+  float: left;
+}
+.nav .block-menu ul {
+  float: left;
+}
+.nav .block-menu ul ul {
+  padding-left: 0;
+}
+.nav .block-menu ul a {
+  display: block;
+  padding: 0.75em 1em;
+  text-decoration: none;
+}
+.nav .block-menu ul li:hover,
+.nav .block-menu ul li.sfHover,
+.nav .block-menu ul a:focus,
+.nav .block-menu ul a:hover,
+.nav .block-menu ul a:active {
+  outline: 0;
+}
+
+/* Superfish fixes */
+ul.sf-menu li {
+  margin: 0;
+}
+
+/* Wrapper white space */
+#secondary-content-wrapper .texture-overlay {
+  padding-top: 4em;
+  padding-bottom: 30px;
+}
+#content-wrapper {
+  padding-top: 20px;
+  padding-bottom: 30px;
+}
+#content-wrapper.no-secondary {
+  padding-top: 4em;
+}
+#sub-panels-wrapper {
+  padding: 0 0 40px;
+  margin-bottom: 25px;
+  background: url(images/blur-seperator.png) no-repeat center bottom;
+}
+#tertiary-content-wrapper {
+  padding: 20px 0 0;
+}
+#secondary-content-wrapper .region-secondary-content,
+#tertiary-content-wrapper .region-tertiary-content {
+  margin-left: 40px;
+  margin-right: 40px;
+}
+#quint-panels-wrapper {
+  padding: 30px 0 20px;
+}
+#footer-panels-wrapper {
+  padding: 30px 0 15px;
+}
+#footer-wrapper {
+  padding: 20px 0 15px;
+}
+
+/* Fields */
+.field-type-image img {
+  background: #fff;
+  padding: 4px;
+}
+.field-label {
+  font-size: 1em;
+}
+.field-type-commerce-price {
+  font-size: 1.538em;
+}
+.field-type-taxonomy-term-reference ul {
+  margin: 0;
+  padding: 0;
+}
+.field-type-taxonomy-term-reference li {
+  list-style: none;
+}
+.field-type-taxonomy-term-reference.field-label-inline li {
+  display: inline;
+  margin-right: 8px;
+}
+
+/* Articles */
+.node,
+.comment {
+  margin-bottom: 25px;
+}
+article header {
+ position: relative;
+ margin-bottom: 10px;
+}
+.node-title {
+  line-height: 1.4;
+}
+article .submitted {
+  color: #666;
+  font-size: 0.923em;
+  padding: 0 0 0.6em;
+  margin: 0;
+  position: relative;
+}
+article .node-content {
+  padding: 10px 0;
+}
+article nav {
+  clear: both;
+}
+article ul.links {
+  font-size: 0.923em;
+  text-transform: capitalize;
+  text-align: right;
+  margin: 10px 0;
+  padding: 0;
+}
+article ul.links li {
+  display: inline;
+  list-style: none;
+  margin: 0 0 0 10px;
+}
+article ul.links a {
+  padding: 0;
+  text-transform: capitalize;
+}
+.node header.with-picture {
+  height: 3.5em;
+  height: auto !important;
+  min-height: 3.5em;
+  padding-left: 60px;
+}
+.node header .user-picture {
+  left: 0;
+  top: 9px;
+  position: absolute;
+  max-width: 47px;
+  max-height: 47px;
+  overflow: hidden;
+}
+.node header .user-picture img {
+  display: block;
+  margin: 0;
+  max-width: 47px;
+  max-height: 47px;
+}
+article figcaption {
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+/* Comments */
+h2.comment-title {
+  margin-bottom: 20px;
+}
+.comment {}
+article.comment header.with-picture {
+  height: 3em;
+  height: auto !important;
+  min-height: 3em;
+  padding-left: 50px;
+}
+article.comment header .user-picture {
+  top: 5px;
+  max-width: 35px;
+  max-height: 35px;
+}
+article.comment header .user-picture img {
+  max-width: 35px;
+  max-height: 35px;
+}
+article .comment-content {
+  padding: 10px 0 0;
+}
+.comment em.new {
+  background: green;
+  border: 1px solid #fff;
+  color: #fff;
+  display: block;
+  float: right;
+  font-style: normal;
+  line-height: 1.3;
+  padding: 0 4px 2px;
+  margin: 5px 0 0 0;
+  -moz-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+  -webkit-box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Signatures */
+.user-signature p {
+  font-style: italic;
+  text-align: right;
+  margin: 0;
+}
+.user-signature p:before,
+.user-signature p:after {
+  content: '"';
+}
+
+/* Blocks */
+.block {
+  margin-bottom: 20px;
+}
+.three-3x33 .block-inner,
+.sidebar .block-inner {
+}
+.region-tertiary-content .block {
+  margin-bottom: 0;
+}
+#block-comment-recent span {
+  font-size: 0.823em;
+}
+#block-user-login ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Breadcrumb */
+#breadcrumb {
+  margin-bottom: 20px;
+}
+#breadcrumb h2 {
+  font-size: 1em;
+  padding-right: 10px;
+  font-weight: 400;
+  display: inline;
+}
+#breadcrumb h2:after {
+  content: ":"
+}
+ol#crumbs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline;
+}
+ol#crumbs li.crumb {
+  display: inline;
+  list-style: none;
+}
+
+/* Poll */
+.poll .vote-form .choices {
+  margin: 0;
+}
+.poll .vote-form {
+  text-align: left;
+}
+
+/* Profile */
+.profile .user-picture {
+  float: none;
+  margin: 0 0 10px;
+}
+
+/* Forum */
+#forum .description {
+  margin: 0 0 0 33px;
+}
+
+/* Messages */
+#messages-help-wrapper {
+  margin-bottom: 25px;
+}
+
+/* Tasks */
+#tasks {
+}
+
+/* Local task tabs */
+ul.primary {
+  margin: 7px 0 10px;
+  padding: 0;
+}
+ul.primary li a {
+  font-weight: 700;
+  line-height: 1.7;
+  margin-right: 0;
+  padding: 0 8px 0 2px;
+}
+ul.primary li a,
+ul.primary li a:hover,
+ul.primary li a.active,
+ul.primary li.active a,
+ul.primary li a.active:hover,
+ul.primary li a.active:focus {
+  border: 0;
+}
+
+/* Contextual link reset - be brutal */
+.contextual-links-wrapper .contextual-links {
+  margin: 0 !important;
+  padding: 0.25em 0 !important;
+}
+.contextual-links-wrapper .contextual-links li {
+  display: block !important;
+  float: none !important;
+  line-height: 100% !important;
+  list-style: none !important;
+  list-style-type: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.contextual-links-wrapper .contextual-links a {
+  font-family: Arial, sans-serif !important;
+  font-size: small !important;
+  font-weight: 400 !important;
+  font-variant: normal !important;
+  line-height: 1.2em !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  color: #333 !important;
+  display: block !important;
+  float: none !important;
+  margin: 0.25em 0 !important;
+  padding: 0.25em 1em 0.25em 0.5em !important;
+}

@@ -7,9 +7,25 @@
 
 /**
  * Implements hook_views_plugins().
+ *
+ * Generate a list of which base-tables to enabled the plugins for.
  */
 function media_views_plugins() {
   $plugins = array();
+
+  // Always allow the actual file-table
+  $base = array('file_managed');
+
+  if (module_exists('search_api')) {
+    // If the Search API module exists, also allow indices of the file-entity
+    // that has the fid field indexed.
+    $indices = search_api_index_load_multiple(NULL);
+    foreach ($indices as $machine_name => $index) {
+      if ($index->item_type == 'file' && isset($index->options['fields']['fid'])) {
+        $base[] = 'search_api_index_' . $machine_name;
+      }
+    }
+  }
 
   // Display plugin.
   $plugins['display']['media_browser'] = array(
@@ -17,7 +33,7 @@ function media_views_plugins() {
     'help' => t('Display as a tab in the media browser.'),
     'handler' => 'media_views_plugin_display_media_browser',
     'theme' => 'views_view',
-    'base' => array('file_managed'),
+    'base' => $base,
     'use ajax' => TRUE,
     'use pager' => TRUE,
     'accept attachments' => TRUE,
@@ -29,7 +45,7 @@ function media_views_plugins() {
     'help' => t('Displays rows as an HTML list.'),
     'handler' => 'media_views_plugin_style_media_browser',
     'theme' => 'media_views_view_media_browser',
-    'base' => array('file_managed'),
+    'base' => $base,
     'uses row plugin' => FALSE,
     'uses row class' => FALSE,
     'uses options' => FALSE,
@@ -48,6 +64,11 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
   // Load file objects for each View result.
   $fids = array();
   foreach ($vars['rows'] as $index => $row) {
+    // The Search API module returns the row in a slightly different format,
+    // so convert it to the format that the normal file_managed table returns.
+    if (!empty($row->entity->fid)) {
+      $vars['rows'][$index]->fid = $row->entity->fid;
+    }
     $fids[$index] = $row->fid;
   }
   $files = file_load_multiple($fids);
@@ -55,24 +76,31 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
   // Render the preview for each file.
   foreach ($vars['rows'] as $index => $row) {
     $file = $files[$row->fid];
-    // Add url/preview to the file object
+    // Add url/preview to the file object.
     media_browser_build_media_item($file);
     $vars['rows'][$index] = $file;
-    $vars['rows'][$index]->preview = l($file->preview, 'media/browser', array(
-      'html' => TRUE,
-      'attributes' => array(
-        'data-fid' => $row->fid,
-      ),
-      'query' => array('render' => 'media-popup', 'fid' => $row->fid))
-    );
+    $vars['rows'][$index]->preview = $file->preview;
   }
 
-  // Add the files to JS so that they are accessible inside the browser
-  drupal_add_js(array('media' => array('files' => $files)), 'setting');
+  // Add the files to JS so that they are accessible inside the browser.
+  drupal_add_js(array('media' => array('files' => array_values($files))), 'setting');
 
+  // Add the browser parameters to the settings and that this display exists.
+  drupal_add_js(array(
+    'media' => array(
+      'browser' => array(
+        'params' => media_get_browser_params(),
+        'views' => array(
+          $vars['view']->name => array(
+            $vars['view']->current_display,
+          ),
+        ),
+      ),
+    ),
+  ), 'setting');
 
   // Add classes and wrappers from the style plugin.
-  $handler  = $vars['view']->style_plugin;
+  $handler = $vars['view']->style_plugin;
 
   $class = explode(' ', $handler->options['class']);
   $class = array_map('drupal_clean_css_identifier', $class);
@@ -82,7 +110,7 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
 
   $vars['class'] = implode(' ', $class);
   $vars['wrapper_class'] = implode(' ', $wrapper_class);
-  $vars['wrapper_prefix'] = '<div id="container" class="' . implode(' ', $wrapper_class) . '">';
+  $vars['wrapper_prefix'] = '<div class="' . implode(' ', $wrapper_class) . '">';
   $vars['wrapper_suffix'] = '</div>';
   $vars['list_type_prefix'] = '<' . $handler->options['type'] . ' id="media-browser-library-list" class="' . implode(' ', $class) . '">';
   $vars['list_type_suffix'] = '</' . $handler->options['type'] . '>';
@@ -92,9 +120,12 @@ function template_preprocess_media_views_view_media_browser(&$vars) {
 
   // Add media browser javascript and CSS.
   drupal_add_js(drupal_get_path('module', 'media') . '/js/plugins/media.views.js');
-  // We need to see if we can depricate this
-  drupal_add_js(drupal_get_path('module', 'media') . '/js/plugins/media.library.js');
-  // We should abstract this into a standard css file so all implementers have
-  // it by default
-  drupal_add_css(drupal_get_path('module', 'media') . '/js/plugins/media.library.css');
+}
+
+/**
+ * Implements hook_views_invalidate_cache().
+ */
+function media_views_invalidate_cache() {
+  cache_clear_all('media:browser:plugin', 'cache', TRUE);
+  drupal_static_reset('media_get_browser_plugin_info');
 }

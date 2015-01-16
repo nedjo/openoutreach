@@ -1,14 +1,24 @@
+/**
+ * @file
+ * Custom JS for controlling the Metatag vertical tab.
+ */
 
 (function ($) {
+  'use strict';
 
 Drupal.behaviors.metatagFieldsetSummaries = {
   attach: function (context) {
     $('fieldset.metatags-form', context).drupalSetSummary(function (context) {
       var vals = [];
       $("input[type='text'], select, textarea", context).each(function() {
-        var default_name = $(this).attr('name').replace(/\[value\]/, '[default]');
+        var input_field = $(this).attr('name');
+        // Verify the field exists before proceeding.
+        if (input_field === undefined) {
+          return false;
+        }
+        var default_name = input_field.replace(/\[value\]/, '[default]');
         var default_value = $("input[type='hidden'][name='" + default_name + "']", context);
-        if (default_value.length && default_value.val() == $(this).val()) {
+        if (default_value.length && default_value.val() === $(this).val()) {
           // Meta tag has a default value and form value matches default value.
           return true;
         }
@@ -18,7 +28,7 @@ Drupal.behaviors.metatagFieldsetSummaries = {
         }
         var label = $("label[for='" + $(this).attr('id') + "']").text();
         vals.push(Drupal.t('@label: @value', {
-          '@label': label.trim(),
+          '@label': $.trim(label),
           '@value': Drupal.truncate($(this).val(), 25) || Drupal.t('None')
         }));
       });

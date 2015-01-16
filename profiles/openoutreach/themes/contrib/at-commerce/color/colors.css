@@ -1,0 +1,343 @@
+/* Commerce Colors */
+
+html {
+  background: #e2e2e2;
+}
+body {
+  color: #666666;
+}
+
+/* Links */
+a:link,
+a:visited,
+a:active,
+a.active,
+li a.active {
+  color: #2079d2;
+}
+a:hover,
+a:focus {
+  color: #18599b;
+}
+
+/* Main wrappers */
+div#page {
+  background-color: #f5f5f5;
+}
+#header-wrapper {
+  background-color: #ededed;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#e5e5e5));
+  background-image: -moz-linear-gradient(-90deg, #ededed, #e5e5e5);
+  background-image: linear-gradient(-90deg, #ededed, #e5e5e5);
+  -ms-filter: "progid:dXImageTransform.Microsoft.gradient(GradientType=0,startcolorstr='#ededed', endcolorstr='#e5e5e5')";
+  filter: progid:dXImageTransform.Microsoft.gradient(enabled='true',startcolorstr=#ededed,endcolorstr=#e5e5e5,GradientType=0);
+}
+#secondary-content-wrapper {
+  background-color: #dddddd;
+  color: #414141;
+}
+#secondary-content-wrapper a {
+  color: #101010;
+}
+#secondary-content-wrapper .texture-overlay {
+  border-bottom: 1px solid #fff;
+}
+#content-wrapper {
+  border-top: 1px solid #d5d5d5;
+  border-bottom: 1px solid #d5d5d5;
+}
+#quint-panels-wrapper {
+  background-color: #e7e7e7;
+  color: #555555;
+  border-top: 1px solid #ffffff;
+}
+#quint-panels-wrapper a {
+  color: #616161;
+}
+#page-footer{
+  background-color: #202020;
+}
+#footer-panels-wrapper {
+  color: #ababab;
+  border-bottom: 1px solid #ffffff;
+}
+#footer-panels-wrapper h1,
+#footer-panels-wrapper h2,
+#footer-panels-wrapper h3,
+#footer-panels-wrapper .title,
+#footer-panels-wrapper a,
+#footer-panels-wrapper a:link,
+#footer-panels-wrapper a:hover,
+#footer-panels-wrapper a:focus {
+  color: #dedede;
+}
+#footer-wrapper {
+  border-top: 1px solid #d5d5d5;
+  background: #e2e2e2;
+}
+
+/* Draw */
+#draw-wrapper {
+  background: #2e2e2e;
+  color: #e7e7e7;
+}
+#draw-wrapper h1,
+#draw-wrapper h2,
+#draw-wrapper h3,
+#draw-wrapper .title,
+#draw-wrapper a,
+#draw-wrapper a:link,
+#draw-wrapper a:hover,
+#draw-wrapper a:focus {
+  color: #e3e3e3;
+}
+#toggle-wrapper {
+  border-top: 4px solid #2e2e2e;
+  background: transparent; /* transparent to show header gradient or image */
+  color: #e3e3e3;
+}
+#toggle-wrapper a {
+  background: #2e2e2e;
+  color: #e3e3e3;
+}
+
+/* Header */
+#site-name a {
+  color: #111111;
+}
+#site-slogan {
+  color: #3b3b3b;
+}
+
+/* Titles */
+h1, h2, h3, .title {
+  color: #2c2c2c;
+}
+
+/* Menu bar */
+#menu-bar {
+  background: #212121;
+}
+.nav .block-menu ul li a {
+  color: #fcfcfc;
+}
+.nav .block-menu ul li:hover,
+.nav .block-menu ul li.focus,
+.nav .block-menu ul a:focus,
+.nav .block-menu ul a:hover,
+.nav .block-menu ul a:active,
+.nav .block-menu ul a:visited {
+  color: #fafafa;
+  background: #0c2d4d;
+}
+.nav .block-menu ul ul {
+  background: #212121;
+  opacity: 0.95;
+  filter: alpha(opacity = 95);
+  margin-left: 0;
+}
+
+/* Superfish Skin - we keep the Superfish skin seperate so we can special case
+   if we really need to */
+.sf-menu.sf-style-default a {
+  border: 0;
+}
+.sf-menu.sf-style-default a,
+.sf-menu.sf-style-default a:visited  {
+  color: #fcfcfc;
+}
+.sf-menu.sf-style-default span.sf-description {
+  color: #ffffef;
+}
+.sf-menu.sf-style-default li li,
+.sf-menu.sf-style-default.sf-navbar li ul {
+  background-color: #0c2d4d;
+}
+.sf-menu.sf-style-default li li li {
+  background-color: #0c2d4d;
+}
+.sf-menu.sf-style-default li:hover,
+.sf-menu.sf-style-default li.sfHover,
+.sf-menu.sf-style-default a:focus,
+.sf-menu.sf-style-default a:hover,
+.sf-menu.sf-style-default a:active {
+  background-color: #0c2d4d;
+}
+.sf-menu.sf-style-default li,
+.sf-menu.sf-style-default.sf-navbar,
+.sf-menu.sf-style-default ul li:hover,
+.sf-menu.sf-style-default ul li.sfHover,
+.sf-menu.sf-style-default ul a:focus,
+.sf-menu.sf-style-default ul a:hover,
+.sf-menu.sf-style-default ul a:active {
+  background-color: #212121;
+}
+.sf-menu.sf-style-default.sf-navbar li ul li ul {
+  background-color: transparent;
+}
+
+/* nodes */
+.node-teaser.node-sticky {
+ background: #f9f9f9;
+}
+node header {
+ border-bottom: 1px solid #dd5d5;
+}
+
+/* Blocks */
+#block-system-main {
+  border-bottom: none;
+}
+
+/* Profile */
+.profile h3 {
+    border-bottom: 1px solid #d5d5d5;
+}
+
+/* Local task tabs */
+ul.primary {
+  border-bottom: 1px solid #d5d5d5;
+}
+ul.primary li a,
+ul.primary li a:hover {
+  background: transparent;
+}
+ul.primary li a:hover,
+ul.primary li a:focus,
+ul.primary li a.active,
+ul.primary li.active a,
+ul.primary li a.active:hover,
+ul.primary li a.active:focus {
+  background: transparent;
+  color: #666666;
+}
+
+/* Tables */
+tr.even {}
+tbody tr:nth-child(2n+1),
+tr.odd {}
+td, th {
+ border-color: #d5d5d5;
+}
+tr.even, tr.odd {
+  border-bottom: 1px solid #d5d5d5;
+}
+tbody {
+  border-top: 1px solid #d5d5d5;
+}
+
+/* Forms */
+input.form-text,
+textarea,
+select {
+  border: 1px solid #d5d5d5;
+  background-color: rgba(255, 255, 255, 0.6);
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+}
+input.form-text:focus,
+textarea:focus,
+select:focus {
+  border-color: #007fff;
+  outline: 0;
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 8px #007fff;
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 8px #007fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset, 0 0 8px #007fff;
+}
+fieldset {
+  border-color: #d5d5d5;
+}
+input[type="submit"] {
+  border: 1px solid #e0e0e0;
+  color: #333;
+  background-color: #e0e0e0;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#e0e0e0), to(#ebebeb));
+  background-image: -moz-linear-gradient(-90deg, #e0e0e0, #ebebeb);
+  background-image: linear-gradient(-90deg, #e0e0e0, #ebebeb);
+  -ms-filter: "progid:dXImageTransform.Microsoft.gradient(GradientType=0,startcolorstr='#e0e0e0', endcolorstr='#ebebeb')";
+  filter: progid:dXImageTransform.Microsoft.gradient(enabled='true',startcolorstr=#e0e0e0,endcolorstr=#ebebeb,GradientType=0);
+
+}
+form.commerce-add-to-cart input,
+.add-to-cart #edit-actions input,
+input#edit-checkout,
+input#edit-continue,
+input.node-add-to-cart,
+input.list-add-to-cart {
+  border: 1px solid #007100;
+  color: #ffffff;
+  background-color: #007100;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#007100), to(#588e51));
+  background-image: -moz-linear-gradient(-90deg, #007100, #588e51);
+  background-image: linear-gradient(-90deg, #007100, #588e51);
+  -ms-filter: "progid:dXImageTransform.Microsoft.gradient(GradientType=0,startcolorstr='#007100', endcolorstr='#588e51')";
+  filter: progid:dXImageTransform.Microsoft.gradient(enabled='true',startcolorstr=#007100,endcolorstr=#588e51,GradientType=0);
+}
+
+/* Content Display Grid */
+.content-display-grid node .node-inner {
+  border: 5px solid #f5f5f5;
+}
+.content-display-grid node .node-inner:hover {
+  border-width: 5px;
+  border-style: solid;
+  border-color: #d5d5d5;
+}
+
+/* Search */
+#search-block-form input.form-text,
+#search-block-form input::-webkit-input-placeholder,
+#search-block-form input:-moz-placeholder {
+  color: #555555;
+}
+
+/* Calendar module */
+.calendar-calendar div.date-nav {
+  background-color: transparent;
+  color: #b81d00;
+}
+.calendar-calendar div.date-nav a,
+.calendar-calendar div.date-nav h3 {
+  color: #b81d00;
+}
+.calendar-calendar td {
+  color: #181818;
+}
+.calendar-calendar th {
+  background-color: #fdfdff;
+  color: #b81d00;
+  border: 1px solid #d5d5d5;
+}
+.calendar-calendar th.days {
+  background-color: #ffffff;
+  color: #666666;
+}
+.calendar-calendar td .inner div.calendar div,
+.calendar-calendar td .inner div.calendar div a,
+.calendar-calendar td .inner div,
+.calendar-calendar td .inner div a {
+  background-color: #fdfdff;
+}
+.calendar-calendar tr td.today,
+.calendar-calendar tr.odd td.today,
+.calendar-calendar tr.even td.today {
+  background-color: #fdfdff;
+}
+.calendar-calendar td.calendar-agenda-hour,
+.calendar-calendar td.calendar-agenda-items,
+.calendar-calendar td.calendar-agenda-hour {
+  border-color: #d5d5d5;
+}
+.view-content .calendar-calendar ul.inline li {
+  border: 1px solid #d5d5d5;
+}
+#content .block .calendar-calendar .month-view table {
+  border: 1px solid #d5d5d5;
+}
+
+/* Quicktabs */
+.quicktabs-style-nostyle ul.quicktabs-tabs li a {}
+.quicktabs-style-nostyle ul.quicktabs-tabs li a:hover,
+.quicktabs-style-nostyle ul.quicktabs-tabs li a:focus,
+.quicktabs-style-nostyle ul.quicktabs-tabs li.active a {}

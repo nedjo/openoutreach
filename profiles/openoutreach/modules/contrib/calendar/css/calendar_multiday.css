@@ -422,7 +422,7 @@ table.calendar-legend tr.even .stripe {
 }
 
 .calendar-calendar .week-view .full .days {
-  width: 14%;
+  width: 13%;
 }
 
 .calendar-calendar .month-view .full div.calendar,
@@ -781,6 +781,7 @@ table.calendar-legend tr.even .stripe {
   padding: 5px 0;
   position: absolute;
   right: 60px;
+  left: auto;
   text-align: right;
   top: 0px;
   width: auto;
@@ -861,10 +862,6 @@ table.calendar-legend tr.even .stripe {
 .date-nav div.date-next,
 .date-nav {
   width:auto;
-}
-
-.date-nav {
-  padding-bottom: 0;
 }
 
 ul.calendar-links,

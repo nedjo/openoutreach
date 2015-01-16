@@ -1,0 +1,13 @@
+name = Profile2 translation
+description = Translate profile2 types.
+dependencies[] = profile2
+dependencies[] = i18n_string
+package = Multilingual - Internationalization
+core = 7.x
+
+; Information added by drupal.org packaging script on 2012-12-26
+version = "7.x-1.3"
+core = "7.x"
+project = "profile2"
+datestamp = "1356482021"
+

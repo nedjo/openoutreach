@@ -5,7 +5,7 @@
  */
 
 /**
- * Implementation of hook_ctools_plugin_api().
+ * Implements hook_ctools_plugin_api().
  */
 function debut_forum_ctools_plugin_api() {
   list($module, $api) = func_get_args();

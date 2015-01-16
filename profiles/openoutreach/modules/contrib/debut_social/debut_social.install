@@ -1,10 +1,45 @@
 <?php
 
 /**
+ * @file
+ * Install file for Debut Social.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function debut_social_install() {
+  // Set captcha to forward form.
+  module_load_include('inc', 'captcha');
+  captcha_set_form_id_setting('forward_form', 'default');
+}
+
+/**
  * Implements hook_enable().
  */
 function debut_social_enable() {
   $modules = module_list();
   module_load_include('inc', 'debut_social', 'debut_social.util');
   debut_social_add_node_types($modules);
+
+  // Rebuild the features static caches.
+  features_include(TRUE);
+
+  $module = 'debut_social';
+  $feature = feature_load($module);
+  // Retain the order of component types, which is needed for example to ensure
+  // that user roles are created ahead of user permissions that reference them.
+  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
+  _features_restore('enable', $items);
+  _features_restore('rebuild', $items);
 }
+
+/**
+ * Enable the Apps compatible module.
+ */
+function debut_social_update_7000() {
+  if (!module_exists('apps_compatible') && !module_enable(array('apps_compatible'))) {
+    throw new Exception('This version of Debut Social requires the Apps compatible module but it could not be enabled.');
+  }
+}
+

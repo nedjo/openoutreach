@@ -29,7 +29,7 @@ function multiform_get_form() {
     '#name' => 'form_id',
     '#attributes' => array(),
   );
-  $build_id = 'form-' . md5(uniqid(mt_rand(), TRUE));
+  $build_id = 'form-' . drupal_random_key();
   // We need a $form_build_id because the buttons are cached and the values
   // belonging to them in $_POST are handed to each form so those can recognize
   // the buttons pressed.
@@ -43,10 +43,11 @@ function multiform_get_form() {
   // This is where buttons will be collected.
   $form['buttons'] = array();
   $form['buttons']['#weight'] = 1000;
+  $form['buttons']['#build_id'] = $build_id;
   $form_state_save = array();
   $button_names = array();
   // The only way to support $_GET would be to accept $form_state. Maybe later.
-  if ($_POST && $_POST['form_id'] == 'multiform' && !empty($_POST['form_build_id'])) {
+  if ($_POST && isset($_POST['form_id']) && $_POST['form_id'] == 'multiform' && !empty($_POST['form_build_id'])) {
     $form_state_save['input'] = $_POST;
     $_files_save = $_FILES;
     // Retrieve buttons.
@@ -138,44 +139,3 @@ function _multiform_get_form(&$element, &$buttons, $form_id) {
     $element['#name'] = "multiform[$form_id]" . preg_replace('/^[^[]+/', '[\0]', $element['#name']);
   }
 }
-
-// -------- Testing below.
-/**
-* Example code
-*
-function multiform_menu() {
-  return array(
-    'multiform' => array(
-      'access callback' => TRUE,
-      'type' => MENU_CALLBACK,
-      'page callback' => 'multiform_get_form',
-      'page arguments' => array(array('multiform_test1'), array('multiform_test2')),
-    ),
-  );
-}
-
-function multiform_test1($form, $form_state) {
-  $form['test1'] = array('#type' => 'textfield', '#title' => 'test1');
-  $form['submit'] = array('#type' => 'submit', '#value' => 'save', '#submit' => array('multiform_test_submit_button'));
-  $form['delete'] = array('#type' => 'submit', '#value' => 'delete', '#submit' => array('multiform_test_delete'));
-  return $form;
-}
-
-function multiform_test2($form) {
-  $form['submit'] = array('#type' => 'submit', '#value' => 'save', '#submit' => array('multiform_test_submit_button'));
-  $form['delete'] = array('#type' => 'submit', '#value' => 'delete', '#submit' => array('multiform_test_delete'));
-  $form['test2'] = array('#type' => 'textfield', '#title' => 'test2');
-  return $form;
-}
-
-function multiform_test_submit_button($form, $form_state) {
-  drupal_set_message($form['#form_id'] . 'multiform_test_submit_button');
-}
-
-function multiform_test_delete($form, $form_state) {
-  drupal_set_message($form['#form_id'] . 'multiform_test_delete');
-}
-
-End of example code.
-**/
-

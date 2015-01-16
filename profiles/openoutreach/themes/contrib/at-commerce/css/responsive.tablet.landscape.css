@@ -1,0 +1,33 @@
+.hl-r #logo {
+  padding: 0 3px 7px 0;
+}
+.hl-l #logo {
+  padding: 0 0 7px 3px;
+}
+#site-name {
+  font-size: 2em;
+  white-space: pre;
+}
+/* Force tableviews-view-grid to not be like a table anymore */
+table.views-view-grid,
+table.views-view-grid thead,
+table.views-view-grid tbody,
+table.views-view-grid th,
+table.views-view-grid td,
+table.views-view-grid tr {
+  display: block;
+  padding: 0;
+}
+/* Hide table headers */
+table.views-view-grid thead tr {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+.views-view-grid td {
+  float: left;
+}
+.views-view-grid .field-type-image img {
+  padding-left: 0;
+  padding-right: 0;
+}

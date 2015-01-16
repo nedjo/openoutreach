@@ -1,0 +1,156 @@
+<?php
+
+/**
+ * @file
+ * Entity Registration waitlist functionality
+ */
+
+define('REGISTRATION_WAITLIST_STATE', 'waitlist');
+
+/**
+ * Implements hook_registration_entity_settings().
+ */
+function registration_waitlist_registration_entity_settings($settings) {
+  // add a settings element to enable adding registrations to the waitlist
+  return array(
+    'registration_waitlist_enable' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Enable wait list'),
+      '#description' => t('When wait list is enabled, registrations made after capacity has been reached will be set to the wait list state.'),
+      '#default_value' => isset($settings['settings']['registration_waitlist_enable']) ? $settings['settings']['registration_waitlist_enable'] : 0,
+    ),
+    'registration_waitlist_capacity' => array(
+      '#type' => 'textfield',
+      '#title' => t('Wait list capacity'),
+      '#size' => 5,
+      '#maxsize' => 10,
+      '#required' => TRUE,
+      '#description' => t('The maximum number of registrants on the wait list. Leave at 0 for no limit.'),
+      '#default_value' => isset($settings['settings']['registration_waitlist_capacity']) ? $settings['settings']['registration_waitlist_capacity'] : 0,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="settings[registration_waitlist_enable]"]' => array('checked' => TRUE),
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_default_ENTITY_TYPE().
+ */
+function registration_waitlist_default_registration_state() {
+  $defaults = array();
+  $defaults[REGISTRATION_WAITLIST_STATE] = entity_create('registration_state', array(
+    'name' => REGISTRATION_WAITLIST_STATE,
+    'label' => t('Wait list'),
+    'description' => t('Special state for registrations after capacity is reached.'),
+    'default_state' => FALSE,
+    'active' => FALSE,
+    'show_on_form' => TRUE,
+    'weight' => 0,
+  ));
+  return $defaults;
+}
+
+/**
+ * Implements hook_registration_status_alter().
+ *
+ */
+function registration_waitlist_registration_status_alter(&$status, &$context) {
+  $entity_type = $context['entity_type'];
+  $entity_id = $context['entity_id'];
+
+  $settings = registration_entity_settings($entity_type, $entity_id);
+  $capacity = $settings['capacity'];
+
+  // Not unlimited capacity
+  if ($capacity) {
+    // We only want to check if the wait list is active when the only status error relates to capacity
+    $capacity_error = FALSE;
+    if (count($context['errors']) == 1) {
+      $error = reset($context['errors']);
+      $capacity_error = ($error == t('insufficient spaces remaining')) ? TRUE : FALSE;
+    }
+
+    // Capacity error, return true if the wait list is enabled.
+    if ($capacity_error && registration_waitlist_is_active($entity_type, $entity_id, $context['errors'])) {
+      $status = TRUE;
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function registration_waitlist_entity_presave($entity, $type) {
+  if ($type == 'registration') {
+    $errors = array();
+    $status = registration_status($entity->entity_type, $entity->entity_id, TRUE, $entity->count, $entity->registration_id, $errors);
+    if (registration_waitlist_is_active($entity->entity_type, $entity->entity_id, $errors)) {
+      $active_states = registration_get_active_states();
+
+      // Check that the state being saved is active
+      if (in_array($entity->state, $active_states)) {
+        // Check that the old state (if there is one) is not already active
+        if ((isset($entity->original) && !in_array($entity->original->state, $active_states))
+          || (!isset($entity->original)) ) {
+          drupal_set_message(t('Registration placed on the wait list.'), 'status');
+
+          // Set the registration state to waitlist
+          $waitlist_state = registration_get_states(REGISTRATION_WAITLIST_STATE);
+          $entity->state = $waitlist_state->identifier();
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Determine if the waitlist is active for a given registration
+ *
+ * @param $entity_type
+ * @param $entity_id
+ * @param $settings
+ *
+ * @return bool
+ */
+function registration_waitlist_is_active($entity_type, $entity_id, &$errors = array()) {
+  $settings = registration_entity_settings($entity_type, $entity_id);
+  $active = FALSE;
+  $capacity = $settings['capacity'];
+  
+  // Not unlimited capacity
+  if ($capacity
+    && isset($settings['settings']['registration_waitlist_enable'])
+    && $settings['settings']['registration_waitlist_enable']) {
+
+    if (in_array(t('insufficient spaces remaining'), $errors)) {
+      $active = TRUE;
+    }
+
+    // Check wait list capacity against number of registrations on the wait list
+    $waitlist_capacity = isset($settings['settings']['registration_waitlist_capacity']) ? $settings['settings']['registration_waitlist_capacity'] : 0;
+
+    // We only need to check how many people are on the waitlist if there is a capacity other than 0 set
+    if ($active && $waitlist_capacity) {
+      $waitlist_state = registration_get_states(REGISTRATION_WAITLIST_STATE);
+      // get count of registrations with the waitlist state
+      $query = db_select('registration', 'r');
+      $query->addExpression('sum(count)', 'count');
+      $query->condition('entity_id', $entity_id);
+      $query->condition('entity_type', $entity_type);
+      $query->condition('state', $waitlist_state->identifier());
+      $result = $query->execute();
+      $waitlist_count = $result->fetchField();
+      $waitlist_count = ($waitlist_count == '') ? 0 : $waitlist_count;
+
+      if (($waitlist_capacity - $waitlist_count) < 1) {
+        $active = FALSE;
+        $errors[] = t('waitlist is full');
+      }
+    }
+  }
+
+  return $active;
+}

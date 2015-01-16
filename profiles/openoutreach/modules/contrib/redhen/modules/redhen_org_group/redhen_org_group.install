@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function redhen_org_group_install() {
+  // Create the field used to references groups from other entities.
+  $field_name = REDHEN_ORG_GROUP_FIELD;
+  if (!field_info_field($field_name)) {
+    $field = array(
+      'field_name' => $field_name,
+      'type' => 'entityreference',
+      'cardinality' => FIELD_CARDINALITY_UNLIMITED,
+      'locked' => TRUE,
+      'settings' => array(
+        'handler' => 'redhen_org_group',
+        'handler_settings' => array(
+          'behaviors' => array(
+            'redhen_org_group_field_behavior' => array(),
+          ),
+          'target_bundles' => array(),
+          'primary_field' => FALSE,
+        ),
+        'target_type' => 'redhen_org',
+      ),
+    );
+
+    field_create_field($field);
+  }
+
+  // Inform site admins that access grants need to be rebuilt.
+  node_access_needs_rebuild(TRUE);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redhen_org_group_uninstall() {
+  //@todo: delete field
+}

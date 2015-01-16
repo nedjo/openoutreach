@@ -6,6 +6,112 @@ Version 7.x-3.x-dev
 ===================
 
 ======================
+Version 7.x-3.5
+======================
+
+- Issue #1729884 by lund.mikkel: Translations of max items collide with other translations.
+- Issue #1734858 by Jaws, pc-wurm: Create localized_options array in calendar_menu_local_tasks_alter() if it does not exist.
+- Issue #2008554 by coredumperror: Properly display week numbers in mini calendar view.
+- Issue #1471400 by RoSk0, Garrett Albright: Fix illegal offset in template_preprocess_calendar_month().
+- Issue #1792368 by rdela, Day template missing % after $first_column_width
+
+======================
+Version 7.x-3.4
+======================
+
+- Remove calendar_row_node completely.
+- Remove Calendar iCal completely.
+- Issue #1552212, Week numbers in the month view lost their links.
+- Change default tracking behavior to be off. 
+- Issue #1556180 by hass, Error: Strict warning: Declaration of calendar_plugin_style::options_submit().
+- Issue #1588590, Cannot always unset date link once set.
+- Issue #1565994, Remove default caching from calendar. Let people set it up themselves.
+
+======================
+Version 7.x-3.3
+======================
+
+NEW FEATURES:
+- An option to add Colorbox settings to the calendar template has been added to admin/config/date/calendar. 
+- The template has been updated to add the Colorbox settings if the option to use them has been selected and Colorbox is enabled.
+- The theming has been altered a bit to make sure that you can display a rendered entity in a Colorbox field.
+- A new calendar style option has been added to choose fields to exclude from multi-day rows, so multi-day rows can be set up to display only the Colorbox picker.
+
+BUGFIXES:
+
+- Delete all the code used to remove default calendars, no longer needed now that the default calendar has been removed.
+- Issue #1543930 by johnv, Fix taxonomy stripe settings so they don't depend on formatter.
+- Move session tracking option to be a global option instead of a per-display option.
+- Issue #1551112, Make sure items without colors don't show up in the legend.
+- Issue #1545240, Don't try to set the date link if there is no link_display set.
+- Issue #1291768, Document caching options and add default caching to the templates.
+- Issue #1541938, Fix error when displaying the week number.
+- Issue #1550836, Fix logic error in overlapping week view that was keeping the overlap classes from getting set.
+- Style tweaks, make the day window bigger by not ending it at the bottom of the browser screen.
+
+======================
+Version 7.x-3.2
+======================
+
+Please read the notes for the 3.1 release as well.
+
+- Issue #1537598, Fix misc errors in day display caused when some items were not getting rendered due to a badly placed 'continue' in the loop.
+
+======================
+Version 7.x-3.1
+======================
+
+DEPRECATED ELEMENTS:
+
+- The default calendar has been removed. If you have calendars created with the old default calendar you should re-create them using the new template.
+- The Calendar iCal module has been hidden so you can't enable it and will be deleted completely in the next release. Use the new Date iCal module instead.
+- The Calendar Items row plugin has been removed from the UI and will be deleted completely in the next release.
+
+
+NEW FEATURES:
+- The legend block has been reworked to eliminate storing stripes in $GLOBALS, making it cacheable. A new configuration option sets the view that is used for the stipe options.
+- Add the headers attribute to multiday calendar tables for html5 compliance and accessibility.
+- Issue #1535346, Rework the calendar tab handling to get rid of custom tabs and add in a setting to track the current date.
+- Issue #1535346 continuation, rework the current date tracking to use the new date_default_argument_alter hook.
+
+There have been numerous problems with the way the tabs are working. They revert to the current day when you switch from one display to another. They are not translating correctly. Sometimes the paths are incorrect (i.e. if there are other arguments in the display). Some people don't want the tabs. Other people want additional tabs.
+
+I am reworking them completely. I was originally trying to control them so we could do 'smart' switching to keep track of the current date as people clicked from one display to another. That wouldn't work with normal tabs, which can only display the default view. But overriding the normal menu items is fraught with problems and I finally figured out a way to keep track of the current date without controlling the tabs.
+
+So I am getting rid of all the custom tab handling. You can create tabs on the calendar the way you create tabs on any other view -- with the menu setting in the display. That way you can totally control the tabs in your calendar. I am changing the calendar template to add the tabs to it.
+
+To track the current date as you move around the calendar I am adding a query override in the style handler. Basically it stores the current date in a session as you move around the calendar. When you switch to a new display, it computes the default date for that display based on the last date in your session. So if you go 3 months into the future and then switch to the day view, you will see a day in that month, not the current day.
+
+Because the session handling may only be desirable on certain calendars I added a setting where you can enable or disable this behavior. It's a setting on the calendar style. You can choose to turn that off, enable it only for authenticated users, or enable it for everyone.
+
+If you have an existing calendar you can add the menu tabs and turn on the date tracking for each display in your calendar (year, month, day, and week). Or you can delete your calendar and create a new one from a template and it will have all this set up.
+
+
+BUGFIXES:
+
+- Issue #1397986, Fix Undefined index groupby_times.
+- Issue #1466698 by alex.neblett and johnv, Make sure that all available fields appear on the template, even when shared across entity types.
+- The group by field option was not working right, fix it.
+- The calendar legend block was appearing even if empty. Create the content earlier to keep that from happening.
+- Issue #1445228, Make sure calendar_granularity_paths works on a default view that is missing granularity (as from an export).
+- Fix the Date/Calendar link to link to the default display instead of the current display.
+- Hide more of the deprecated elements and remove the old default view. Will remove the rest in the next release. Waiting a bit to avoid registry errors for people who haven't made the switch.
+- Issue #1447176 by johnv, Rework taxonomy stripe logic.
+- Issue #1533466, Bad logic in the calendar template sometimes tries to create the wrong type of date field resulting in a broken handler.
+- Issue #1491140 by Morten Najbjerg and KarenS, Fix OG stripe options so they work with 7.2 version of OG.
+- Issue #1392306 by johnv, Calendar stripe code consistency changes.
+- Issue #1460134, Last column in week view isn't quite wide enough.
+- Issue #1298546, Get more field style settings to be reflected in the calendar.
+- Issue #1221530, Fix row plugin to handle relationships properly, and also use new date_id and date_delta values.
+- Issue #1446726, Fix broken remove calendar functionality.
+- Adjust the calendar tab paths to allow for the slightly different path used when a display is a default tab.
+- Issue #1445228 by dealancer, More notices about displays missing arguments.
+- Issue #1485790, Fix undefined index arguments for displays that are missing arguments.
+- Stripe logic got goofed up somewhere.
+- Make sure calendar_plugin_row doesn't try to render fields that no longer exist, as happens when they've been deleted.
+- Make sure calendar_views_templates() doesn't try to create templates for base tables without fields.
+
+======================
 Version 7.x-3.0
 ======================
 

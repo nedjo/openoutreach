@@ -1,6 +1,228 @@
 
 ****************************** DRUPAL 7 - 2.x BRANCH ********************************
 
+September 26, 2013
+------------------
+Issue #2097767 by troky: Fixed CSS path.
+
+
+September 17, 2013
+------------------
+by troky: Added missing forum/search view.
+
+July 07, 2013
+-------------
+7.x-2.3 RELEASE
+
+July 07, 2013
+-------------
+by troky: Code cleanup.
+Issue #2035217 by BertjeC: Reverting commit #5047fcb.
+
+July 04, 2013
+-------------
+7.x-2.2 RELEASE
+
+June 28, 2013
+-------------
+Issue #1948652 by EuroDomenii: Fixed wrong topics and posts count - removed recursive call.
+
+June 04, 2013
+-------------
+Issue #2011380 by pc-wurm: Fixed forum contextual links.
+
+May 20, 2013
+------------
+Issue #1998300 by inventlogic: Comment edit does not use the post_preview template file when previewing edited comments.
+
+May 07, 2013
+------------
+Issue #1946386 by troky: Fixed incorrect number of new replies when node has more revisions v2.
+
+May 04, 2013
+------------
+Issue #1982030 by rooby: Added labels to select fields on forum topic sort form.
+Issue #1975746 by troky: Fixed notice in advanced_forum_settings_page().
+
+March 19, 2013
+--------------
+Issue #1946386 by troky: Fixed incorrect number of new replies when node has more revisions.
+
+March 18, 2013
+--------------
+Issue #1941338 by troky: Fixed AF menu alteration. Changed forum/%forum_forum to forum/%advanced_forum_forum.
+
+March 17, 2013
+--------------
+Issue #1944162 by nsalyzyn: Added check for $view->style_plugin existance.
+
+March 07, 2013
+--------------
+Issue #1936476 by troky: Fixed query (added table reference) in advanced_forum_post_position()
+
+February 24, 2013
+-----------------
+by troky: Fixed forum topic preview display.
+Issue #720118 ny troky: Fixed forum hierarchy rendering on forum frontpage. Fixed subforum/subcontainer post count.
+by troky: Decreased forum description font size.
+Issue #1906536 by troky: Fixed forum styled comment numbering for non-forum nodes.
+
+February 20, 2013
+-----------------
+Issue #1921238 by regilero: Class attribute should be an array in comment_preprocess
+Issue #1635800 by troky: Removed anonymous/guest user count since it isn't supported by Drupal core.
+
+February 19, 2013
+-----------------
+7.x-2.1 RELEASE
+
+October 26, 2012
+----------------
+Issue #1817854 by troky: Fixed divide by zero in topic pager initialization.
+Issue #1823770 by GBurg: Added node type to topic icon template.
+
+October 23, 2012
+----------------
+Issue #1537826 by troky: Changed forum image detection mechanism.
+Issue #1812966 by troky: Fixed date format in theme.inc.
+Issue #1817854 by jakelitwicki: Fixed topic pager initialization.
+Issue #1730740 by troky: Fixed JavaScript error in IE8.
+
+October 18, 2012
+----------------
+Issue #1812966 by troky: Fixed theme variables in advanced_forum_preprocess_forum_submitted().
+
+September 25, 2012
+------------------
+Issue #1779000 by troky: Unset core forum menu_local_tasks_alter hook to prevent calling forum_forum_load().
+
+September 21, 2012
+------------------
+Issue #1775248 by dmitriytrt: Fixed breadcrumb generation for Page manager page.
+Issue #1783340 by troky: Returned $forums variable to forum-list template.
+
+August 28, 2012
+---------------
+Issue #418992 by troky: Fixed 'mark as read' function.
+
+August 24, 2012
+---------------
+by troky: Performance improvements as per http://drupal.org/node/145353
+
+August 12, 2012
+---------------
+Issue #1711680 by troky: Fixed Post reply button visible with no permissions to reply with Forum Access.
+
+August 11, 2012
+---------------
+Issue #1724080 by troky: Fixed wrong post position displayed in topic replies when comments displaed in threaded mode.
+by troky: Views re-exported to version 3.0.
+
+August 08, 2012
+---------------
+Issue #1705628 by Scyther: Update integration for Author Pane.
+Issue #1689236 by victoriachan: Fixed Undefined index: teaser in _template_preprocess_advanced_forum_topic_list_view().
+Issue #1719156 by clude: Fixed terms localization.
+
+July 16, 2012
+-------------
+Issue #1668740 by deviantintegral: Limit the count query to only node types that can actually be associated with the forum vocabulary.
+
+July 05, 2012
+-------------
+Issue #1121208 by vidu_ram: Added default configuration for collapsible container.
+Issue #962218 by troky: Changed strings to match core forum module.
+
+July 01, 2012
+-------------
+Issue #1635800 by troky: Redone online users count.
+
+June 29, 2012
+-------------
+Issue #1632260 by mcdruid, troky: Fixed performance issues with advanced_forum_statistics_replies.
+Issue #1617840 by liquidcms: Added forum term translation support.
+
+June 12, 2012
+-------------
+Issue #1621218 by sebcorbin: Fixed notices when non-forum associated content types are used.
+
+June 09, 2012
+-------------
+Issue #1621956 by samsouk: Added missing "topics per page" parameter to forum list view.
+
+June 02, 2012
+-------------
+Issue #210453 by troky: Added drop down list of forum hierarchy as template variable $forum_jump.
+
+June 01, 2012
+-------------
+Issue #1612710 by troky: Fixed new post icon css in Blue lagoon style.
+
+May 14, 2012
+------------
+Issue #1218894 by tomfriedhof: Removed Panels related conditional from Views preprocess function.
+Issue #1218894 by troky: Fixed advanced_forum_forum_disabled variable function in registry.
+
+May 13, 2012
+------------
+by troky: Panels adjusted and reexported.
+Issue #1212964 by troky: CTools plugins redone/updated to D7 with bugfixes.
+
+May 03, 2012
+------------
+Issue #1559340 by troky: Fixed notice while displaying orphaned forum shadow topic.
+
+March 31, 2012
+--------------
+Issue #1506628 by BTMash: Added [Content Type Name] button localization.
+
+March 19, 2012
+-----------------
+7.x-2.0 RELEASE
+
+March 01, 2012
+-----------------
+by troky: Fixed undefined variable introduced in previous patch.
+
+February 29, 2012
+-----------------
+Issue #1351392 by aidanlis: Added drupal_alter to advanced_forum_process_forum.
+
+February 11, 2012
+-----------------
+by troky: Code cleanup in advanced_forum_allowed_node_types()
+
+February 10, 2012
+-----------------
+Issue #1433566 by roderik: Reduce number of SQL queries on main forum page.
+
+February 06, 2012
+-----------------
+Issue #1429936 by GANYANCI: Removed leftover function dpm().
+
+January 22, 2012
+----------------
+Issue #1395164 by troky: Fixed hot icons don't show problem.
+
+January 21, 2012
+----------------
+Issue #1396428 by troky: Fixed strict warning in advanced_forum_preprocess_comment.inc.
+Issue #1309104 by mcdruid: Fixed table header text alignment.
+Issue #1115950 by sahunt83: Changed Cloudless Day base theme to Naked.
+
+December 24, 2011
+-----------------
+Issue #1369468 by mcdruid: Minor CSS fix.
+
+December 13, 2011
+-----------------
+Issue #1369468 by troky: Fixed the same class name is being used for the title 'Topics' and for the total number of topics
+Issue #1367808 by troky: Fixed duplication of div IDs for forum posts and comments.
+
+December 05, 2011
+-----------------
+7.x-2.0rc1 release
+
 December 04, 2011
 -----------------
 Issue #1339882 by troky: Fixed undefined index in in advanced_forum_links_alter().

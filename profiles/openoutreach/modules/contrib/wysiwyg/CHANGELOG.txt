@@ -1,6 +1,12 @@
 
 Wysiwyg 7.x-2.x, xxxx-xx-xx
 ---------------------------
+#1388224 by ksenzee, sun, TwoD: Fixed editors detaching on form submissions.
+#682160 by n_vashenko, TwoD: Fixed lists plugin support for TinyMCE.
+#1414354 by Merco: Fixed none.js breaks if textarea.js is not loaded.
+#1064600 by TwoD: Fixed maximized editors hidden under Drupal's toolbar.
+#1405786 by logaritmisk: Fixed CKEditor being wider than parent elements.
+#1531896 by Chi: Fixed strict warning for WYMeditor.
 #1442226 by robertom: Fixed inverted list button names for WYMeditor.
 #1352426 by TwoD, sun: Added install notes (CKEditor edition clarification).
 #1112212 by timdiacon, TwoD: Added language direction buttons for CKEditor.

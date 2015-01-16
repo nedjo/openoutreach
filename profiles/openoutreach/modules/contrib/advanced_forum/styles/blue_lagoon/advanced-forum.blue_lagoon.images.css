@@ -16,8 +16,8 @@ tr.odd td.forum-list-icon-default .forum-list-icon-wrapper span,
   background: transparent url(images/forum_list_default.png) no-repeat center center;
 }
 
-tr.even td.forum-folder-new-posts .forum-list-icon-wrapper span,
-tr.odd td.forum-folder-new-posts .forum-list-icon-wrapper span,
+tr.even td.forum-list-icon-new-posts .forum-list-icon-wrapper span,
+tr.odd td.forum-list-icon-new-posts .forum-list-icon-wrapper span,
 .forum-list-icon-legend .forum-list-icon-new-posts {
   background: transparent url(images/forum_list_new_posts.png) no-repeat center center;
 }

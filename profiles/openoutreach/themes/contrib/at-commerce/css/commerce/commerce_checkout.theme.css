@@ -1,0 +1,92 @@
+
+.page-checkout form {
+  margin-top: 10px;
+}
+.page-checkout fieldset {
+  border: 0;
+  position: relative;
+  -webkit-box-shadow: inset 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: inset 0 0 4px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 4px 4px rgba(0, 0, 0, 0.1); 
+}
+.page-checkout fieldset legend {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  font-size: 1.231em;
+}
+.page-checkout fieldset.collapsed legend {
+  top: -6px;
+}
+html.js .page-checkout fieldset.collapsed .fieldset-legend {
+  background-position: 5px 58%;
+}
+.page-checkout .fieldset-wrapper {
+  padding: 20px 20px 10px;
+}
+.page-checkout .fieldset-wrapper.with-legend {
+  padding: 50px 20px 10px;
+}
+.page-checkout fieldset#edit-buttons {
+  border: 0;
+  padding: 10px 0;
+  position: relative;
+  -webkit-box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+  -moz-box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+  box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0); 
+}
+.page-checkout fieldset#edit-buttons input {
+  margin: 0 10px;
+  text-align: left;
+}
+.page-checkout fieldset#edit-buttons .fieldset-wrapper {
+  text-align: left;
+  float: right;
+  overflow: visible;
+  padding: 0;
+}
+fieldset.checkout-buttons {}
+fieldset.checkout-buttons .form-button,
+fieldset.checkout-buttons .form-submit {
+  margin-left: 0
+}
+fieldset.checkout-buttons .checkout-cancel,
+fieldset.checkout-buttons .checkout-back {
+}
+
+/* Review table */
+table.checkout-review {
+  border-top: 1px solid #fff;
+  background: transparent;
+  margin-bottom: 20px;
+}
+table.checkout-review tr.pane-title,
+table.checkout-review tr.pane-title td {
+  border: 0;
+  background: transparent;
+}
+table.checkout-review tr.pane-title td {
+  padding: 20px 0 5px 5px;
+}
+table.checkout-review .pane-title td {
+  padding-left: 15px;
+  font-weight: bold;
+}
+table.checkout-review tr.pane-data {
+  vertical-align: top;
+  border: 0;
+  padding: 10px
+}
+table.checkout-review .pane-data-key {
+  font-weight: bold;
+  text-align: right;
+  white-space: nowrap;
+  padding-left: 30px;
+  width: 50%;
+}
+table.checkout-review .pane-data-value {
+  padding-right: 30px;
+}
+table.checkout-review .pane-data-full {
+  padding: 10px 15px 15px 15px;
+}

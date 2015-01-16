@@ -1,0 +1,50 @@
+
+.views-field-status img.pending {
+  position: relative;
+  top: 3px;
+}
+
+.payment-totals-table {
+  width: 33%;
+  float: right;
+}
+
+.payment-totals-table tr.order-balance {
+  background-color: #D3E9F4;
+  font-weight: bold;
+}
+
+.payment-totals-table .total,
+.payment-totals-table .balance {
+  text-align: right;
+}
+
+.add-payment .form-item-payment-method {
+  float: left;
+}
+
+.add-payment .form-submit {
+  float: left;
+  margin: 5px;
+}
+
+.add-payment .ajax-progress .message {
+  display:none;
+}
+
+.views-field-operations .links.operations {
+  text-transform: lowercase;
+  margin-left: 0;
+}
+
+.payment-terminal {
+  clear: right;
+}
+
+.payment-terminal-amount div {
+  display: inline;
+}
+
+table.payment-transaction td {
+  vertical-align: top;
+}

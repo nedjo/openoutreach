@@ -1,0 +1,44 @@
+<?php
+
+/**
+ * @file
+ * Entity Registration per entity access control
+ */
+
+/**
+ * Implements hook_registration_entity_settings().
+ */
+function registration_entity_access_registration_entity_settings($settings) {
+  // add a settings element for the user roles with registration access
+  return array(
+    'registration_entity_access_roles' => array(
+      '#type' => 'checkboxes',
+      '#title' => t('Roles that can register'),
+      '#description' => t('Override the default access control settings by selecting which roles can %register for this event.', array('%register' => t('register'))),
+      '#options' => user_roles(TRUE),
+      '#default_value' => isset($settings['settings']['registration_entity_access_roles']) ? $settings['settings']['registration_entity_access_roles'] : array()
+    )
+  );
+}
+
+/**
+ * Implements hook_registration_access().
+ */
+function registration_entity_access_registration_access($op, $registration, $account = NULL) {
+  if ($op == 'create' && ($registration->entity_type && $registration->entity_id) && $account) {
+    $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
+    $entity_access_roles = & $settings['settings']['registration_entity_access_roles'];
+    if (isset($entity_access_roles) && is_array($entity_access_roles)) {
+      // if at least one role is configured, deny access to all roles except the enabled roles
+      $allowed_roles = array_filter($entity_access_roles);
+      if ($allowed_roles) {
+        foreach ($allowed_roles as $role_id) {
+          if (isset($account->roles[$role_id])) {
+            return TRUE;
+          }
+        }
+        return FALSE;
+      }
+    }
+  }
+}

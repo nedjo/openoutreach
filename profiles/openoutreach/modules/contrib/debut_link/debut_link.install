@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Install file for debut_link.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function debut_link_install() {
+  // Set captcha to link comment form.
+  module_load_include('inc', 'captcha');
+  captcha_set_form_id_setting('comment_node_link_form', 'default');
+}
+
+/**
+ * Implements hook_enable().
+ */
+function debut_link_enable() {
+  // Rebuild the features static caches.
+  features_include(TRUE);
+
+  $module = 'debut_link';
+  $feature = feature_load($module);
+  // Retain the order of component types, which is needed for example to ensure
+  // that user roles are created ahead of user permissions that reference them.
+  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
+  _features_restore('enable', $items);
+  _features_restore('rebuild', $items);
+}
+
+/**
+ * Enable the Apps compatible module.
+ */
+function debut_link_update_7000() {
+  if (!module_exists('apps_compatible') && !module_enable(array('apps_compatible'))) {
+    throw new Exception('This version of Debut Comment requires the Apps compatible module but it could not be enabled.');
+  }
+}
+

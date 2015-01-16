@@ -12,3 +12,16 @@
   margin-bottom: 12px;
 }
 
+.view-event-calendar .bef-select-as-checkboxes .form-item {
+  float: left;
+  margin-right: 10px;
+
+}
+
+.view-event-calendar .bef-select-as-checkboxes .form-item label {
+  font-weight: normal;
+}
+
+.view-event-calendar .views-exposed-form {
+  margin-bottom: 10px;
+}

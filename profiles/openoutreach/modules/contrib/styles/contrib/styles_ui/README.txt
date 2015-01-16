@@ -1,2 +1,0 @@
-
-README for Styles UI

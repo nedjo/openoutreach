@@ -1,0 +1,544 @@
+<?php
+
+/**
+ * @file
+ * Schema and installation hooks for registration module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function registration_schema() {
+  $schema['registration'] = array(
+    'description' => 'The base table for registration module.',
+    'fields' => array(
+      'registration_id' => array(
+        'description' => 'The primary identifier for a registration.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The {registration_type}.type of this registration.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity this registration is associated with.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity this registration is associated with.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'anon_mail' => array(
+        'type' => 'varchar',
+        'length' => 254,
+        'not null' => FALSE,
+        'description' => "Anonymous registrant's e-mail address.",
+      ),
+      'count' => array(
+        'description' => 'How many spaces this registration should use towards the total capacity for this event.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'user_uid' => array(
+        'description' => 'The uid of the user associated with this registration.',
+        'type' => 'int',
+        'not null' => FALSE,
+        'default' => 0,
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this registration.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'state' => array(
+        'description' => 'The {registration_state}.name of this registration.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the registration was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the registration was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'registration_updated' => array('updated'),
+      'registration_created' => array('created'),
+      'registration_type' => array(array('type', 4)),
+      'registration_state' => array('state'),
+    ),
+    'foreign keys' => array(
+      'registration_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+      'registration_user' => array(
+        'table' => 'users',
+        'columns' => array('user_uid' => 'uid'),
+      ),
+      'registration_state' => array(
+        'table' => 'registration_state',
+        'columns' => array('state' => 'name'),
+      ),
+    ),
+    'primary key' => array('registration_id'),
+  );
+
+  $schema['registration_entity'] = array(
+    'description' => 'Registration per-entity settings.',
+    'fields' => array(
+      'entity_id' => array(
+        'description' => 'Entity id these registration settings are for.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The entity type of the entity these registration settings are for.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'capacity' => array(
+        'description' => 'Maximum number of users who can signup for this event.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'status' => array(
+        'description' => 'Boolean indicating if registrations are open (1) or closed (0) for the given entity',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
+      'send_reminder' => array(
+        'description' => 'Boolean indicating whether reminder emails should be sent. This is set to 0 once the reminders are sent.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'reminder_date' => array(
+        'description' => 'Date to send the reminder on.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => FALSE,
+      ),
+      'reminder_template' => array(
+        'description' => 'Reminder email template.',
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+      ),
+      'open' => array(
+        'description' => 'Date to open registrations. Or NULL to open immediately.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => FALSE,
+      ),
+      'close' => array(
+        'description' => 'Date to close registrations. Or NULL to never close automatically.',
+        'mysql_type' => 'datetime',
+        'pgsql_type' => 'timestamp',
+        'sqlite_type' => 'varchar',
+        'sqlsrv_type' => 'smalldatetime',
+        'not null' => FALSE,
+      ),
+      'settings' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized object that stores additional registration settings.',
+      ),
+    ),
+    'primary key' => array('entity_id', 'entity_type'),
+  );
+
+  $schema['registration_type'] = array(
+    'description' => 'Stores information about all defined registration types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique registration type ID.',
+      ),
+      'name' => array(
+        'description' => 'The machine-readable name of this registration type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this registration type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'The weight of this registration type in relation to others.',
+      ),
+      'locked' => array(
+        'description' => 'A boolean indicating whether the administrator may delete this type.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'data' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'big',
+        'serialize' => TRUE,
+        'description' => 'A serialized array of additional data related to this entity_test type.',
+        'merge' => TRUE,
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  $schema['registration_state'] = array(
+    'description' => 'Stores registration states configuration.',
+    'fields' => array(
+      'registration_state_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The registration state ID.',
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'The machine name of the registration state.',
+      ),
+      'label' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'The human readable name of the registration state.',
+      ),
+      'description' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'The description of the registration state.',
+      ),
+      'default_state' => array(
+        'description' => 'A boolean indicating default registration state.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+      ),
+      'active' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'A flag showing active registration states.',
+      ),
+      'show_on_form' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'A flag showing if this registration state should be shown on the registration form.',
+      ),
+      'weight' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The weight of this  registration state in the UI',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'indexes' => array(
+      'registration_state_name' => array('name'),
+      'registration_state_default_state' => array('default_state'),
+    ),
+    'primary key' => array('registration_state_id'),
+    'unique keys' => array(
+      'name' => array('name'),
+    ),
+  );
+
+  // Create cache bins for Entity-cache module.
+  $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
+  $types = array(
+    'registration',
+    'registration_type',
+    'registration_state',
+  );
+
+  foreach ($types as $type) {
+    $schema["cache_entity_$type"] = $cache_schema;
+    $schema["cache_entity_$type"]['description'] = "Cache table used to store $type entity records.";
+  }
+
+  return $schema;
+}
+
+/**
+ * Implements hook_field_schema().
+ */
+function registration_field_schema($field) {
+  $columns = array(
+    'registration_type' => array(
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => FALSE,
+    ),
+  );
+  $indexes = array(
+    'registration_type' => array('registration_type'),
+  );
+  $foreign_keys = array(
+    'registration_type' => array(
+      'table' => 'registration_type',
+      'columns' => array('registration_type' => 'name'),
+    ),
+  );
+  return array(
+    'columns' => $columns,
+    'indexes' => $indexes,
+    'foreign keys' => $foreign_keys,
+  );
+}
+
+/**
+ * Implements hook_install().
+ */
+function registration_install() {
+  // Create default states.
+  $states = array(
+    'complete' => array(
+      'label' => 'Complete',
+      'description' => 'Registration has been completed.',
+      'default_state' => 1,
+      'active' => 1,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+    'pending' => array(
+      'label' => 'Pending',
+      'description' => 'Registration is pending.',
+      'default_state' => 0,
+      'active' => 0,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+    'canceled' => array(
+      'label' => 'Canceled',
+      'description' => 'Registration was cancelled',
+      'default_state' => 0,
+      'active' => 0,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+  );
+
+  foreach ($states as $state_name => $state_label) {
+    $registration_state = entity_create('registration_state',
+      array(
+        'name' => $state_name,
+        'label' => $state_label['label'],
+        'description' => $state_label['description'],
+        'default_state' => $state_label['default_state'],
+        'active' => $state_label['active'],
+        'show_on_form' => $state_label['show_on_form'],
+        'weight' => $state_label['weight'],
+      )
+    );
+    $registration_state->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function registration_uninstall() {
+  // Remove default states.
+  $default_states = array(
+    'complete', 'complete', 'canceled',
+  );
+  db_delete('registration_state')
+    ->condition('name', $default_states, 'IN')
+    ->execute();
+}
+
+/**
+ * Change registration_state.state field from int to varchar.
+ *
+ * Required to use machine names for states.
+ */
+function registration_update_7100(&$sandbox) {
+  module_load_include('module', 'registration');
+
+  db_drop_index('registration', 'registration_state');
+  db_change_field('registration', 'state', 'state',
+    array(
+      'description' => 'The {registration_state}.name of this registration.',
+      'type' => 'varchar',
+      'length' => 32,
+      'not null' => TRUE,
+      'default' => '',
+    ));
+  db_add_index('registration', 'registration_state', array('state'));
+
+  $states = registration_get_states();
+
+  // Iterate through each defined state and update registrations with that state
+  // with the machine name of the state.
+  foreach ($states as $state) {
+    $num_updated = db_update('registration')
+      ->fields(array('state' => $state->identifier()))
+      ->condition('state', $state->registration_state_id)
+      ->execute();
+  }
+}
+
+/**
+ * Remove entity_id_entity_type_user unique index from registration.
+ */
+function registration_update_7101(&$sandbox) {
+  db_drop_index('registration', 'entity_id_entity_type_user');
+}
+
+/**
+ * Create cache bins for Entity-cache module.
+ */
+function registration_update_7102(&$sandbox) {
+  // Create cache bins for Entity-cache module.
+  $cache_schema = drupal_get_schema_unprocessed('system', 'cache');
+  $types = array(
+    'registration',
+    'registration_type',
+    'registration_state',
+  );
+
+  foreach ($types as $type) {
+    $schema["cache_entity_$type"] = $cache_schema;
+    $schema["cache_entity_$type"]['description'] = "Cache table used to store $type entity records.";
+    db_create_table("cache_entity_$type", $schema["cache_entity_$type"]);
+  }
+}
+
+/**
+ * Change multiple_registrations settings name to multiple_slots.
+ */
+function registration_update_7103(&$sandbox) {
+  $sql = "UPDATE {registration_entity} SET settings = REPLACE(settings, 'multiple_registrations', 'multiple_slots')";
+  db_query($sql);
+}
+
+/**
+ * Updates settings for multiple registration limits and slots/spaces renaming.
+ */
+function registration_update_7104(&$sandbox) {
+  $registration_entities = db_select('registration_entity', 'r')
+    ->fields('r', array('entity_id', 'settings'))
+    ->execute()
+    ->fetchAll();
+
+  foreach ($registration_entities as $ent) {
+    $settings = $ent->settings;
+    $settings = unserialize($settings);
+    if (isset($settings['multiple_slots']) && (bool) $settings['multiple_slots'] === TRUE) {
+      $settings['maximum_spaces'] = 0;
+    }
+    else {
+      $settings['maximum_spaces'] = 1;
+    }
+    unset($settings['multiple_slots']);
+    $settings = serialize($settings);
+    try {
+      db_update('registration_entity')
+        ->fields(array('settings' => $settings))
+        ->condition('entity_id', $ent->entity_id)
+        ->execute();
+    }
+    catch (Exception $e) {
+      throw new DrupalUpdateException($e->getMessage());
+    }
+  }
+
+  $field_instances = registration_get_registration_instances();
+  foreach ($field_instances as $instance) {
+    $settings = &$instance['settings']['default_registration_settings']['settings'];
+    $new_value = $settings['multiple_slots']  ? 0 : 1;
+    $settings['maximum_capacity'] = $new_value;
+    unset($settings['multiple_slots']);
+    try {
+      field_update_instance($instance);
+    }
+    catch(FieldException $e) {
+      throw new DrupalUpdateException($e->getMessage());
+    }
+  }
+
+  $t = get_t();
+  return $t('Registrations settings have been updated.');
+}

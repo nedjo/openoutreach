@@ -1,0 +1,25 @@
+.field-type-redhen-email .redhen-email-single-value {
+  clear: both;
+  overflow: auto;
+  width: 100%
+}
+
+.field-type-redhen-email .form-type-checkbox,
+.field-type-redhen-email .form-type-select,
+.field-type-redhen-email .form-type-textfield {
+  float: left !important;
+  padding-right: 1% !important;
+}
+
+.field-type-redhen-email .form-type-select label {
+  display: inline;
+}
+
+/* Hide the email address label in the table view */
+.field-type-redhen-email table .form-type-textfield label {
+  display: none;
+}
+
+.field-type-redhen-email .redhen-email-single-value .redhen-email-options {
+  margin-top: 17px;
+}

@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install file for Debut SEO.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function debut_seo_enable() {
+  // Rebuild the features static caches.
+  features_include(TRUE);
+
+  $module = 'debut_seo';
+  $feature = feature_load($module);
+  // Retain the order of component types, which is needed for example to ensure
+  // that user roles are created ahead of user permissions that reference them.
+  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
+  _features_restore('enable', $items);
+  _features_restore('rebuild', $items);
+}
+
+/**
+ * Enable the Apps compatible module.
+ */
+function debut_seo_update_7000() {
+  if (!module_exists('apps_compatible') && !module_enable(array('apps_compatible'))) {
+    throw new Exception('This version of Debut SEO requires the Apps compatible module but it could not be enabled.');
+  }
+}
+

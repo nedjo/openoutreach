@@ -10,7 +10,7 @@
 function debut_bio_field_default_fields() {
   $fields = array();
 
-  // Exported field: 'profile2-bio-field_bio'
+  // Exported field: 'profile2-bio-field_bio'.
   $fields['profile2-bio-field_bio'] = array(
     'field_config' => array(
       'active' => '1',
@@ -31,6 +31,7 @@ function debut_bio_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(
         'profile2_private' => 0,
@@ -57,7 +58,7 @@ function debut_bio_field_default_fields() {
       'label' => 'Bio',
       'required' => 0,
       'settings' => array(
-        'text_processing' => '0',
+        'text_processing' => '1',
         'user_register_form' => FALSE,
       ),
       'widget' => array(
@@ -72,7 +73,7 @@ function debut_bio_field_default_fields() {
     ),
   );
 
-  // Exported field: 'profile2-bio-field_first_name'
+  // Exported field: 'profile2-bio-field_first_name'.
   $fields['profile2-bio-field_first_name'] = array(
     'field_config' => array(
       'active' => '1',
@@ -93,6 +94,7 @@ function debut_bio_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(
         'max_length' => '60',
@@ -135,7 +137,7 @@ function debut_bio_field_default_fields() {
     ),
   );
 
-  // Exported field: 'profile2-bio-field_last_name'
+  // Exported field: 'profile2-bio-field_last_name'.
   $fields['profile2-bio-field_last_name'] = array(
     'field_config' => array(
       'active' => '1',
@@ -156,6 +158,7 @@ function debut_bio_field_default_fields() {
           0 => 'format',
         ),
       ),
+      'locked' => '0',
       'module' => 'text',
       'settings' => array(
         'max_length' => '60',

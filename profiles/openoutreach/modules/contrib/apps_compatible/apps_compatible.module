@@ -1,0 +1,155 @@
+<?php
+
+/**
+ * @file
+ * Provides helper functionality for building interoperable features and apps.
+ */
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * When one or more modules are enabled, install any apps compatible components
+ * they require.
+ */
+function apps_compatible_modules_installed($modules) {
+  // Ensure we have the latest data.
+  drupal_static_reset('apps_compatible_info');
+  cache_clear_all('apps_compatible_info', 'cache');
+  module_load_include('inc', 'apps_compatible');
+  apps_compatible_ensure_components($modules);
+}
+
+/**
+ * Implements hook_hook_info().
+ */
+function apps_compatible_hook_info() {
+  $hooks = array();
+  $hooks['apps_compatible_info'] = array(
+    'group' => 'apps_compatible',
+  );
+  $hooks['apps_compatible_info_alter'] = array(
+    'group' => 'apps_compatible',
+  );
+  return $hooks;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Prevent renaming or deletion of controlled role names.
+ */
+function apps_compatible_form_user_admin_role_alter(&$form, &$form_state) {
+  // Allow modules to override role locking.
+  if (!variable_get('apps_compatible_role_lock', TRUE)) {
+    return;
+  }
+  $info = apps_compatible_info('role');
+  // We only need the keys.
+  $names = array_keys($info);
+  if (!isset($form['#apps_compatible_role_locked']) && in_array($form['name']['#default_value'], $names)) {
+    $form['name']['#disabled'] = TRUE;
+    $form['name']['#description'] .= ' <strong>' . t('The %name role name may not be edited as it is used in one or more enabled apps.', array('%name' => $form['name']['#default_value'])) . '</strong>';
+    $form['actions']['delete']['#access'] = FALSE;
+    // Set a flag that other modules can examine to determine if the element
+    // is already locked.
+    $form['#apps_compatible_role_locked'] = TRUE;
+  }
+}
+
+/**
+ * Return apps compatible elements from all implementing modules.
+ *
+ * Modules may return an array of elements to be created.
+ *
+ * @param $type
+ *   The type of data to be returned, e.g., 'field', 'role', or 'vocabulary'.
+ * @param $modules
+ *   Array of modules to return info for.
+ *
+ * @return
+ *   An array of elements of the specified type or of all available data if no
+ *   type was specified.
+ */
+function apps_compatible_info($type = NULL, $modules = NULL) {
+  $apps_compatible_info = &drupal_static(__FUNCTION__, array());
+
+  if (empty($apps_compatible_info)) {
+    $cache = cache_get('apps_compatible_info');
+    if ($cache === FALSE) {
+      // Rebuild the cache and save it.
+      foreach (module_implements('apps_compatible_info') as $module) {
+        $info_array = module_invoke($module, 'apps_compatible_info');
+        foreach ($info_array as $component_type => $info) {
+          foreach ($info as $key => $component) {
+            if (!isset($apps_compatible_info[$component_type][$key])) {
+              $apps_compatible_info[$component_type][$key] = $component;
+            }
+            // More than one module may return a given component (that's pretty
+            // much the whole point here) so add the module to an array.
+            $apps_compatible_info[$component_type][$key]['modules'][$module] = $module;
+          }
+        }
+      }
+
+      drupal_alter('apps_compatible_info', $apps_compatible_info);
+      cache_set('apps_compatible_info', $apps_compatible_info);
+    }
+    else {
+      $apps_compatible_info = $cache->data;
+    }
+  }
+
+  $return = $apps_compatible_info;
+
+  // If one or more modules were specified, limit return array to their info.
+  if ($modules) {
+    foreach ($return as $component_type => $info) {
+      foreach ($info as $key => $component) {
+        if (!array_intersect($component['modules'], $modules)) {
+          unset($return[$component_type][$key]);
+        }
+      }
+    }
+  }
+  // If a type was specified, return its data.
+  if ($type) {
+    return isset($return[$type]) ? $return[$type] : array();
+  }
+
+  // If no type was specified, return data for all types.
+  return $return;
+}
+
+/**
+ * Determine whether a feature is being recreated.
+ *
+ * This function should be called from within alter hooks for components that
+ * are managed by features to ensure that altering is skipped when the feature
+ * is being regenerated.
+ *
+ * @param $feature
+ *   The machine-readable name of a feature.
+ *
+ * @return
+ *   Boolean TRUE if a feature is being recreated, otherwise FALSE.
+ */
+function apps_compatible_feature_is_recreating($feature = NULL) {
+  // Test for Drush usage.
+  if (function_exists('drush_get_command') && $command = drush_get_command()) {
+    switch($command['command']) {
+      case 'features-update-all':
+        return TRUE;
+      case 'features-update':
+        // If a specific feature was requested, test for it. If not, return
+        // true for any feature recreation.
+        return is_null($feature) || in_array($feature, $command['arguments']);
+    }
+  }
+
+  // Test for admin UI usage.
+  $feature = is_null($feature) ? arg(3) : $feature;
+  if ($_GET['q'] == "admin/structure/features/{$feature}/recreate") {
+    return TRUE;
+  }
+  return FALSE;
+}

@@ -4,6 +4,11 @@
  * @file
  * Install function for the openoutreach profile.
  */
+ 
+/**
+ * Minimum recommended value of PHP memory_limit for Open Outreach.
+ */
+define('OPENOUTREACH_MINIMUM_PHP_MEMORY_LIMIT', '128M');
 
 /**
  * Implements hook_install().
@@ -16,29 +21,8 @@
 function openoutreach_install() {
   $t = get_t();
   // Enable some standard blocks.
-  $default_theme = 'granada';
   $admin_theme = 'seven';
   $values = array(
-    array(
-      'module' => 'system',
-      'delta' => 'main',
-      'theme' => $default_theme,
-      'status' => 1,
-      'weight' => 0,
-      'region' => 'content',
-      'pages' => '',
-      'cache' => -1,
-    ),
-    array(
-      'module' => 'system',
-      'delta' => 'main-menu',
-      'theme' => $default_theme,
-      'status' => 1,
-      'weight' => 0,
-      'region' => 'main_menu',
-      'pages' => '',
-      'cache' => -1,
-    ),
     array(
       'module' => 'node',
       'delta' => 'recent',
@@ -111,10 +95,11 @@ function openoutreach_install() {
   user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access comments', 'post comments', 'skip comment approval'));
 
   // Create a default role for site administrators, with all available permissions assigned.
-  $admin_role = new stdClass();
-  $admin_role->name = 'administrator';
-  $admin_role->weight = 2;
-  user_role_save($admin_role);
+  if (!$admin_role = user_role_load_by_name('administrator')) {
+    $admin_role = new stdClass();
+    $admin_role->name = 'administrator';
+    user_role_save($admin_role);
+  }
   user_role_grant_permissions($admin_role->rid, array_keys(module_invoke_all('permission')));
   // Set this as the administrator role.
   variable_set('user_admin_role', $admin_role->rid);
@@ -137,13 +122,12 @@ function openoutreach_install() {
   menu_rebuild();
 
   // Enable the admin theme, fusion engine, and the default theme.
-  $themes = array($admin_theme, 'fusion_core', $default_theme);
+  $themes = array($admin_theme, 'fusion_core');
   db_update('system')
     ->fields(array('status' => 1))
     ->condition('type', 'theme')
     ->condition('name', $themes, 'IN')
     ->execute();
-  variable_set('theme_default', $default_theme);
   variable_set('admin_theme', $admin_theme);
   variable_set('node_admin_theme', '1');
 
@@ -163,3 +147,81 @@ function openoutreach_install() {
   shortcut_set_save($shortcut_set);
 }
 
+/**
+ * Implements hook_requirements().
+ */
+function openoutreach_requirements($phase) {
+  $requirements = array();
+
+  $t = get_t();
+
+  // Check the current memory limit. If it is set too low and many Open
+  // Outreach apps are enabled, page loads at certain paths may fail and
+  // throw a fatal error.
+  $memory_limit = ini_get('memory_limit');
+  if (!openoutreach_check_memory_limit(OPENOUTREACH_MINIMUM_PHP_MEMORY_LIMIT, $memory_limit)) {
+    $requirements['php_memory_limit']['severity'] = REQUIREMENT_INFO;
+    $requirements['php_memory_limit']['description'] = $t('The recommended PHP memory limit for running Open Outreach is at least %memory_minimum_limit. The current value is %memory_limit. <a href="@limit_url">Follow these steps to increase the PHP memory limit</a>. Alternately, if you are using a commercial host, you may wish to switch to a host that better supports Drupal and Open Outreach. See the <a href="@hosting_url">Open Outreach hosting listings</a> for some options.', array('%memory_limit' => $memory_limit, '%memory_minimum_limit' => OPENOUTREACH_MINIMUM_PHP_MEMORY_LIMIT, '@limit_url' => 'http://drupal.org/node/207036', '@hosting_url' => 'http://openoutreach.org/hosting'));
+  }
+
+  return $requirements;
+}
+
+/**
+ * Compares the memory required for an operation to the available memory.
+ *
+ * @todo: use drupal_check_memory_limit() when upgrading to Drupal 8.
+ *
+ * @param $required
+ *   The memory required for the operation, expressed as a number of bytes with
+ *   optional SI or IEC binary unit prefix (e.g. 2, 3K, 5MB, 10G, 6GiB, 8bytes,
+ *   9mbytes).
+ * @param $memory_limit
+ *   (optional) The memory limit for the operation, expressed as a number of
+ *   bytes with optional SI or IEC binary unit prefix (e.g. 2, 3K, 5MB, 10G,
+ *   6GiB, 8bytes, 9mbytes). If no value is passed, the current PHP
+ *   memory_limit will be used. Defaults to NULL.
+ *
+ * @return
+ *   TRUE if there is sufficient memory to allow the operation, or FALSE
+ *   otherwise.
+ */
+function openoutreach_check_memory_limit($required, $memory_limit = NULL) {
+  if (!isset($memory_limit)) {
+    $memory_limit = ini_get('memory_limit');
+  }
+
+  // There is sufficient memory if:
+  // - No memory limit is set.
+  // - The memory limit is set to unlimited (-1).
+  // - The memory limit is greater than or equal to the memory required for
+  //   the operation.
+  return ((!$memory_limit) || ($memory_limit == -1) || (parse_size($memory_limit) >= parse_size($required)));
+}
+
+/**
+ * Enable openoutreach_core and apps modules.
+ */
+function openoutreach_update_7000() {
+  $module_list = array('openoutreach_core', 'apps');
+  module_enable($module_list);
+
+  return t('Open Outreach now uses the Apps module to install its features. Click the Apps link on your toolbar to see available and installed apps.');
+}
+
+/**
+ * Remove Apps, no longer used.
+ */
+function openoutreach_update_7001() {
+  $module_list = array('apps');
+  module_disable($module_list);
+}
+
+/**
+ * Explicitly set the install_task state to address reported problems with cron.
+ *
+ * @see system_run_automated_cron().
+ */
+function openoutreach_update_7002() {
+  variable_set('install_task', 'done');
+}

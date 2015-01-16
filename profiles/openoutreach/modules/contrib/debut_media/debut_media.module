@@ -3,33 +3,27 @@
 include_once('debut_media.features.inc');
 
 /**
- * Implements hook_init().
+ * Implements hook_menu_alter().
  *
- * Add javascript and css required for the media browser link.
+ * Convert the 'file/add' item to a local action.
  */
-function debut_media_init() {
-  if (arg(0) == 'file' && is_null(arg(1))) {
-    $path = drupal_get_path('module', 'media');
-    $element['#attached'] = array(
-      'js' => array($path . '/js/media.admin.js'),
-      'css' => array($path . '/css/media.css'),
-    );
-    module_load_include('inc', 'media', 'includes/media.browser');
-    media_attach_browser_js($element);
-    // Render an empty element to add the js and css.
-    drupal_render($element);
+function debut_media_menu_alter(&$items) {
+  if (isset($items['file/add'])) {
+    $items['file/add']['type'] = MENU_LOCAL_ACTION;
   }
 }
 
 /**
- * Implements hook_menu_alter().
+ * Implements hook_menu_link_alter().
  *
- * Add a local action link to the file page.
+ * Set the file/% link to hidden to avoid navigation menu error,
+ * see http://drupal.org/node/1018614.
+ *
+ * @todo: remove when http://drupal.org/node/1018614 is fixed.
  */
-function debut_media_menu_alter(&$items) {
-  if (isset($items['media/browser'])) {
-    $items['file/add'] = $items['media/browser'];
-    $items['file/add']['type'] = MENU_LOCAL_ACTION;
+function debut_media_menu_link_alter(&$item) {
+  if ($item['link_path'] == 'file/%') {
+    $item['hidden'] = TRUE;
   }
 }
 
@@ -40,7 +34,26 @@ function debut_media_menu_alter(&$items) {
  * See http://drupal.org/node/1291428.
  */
 function debut_media_entity_info_alter(&$entity_info) {
-  $entity_info['file']['view modes']['full']['custom settings'] = TRUE;
+  if (isset($entity_info['file']['view modes']['full'])) {
+    $entity_info['file']['view modes']['full']['custom settings'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_image_styles_alter().
+ *
+ * Restore previous dimensions of media_thumbnail (was small_thumbnail).
+ */
+function debut_media_image_styles_alter(&$styles) {
+  // Check that we only affect a default style.
+  if (isset($styles['media_thumbnail']['storage']) && $styles['media_thumbnail']['storage'] == IMAGE_STORAGE_DEFAULT) {
+    $styles['media_thumbnail']['label'] = t('Media thumbnail (180x180)');
+    foreach($styles['media_thumbnail']['effects'] as $key => $effect) {
+      if ($effect['name'] == 'image_scale_and_crop') {
+        $styles['media_thumbnail']['effects'][$key]['data'] = array('width' => 180, 'height' => 180);
+      }
+    }
+  }
 }
 
 /**
@@ -59,31 +72,25 @@ function debut_media_module_implements_alter(&$implementations, $hook) {
 }
 
 /**
- * Implements hook_views_data_alter().
+ * Implements hook_jcarousel_options_alter(().
  *
- * Use the media_title field for the file fid argument's name field.
- *
- * @todo: determine why this doesn't appear to work with views contextual
- *   filters;
+ * Swap in setup and reload callbacks to make the media carousel responsive.
  */
-function debut_media_views_data_alter(&$data) {
-  $data['file_managed']['fid']['argument']['name field'] = 'media_title';
-  $data['file_managed']['fid']['argument']['name table'] = 'field_data_media_title';
-}
+function debut_media_jcarousel_options_alter(&$options, $class_name) {
+  static $added = FALSE;
 
-/**
- * Implements hook_page_alter().
- *
- * Set the page title for media items to the title of the item.
- */
-function debut_media_page_alter(&$variables) {
-  if (arg(0) == 'file' && $file = menu_get_object('file')) {
-    if (!empty($file->media_title['und'][0]['safe_value'])) {
-      drupal_set_title($file->media_title['und'][0]['safe_value']);
+  if (!empty($options['view_options']['view_name']) && $options['view_options']['view_name'] == 'media') {
+    foreach (array('setupCallback', 'reloadCallback') as $callback) {
+      if (!isset($options[$callback])) {
+        $options[$callback] = 'Drupal.debutMedia.' . $callback;
+        if (!$added) {
+          drupal_add_css(drupal_get_path('module', 'debut_media') . '/debut_media.css', array('weight' => 10));
+          drupal_add_js(drupal_get_path('module', 'debut_media') . '/debut_media.js');
+          $added = TRUE;
+        }
+      }
     }
   }
-  // Add late in the page generation process to override the jcarousel css.
-  drupal_add_css(drupal_get_path('module', 'debut_media') . '/debut_media.css');
 }
 
 /**
@@ -94,12 +101,12 @@ function debut_media_styles_default_styles() {
     'file' => array(
       'styles' => array(
         'medium_large' => array(
-          'label' => 'Medium large',
-          'description' => 'A medium large format of the media.',
+          'label' => t('Medium large'),
+          'description' => t('A medium large format of the media.'),
         ),
         'small_square_thumbnail' => array(
-          'label' => 'Small square thumbnail',
-          'description' => 'A small, square format of the media.',
+          'label' => t('Small square thumbnail'),
+          'description' => t('A small, square format of the media.'),
         ),
       ),
     ),
@@ -177,12 +184,23 @@ function debut_media_field_default_fields_alter(&$items) {
 /**
  * Implements hook_features_export_alter().
  *
+ * Remove field_media instances.
  * Remove incorrect dependencies on debut_media, which are assigned to modules
  * that provide content types we've added the field_media field to.
  */
 function debut_media_features_export_alter(&$export, $module_name) {
   $node_types = debut_media_get_media_types();
-  if ($node_types && in_array($module_name, $node_types)) {
+
+  if ($module_name == 'debut_media') {
+    // Remove any media fields from export.
+    if (isset($export['features']['field'])) {
+      foreach (array_keys($node_types) as $type) {
+        unset($export['features']['field']["node-$type-field_media"]);
+      }
+    }
+  }
+  // Remove incorrect dependencies.
+  elseif ($node_types && in_array($module_name, $node_types)) {
     $key = array_search('debut_media', $export['dependencies']);
     unset($export['dependencies'][$key]);
   }
@@ -224,7 +242,6 @@ function debut_media_get_media_types() {
   foreach ($features as $feature) {
     $info = $feature->info;
     if (isset($info['debut']) && isset($info['debut']['media']) && isset($info['debut']['media']['node_types'])) {
-      // Key the array by node type to match the format of the 'service_links_node_types' variable.
       $node_types = array_merge($node_types, array_fill_keys($info['debut']['media']['node_types'], $feature->name));
     }
   }
@@ -334,13 +351,14 @@ function debut_media_media_field() {
 /**
  * Implements hook_file_default_displays_alter().
  *
- * Clone settings for 'media_large' to new 'full' view mode. Add a generic file
- * fallback for each view mode + file type combo.
+ * Clone settings for 'media_large' to new 'full' view mode and fix weighting
+ * of video preview images.
  *
  * @todo: remove 'media_large' to 'full' cloning once media provider modules
  * catch up. See http://drupal.org/node/1291428.
  */
 function debut_media_file_default_displays_alter(&$items) {
+  // Clone settings for 'media_large' to new 'full' view mode.
   $info = entity_get_info('file');
   $bundles = array_keys($info['bundles']);
   $view_modes = array_keys($info['view modes']);
@@ -355,18 +373,10 @@ function debut_media_file_default_displays_alter(&$items) {
       }
     }
   }
-  foreach ($bundles as $file_type) {
-    foreach ($view_modes as $view_mode) {
-      $display_name = implode('__', array($file_type, $view_mode, 'file_field_file_default'));
-      if (!isset($items[$display_name])) {
-        $items[$display_name] = (object) array(
-          'api_version' => 1,
-          'name' => $display_name,
-          'status' => 1,
-          'weight' => 35,
-          'settings' => array(),
-        );
-      }
+  // Fix weighting of video preview images.
+  foreach (array('video__preview__media_vimeo_image', 'video__preview__media_youtube_image') as $key) {
+    if (isset($items[$key])) {
+      $items[$key]->weight = -10;
     }
   }
 }

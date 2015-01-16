@@ -1,0 +1,346 @@
+<?php
+
+define('REDHEN_ORG_GROUP_FIELD', 'field_redhen_org_group');
+
+/**
+ * The access realm of group member.
+ */
+define('REDHEN_ORG_GROUP_ACCESS_REALM', 'redhen_org_group');
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_org_group_menu() {
+  $items['redhen/org/%redhen_org/content'] = array(
+    'title' => 'Content',
+    'page callback' => 'redhen_org_group_content_page',
+    'page arguments' => array(2),
+    'access arguments' => array('access redhen orgs'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_org_group_permission() {
+  $return = array();
+
+  $return['access all redhen org groups'] = array(
+    'title' => t('Access all RedHen Organization Groups'),
+    'description' => t('Access RedHen Organization groups regardless of if user is a member of that group.')
+  );
+
+  return $return;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function redhen_org_group_form_redhen_org_type_form_alter(&$form, &$form_state) {
+  // Add group specific settings.
+  $redhen_org_type = $form['#redhen_org_type'];
+  $form['data']['group'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Groupify'),
+    '#default_value' => isset($redhen_org_type->group) ? $redhen_org_type->group : NULL,
+  );
+  $form['data']['group_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Group settings'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="data[group]"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+  $form['data']['group_settings']['private'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Private'),
+    '#default_value' => isset($redhen_org_type->group_settings['private']) ? $redhen_org_type->group_settings['private'] : NULL,
+  );
+
+  $form['data']['group_settings']['content_types'] = array(
+    '#type' => 'select',
+    '#title' => t('Content types'),
+    '#description' => t('Select which content types can be posted into this group.'),
+    '#options' => node_type_get_names(),
+    '#multiple' => TRUE,
+    '#default_value' => isset($redhen_org_type->group_settings['content_types']) ? $redhen_org_type->group_settings['content_types'] : array(),
+  );
+}
+
+/**
+ * Implements hook_redhen_org_type_insert().
+ */
+function redhen_org_group_redhen_org_type_insert(RedhenOrgType $org_type) {
+  // Create group field.
+  redhen_org_group_create_instance($org_type);
+}
+
+/**
+ * Implements hook_redhen_org_type_update().
+ */
+function redhen_org_group_redhen_org_type_update(RedhenOrgType $org_type) {
+  if (isset($org_type->group_settings['content_types'])) {
+    $content_types = isset($org_type->data['group_settings']['content_types']) ? $org_type->data['group_settings']['content_types'] : array();
+
+    // Delete field instances if a content type was removed.
+    foreach ($org_type->group_settings['content_types'] as $old_type) {
+      if (!isset($content_types[$old_type])) {
+        $instance = field_read_instance('node', REDHEN_ORG_GROUP_FIELD, $old_type);
+        if ($instance) {
+          field_delete_instance($instance, FALSE);
+          field_purge_batch(10);
+          drupal_set_message(t('Field %label has been deleted from the %type content type.',
+            array('%label' => $instance['label'], '%type' => $old_type)));
+        }
+      }
+    }
+  }
+
+  // Create new field instances.
+  redhen_org_group_create_instance($org_type);
+}
+
+/**
+ * Create group field instances.
+ *
+ * @param RedhenOrgType $org_type
+ *   Org type object.
+ */
+function redhen_org_group_create_instance(RedhenOrgType $org_type) {
+  if (!isset($org_type->data['group_settings']['content_types'])) {
+    return;
+  }
+
+  // Create an instance of our audience field if it doesn't already exist.
+  foreach ($org_type->data['group_settings']['content_types'] as $type) {
+    $instance = field_read_instance('node', REDHEN_ORG_GROUP_FIELD, $type);
+    if (!$instance) {
+      $instance = array(
+        'field_name' => REDHEN_ORG_GROUP_FIELD,
+        'entity_type' => 'node',
+        'bundle' => $type,
+        'label' => t('Group'),
+        'widget' => array(
+          'module' => 'options',
+          'settings' => array(),
+          'type' => 'options_select',
+        ),
+      );
+      field_create_instance($instance);
+      drupal_set_message(t('Field %label has been added to the %type content type.',
+        array('%label' => $instance['label'], '%type' => $type)));
+    }
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function redhen_org_group_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'entityreference') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_redhen_org_type_delete().
+ */
+function redhen_org_group_redhen_org_type_delete(RedhenOrgType $redhen_org_type) {
+  // Delete redhen group field if not used by another org type.
+  if (isset($redhen_org_type->group_settings['content_types'])) {
+    $org_types = redhen_org_get_types();
+    foreach ($redhen_org_type->group_settings['content_types'] as $type) {
+      $in_use = FALSE;
+      foreach ($org_types as $org_type) {
+        if ($org_type->name != $redhen_org_type->name && isset($org_type->group) && $org_type->group) {
+          if (isset($org_type->group_settings['content_types'])) {
+            $in_use = in_array($type, $org_type->group_settings['content_types']);
+          }
+        }
+      }
+
+      if (!$in_use) {
+        $instance = field_read_instance('node', REDHEN_ORG_GROUP_FIELD, $type);
+        if ($instance) {
+          field_delete_instance($instance, FALSE);
+          field_purge_batch(10);
+          drupal_set_message(t('Field %label has been deleted from the %type content type.',
+            array('%label' => $instance['label'], '%type' => $type)));
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Return all redhen_org groups that a given user belongs to.
+ *
+ * @param object $account
+ *   User object
+ * @param bool $private
+ *   Optionally limit to private groups.
+ * @param string $bundle
+ *   Optionally limit to groups that accept posts of a given bundle.
+ * @param bool $active
+ *   Optionally limit to groups user has active relation with.
+ *
+ * @return array
+ *   An array of redhen_orgs keyed by organization id.
+ */
+function redhen_org_group_contact_groups($account, $private = FALSE, $bundle = NULL, $active = TRUE) {
+  $account_groups = drupal_static(__FUNCTION__ . $account->uid . $private . $bundle . $active, array());
+
+  if (!empty($account_groups)) {
+    return $account_groups;
+  }
+
+  // Get all orgs the given account is connected to.
+  $group_types = array_keys(redhen_org_group_group_types($private, $bundle));
+
+  // There are no group types, so the contact is obviously not in an org group.
+  if (empty($group_types)) {
+    return array();
+  }
+
+  if ($contact = redhen_contact_user_contact($account)) {
+    $relations = redhen_relation_relations($contact, REDHEN_RELATION_AFFILIATION, $active);
+    foreach ($relations as $relation_id => $orgs) {
+      foreach ($orgs as $org) {
+        if (in_array($org->type, $group_types)) {
+          $account_groups[$org->org_id] = $org;
+        }
+      }
+    }
+  }
+
+  if ($account->uid > 0) {
+    // If not anonymous, get all groups.
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', 'redhen_org')
+      ->entityCondition('bundle', $group_types, 'IN')
+      ->propertyCondition('redhen_state', REDHEN_STATE_ACTIVE);
+
+    if (!user_access('access all redhen org groups', $account)) {
+      // If user doesn't have permission to all groups, just get authored groups.
+      $query->propertyCondition('author_uid', $account->uid);
+    }
+
+    $result = $query->execute();
+    if ($result) {
+      $orgs = redhen_org_load_multiple(array_keys($result['redhen_org']));
+      foreach ($orgs as $org) {
+        $account_groups[$org->org_id] = $org;
+      }
+    }
+  }
+
+  return $account_groups;
+}
+
+/**
+ * Return all redhen_org bundles that are groupified.
+ *
+ * @param bool $private
+ *   If true, only return private groups.
+ * @param string $bundle
+ *   If provided, only orgs which support the given bundle will be returned.
+ *
+ * @return array
+ *   An array of redhen_org types keyed by bundle.
+ */
+function redhen_org_group_group_types($private = FALSE, $bundle = NULL) {
+  $group_types = array();
+  $org_types = redhen_org_get_types();
+  foreach ($org_types as $org_type) {
+    // Is this group active and groupified?
+    if (isset($org_type->group) && $org_type->group && $org_type->redhen_state = REDHEN_STATE_ACTIVE) {
+      // Either we don't care about private groups, or return those that are
+      // marked as private.
+      if (!$private || ($private && (isset($org_type->group_settings['private']) && $org_type->group_settings['private']))) {
+        // Either we don't care about which bundles can be posted into a group,
+        // or return groups matching a given bundle.
+        if (!$bundle || ($bundle && isset($org_type->group_settings['content_types']) && in_array($bundle, $org_type->group_settings['content_types']))) {
+          $group_types[$org_type->name] = $org_type;
+        }
+      }
+    }
+  }
+  return $group_types;
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+function redhen_org_group_node_grants($account, $op) {
+  if ($op != 'view') {
+    return;
+  }
+
+  $groups = redhen_org_group_contact_groups($account, TRUE);
+  foreach ($groups as $org_id => $org) {
+    $realm = REDHEN_ORG_GROUP_ACCESS_REALM . ':' . $org->type;
+    $grants[$realm][] = $org_id;
+  }
+
+  return !empty($grants) ? $grants : array();
+}
+
+
+/**
+ * Implements hook_node_access_records().
+ */
+function redhen_org_group_node_access_records($node) {
+  $grants = array();
+
+  if (!empty($node->{REDHEN_ORG_GROUP_FIELD}) && $org_ids = field_get_items('node', $node, REDHEN_ORG_GROUP_FIELD)) {
+    foreach ($org_ids as $org_id) {
+      if ($org = redhen_org_load($org_id['target_id'])) {
+        if ($org_type = redhen_org_type_load($org->type)) {
+          if (isset($org_type->group) && $org_type->group && $org_type->redhen_state = REDHEN_STATE_ACTIVE && $org_type->group_settings['private']) {
+            $grants[] = array(
+              'realm' => REDHEN_ORG_GROUP_ACCESS_REALM . ':' . $org->type,
+              'gid' => $org_id['target_id'],
+              'grant_view' => $node->status,
+              'grant_update' => 0,
+              'grant_delete' => 0,
+              'priority' => 10,
+            );
+          }
+        }
+      }
+    }
+  }
+
+  return $grants;
+}
+
+/**
+ * Return a list of content posted into a RedHen group org.
+ *
+ * @param RedhenOrg $org
+ *   RedHen org object.
+ *
+ * @return array|null|string
+ *   Teaser list of nodes.
+ */
+function redhen_org_group_content_page(RedhenOrg $org) {
+  $query = new EntityFieldQuery();
+  $result = $query
+    ->entityCondition('entity_type', 'node')
+    ->propertyCondition('status', 1)
+    ->fieldCondition(REDHEN_ORG_GROUP_FIELD, 'target_id', $org->org_id)
+    ->execute();
+
+  if (!$result) {
+    return t('There is no content for this group.');
+  }
+
+  $nodes = node_load_multiple(array_keys($result['node']));
+
+  return node_view_multiple($nodes);
+}

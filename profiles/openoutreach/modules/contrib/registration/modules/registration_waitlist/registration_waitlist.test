@@ -1,0 +1,126 @@
+<?php
+
+/**
+ * @file
+ * Tests for the Registration Wait List module
+ */
+
+/**
+ * Creates a registration type
+ * Create node entity type
+ * ensure registration type exists
+ */
+class RegistrationWaitlistTestCase extends RegistrationTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Registration Wait List module',
+      'description' => 'Test Registration Wait List module.',
+      'group' => 'Registration',
+    );
+  }
+
+  function setUp() {
+    parent::setUp(array('registration'));
+    $this->setUpEntity();
+  }
+
+  /**
+   * Check internal status modifiers for the wait list.
+   */
+  function testHostRegistrationWaitlistStatus() {
+    global $user;
+
+    $permissions = array(
+      'create ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $basic_user = $this->drupalCreateUser($permissions);
+
+    $permissions = array(
+      'administer ' . $this->registration_type_name . ' registration',
+    );
+
+    $this->checkPermissions($permissions, TRUE);
+    $admin_user = $this->drupalCreateUser($permissions);
+
+    // Start with the basic user
+    $user = $basic_user;
+
+    // Enable waitlist, wl capacity = unlimited
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'capacity' => 10,
+      'settings' => array(
+        'registration_waitlist_enable' => 1,
+        'registration_waitlist_capacity' => 4,
+      ),
+    ));
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is opened with wait list enabled.'), 'Registration');
+
+    // fill capacity
+    $registrations = array();
+    for ($i = 0; $i < 6; $i++) {
+      $registrations[$i] = $this->createRegistration(array('count' => 2));
+    }
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is opened, filled with registrations.'), 'Registration');
+
+    $last_registration = entity_metadata_wrapper('registration', end($registrations));
+    $this->assertTrue(($last_registration->state->name->value() === REGISTRATION_WAITLIST_STATE), t('Last registration placed on wait list.'), 'Registration');
+
+    // Test that wait list limit and reserved slots is enforced
+    $registrations[] = $this->createRegistration(array('count' => 2));
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, wait list full.'), 'Registration');
+
+    // Load user with admin permission
+    $user = $admin_user;
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, wait list full but user has admin permission.'), 'Registration');
+
+    // Switch back to basic user
+    $user = $basic_user;
+
+    // unfill capacity by one registration
+    entity_delete('registration', end($registrations)->registration_id);
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Deleted a registration, wait list now not at maximum.'), 'Registration');
+
+    // Test dates
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => date('Y-m-d H:i:s', (time() + 3600)),
+      'close' => NULL,
+      'settings' => array(
+        'registration_waitlist_enable' => 1,
+        'registration_waitlist_capacity' => 0,
+        'registration_waitlist_reserved' => 0,
+      ),
+    ));
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, open time has not passed.'), 'Registration');
+
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => date('Y-m-d H:i:s', (time() - 3600)),
+      'close' => date('Y-m-d H:i:s', (time() + 3600)),
+      'settings' => array(
+        'registration_waitlist_enable' => 1,
+        'registration_waitlist_capacity' => 0,
+        'registration_waitlist_reserved' => 0,
+      ),
+    ));
+    $this->assertTrue(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is open, in between open and closing times.'), 'Registration');
+
+
+    $this->setHostEntitySettings(array(
+      'status' => 1,
+      'open' => NULL,
+      'close' => date('Y-m-d H:i:s', (time() - 3600)),
+      'settings' => array(
+        'registration_waitlist_enable' => 1,
+        'registration_waitlist_capacity' => 0,
+        'registration_waitlist_reserved' => 0,
+      ),
+    ));
+    $this->assertFalse(registration_status($this->host_entity_type, $this->host_entity_id, TRUE), t('Host entity status is closed, closing time has passed.'), 'Registration');
+
+  }
+
+}

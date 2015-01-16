@@ -6,7 +6,7 @@
  */
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function follow_install() {
   // Add a default link to this site's node RSS feed.
@@ -19,10 +19,12 @@ function follow_install() {
       'weight' => 0,
     ))
     ->execute();
+  // Save the initial CSS.
+  follow_save_css();
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function follow_schema() {
   $schema['follow_links'] = array(
@@ -84,26 +86,42 @@ function follow_schema() {
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function follow_uninstall() {
   variable_del('follow_user_block_title');
   variable_del('follow_site_block_title');
   variable_del('follow_site_block_user');
+  variable_del('follow_site_icon_style');
+  variable_del('follow_user_icon_style');
+  variable_del('follow_site_alignment');
+  variable_del('follow_user_alignment');
 }
 
 /**
- * Implementation of hook_update_last_removed().
+ * Implements hook_update_last_removed().
  */
 function follow_update_last_removed() {
-  // We need to ensure that all D6 users have upgraded to the latest version of 
+  // We need to ensure that all D6 users have upgraded to the latest version of
   // Follow before upgrading to D7.
   return 6003;
 }
 
 /**
- * Placeholder to ensure the correct schema version.
+ * Rename the alignment and link style variables to have 'site' in the name.
  */
-function follow_update_7003() {
+function follow_update_7004() {
+  if ($value = variable_get('follow_icon_style')) {
+    variable_set('follow_site_icon_style', $value);
+    variable_del('follow_icon_style');
+  }
+  if ($value = variable_get('follow_alignment')) {
+    variable_set('follow_site_alignment', $value);
+    variable_del('follow_alignment');
+  }
 
+  // Save the initial CSS.
+  follow_save_css();
+
+  return t("Renamed Follow module's alignment and icon style variables.");
 }

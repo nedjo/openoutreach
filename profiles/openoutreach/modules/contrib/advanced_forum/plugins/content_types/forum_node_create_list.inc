@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Callback function to supply a list of content types.
  */
@@ -26,7 +25,8 @@ function advanced_forum_forum_node_create_list_content_type_render($subtype, $co
 
   if (empty($context)) {
     $tid = 0;
-  } else {
+  }
+  else {
     $tid = $context->data->tid;
   }
 
@@ -45,11 +45,11 @@ function advanced_forum_forum_node_create_list_content_type_render($subtype, $co
 /**
  * Returns an edit form for the custom type.
  */
-function advanced_forum_forum_node_create_list_content_type_edit_form(&$form, &$form_state) {
-
+function advanced_forum_forum_node_create_list_content_type_edit_form($form, &$form_state) {
+  return $form;
 }
 
-function advanced_forum_forum_node_create_list_content_type_edit_form_submit(&$form, &$form_state) {
+function advanced_forum_forum_node_create_list_content_type_edit_form_submit($form, &$form_state) {
   // Copy everything from our defaults.
   foreach (array_keys($form_state['plugin']['defaults']) as $key) {
     $form_state['conf'][$key] = $form_state['values'][$key];

@@ -10,9 +10,9 @@ files[] = captcha.admin.inc
 files[] = captcha.install
 files[] = captcha.test
 
-; Information added by drupal.org packaging script on 2012-01-02
-version = "7.x-1.0-beta2"
+; Information added by Drupal.org packaging script on 2014-11-29
+version = "7.x-1.2"
 core = "7.x"
 project = "captcha"
-datestamp = "1325504137"
+datestamp = "1417219372"
 

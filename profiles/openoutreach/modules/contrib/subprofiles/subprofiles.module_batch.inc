@@ -68,11 +68,11 @@ function subprofiles_get_module_batch($modules) {
     }
   }
   $batch = array(
-    'title' => st('Enable modules'),
-    'init_message' => st('Enabling modules...'),
-    'progress_message' => st('Enabling @current out of @total modules.'),
+    'title' => t('Enable modules'),
+    'init_message' => t('Enabling modules...'),
+    'progress_message' => t('Enabling @current out of @total modules.'),
     'operations' => $operations,
-    'error_message' => st('Module enabling encountered an error.'),
+    'error_message' => t('Module enabling encountered an error.'),
     'file' => 'includes/install.core.inc',
   );
   return $batch;

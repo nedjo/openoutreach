@@ -1,0 +1,14 @@
+name = Relation feeds
+description = Feeds integration module for Relation.
+core = 7.x
+package = Relation
+files[] = tests/relation.feeds_processor.test
+dependencies[] = relation
+dependencies[] = feeds
+
+; Information added by Drupal.org packaging script on 2014-11-09
+version = "7.x-1.0-rc6"
+core = "7.x"
+project = "relation"
+datestamp = "1415536997"
+

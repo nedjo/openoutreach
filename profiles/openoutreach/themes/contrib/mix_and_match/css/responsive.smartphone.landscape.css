@@ -1,0 +1,210 @@
+/*
+ *   Important Information about this CSS File
+ *
+ * - Do not delete or rename this file, if you do not use it leave it blank (delete
+ *   everything) and the file will be skipped when you enable Production Mode in
+ *   the Global theme settings.
+ *
+ * - Read the _README file in this directory, it contains useful help and other information.
+ */
+
+/* Custom classes that can be used for special image handling */
+.flex-image {
+    width: 95%;
+}
+
+.hidden-image {
+    display: none;
+}
+
+/* Avoid things being too close to edges */
+h1.title {
+    padding-left: 20px;        
+} 
+
+#block-system-main .inner .content {
+    padding: 0 10px;
+}
+
+/* Center logo and header text */
+#branding,
+#logo,
+#name-and-slogan,
+#name-and-slogan #site-name,
+#name-and-slogan #site-slogan {
+    float: none;
+    text-align: center;
+    width: 100%;
+}
+
+#branding {
+  padding-bottom: 0px;
+}
+
+/* Center search box.  If you wish to hide it in mobile, use "display: none" here */
+#page #header #block-search-form {
+    float: none; 
+    width: 50%;
+    text-align: center;
+    margin: 0px auto;
+}
+
+/* Top nav - switch to buttons instead of solid bar */
+#page #menu-bar {
+    background-image: none;
+    background-color: transparent;
+}
+
+#page #menu-bar ul {
+    text-align: center;
+}
+
+#page #menu-bar ul li {
+    float: none;
+    display: inline-block;
+}
+
+#page #menu-bar ul li a,
+#page #menu-bar ul.menu li a,
+#page #menu-bar ul.menu li a:visited,
+#page #menu-bar ul.sf-menu li a,
+#page #menu-bar ul.sf-menu li a:visited {
+    float: none;
+    background-color: transparent;
+    border-right: 0px;
+    border-left: 0px;
+    margin: 0 0 5px 5px;
+    height: 2.2em;
+    line-height: 2.2em;
+    padding: 0 1.2em;
+}
+
+#page #menu-bar ul ul li a {
+    background-color: #222;
+    margin: 0px;
+    background-image: none;
+    padding: 0 1.2em;
+}
+
+#page #menu-bar ul ul li a:hover {
+    background-color: #444;
+}
+
+#page #menu-bar ul li.first a {
+    border-radius: 0;
+}
+
+/* Color specific */
+body #page #menu-bar ul li a {
+    background: #CCC url(images/nav-bg-gray.gif) top left repeat-x;
+}
+body #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #aaa;
+}
+
+body.bk-acc #page #menu-bar ul li a {
+    background: #272727 url(images/nav-bg-black.gif) top left repeat-x;
+}
+body.bk-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #1e1e1e;
+}
+
+body.br-acc #page #menu-bar ul li a {
+    background: #423a34 url(images/nav-bg-brown.gif) top left repeat-x;
+}
+body.br-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #443A31;
+}
+
+body.bl-acc #page #menu-bar ul li a {
+    background: #2C2C2C url(images/nav-bg-blue.gif) top left repeat-x;
+}
+body.bl-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #03438C;
+}
+
+body.dbl-acc #page #menu-bar ul li a {
+    background: #1b3453 url(images/nav-bg-dkblue.gif) top left repeat-x;
+}
+body.dbl-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #162F50;
+}
+
+body.gr-acc #page #menu-bar ul li a {
+    background: #2B6B0B url(images/nav-bg-green.gif) top left repeat-x;
+}
+body.gr-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #28600B;
+}
+
+body.dgr-acc #page #menu-bar ul li a {
+    background: #2d4a1e url(images/nav-bg-dkgreen.gif) top left repeat-x;
+}
+body.dgr-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #264019;
+}
+
+body.tl-acc #page #menu-bar ul li a {
+    background: #3e5f63 url(images/nav-bg-teal.gif) top left repeat-x;
+}
+body.tl-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #385458;
+}
+
+body.rd-acc #page #menu-bar ul li a {
+    background: #A51D1D url(images/nav-bg-red.gif) top left repeat-x;
+}
+body.rd-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #9B131C;
+}
+
+body.or-acc #page #menu-bar ul li a {
+    background: #2b4b19 url(images/nav-bg-orange.gif) top left repeat-x;
+}
+body.or-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #C14F1E;
+}
+
+body.mr-acc #page #menu-bar ul li a {
+    background: #672D39 url(images/nav-bg-maroon.gif) top left repeat-x;
+}
+body.mr-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #5F2A34;
+}
+
+body.pr-acc #page #menu-bar ul li a {
+    background: #4b3e68 url(images/nav-bg-purple.gif) top left repeat-x;
+}
+body.pr-acc #page #menu-bar ul li a:hover {
+    background-image: none;
+    background-color: #44375F;
+}
+
+
+
+/* Adjustments to second level menu if using superfish */
+#menu-bar .sf-menu li:hover > ul, #menu-bar .sf-menu li.sfHover > ul {
+    left: 0;
+    top: 2em;
+}
+
+body #page #menu-bar ul.sf-menu li ul,
+body #page #menu-bar ul.sf-menu li li {
+  z-index: 10000;
+}
+
+body #page #menu-bar ul.sf-menu ul li a {
+  background-image: none;
+  margin: 0 0 0 0;
+}

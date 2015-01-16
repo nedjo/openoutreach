@@ -253,14 +253,14 @@ function simpletest_script_init($server_software) {
   if (!empty($args['php'])) {
     $php = $args['php'];
   }
-  elseif (!empty($_ENV['_'])) {
+  elseif ($php_env = getenv('_')) {
     // '_' is an environment variable set by the shell. It contains the command that was executed.
-    $php = $_ENV['_'];
+    $php = $php_env;
   }
-  elseif (!empty($_ENV['SUDO_COMMAND'])) {
+  elseif ($sudo = getenv('SUDO_COMMAND')) {
     // 'SUDO_COMMAND' is an environment variable set by the sudo program.
     // Extract only the PHP interpreter, not the rest of the command.
-    list($php, ) = explode(' ', $_ENV['SUDO_COMMAND'], 2);
+    list($php, ) = explode(' ', $sudo, 2);
   }
   else {
     simpletest_script_print_error('Unable to automatically determine the path to the PHP interpreter. Supply the --php command line argument.');
@@ -268,14 +268,14 @@ function simpletest_script_init($server_software) {
     exit();
   }
 
-  // Get url from arguments.
+  // Get URL from arguments.
   if (!empty($args['url'])) {
     $parsed_url = parse_url($args['url']);
     $host = $parsed_url['host'] . (isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '');
     $path = isset($parsed_url['path']) ? $parsed_url['path'] : '';
 
     // If the passed URL schema is 'https' then setup the $_SERVER variables
-    // properly so that testing will run under https.
+    // properly so that testing will run under HTTPS.
     if ($parsed_url['scheme'] == 'https') {
       $_SERVER['HTTPS'] = 'on';
     }
@@ -362,6 +362,8 @@ function simpletest_script_run_one_test($test_id, $test_class) {
     // Bootstrap Drupal.
     drupal_bootstrap(DRUPAL_BOOTSTRAP_FULL);
 
+    simpletest_classloader_register();
+
     $test = new $test_class($test_id);
     $test->run();
     $info = $test->getInfo();
@@ -395,7 +397,7 @@ function simpletest_script_command($test_id, $test_class) {
   if ($args['color']) {
     $command .= ' --color';
   }
-  $command .= " --php " . escapeshellarg($php) . " --test-id $test_id --execute-test $test_class";
+  $command .= " --php " . escapeshellarg($php) . " --test-id $test_id --execute-test " . escapeshellarg($test_class);
   return $command;
 }
 
@@ -417,9 +419,20 @@ function simpletest_script_get_test_list() {
   else {
     if ($args['class']) {
       // Check for valid class names.
-      foreach ($args['test_names'] as $class_name) {
-        if (in_array($class_name, $all_tests)) {
-          $test_list[] = $class_name;
+      $test_list = array();
+      foreach ($args['test_names'] as $test_class) {
+        if (class_exists($test_class)) {
+          $test_list[] = $test_class;
+        }
+        else {
+          $groups = simpletest_test_get_all();
+          $all_classes = array();
+          foreach ($groups as $group) {
+            $all_classes = array_merge($all_classes, array_keys($group));
+          }
+          simpletest_script_print_error('Test class not found: ' . $test_class);
+          simpletest_script_print_alternatives($test_class, $all_classes, 6);
+          exit(1);
         }
       }
     }
@@ -442,9 +455,12 @@ function simpletest_script_get_test_list() {
       // Check for valid group names and get all valid classes in group.
       foreach ($args['test_names'] as $group_name) {
         if (isset($groups[$group_name])) {
-          foreach ($groups[$group_name] as $class_name => $info) {
-            $test_list[] = $class_name;
-          }
+          $test_list = array_merge($test_list, array_keys($groups[$group_name]));
+        }
+        else {
+          simpletest_script_print_error('Test group not found: ' . $group_name);
+          simpletest_script_print_alternatives($group_name, array_keys($groups));
+          exit(1);
         }
       }
     }
@@ -597,9 +613,9 @@ function simpletest_script_reporter_display_results() {
           echo "\n\n---- $result->test_class ----\n\n\n";
           $test_class = $result->test_class;
 
-  // Print table header.
-  echo "Status    Group      Filename          Line Function                            \n";
-  echo "--------------------------------------------------------------------------------\n";
+          // Print table header.
+          echo "Status    Group      Filename          Line Function                            \n";
+          echo "--------------------------------------------------------------------------------\n";
         }
 
         simpletest_script_format_result($result);
@@ -671,4 +687,38 @@ function simpletest_script_color_code($status) {
       return SIMPLETEST_SCRIPT_COLOR_EXCEPTION;
   }
   return 0; // Default formatting.
+}
+
+/**
+ * Prints alternative test names.
+ *
+ * Searches the provided array of string values for close matches based on the
+ * Levenshtein algorithm.
+ *
+ * @see http://php.net/manual/en/function.levenshtein.php
+ *
+ * @param string $string
+ *   A string to test.
+ * @param array $array
+ *   A list of strings to search.
+ * @param int $degree
+ *   The matching strictness. Higher values return fewer matches. A value of
+ *   4 means that the function will return strings from $array if the candidate
+ *   string in $array would be identical to $string by changing 1/4 or fewer of
+ *   its characters.
+ */
+function simpletest_script_print_alternatives($string, $array, $degree = 4) {
+  $alternatives = array();
+  foreach ($array as $item) {
+    $lev = levenshtein($string, $item);
+    if ($lev <= strlen($item) / $degree || FALSE !== strpos($string, $item)) {
+      $alternatives[] = $item;
+    }
+  }
+  if (!empty($alternatives)) {
+    simpletest_script_print("  Did you mean?\n", SIMPLETEST_SCRIPT_COLOR_FAIL);
+    foreach ($alternatives as $alternative) {
+      simpletest_script_print("  - $alternative\n", SIMPLETEST_SCRIPT_COLOR_FAIL);
+    }
+  }
 }

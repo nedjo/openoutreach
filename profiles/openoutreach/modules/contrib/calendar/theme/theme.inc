@@ -34,31 +34,34 @@ function template_preprocess_calendar_month(&$vars) {
 
   $month_rows = $rows;
   foreach ($rows as $weekno => $row) {
-    foreach ($row as $day => $data) {
-      $cell = $data['data'];
+    // If this row is already rendered, don't do anything.
+    if (!isset($row['data'])) {
+      foreach ($row as $day => $data) {
+        $cell = $data['data'];
 
-      // If this cell is already rendered, like the weekno column,
-      // move to the next item.
-      if (!is_array($cell)) {
-        $month_rows[$weekno][$day]['data'] = $cell;
-        continue;
-      }
-      $data = $cell['datebox'];
-      if ($cell['empty']) {
-        $data .= $cell['empty'];
-      }
-      else {
-        $data .= implode($cell['all_day']);
-        foreach ($cell['items'] as $hour => $item) {
-          $data .= implode($item);
+        // If this cell is already rendered, like the weekno column,
+        // move to the next item.
+        if (!is_array($cell)) {
+          $month_rows[$weekno][$day]['data'] = $cell;
+          continue;
         }
-        $data .= $cell['link'];
-      }
-      if ($view->date_info->mini) {
-        $month_rows[$weekno][$day]['data'] = $data;
-      }
-      else {
-        $month_rows[$weekno][$day]['data'] = '<div class="inner">' . $data . '</div>';
+        $data = $cell['datebox'];
+        if ($cell['empty']) {
+          $data .= $cell['empty'];
+        }
+        else {
+          $data .= implode($cell['all_day']);
+          foreach ($cell['items'] as $hour => $item) {
+            $data .= implode($item);
+          }
+          $data .= $cell['link'];
+        }
+        if ($view->date_info->mini) {
+          $month_rows[$weekno][$day]['data'] = $data;
+        }
+        else {
+          $month_rows[$weekno][$day]['data'] = '<div class="inner">' . $data . '</div>';
+        }
       }
     }
   }
@@ -145,7 +148,7 @@ function template_preprocess_calendar_day(&$vars) {
 
   $item_count = 0;
   $by_hour_count = 0;
-  $grouping_field = !empty($view->date_info->style_groupby_field) ? ($view->date_info->style_groupby_field - 1) : NULL;
+  $grouping_field = !empty($view->date_info->style_groupby_field) ? ($view->date_info->style_groupby_field) : NULL;
   $display_overlap = !empty($view->date_info->style_theme_style) && !empty($view->date_info->style_groupby_times);
   $vars['scroll_content'] = !empty($view->date_info->style_theme_style) && $view->date_info->style_theme_style == 1;
 
@@ -179,7 +182,6 @@ function template_preprocess_calendar_day(&$vars) {
   foreach ($rows['all_day'] as $item) {
     if (!empty($item->rendered_fields[$grouping_field])) {
       $column = $item->rendered_fields[$grouping_field];
-      unset($item->rendered_fields[$grouping_field]); // Remove the grouping field from the results.
       if (!in_array($column, $columns)) {
         $columns[] = $column;
       }
@@ -205,7 +207,6 @@ function template_preprocess_calendar_day(&$vars) {
       $time = date_format($item->calendar_start_date, 'H:i:s');
       if (!empty($item->rendered_fields[$grouping_field])) {
         $column = $item->rendered_fields[$grouping_field];
-        unset($item->rendered_fields[$grouping_field]); // Remove the grouping field from the results.
         if (!in_array($column, $columns)) {
           $columns[] = $column;
         }
@@ -265,22 +266,26 @@ function template_preprocess_calendar_day(&$vars) {
     $grouped_items[$start_time]['ampm'] = $heading['ampm'];
     foreach ($grouped_items[$start_time]['values'] as $column => &$items) {
       foreach ($items as $index => &$item) {
+        $group_time = NULL;
+        $divisor = NULL;
         if ($display_overlap) {
-          if ($view->style_options['groupby_times'] == 'half'){
+          if ($view->style_options['groupby_times'] == 'half') {
             $group_time = 30;
             $divisor = 7.5;
           }
-          else if ($view->style_options['groupby_times'] == 'hour'){
+          elseif ($view->style_options['groupby_times'] == 'hour') {
             $group_time = 60;
             $divisor = 15;
-          } else {
-            $item->class = '';
-            continue;
           }
-          $start_minute = intval(substr($start_time, 3, 2));
-          $offset = round((date_format($item->date_start, 'i') - $start_minute) / $divisor);
-          $duration = round(($item->date_end->format('U') - $item->date_start->format('U')) / 60 / $divisor);
-          $item->class = 'd_' . $duration . ' o_' . $offset . ' i_' . $item->indent . ' md_' . min($item->max_depth, 5);
+          else {
+            $item->class = '';
+          }
+          if (!empty($group_time) && !empty($divisor)) {
+            $start_minute = intval(substr($start_time, 3, 2));
+            $offset = round((date_format($item->date_start, 'i') - $start_minute) / $divisor);
+            $duration = round(($item->date_end->format('U') - $item->date_start->format('U')) / 60 / $divisor);
+            $item->class = 'd_' . $duration . ' o_' . $offset . ' i_' . $item->indent . ' md_' . min($item->max_depth, 5);
+          }
         }
         $grouped_items[$start_time]['values'][$column][$index] = theme('calendar_item', array('view' => $view, 'rendered_fields' => $item->rendered_fields, 'item' => $item));
       }
@@ -475,21 +480,25 @@ function template_preprocess_calendar_week(&$vars) {
       foreach ($grouped_items[$start_time]['values'] as $wday => &$items) {
         foreach ($items as &$item) {
           if ($display_overlap) {
+            $group_time = NULL;
+            $divisor = NULL;
             if ($view->style_options['groupby_times'] == 'half'){
               $group_time = 30;
               $divisor = 7.5;
             }
-            else if ($view->style_options['groupby_times'] == 'hour'){
+            elseif ($view->style_options['groupby_times'] == 'hour'){
               $group_time = 60;
               $divisor = 15;
-            } else {
-              $item['class'] = '';
-              continue;
             }
-            $start_minute = intval(substr($start_time, 3, 2));
-            $offset = round((date_format($item['item']->date_start, 'i') - $start_minute) / $divisor);
-            $duration = round(($item['item']->date_end->format('U') - $item['item']->date_start->format('U')) / 60 / $divisor);
-            $item['class'] = 'd_' . $duration . ' o_' . $offset . ' i_' . $item['indent'] . ' md_' . min($item['max_depth'], 5);
+            else {
+              $item['class'] = '';
+            }
+            if (!empty($group_time) && !empty($divisor)) {
+              $start_minute = intval(substr($start_time, 3, 2));
+              $offset = round((date_format($item['item']->date_start, 'i') - $start_minute) / $divisor);
+              $duration = round(($item['item']->date_end->format('U') - $item['item']->date_start->format('U')) / 60 / $divisor);
+              $item['class'] = 'd_' . $duration . ' o_' . $offset . ' i_' . $item['indent'] . ' md_' . min($item['max_depth'], 5);
+            }
           }
         }
       }
@@ -513,6 +522,28 @@ function template_preprocess_calendar_week(&$vars) {
   $vars['item_count'] = $item_count;
   $vars['by_hour_count'] = $by_hour_count;
   return;
+}
+
+/**
+ * Implementation of hook_preprocess_calendar_item().
+ */
+function template_preprocess_calendar_item(&$vars) {
+  // At the last possible minute we fix the values in rendered_fields so it
+  // contains the correct rendered content for the type of item and item display.
+  $item = $vars['item'];
+
+  $multiday_hidden = !empty($vars['view']->style_options['multiday_hidden']) ? $vars['view']->style_options['multiday_hidden'] : array();
+
+  if (!empty($item->rendered) && empty($item->is_multi_day)) {
+    $vars['rendered_fields'] = array($item->rendered);
+  }
+  else {
+    foreach ($vars['view']->field as $id => $field) {
+      if ($field->options['exclude'] || (!empty($item->is_multi_day) && in_array($id, $multiday_hidden))) {
+        unset($vars['rendered_fields'][$field->field]);
+      }
+    }
+  }
 }
 
 /**
@@ -617,21 +648,75 @@ function theme_calendar_time_row_heading($vars) {
 /**
  * Format a node stripe legend
  */
-function theme_calendar_stripe_legend() {
-  if (empty($GLOBALS['calendar_stripes'])) {
+function theme_calendar_stripe_legend($vars) {
+  if (empty($vars) || !$view = $vars['view']) {
     return '';
   }
+
+  list($view_name, $display_id) = explode(':', $view);
+
+  $view = views_get_view($view_name);
+  $view->set_display($display_id);
+  $row_options = $view->display_handler->get_option('row_options');
+
+  $legend_type = $row_options['colors']['legend'];
+  $display_options = $row_options['colors']['calendar_colors_' . $legend_type];
+  $options = array();
+  switch ($legend_type) {
+
+    case 'type':
+      $options = node_type_get_names();
+      break;
+
+    case 'taxonomy':
+      $vocabularies = (array) $row_options['colors']['calendar_colors_vocabulary'];
+      $term_colors = $row_options['colors']['calendar_colors_taxonomy'];
+      foreach ($vocabularies as $field_name => $vid) {
+        $vocab = taxonomy_get_tree($vid);
+        foreach ($vocab as $key => $term) {
+          $options[$term->tid] = $term->name;
+        }
+      }
+      break;
+
+    case 'group':
+      // The 7.1 version of OG.
+      if (function_exists('og_label')) {
+        $gids = og_get_all_group();
+        foreach ($gids as $gid) {
+          $options[$gid] = check_plain(t(og_label($gid)));
+        }
+      }
+
+      // The 7.2 version of OG.
+      else {
+        $types = og_get_all_group_entity();
+        foreach ($types as $entity_type => $name) {
+          $gids = og_get_all_group($entity_type);
+          $entities = entity_load($entity_type, $gids);
+          foreach ($entities as $entity) {
+            list($gid) = entity_extract_ids($entity_type, $entity);
+            $options[$gid] = check_plain(t(entity_label($entity_type, $entity)));
+          }
+        }
+      }
+      break;
+  }
+
   $header = array(
       array('class' => 'calendar-legend', 'data' => t('Item')),
       array('class' => 'calendar-legend', 'data' => t('Key'))
       );
+
   $rows = array();
   $output = '';
-  foreach ((array) $GLOBALS['calendar_stripes'] as $label => $stripe) {
-    if ($stripe) {
+  foreach ($options as $key => $label) {
+    $stripe = array_key_exists($key, $display_options) ? $display_options[$key] : CALENDAR_EMPTY_STRIPE;
+    if ($stripe != CALENDAR_EMPTY_STRIPE) {
       $rows[] = array($label, '<div style="background-color:' . $stripe . ';color:' . $stripe . '" class="stripe" title="Key: ' . $label . '">&nbsp;</div>');
     }
   }
+
   if (!empty($rows)) {
     $variables = array(
       'header' => $header,
@@ -656,7 +741,6 @@ function theme_calendar_stripe_stripe($vars) {
   if (is_array($item->stripe_label)) {
     foreach ($item->stripe_label as $k => $stripe_label) {
       if (!empty($item->stripe[$k]) && !empty($stripe_label)) {
-        $GLOBALS['calendar_stripes'][$stripe_label] = $item->stripe[$k];
         $output .= '<div style="background-color:' . $item->stripe[$k] . ';color:' . $item->stripe[$k] . '" class="stripe" title="Key: ' . $item->stripe_label[$k] . '">&nbsp;</div>' . "\n";
       }
     }

@@ -33,4 +33,3 @@
 if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'install') {
   include_once('subprofiles.install.inc');
 }
-

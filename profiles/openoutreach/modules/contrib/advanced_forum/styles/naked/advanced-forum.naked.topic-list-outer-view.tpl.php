@@ -26,6 +26,9 @@
  * - $admin_links_raw: A list of administrative links suitable for theme('links')
  * - $forum_description: Forum description
  *
+ * - $forum_tools: Drop down list of forum tools
+ * - $forum_jump: Drop down list of forum hierarchy
+ *
  * @ingroup views_templates
  */
 ?>
@@ -76,7 +79,7 @@
   <div class="forum-node-create-links"><?php print $node_create_list ?></div>
 
   <?php if ($pager): ?>
-    <div class="forum-pager" id="forum-pager-bottom"><?php print $pager; ?></div>
+    <div class="forum-pager clearfix" id="forum-pager-bottom"><?php print $pager; ?></div>
   <?php endif; ?>
 
   <?php if (!empty($view->sort_form)): ?>

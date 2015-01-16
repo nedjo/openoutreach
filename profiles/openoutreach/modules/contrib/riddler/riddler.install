@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the CAPTCHA module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function riddler_install() {
+  // Set default riddle.
+  $insert = db_insert('riddler_questions')->fields(array('question', 'answer'));
+  $data = array('question' => 'Do you like SPAM?', 'answer' => 'No');
+  $insert->values($data)->execute();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function riddler_uninstall() {
+  db_query("DELETE FROM {variable} WHERE name LIKE 'riddler_%'");
+  cache_clear_all('variables', 'cache');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function riddler_schema() {
+  // Table for positions and types of the challenges.
+  $schema['riddler_questions'] = array(
+    'description' => 'This table stores questions and answers for the riddler module.',
+    'fields' => array(
+      'qid' => array(
+        'description' => 'Question ID.',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'question' => array(
+        'description' => 'The question.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'answer' => array(
+        'description' => 'The answer',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+    ),
+    'primary key' => array('qid'),
+  );
+  return $schema;
+}

@@ -103,7 +103,7 @@ function advanced_forum_settings_page() {
     '#description' => t('Check this to disable breadcrumbs in the forum if you are using another module to customize them. Does not affect node pages and does not work when Page Manager is overriding forum pages.'),
   );
 
-  $form['advanced_forum_general']['advanced_forum_collapsible_containers'] = array(
+  $form['advanced_forum_lists']['advanced_forum_collapsible_containers'] = array(
     '#type' => 'select',
     '#title' => t('Collapsible forum containers'),
     '#options' => array(
@@ -114,6 +114,24 @@ function advanced_forum_settings_page() {
     ),
     '#description' => t('Select whether or not to enable collapsible forum containers and what type of animation to use.'),
     '#default_value' => variable_get('advanced_forum_collapsible_containers', 'toggle'),
+  );
+
+  // For default collapsed state configuration
+  $collapsed_list_name = variable_get('forum_containers', array());
+  $collapsed_list_description = array();
+  foreach ($collapsed_list_name as $id) {
+    $term = taxonomy_term_load($id);
+    if (!empty($term)) {
+      $collapsed_list_description[$id] = empty($term->name) ? '' : $term->name;
+    }
+  }
+  $form['advanced_forum_lists']['advanced_forum_default_collapsed_list'] = array(
+    '#type' => 'select',
+    '#title' => t('Containers collapsed by default'),
+    '#default_value' => variable_get('advanced_forum_default_collapsed_list', array()),
+    '#options' => $collapsed_list_description,
+    '#multiple' => TRUE,
+    '#description' => t('Select containers which should be collapsed by default.'),
   );
 
   if (module_exists('image')) {
@@ -130,7 +148,7 @@ function advanced_forum_settings_page() {
     $field_info = field_info_instances('taxonomy_term', $forum_vocabulary->machine_name);
     $image_fields = array();
     foreach ($field_info as $bundle => $field) {
-      if ($field['widget']['type'] == 'image_image') {
+      if (!empty($field['display']['default']['type']) && ($field['display']['default']['type'] == 'image')) {
         $image_fields[$bundle] = $bundle;
       }
     }
@@ -173,6 +191,21 @@ function advanced_forum_settings_page() {
   }
   else {
     variable_set('advanced_forum_user_picture_preset', '');
+  }
+
+  if (module_exists('author_pane')) {
+    $join_date_options = array();
+    foreach (system_get_date_types() as $date_type) {
+      $join_date_options[$date_type['type']] = $date_type['title'];
+    }
+
+    $form['advanced_forum_general']['advanced_forum_author_pane_join_date_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Author Pane - Join date, date type'),
+      '#options' => $join_date_options,
+      '#description' => t('Select which <a href="@date-type-url">date type</a> to use for displaying the join date in the Author Pane.', array('@date-type-url' => url('admin/config/regional/date-time'))),
+      '#default_value' => variable_get('advanced_forum_author_pane_join_date_type', 'short'),
+    );
   }
 
   // Retrieve new comments on forum listing

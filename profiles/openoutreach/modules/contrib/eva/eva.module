@@ -1,5 +1,8 @@
 <?php
 
+// Load theme functions
+module_load_include('inc', 'eva', 'eva.theme');
+
 /**
  * Implements hook_views_api().
  */
@@ -25,6 +28,14 @@ function eva_field_extra_fields() {
           'description' => $view['title'], 
           'weight' => 10,
         );
+        // Provide a separate extra field for the exposed form if there is any.
+        if ($view['exposed form']) {
+          $extras[$entity][$bundle]['display'][$view['name'] . '_' . $view['display'] . '_' . 'form'] = array(
+            'label' => ((empty($view['title'])) ? $view['name'] : $view['title']) . ' (' . t('Exposed form') . ')', 
+            'description' => t('The exposed filter form of the view.'),
+            'weight' => 9,
+          );
+        }
       }
     }
   }
@@ -59,6 +70,15 @@ function eva_entity_view_alter(&$build, $type) {
         $view->set_display($info['display']);
         if ($view->access($info['display'])) {
           $view->current_entity = $entity;
+
+          if (isset($fields[$longname . '_form']) && $fields[$longname . '_form']['visible']) {
+            $view->init_handlers();
+            $exposed_form = $view->display_handler->get_plugin('exposed_form');
+
+            $build[$longname . '_form'] = array(
+              '#markup' => $exposed_form->render_exposed_form(TRUE),
+            );
+          }
           $result = $view->execute_display($info['display']);
           if (!empty($result)) {
             $build[$longname] = array(
@@ -102,16 +122,23 @@ function eva_get_views($type = NULL, $reset = FALSE) {
 
     // If it's still empty rebuild it.
     if (!isset($used_views)) {
+      // Trigger a rebuild of the views object cache, which may not be fully loaded.
+      ctools_include('export');
+      ctools_export_load_object_reset('views_view');
+
       // Build and cache the data, both in the DB and statically.
       $views = views_get_applicable_views('uses hook entity view');
       foreach ($views as $data) {
         list($view, $display_id) = $data;
         $view_entity = $view->display_handler->get_option('entity_type');
+        // Initialize handlers, to determine if the view uses exposed filters.
+        $view->init_handlers();
         $used_views[$view_entity][] = array(
           'name' => $view->name,
-          'title' => $view->get_title(),
+          'title' => 'EVA: ' . $view->get_human_name() . ' - ' . $view->display[$display_id]->display_title,
           'display' => $display_id,
           'bundles' => $view->display_handler->get_option('bundles'),
+          'exposed form' => $view->display_handler->uses_exposed(),
         );
         $view->destroy();
       }
@@ -185,4 +212,33 @@ function eva_get_arguments_from_token_string($string, $type, $object) {
   }
   $args = token_replace($args, array($type => $object), array('sanitize' => FALSE));
   return explode('/', $args);
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function eva_modules_enabled($modules) {
+  // Reset the static cache in case any of the enabled modules
+  // implement an eva view
+  drupal_static_reset('eva_get_views');
+  cache_clear_all('*', 'cache_views', TRUE);
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function eva_modules_disabled($modules) {
+  // Reset the static cache in case any of the disabled modules
+  // implemented an eva view
+  drupal_static_reset('eva_get_views');
+  cache_clear_all('*', 'cache_views', TRUE);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function eva_form_views_ui_edit_form_alter(&$form, &$form_state, $form_id) {
+  // Clear the field cache when views are saved. This will make sure newly
+  // created EVA views and/or exposed filters will appear.
+  $form['actions']['save']["#submit"][] = 'field_cache_clear';
 }

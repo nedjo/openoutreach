@@ -13,7 +13,7 @@ function advanced_forum_page($forum_term = NULL) {
     // On the main page, display all the top-level forums.
     $forum_term = advanced_forum_forum_load(0);
   }
-  
+
   // Set tid for <root> container
   if (!isset($forum_term->tid)) {
     $forum_term->tid = 0;
@@ -28,9 +28,6 @@ function advanced_forum_page($forum_term = NULL) {
   }
   else {
     $topics = '';
-    // this is one ugly workaround to reload forums when container is displayed
-    // and should probably be done another way.
-    $forum_term = advanced_forum_forum_load($forum_term->tid);
   }
 
   $vid = variable_get('forum_nav_vocabulary', 0);
@@ -74,7 +71,6 @@ function advanced_forum_page($forum_term = NULL) {
   ));
 }
 
-
 /**
  * Returns a tree of all forums for a given taxonomy term ID.
  *
@@ -92,19 +88,28 @@ function advanced_forum_page($forum_term = NULL) {
 function advanced_forum_forum_load($tid = NULL) {
   $cache = &drupal_static(__FUNCTION__, array());
 
+
   // Return a cached forum tree if available.
-  if (!isset($tid)) {
+  if (empty($tid)) {
     $tid = 0;
   }
   if (isset($cache[$tid])) {
     return $cache[$tid];
   }
 
+  // Find out from the style's .info how many posts per forum to collect.
+  $info = advanced_forum_style_info();
+  $post_count = isset($info['forum list post count']) ? intval($info['forum list post count']) : 1;
+
   $vid = variable_get('forum_nav_vocabulary', 0);
 
   // Load and validate the parent term.
   if ($tid) {
     $forum_term = taxonomy_term_load($tid);
+
+    if (module_exists('i18n_taxonomy')) {
+      $forum_term = i18n_taxonomy_localize_terms($forum_term);
+    }
     if (!$forum_term || ($forum_term->vid != $vid)) {
       return $cache[$tid] = FALSE;
     }
@@ -112,7 +117,7 @@ function advanced_forum_forum_load($tid = NULL) {
   // If $tid is 0, create an empty object to hold the child terms.
   elseif ($tid === 0) {
     $forum_term = (object) array(
-      'tid' => 0,
+          'tid' => 0,
     );
   }
 
@@ -128,20 +133,60 @@ function advanced_forum_forum_load($tid = NULL) {
   $forums = array();
   $_forums = taxonomy_get_tree($vid, $tid);
 
-  if (count($_forums)) {
+  if (module_exists('i18n_taxonomy')) {
+    $_forums = i18n_taxonomy_localize_terms($_forums);
+  }
+
+  if ($cached = cache_get('adv_forum_counts' . $tid, 'cache')) {
+    if ($cached->expire > time()) {
+      $counts = $cached->data;
+    }
+  }
+  if (count($_forums) && empty($counts)) {
     $query = db_select('node', 'n');
     $query->join('node_comment_statistics', 'ncs', 'n.nid = ncs.nid');
-    $query->join('forum', 'f', 'n.vid = f.vid');
-    $query->addExpression('COUNT(n.nid)', 'topic_count');
-    $query->addExpression('SUM(ncs.comment_count)', 'comment_count');
+    $query->join('forum_index', 'f', 'n.nid = f.nid');
+    $query->addExpression('COUNT(DISTINCT(f.nid))', 'topic_count');
+    $query->addExpression('SUM(f.comment_count)', 'comment_count');
+
+    // Limit the query to only node types that can actually be associated with
+    // the forum vocabulary.
+    if ($vid) {
+      $vocabulary = taxonomy_vocabulary_load($vid);
+      $vocabulary_fields = field_read_fields(array('module' => 'taxonomy'));
+      $node_types = array();
+      foreach ($vocabulary_fields as $field_name => $vocabulary_field) {
+        foreach ($vocabulary_field['settings']['allowed_values'] as $key => $allowed_value) {
+          if ($allowed_value['vocabulary'] == $vocabulary->machine_name) {
+            $field_info = field_info_field($field_name);
+            if (isset($field_info['bundles']['node'])) {
+              $node_types += $field_info['bundles']['node'];
+            }
+          }
+        }
+      }
+
+      if (!empty($node_types)) {
+        $query->condition('type', $node_types, 'IN');
+      }
+    }
+
     $counts = $query
-      ->fields('f', array('tid'))
-      ->condition('status', 1)
-      ->groupBy('tid')
-      ->addTag('node_access')
-      ->execute()
-      ->fetchAllAssoc('tid');
+        ->fields('f', array('tid'))
+        ->condition('status', 1)
+        ->groupBy('tid')
+        ->addTag('node_access')
+        ->execute()
+        ->fetchAllAssoc('tid');
+    cache_set('adv_forum_counts' . $tid, $counts, 'cache', time() + 60*60); //1 hour
   }
+
+  // get last nodes with comments for subquery SELECT optimization
+  $subquery = db_select('node_comment_statistics', 'lnsc')
+    ->fields('lnsc', array('nid'))
+    ->distinct()
+    ->orderBy('last_comment_timestamp', 'DESC')
+    ->range(0, 1000); // should be moved to options or additionally calculated elsewhere
 
   foreach ($_forums as $forum) {
     // Determine if the child term is a container.
@@ -159,26 +204,22 @@ function advanced_forum_forum_load($tid = NULL) {
       $forum->num_posts = 0;
     }
 
-    // Find out from the style's .info how many posts per forum to collect.
-    $info = advanced_forum_style_info();
-    $post_count = isset($info['forum list post count']) ? intval($info['forum list post count']) : 1;
-
     // Query "Last Post" information for this forum.
     $query = db_select('node', 'n');
-    //$query->join('users', 'u1', 'n.uid = u1.uid');
-    $query->join('forum', 'f', 'n.vid = f.vid AND f.tid = :tid', array(':tid' => $forum->tid));
+    $query->join($subquery, 'lastnodes', 'n.nid = lastnodes.nid');
+    $query->join('forum_index', 'f', 'n.nid = f.nid AND f.tid = :tid', array(':tid' => $forum->tid));
     $query->join('node_comment_statistics', 'ncs', 'n.nid = ncs.nid');
-    $query->join('users', 'u2', 'ncs.last_comment_uid = u2.uid');
-    $query->addExpression('CASE ncs.last_comment_uid WHEN 0 THEN ncs.last_comment_name ELSE u2.name END', 'last_comment_name');
+    $query->join('users', 'u', 'ncs.last_comment_uid = u.uid');
+    $query->addExpression('CASE ncs.last_comment_uid WHEN 0 THEN ncs.last_comment_name ELSE u.name END', 'last_comment_name');
 
     $topics = $query
-      ->fields('ncs', array('last_comment_timestamp', 'last_comment_uid'))
-      ->fields('n', array('nid', 'title', 'type'))
-      ->condition('n.status', 1)
-      ->orderBy('last_comment_timestamp', 'DESC')
-      ->range(0, $post_count)
-      ->addTag('node_access')
-      ->execute();
+        ->fields('ncs', array('last_comment_timestamp', 'last_comment_uid'))
+        ->fields('n', array('nid', 'title', 'type'))
+        ->condition('n.status', 1)
+        ->orderBy('last_comment_timestamp', 'DESC')
+        ->range(0, $post_count)
+        ->addTag('node_access')
+        ->execute();
 
     while ($topic = $topics->fetchObject()) {
       // Merge in the "Last Post" information.
@@ -208,19 +249,32 @@ function advanced_forum_forum_load($tid = NULL) {
   return $forum_term;
 }
 
+function _advanced_forum_update_parent_post_count(&$forums, $forum) {
+  foreach ($forum->parents as $parent_tid) {
+    if (!empty($forums[$parent_tid])) {
+      $forums[$parent_tid]->num_topics += $forum->num_topics;
+      $forums[$parent_tid]->num_posts += $forum->num_posts;
+
+      // recursive loop to update all parents
+      if (!empty($forums[$parent_tid]->parents)) {
+        _advanced_forum_update_parent_post_count($forums, $forums[$parent_tid]);
+      }
+    }
+  }
+}
 
 /**
  * This is copied from the forum module and adapted.
  */
-
 function advanced_forum_get_topics($tid, $sortby, $forum_per_page, $sort_form = TRUE) {
   $term = taxonomy_term_load($tid);
   drupal_add_feed('taxonomy/term/' . $tid . '/feed', 'RSS - ' . check_plain($term->name));
 
   // Views handles this page
   $view = views_get_view('advanced_forum_topic_list');
+  $view->set_items_per_page($forum_per_page);
   $view->sort_form = $sort_form;
 
   return $view->preview('default', array($tid));
-
 }
+

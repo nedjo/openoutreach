@@ -6,12 +6,21 @@
  */
 
 /**
- * Default controller for providing UI.
+ * Default UI controller providing admin UI.
+ *
+ * This controller suites best for managing configuration entities.
+ * For a controller suiting content entities, see EntityContentUIController.
  */
 class EntityDefaultUIController {
 
   protected $entityType;
   protected $entityInfo, $path;
+  protected $id_count;
+
+  /**
+   * Defines the number of entries to show per page in overview table.
+   */
+  public $overviewPagerLimit = 25;
 
   public function __construct($entity_type, $entity_info) {
     $this->entityType = $entity_type;
@@ -25,7 +34,8 @@ class EntityDefaultUIController {
    */
   public function hook_menu() {
     $items = array();
-    $id_count = count(explode('/', $this->path));
+    // Set this on the object so classes that extend hook_menu() can use it.
+    $this->id_count = count(explode('/', $this->path));
     $wildcard = isset($this->entityInfo['admin ui']['menu wildcard']) ? $this->entityInfo['admin ui']['menu wildcard'] : '%entity_object';
     $plural_label = isset($this->entityInfo['plural label']) ? $this->entityInfo['plural label'] : $this->entityInfo['label'] . 's';
 
@@ -37,6 +47,11 @@ class EntityDefaultUIController {
       'access callback' => 'entity_access',
       'access arguments' => array('view', $this->entityType),
       'file' => 'includes/entity.ui.inc',
+    );
+    $items[$this->path . '/list'] = array(
+      'title' => 'List',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
     );
     $items[$this->path . '/add'] = array(
       'title callback' => 'entity_ui_get_action_title',
@@ -50,12 +65,12 @@ class EntityDefaultUIController {
     $items[$this->path . '/manage/' . $wildcard] = array(
       'title' => 'Edit',
       'title callback' => 'entity_label',
-      'title arguments' => array($this->entityType, $id_count + 1),
+      'title arguments' => array($this->entityType, $this->id_count + 1),
       'page callback' => 'entity_ui_get_form',
-      'page arguments' => array($this->entityType, $id_count + 1),
+      'page arguments' => array($this->entityType, $this->id_count + 1),
       'load arguments' => array($this->entityType),
       'access callback' => 'entity_access',
-      'access arguments' => array('update', $this->entityType, $id_count + 1),
+      'access arguments' => array('update', $this->entityType, $this->id_count + 1),
     );
     $items[$this->path . '/manage/' . $wildcard . '/edit'] = array(
       'title' => 'Edit',
@@ -67,7 +82,7 @@ class EntityDefaultUIController {
     $items[$this->path . '/manage/' . $wildcard . '/clone'] = array(
       'title' => 'Clone',
       'page callback' => 'entity_ui_get_form',
-      'page arguments' => array($this->entityType, $id_count + 1, 'clone'),
+      'page arguments' => array($this->entityType, $this->id_count + 1, 'clone'),
       'load arguments' => array($this->entityType),
       'access callback' => 'entity_access',
       'access arguments' => array('create', $this->entityType),
@@ -75,10 +90,10 @@ class EntityDefaultUIController {
     // Menu item for operations like revert and delete.
     $items[$this->path . '/manage/' . $wildcard . '/%'] = array(
       'page callback' => 'drupal_get_form',
-      'page arguments' => array($this->entityType . '_operation_form', $this->entityType, $id_count + 1, $id_count + 2),
+      'page arguments' => array($this->entityType . '_operation_form', $this->entityType, $this->id_count + 1, $this->id_count + 2),
       'load arguments' => array($this->entityType),
       'access callback' => 'entity_access',
-      'access arguments' => array('delete', $this->entityType, $id_count + 1),
+      'access arguments' => array('delete', $this->entityType, $this->id_count + 1),
       'file' => 'includes/entity.ui.inc',
     );
 
@@ -151,18 +166,29 @@ class EntityDefaultUIController {
   public function overviewForm($form, &$form_state) {
     // By default just show a simple overview for all entities.
     $form['table'] = $this->overviewTable();
+    $form['pager'] = array('#theme' => 'pager');
     return $form;
   }
 
   /**
    * Overview form validation callback.
+   *
+   * @param $form
+   *   The form array of the overview form.
+   * @param $form_state
+   *   The overview form state which will be used for validating.
    */
-  public function overviewFormValidate() {}
+  public function overviewFormValidate($form, &$form_state) {}
 
   /**
    * Overview form submit callback.
+   *
+   * @param $form
+   *   The form array of the overview form.
+   * @param $form_state
+   *   The overview form state which will be used for submitting.
    */
-  public function overviewFormSubmit() {}
+  public function overviewFormSubmit($form, &$form_state) {}
 
 
   /**
@@ -176,33 +202,62 @@ class EntityDefaultUIController {
    *   A renderable array.
    */
   public function overviewTable($conditions = array()) {
-    $entities = entity_load($this->entityType, FALSE, $conditions);
+
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $this->entityType);
+
+    // Add all conditions to query.
+    foreach ($conditions as $key => $value) {
+      $query->propertyCondition($key, $value);
+    }
+
+    if ($this->overviewPagerLimit) {
+      $query->pager($this->overviewPagerLimit);
+    }
+
+    $results = $query->execute();
+
+    $ids = isset($results[$this->entityType]) ? array_keys($results[$this->entityType]) : array();
+    $entities = $ids ? entity_load($this->entityType, $ids) : array();
     ksort($entities);
 
     $rows = array();
     foreach ($entities as $entity) {
       $rows[] = $this->overviewTableRow($conditions, entity_id($this->entityType, $entity), $entity);
     }
-    // Assemble the right table header.
-    $header = array(t('Label'));
-    if (!empty($this->entityInfo['exportable'])) {
-      $header[] = t('Status');
-    }
-    // Add operations with the right colspan.
-    $field_ui = !empty($this->entityInfo['bundle of']) && module_exists('field_ui');
-    $exportable = !empty($this->entityInfo['exportable']);
-    $colspan = 3;
-    $colspan = $field_ui ? $colspan + 2 : $colspan;
-    $colspan = $exportable ? $colspan + 1 : $colspan;
-    $header[] = array('data' => t('Operations'), 'colspan' => $colspan);
 
     $render = array(
       '#theme' => 'table',
-      '#header' => $header,
+      '#header' => $this->overviewTableHeaders($conditions, $rows),
       '#rows' => $rows,
       '#empty' => t('None.'),
     );
     return $render;
+  }
+
+  /**
+   * Generates the table headers for the overview table.
+   */
+  protected function overviewTableHeaders($conditions, $rows, $additional_header = array()) {
+    $header = $additional_header;
+    array_unshift($header, t('Label'));
+    if (!empty($this->entityInfo['exportable'])) {
+      $header[] = t('Status');
+    }
+    // Add operations with the right colspan.
+    $header[] = array('data' => t('Operations'), 'colspan' => $this->operationCount());
+    return $header;
+  }
+
+  /**
+   * Returns the operation count for calculating colspans.
+   */
+  protected function operationCount() {
+    $count = 3;
+    $count += !empty($this->entityInfo['bundle of']) && entity_type_is_fieldable($this->entityInfo['bundle of']) && module_exists('field_ui') ? 2 : 0;
+    $count += !empty($this->entityInfo['exportable']) ? 1 : 0;
+    $count += !empty($this->entityInfo['i18n controller class']) ? 1 : 0;
+    return $count;
   }
 
   /**
@@ -236,16 +291,15 @@ class EntityDefaultUIController {
       ));
     }
     // In case this is a bundle, we add links to the field ui tabs.
-    $field_ui = !empty($this->entityInfo['bundle of']) && module_exists('field_ui');
+    $field_ui = !empty($this->entityInfo['bundle of']) && entity_type_is_fieldable($this->entityInfo['bundle of']) && module_exists('field_ui');
     // For exportable entities we add an export link.
     $exportable = !empty($this->entityInfo['exportable']);
-    $colspan = 3;
-    $colspan = $field_ui ? $colspan + 2 : $colspan;
-    $colspan = $exportable ? $colspan + 1 : $colspan;
+    // If i18n integration is enabled, add a link to the translate tab.
+    $i18n = !empty($this->entityInfo['i18n controller class']);
 
     // Add operations depending on the status.
     if (entity_has_status($this->entityType, $entity, ENTITY_FIXED)) {
-      $row[] = array('data' => l(t('clone'), $this->path . '/manage/' . $id . '/clone'), 'colspan' => $colspan);
+      $row[] = array('data' => l(t('clone'), $this->path . '/manage/' . $id . '/clone'), 'colspan' => $this->operationCount());
     }
     else {
       $row[] = l(t('edit'), $this->path . '/manage/' . $id);
@@ -254,8 +308,13 @@ class EntityDefaultUIController {
         $row[] = l(t('manage fields'), $this->path . '/manage/' . $id . '/fields');
         $row[] = l(t('manage display'), $this->path . '/manage/' . $id . '/display');
       }
+      if ($i18n) {
+        $row[] = l(t('translate'), $this->path . '/manage/' . $id . '/translate');
+      }
+      if ($exportable) {
+        $row[] = l(t('clone'), $this->path . '/manage/' . $id . '/clone');
+      }
 
-      $row[] = l(t('clone'), $this->path . '/manage/' . $id . '/clone');
       if (empty($this->entityInfo['exportable']) || !entity_has_status($this->entityType, $entity, ENTITY_IN_CODE)) {
         $row[] = l(t('delete'), $this->path . '/manage/' . $id . '/delete', array('query' => drupal_get_destination()));
       }
@@ -426,12 +485,139 @@ class EntityDefaultUIController {
    * @see entity_ui_form_submit_build_entity()
    */
   public function entityFormSubmitBuildEntity($form, &$form_state) {
+    // Add the bundle property to the entity if the entity type supports bundles
+    // and the form provides a value for the bundle key. Especially new entities
+    // need to have their bundle property pre-populated before we invoke
+    // entity_form_submit_build_entity().
+    if (!empty($this->entityInfo['entity keys']['bundle']) && isset($form_state['values'][$this->entityInfo['entity keys']['bundle']])) {
+      $form_state[$this->entityType]->{$this->entityInfo['entity keys']['bundle']} = $form_state['values'][$this->entityInfo['entity keys']['bundle']];
+    }
     entity_form_submit_build_entity($this->entityType, $form_state[$this->entityType], $form, $form_state);
     return $form_state[$this->entityType];
   }
 }
 
+/**
+ * UI controller providing UI for content entities.
+ *
+ * For a controller providing UI for bundleable content entities, see
+ * EntityBundleableUIController.
+ * For a controller providing admin UI for configuration entities, see
+ * EntityDefaultUIController.
+ */
+class EntityContentUIController extends EntityDefaultUIController {
 
+  /**
+   * Provides definitions for implementing hook_menu().
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+    $wildcard = isset($this->entityInfo['admin ui']['menu wildcard']) ? $this->entityInfo['admin ui']['menu wildcard'] : '%entity_object';
+
+    // Unset the manage entity path, as the provided UI is for admin entities.
+    unset($items[$this->path]);
+
+    $defaults = array(
+      'file' => $this->entityInfo['admin ui']['file'],
+      'file path' =>  isset($this->entityInfo['admin ui']['file path']) ? $this->entityInfo['admin ui']['file path'] : drupal_get_path('module', $this->entityInfo['module']),
+    );
+
+    // Add view, edit and delete menu items for content entities.
+    $items[$this->path . '/' . $wildcard] = array(
+      'title callback' => 'entity_ui_get_page_title',
+      'title arguments' => array('view', $this->entityType, $this->id_count),
+      'page callback' => 'entity_ui_entity_page_view',
+      'page arguments' => array($this->id_count),
+      'load arguments' => array($this->entityType),
+      'access callback' => 'entity_access',
+      'access arguments' => array('view', $this->entityType, $this->id_count),
+    ) + $defaults;
+    $items[$this->path . '/' . $wildcard . '/view'] = array(
+      'title' => 'View',
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'load arguments' => array($this->entityType),
+      'weight' => -10,
+    ) + $defaults;
+    $items[$this->path . '/' . $wildcard . '/edit'] = array(
+      'page callback' => 'entity_ui_get_form',
+      'page arguments' => array($this->entityType, $this->id_count),
+      'load arguments' => array($this->entityType),
+      'access callback' => 'entity_access',
+      'access arguments' => array('edit', $this->entityType, $this->id_count),
+      'title' => 'Edit',
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    ) + $defaults;
+    $items[$this->path . '/' . $wildcard . '/delete'] = array(
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array($this->entityType . '_operation_form', $this->entityType, $this->id_count, 'delete'),
+      'load arguments' => array($this->entityType),
+      'access callback' => 'entity_access',
+      'access arguments' => array('delete', $this->entityType, $this->id_count),
+      'title' => 'Delete',
+      'type' => MENU_LOCAL_TASK,
+      'context' => MENU_CONTEXT_INLINE,
+      'file' => $this->entityInfo['admin ui']['file'],
+      'file path' => isset($this->entityInfo['admin ui']['file path']) ? $this->entityInfo['admin ui']['file path'] : drupal_get_path('module', $this->entityInfo['module']),
+    ) + $defaults;
+
+    return $items;
+  }
+
+  /**
+   * Operation form submit callback.
+   */
+  public function operationFormSubmit($form, &$form_state) {
+    parent::operationFormSubmit($form, $form_state);
+    // The manage entity path is unset for the content entity UI.
+    $form_state['redirect'] = '<front>';
+  }
+}
+
+/**
+ * UI controller providing UI for bundleable content entities.
+ *
+ * Adds a bundle selection page to the entity/add path, analogously to the
+ * node/add path.
+ */
+class EntityBundleableUIController extends EntityContentUIController {
+
+  /**
+   * Provides definitions for implementing hook_menu().
+   */
+  public function hook_menu() {
+    $items = parent::hook_menu();
+
+    // Extend the 'add' path.
+    $items[$this->path . '/add'] = array(
+      'title callback' => 'entity_ui_get_action_title',
+      'title arguments' => array('add', $this->entityType),
+      'page callback' => 'entity_ui_bundle_add_page',
+      'page arguments' => array($this->entityType),
+      'access callback' => 'entity_access',
+      'access arguments' => array('create', $this->entityType),
+      'type' => MENU_LOCAL_ACTION,
+    );
+    $items[$this->path . '/add/%'] = array(
+      'title callback' => 'entity_ui_get_action_title',
+      'title arguments' => array('add', $this->entityType, $this->id_count + 1),
+      'page callback' => 'entity_ui_get_bundle_add_form',
+      'page arguments' => array($this->entityType, $this->id_count + 1),
+      'access callback' => 'entity_access',
+      'access arguments' => array('create', $this->entityType),
+    );
+
+    if (!empty($this->entityInfo['admin ui']['file'])) {
+      // Add in the include file for the entity form.
+      foreach (array('/add', '/add/%') as $path_end) {
+        $items[$this->path . $path_end]['file'] = $this->entityInfo['admin ui']['file'];
+        $items[$this->path . $path_end]['file path'] = isset($this->entityInfo['admin ui']['file path']) ? $this->entityInfo['admin ui']['file path'] : drupal_get_path('module', $this->entityInfo['module']);
+      }
+    }
+
+    return $items;
+  }
+}
 
 /**
  * Form builder function for the overview form.
@@ -458,19 +644,34 @@ function entity_ui_operation_form($form, &$form_state, $entity_type, $entity, $o
  * @see entity_ui_form_defaults()
  */
 function entity_ui_main_form_defaults($form, &$form_state, $entity = NULL, $op = NULL) {
-  if ($op == 'clone') {
-    // Clone the entity and make sure it will get saved as a new entity.
-    $entity = clone $entity;
-    $entity_info = entity_get_info($form_state['entity_type']);
-    $entity->{$entity_info['entity keys']['id']} = FALSE;
-    $entity->is_new = TRUE;
-    // Make sure the status of a cloned exportable is custom.
-    if (!empty($entity_info['exportable'])) {
-      $status_key = isset($entity_info['entity keys']['status']) ? $entity_info['entity keys']['status'] : 'status';
-      $entity->$status_key = ENTITY_CUSTOM;
-    }
-  }
+  // Now equals entity_ui_form_defaults() but is still here to keep backward
+  // compatability.
   return entity_ui_form_defaults($form, $form_state, $form_state['entity_type'], $entity, $op);
+}
+
+/**
+ * Clones the entity object and makes sure it will get saved as new entity.
+ *
+ * @return
+ *   The cloned entity object.
+ */
+function entity_ui_clone_entity($entity_type, $entity) {
+  // Clone the entity and make sure it will get saved as a new entity.
+  $entity = clone $entity;
+
+  $entity_info = entity_get_info($entity_type);
+  $entity->{$entity_info['entity keys']['id']} = FALSE;
+  if (!empty($entity_info['entity keys']['name'])) {
+    $entity->{$entity_info['entity keys']['name']} = FALSE;
+  }
+  $entity->is_new = TRUE;
+
+  // Make sure the status of a cloned exportable is custom.
+  if (!empty($entity_info['exportable'])) {
+    $status_key = isset($entity_info['entity keys']['status']) ? $entity_info['entity keys']['status'] : 'status';
+    $entity->$status_key = ENTITY_CUSTOM;
+  }
+  return $entity;
 }
 
 /**
@@ -524,39 +725,6 @@ function entity_ui_controller_form_submit($form, &$form_state) {
 }
 
 /**
- * Gets the page title for the passed operation.
- */
-function entity_ui_get_page_title($op, $entity_type, $entity = NULL) {
-  $label = entity_label($entity_type, $entity);
-  switch ($op) {
-    case 'edit':
-      return t('Edit @label', array('@label' => $label));
-    case 'clone':
-      return t('Clone @label', array('@label' => $label));
-    case 'revert':
-      return t('Revert @label', array('@label' => $label));
-    case 'delete':
-      return t('Delete @label', array('@label' => $label));
-    case 'export':
-      return t('Export @label', array('@label' => $label));
-  }
-  return entity_ui_get_action_title($op, $entity_type);
-}
-
-/**
- * Gets the page/menu title for local action operations.
- */
-function entity_ui_get_action_title($op, $entity_type) {
-  $info = entity_get_info($entity_type);
-  switch ($op) {
-    case 'add':
-      return t('Add @entity_type', array('@entity_type' => drupal_strtolower($info['label'])));
-    case 'import':
-      return t('Import @entity_type', array('@entity_type' => drupal_strtolower($info['label'])));
-  }
-}
-
-/**
  * Submit builder for the main entity form, which extracts the form values and updates the entity.
  *
  * This is a helper function for entities making use of the entity UI
@@ -596,3 +764,4 @@ function theme_entity_ui_overview_item($variables) {
   }
   return $output;
 }
+

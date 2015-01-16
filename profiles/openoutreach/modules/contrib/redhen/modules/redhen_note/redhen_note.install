@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * @file
+ * Schema and installation hooks for redhen_note module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function redhen_note_schema() {
+  $schema['redhen_note'] = array(
+    'description' => 'The base table for redhen_note module.',
+    'fields' => array(
+      'note_id' => array(
+        'description' => 'The primary identifier for a redhen_note.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'The {redhen_note_type}.type of this redhen_note.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_type' => array(
+        'description' => 'The entity bundle associated with this redhen_note.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity associated with this redhen_note.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'author_uid' => array(
+        'description' => 'The uid of the user who created this redhen_note.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'The Unix timestamp when the redhen_org was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'updated' => array(
+        'description' => 'The Unix timestamp when the redhen_org was most recently saved.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'indexes' => array(
+      'redhen_note_updated' => array('updated'),
+      'redhen_note_created' => array('created'),
+      'redhen_note_type' => array(array('type', 4)),
+      'redhen_note_author' => array('author_uid'),
+    ),
+    'unique keys' => array(
+      'note_id' => array('note_id'),
+    ),
+    'foreign keys' => array(
+      'redhen_note_author' => array(
+        'table' => 'users',
+        'columns' => array('author_uid' => 'uid'),
+      ),
+    ),
+    'primary key' => array('note_id'),
+  );
+
+
+  return $schema;
+}
+
+
+/**
+ * Implements hook_install()
+ */
+function redhen_note_install() {
+  // Redhen Note Body field config.
+  $redhen_note_body = array(
+    'field_name' => 'redhen_note_body',
+    'type' => 'text_long',
+    'cardinality' => 1,
+    'locked' => TRUE,
+  );
+  field_create_field($redhen_note_body);
+
+  $t = get_t();
+  // Create body field instance for notes.
+  $redhen_note_body_instance = array(
+    'field_name' => 'redhen_note_body',
+    'entity_type' => 'redhen_note',
+    'bundle' => 'redhen_note',
+    'label' => $t('Message'),
+    'widget' => array(
+      'type' => 'text_textarea',
+    ),
+    'settings' => array(
+      'text_processing' => 1,
+    ),
+  );
+  field_create_instance($redhen_note_body_instance);
+
+  // Redhen Note Type Taxonomy field.
+  taxonomy_vocabulary_save((object) array(
+    'name' => 'Note type',
+    'machine_name' => 'note_type',
+  ));
+
+  $redhen_note_type_field = array(
+    'field_name' => 'redhen_note_type',
+    'type' => 'taxonomy_term_reference',
+    'locked' => TRUE,
+    'cardinality' => 1,
+    'settings' => array(
+      'allowed_values' => array(
+        array(
+          'vocabulary' => 'note_type',
+          'parent' => 0,
+        ),
+      ),
+    ),
+  );
+  field_create_field($redhen_note_type_field);
+
+  $redhen_note_type_field_instance = array(
+    'field_name' => 'redhen_note_type',
+    'entity_type' => 'redhen_note',
+    'label' => $t('Note Type'),
+    'bundle' => 'redhen_note',
+    'required' => FALSE,
+    'widget' => array(
+      'type' => 'options_select',
+    ),
+  );
+
+  field_create_instance($redhen_note_type_field_instance);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function redhen_note_uninstall() {
+  // Delete note fields and taxonomy.
+  field_delete_instance('redhen_note_body', TRUE);
+  field_delete_instance('redhen_note_type', TRUE);
+  taxonomy_vocabulary_delete(taxonomy_vocabulary_machine_name_load('note_type')->vid);
+}
+
+/**
+ * Add indexes for foreign keys.
+ */
+function redhen_note_update_7100(&$sandbox) {
+  db_add_index('redhen_note', 'redhen_note_author', array('author_uid'));
+}
+
+/**
+ * Rebuild the registry; we're adding new class files for Views relationships.
+ */
+function redhen_note_update_7101(&$sandbox) {
+  registry_rebuild();
+}

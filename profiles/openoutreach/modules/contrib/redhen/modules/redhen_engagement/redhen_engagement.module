@@ -1,0 +1,449 @@
+<?php
+
+/**
+ * @file
+ * RedhenEngagement hook implementations and API
+ */
+
+/**
+ * Implements hook_entity_info().
+ */
+function redhen_engagement_entity_info() {
+  $info = array();
+
+  $info['redhen_engagement'] = array(
+    'label' => t('Engagement'),
+    'plural label' => t('Engagements'),
+    'controller class' => 'EntityAPIController',
+    'metadata controller class' => 'RedhenEngagementMetadataController',
+    'views controller class' => 'RedhenEngagementViewsController',
+    'entity class' => 'RedhenEngagement',
+    'base table' => 'redhen_engagement',
+    'fieldable' => FALSE,
+    'entity keys' => array(
+      'id' => 'engagement_id',
+    ),
+    'bundle keys' => array(
+      'bundle' => 'name',
+    ),
+    'bundles' => array(
+      'redhen_engagement' => array(
+        'label' => 'Engagements',
+      ),
+    ),
+    'view modes' => array(
+      'full' => array(
+        'label' => t('Full engagement'),
+        'custom settings' => FALSE,
+      ),
+    ),
+    'uri callback' => 'entity_class_uri',
+    'token type' => 'redhen_engagement',
+    'module' => 'redhen_engagement',
+    'label callback' => 'entity_class_label',
+  );
+
+  $info['redhen_engagement_score'] = array(
+    'label' => t('Engagement Score'),
+    'plural label' => t('Engagement Scores'),
+    'controller class' => 'EntityAPIControllerExportable',
+    'entity class' => 'RedhenEngagementScore',
+    'views controller class' => 'RedhenEngagementScoreViewsController',
+    'base table' => 'redhen_engagement_score',
+    'fieldable' => FALSE,
+    'entity keys' => array(
+      'id' => 'engagement_score_id',
+      'label' => 'label',
+      'name' => 'name',
+    ),
+    'bundles' => array(
+      'redhen_engagement_score' => array(
+        'label' => 'Engagement Scores',
+      ),
+    ),
+    'admin ui' => array(
+      'path' => 'admin/structure/redhen/engagement_scores',
+      'file' => 'redhen_engagement.admin.inc',
+      'file path' => drupal_get_path('module', 'redhen_engagement') . '/includes',
+      'controller class' => 'RedhenEngagementScoreUIController',
+    ),
+    'token type' => 'redhen_engagement_score',
+    'module' => 'redhen_engagement',
+    'access callback' => 'redhen_engagement_access',
+    'exportable' => TRUE,
+  );
+
+  return $info;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_engagement_menu() {
+  $items = array();
+
+  $items["redhen/contact/%redhen_contact/engagements"] = array(
+    'title' => 'Engagement',
+    'page callback' => 'redhen_engagements_page',
+    'page arguments' => array(2),
+    'access callback' => 'redhen_contact_access',
+    'access arguments' => array('view', 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -1,
+  );
+
+  return $items;
+}
+
+/**
+ * Page callback for showing a contacts engagements.
+ *
+ * @param RedhenContact $contact
+ *   Contact to show engagement for.
+ *
+ * @return array
+ *   List of engagements.
+ */
+function redhen_engagements_page(RedhenContact $contact) {
+  module_load_include('inc', 'redhen', 'includes/redhen.forms');
+
+  $header = array(
+    'score' => array(
+      'data' => t('Score'),
+      'field' => 'score',
+      'type' => 'property',
+      'specifier' => 'score',
+    ),
+    'type' => array(
+      'data' => t('Type'),
+      'field' => 'type',
+      'type' => 'property',
+      'specifier' => 'type',
+    ),
+    'created' => array(
+      'field' => 'created',
+      'type' => 'property',
+      'data' => t('Created'),
+      'sort' => 'desc',
+      'specifier' => 'created',
+    ),
+    'description' => array('data' => t('Description')),
+    'source' => array('data' => t('Source')),
+    'author' => array('data' => t('Author')),
+  );
+
+  $properties = isset($_GET['properties']) ? $_GET['properties'] : array();
+  $properties += array('contact_id' => $contact->contact_id);
+
+  $result = redhen_filter_query('redhen_engagement', $header, '', $properties);
+
+  $rows = array();
+  if ($result) {
+    $engagements = entity_load('redhen_engagement', array_keys($result['redhen_engagement']));
+    foreach ($engagements as $engagement) {
+      $engagement_wrapper = entity_metadata_wrapper('redhen_engagement', $engagement);
+      $author = $engagement_wrapper->author;
+      if ($author->getIdentifier()) {
+        $author_uri = entity_uri('user', $author->value());
+        $author_link = l($author->name->value(), $author_uri['path']);
+      }
+      else {
+        $author_link = check_plain($author->name->value());
+      }
+
+      $source_link = t('N/A');
+      if ($engagement->entity_id) {
+        $source_entity = $engagement_wrapper->entity->value();
+        $source_uri = entity_uri($engagement->entity_type, $source_entity);
+        $source_link = array(
+          'data' => array(
+            '#type' => 'link',
+            '#title' => check_plain($engagement_wrapper->entity->label()),
+            '#href' => $source_uri['path'],
+          ),
+        );
+      }
+      $rows[] = array(
+        'data' => array(
+          'score' => $engagement_wrapper->engagement_score->score->value(),
+          'type' => entity_label('redhen_engagement_score', $engagement_wrapper->engagement_score->value()),
+          'created' => redhen_format_date($engagement->created, 'short'),
+          'description' => $engagement->description,
+          'source' => $source_link,
+          'author' => $author_link,
+        ),
+      );
+    }
+  }
+
+  $render = array(
+    'form' => drupal_get_form('redhen_filter_form', 'redhen_engagement'),
+    'table' => array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+      '#empty' => t('Sorry, there are no engagements that match your criteria.'),
+    ),
+    'pager' => array(
+      '#theme' => 'pager',
+    ),
+  );
+
+  return $render;
+}
+
+/**
+ * Access callback for engagement scores admin.
+ */
+function redhen_engagement_access() {
+  return user_access('administer redhen engagements');
+}
+
+/**
+ * Gets an array of all engagement scores, keyed by the name.
+ *
+ * @param string $name
+ *   If set, the type with the given name is returned.
+ */
+function redhen_engagement_get_scores($name = NULL) {
+  $types = entity_load_multiple_by_name('redhen_engagement_score', isset($name) ? array($name) : FALSE);
+  return isset($name) ? reset($types) : $types;
+}
+
+/**
+ * Creates a new RedhenEngagement object.
+ *
+ * @param string $engagement_score_name
+ *   Machine name of an engagement score
+ * @param int $contact_id
+ *   Contact id.
+ * @param string $description
+ *   Engagement description.
+ * @param string $entity_type
+ *   Optional source entity type.
+ * @param null $entity_id
+ *   Optional source entity id.
+ *
+ * @return RedhenEngagement
+ *   New populated engagement enttiy.
+ */
+function redhen_engagement_create($engagement_score_name, $contact_id,
+                                  $description, $entity_type = NULL,
+                                  $entity_id = NULL, $author_uid = NULL) {
+  if (!$author_uid) {
+    global $user;
+    $author_uid = $user->uid;
+  }
+  return new RedhenEngagement(array(
+    'engagement_score' => $engagement_score_name,
+    'contact_id' => $contact_id,
+    'description' => $description,
+    'entity_type' => $entity_type,
+    'entity_id' => $entity_id,
+    'author_uid' => $author_uid,
+  ));
+}
+
+/**
+ * Saves a Redhen Engagement.
+ *
+ * @param RedhenEngagement $engagement
+ *   Populated engagement entity.
+ *
+ * @return bool
+ *   True if successful.
+ */
+function redhen_engagement_save(RedhenEngagement $engagement) {
+  return $engagement->save();
+}
+
+/**
+ * Return the engagement score for a contact.
+ *
+ * @param RedhenContact $contact
+ *   Contact to get a computed score for.
+ *
+ * @return int
+ *   A contact's engagement score.
+ */
+function redhen_engagement_contact_score(RedhenContact $contact) {
+  $score = 0;
+  $query = db_select('redhen_engagement', 'e')
+    ->condition('contact_id', $contact->contact_id, '=');
+  $query->join('redhen_engagement_score', 's', 'e.engagement_score = s.name');
+  $query->addExpression('SUM(score)', 'score');
+
+  $result = $query->execute();
+  if ($result && $col = $result->fetchCol()) {
+    $score = reset($col);
+  }
+
+  return $score;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_engagement_permission() {
+  return array(
+    'administer redhen engagements' => array(
+      'title' => t('Administer Redhen Engagements'),
+      'description' => t('Manage Redhen Engagement scores.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_form_FORMP_ID_alter().
+ *
+ * Inject engagement score elements into a note form.
+ */
+function redhen_engagement_form_redhen_note_form_alter(&$form, &$form_state) {
+  $note = $form_state['redhen_note'];
+  if ($note->entity_type != 'redhen_contact') {
+    return;
+  }
+
+  $scores = redhen_engagement_get_scores();
+  $options = array('' => t('-- Select --'));
+  foreach ($scores as $score) {
+    $options[$score->name] = $score->label;
+  }
+  $form['engagement_score'] = array(
+    '#type' => 'select',
+    '#title' => t('Engagement Score'),
+    '#description' => t('The selected engagement score, if any, will be applied to the contact when creating this note.'),
+    '#weight' => 99,
+    '#options' => $options,
+  );
+
+  $form['#submit'][] = 'redhen_engagement_redhen_note_form_submit';
+}
+
+/**
+ * Submit handler for redhen_engagement_form_redhen_note_form_alter().
+ *
+ * Save the engagement score.
+ */
+function redhen_engagement_redhen_note_form_submit($form, $form_state) {
+  $score = $form_state['values']['engagement_score'];
+  if (!empty($score)) {
+    $note = $form_state['redhen_note'];
+    if (isset($form_state['entity'])) {
+      $entity = $form_state['entity'];
+    }
+    else {
+      $wrapper = entity_metadata_wrapper('redhen_note', $note);
+      $entity = $wrapper->entity->value();
+    }
+    $redhen_engagement = redhen_engagement_create(
+      $score,
+      $entity->internalIdentifier(),
+      t('Created when saving note @note', array('@note' => $note->internalIdentifier())),
+      'redhen_note',
+      $note->internalIdentifier()
+    );
+    redhen_engagement_save($redhen_engagement);
+  }
+}
+
+/**
+ * Implements hook_entity_property_info_alter().
+ */
+function redhen_engagement_entity_property_info_alter(&$info) {
+  // Add engagement_score computed property to contacts.
+  $properties = &$info['redhen_contact']['properties'];
+  $properties['engagement_score'] = array(
+    'label' => t('Engagement Score'),
+    'description' => t('The engagement score for this contact.'),
+    'type' => 'integer',
+    'schema field' => 'engagement_score',
+  );
+}
+
+
+/**
+ * Implements hook_field_extra_fields_alter().
+ *
+ * Add engagement score to a contact's display settings.
+ */
+function redhen_engagement_field_extra_fields_alter(&$info) {
+  foreach (redhen_contact_get_types() as $type => $contact_type) {
+    $info['redhen_contact'][$type]['display']['engagement_score'] = array(
+      'label' => t('Engagement Score'),
+      'description' => t('The engagement score for this contact.'),
+      'weight' => 0,
+    );
+  }
+}
+
+/**
+ * Helper function for getting engagement score options.
+ */
+function redhen_engagement_score_options() {
+  $scores = redhen_engagement_get_scores();
+  $options = array();
+  foreach ($scores as $score) {
+    $options[$score->name] = $score->label();
+  }
+  return $options;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function redhen_engagement_redhen_contact_delete(RedhenContact $contact) {
+  // Delete engagements when the parent contact is deleted.
+  db_delete('redhen_engagement')
+    ->condition('contact_id', $contact->contact_id)
+    ->execute();
+}
+
+/**
+ * Implements hook_entity_delete().
+ *
+ * Delete engagements associated with a source entity that has been deleted.
+ */
+function redhen_engagement_entity_delete($entity, $type) {
+  db_delete('redhen_engagement')
+    ->condition('entity_type', $type)
+    ->condition('entity_id', entity_id($type, $entity))
+    ->execute();
+}
+
+/**
+ * Implements hook_redhen_contact_view().
+ */
+function redhen_engagement_redhen_contact_view(RedhenContact $entity, $view_mode, $langcode) {
+  // Add engagement scores to a contact entity.
+  $entity->content['redhen_engagement'] = array(
+    '#theme' => 'redhen_property_field',
+    '#label' => t('Engagement Score'),
+    '#items' => array(array('#markup' => $entity->engagement_score)),
+    '#classes' => 'field field-label-inline clearfix',
+    '#attributes' => '',
+  );
+}
+
+/**
+ * Callback to get $engagement->entity.
+ *
+ * @see redhen_engagement_entity_property_info()
+ */
+function redhen_engagement_property_source_get($engagement, array $options, $property_name, $entity_type) {
+  $entity = entity_load_single($engagement->entity_type, $engagement->entity_id);
+  return ($entity) ? entity_metadata_wrapper($engagement->entity_type, $entity) : NULL;
+}
+
+/**
+ * Implements hook_schema_alter().
+ */
+function redhen_engagement_schema_alter(&$schema) {
+  // Add field to existing schema.
+  $schema['redhen_contact']['fields']['engagement_score'] = array(
+    'description' => 'The total engagement score for a contact.',
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+}

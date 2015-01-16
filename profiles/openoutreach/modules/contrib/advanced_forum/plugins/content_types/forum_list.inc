@@ -51,14 +51,14 @@ function advanced_forum_forum_list_content_type_render($subtype, $conf, $panel_a
       $block->admin_links['administer_forums'] = array(
         'title' => t('Administer forums'),
         'alt' => t("Add, delete or modify forums"),
-        'href' => "admin/content/forum",
+        'href' => "admin/structure/forum",
       );
 
       if ($tid) {
         $block->admin_links['edit_forum'] = array(
           'title' => t('Edit forum'),
           'alt' => t("Modify this forum"),
-          'href' => "admin/content/forum/edit/" . ($context->data->container ? 'container/' : 'forum/') . $tid,
+          'href' => "admin/structure/forum/edit/" . ($context->data->container ? 'container/' : 'forum/') . $tid,
           'query' => drupal_get_destination(),
         );
       }
@@ -70,19 +70,17 @@ function advanced_forum_forum_list_content_type_render($subtype, $conf, $panel_a
 /**
  * Returns an edit form for the custom type.
  */
-function advanced_forum_forum_list_content_type_edit_form(&$form, &$form_state) {
-
+function advanced_forum_forum_list_content_type_edit_form($form, &$form_state) {
+  return $form;
 }
 
-function advanced_forum_forum_list_content_type_edit_form_submit(&$form, &$form_state) {
-  foreach (element_children($form) as $key) {
-    if (!empty($form_state['values'][$key])) {
-      $form_state['conf'][$key] = $form_state['values'][$key];
-    }
+function advanced_forum_forum_list_content_type_edit_form_submit($form, &$form_state) {
+  // Copy everything from our defaults.
+  foreach (array_keys($form_state['plugin']['defaults']) as $key) {
+    $form_state['conf'][$key] = $form_state['values'][$key];
   }
 }
 
 function advanced_forum_forum_list_content_type_admin_title($subtype, $conf, $context) {
   return t('"@s" forum list', array('@s' => $context->identifier));
 }
-

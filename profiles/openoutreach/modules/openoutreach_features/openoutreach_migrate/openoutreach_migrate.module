@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Implements hook_migrate_api().
+ */
+function openoutreach_migrate_migrate_api() {
+  $api = array(
+    'api' => 2,
+    'migrations' => array(),
+    'groups' => array(
+      'openoutreach' => array(
+        'title' => t('Open Outreach'),
+      ),
+    ),
+    'field handlers' => array(
+      'OpenOutreachMigrateTaxonomyTermReferenceFieldHandler',
+    ),
+  );
+
+  $map = openoutreach_migrate_map();
+
+  foreach ($map as $class_name => $module_name) {
+    $api['migrations'][$class_name] = array(
+      'class_name' => $class_name,
+      'group_name' => 'openoutreach',
+    );
+  }
+  return $api;
+}
+
+/**
+ * Return an array of migrate classes and corresponding modules, limited to
+ * currently enabled modules.
+ */
+function openoutreach_migrate_map() {
+  $map = array(
+    'OpenOutreachMigrationNodeArticle' => 'debut_article',
+    'OpenOutreachMigrationNodeBlog' => 'debut_blog',
+    'OpenOutreachMigrationNodeEvent' => 'debut_event',
+    'OpenOutreachMigrationNodeHighlighted' => 'debut_highlighted',
+    'OpenOutreachMigrationNodeLocation' => 'debut_location',
+    'OpenOutreachMigrationTermLocationType' => 'debut_location',
+    'OpenOutreachMigrationTermLocationRegion' => 'debut_location',
+    'OpenOutreachMigrationMenuLinksSection' => 'debut_section',
+    'OpenOutreachMigrationNodeSection' => 'debut_section',
+  );
+  // Allow other modules to alter the migrations to, for example, use
+  // a custom class.
+  drupal_alter('openoutreach_migrate_map', $map);
+  // Only add a class if its corresponding module is enabled.
+  return array_filter($map, 'module_exists');
+}
+
+/**
+ * Enable required custom migrate support modules.
+ */
+function openoutreach_migrate_enable_migrate_support($modules = array()) {
+  $map = array(
+    'date_migrate' => 'debut_event',
+  );
+  if (!empty($modules)) {
+    $map = array_intersect($map, $modules);
+  }
+  $map = array_filter($map, 'module_exists');
+  if (!empty($map)) {
+    module_enable(array_keys($map));
+  }
+}
+
+/**
+ * Process all registered migrations or those of a specified set of modules.
+ */
+function openoutreach_process_imports($modules = array()) {
+  // Ensure that migration classes are registered.
+  migrate_get_module_apis(TRUE);
+  $map = openoutreach_migrate_map();
+  if (!empty($modules)) {
+    $map = array_intersect($map, $modules);
+  }
+  // Handle a single level of dependency by pushing any migrations with
+  // dependencies to a subsequent round.
+  $subsequent = array();
+  foreach (array_keys($map) as $class_name) {
+    $migration = Migration::getInstance($class_name);
+    $dependencies = $migration->getDependencies();
+    if (empty($dependencies)) {
+      $migration->processImport();
+    }
+    else {
+      $subsequent[] = $migration;
+    }
+  }
+  foreach ($subsequent as $migration) {
+    $migration->processImport();
+  }
+}

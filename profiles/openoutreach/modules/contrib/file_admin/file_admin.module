@@ -2,36 +2,36 @@
 
 /**
  * @file
- * Enhances file adminstration by adding published, promote, and sticky fields.
+ * Enhances file administration by adding published, promote, and sticky fields.
  */
 
 /**
- * Media item is not published.
+ * File is not published.
  */
 define('FILE_NOT_PUBLISHED', 0);
 
 /**
- * Media item is published.
+ * File is published.
  */
 define('FILE_PUBLISHED', 1);
 
 /**
- * Media item is not promoted.
+ * File is not promoted.
  */
 define('FILE_NOT_PROMOTED', 0);
 
 /**
- * Media item is promoted.
+ * File is promoted.
  */
 define('FILE_PROMOTED', 1);
 
 /**
- * Media item is not sticky at top of a list.
+ * File is not sticky at top of a list.
  */
 define('FILE_NOT_STICKY', 0);
 
 /**
- * Media item is sticky at top of a list.
+ * File is sticky at top of a list.
  */
 define('FILE_STICKY', 1);
 
@@ -40,8 +40,13 @@ define('FILE_STICKY', 1);
  */
 function file_admin_permission() {
   $perms = array(
-    'view own unpublished media' => array(
-      'title' => t('View own unpublished media'),
+    'view any unpublished files' => array(
+      'title' => t('View any unpublished file details'),
+      'description' => t('For viewing file details, not for downloading files.'),
+    ),
+    'view own unpublished files' => array(
+      'title' => t('View own unpublished file details'),
+      'description' => t('For viewing file details, not for downloading files.'),
     ),
   );
 
@@ -49,47 +54,131 @@ function file_admin_permission() {
 }
 
 /**
- * Implements hook_entity_insert().
+ * Implements hook_entity_presave().
  *
- * Set created timestamp when entity is created.
+ * Set created timestamp and file admin settings when entity is created.
  */
 function file_admin_entity_presave($entity, $type) {
   if ($type == 'file' && !isset($entity->fid)) {
     $entity->created = REQUEST_TIME;
+    $file_options = variable_get('file_admin_file_options_' . $entity->type, array('published' => 'published'));
+    foreach (array('published', 'promote', 'sticky') as $key) {
+      $entity->$key = (int) (isset($file_options[$key]) && $file_options[$key]);
+    }
   }
 }
 
 /**
- * Implements hook_form_media_admin_alter().
+ * Implements hook_file_entity_access().
  *
- * Add a published field to the media adminstration form.
+ * Restrict view access to file entities based on published status.
  */
-function file_admin_form_file_entity_admin_files_alter(&$form, &$form_state) {
+function file_admin_file_entity_access($op, $file, $account) {
+  // Deny view access to unpublished files unless the user has "bypass file
+  // access" permission or has "view own published files" and is the author of
+  // the file.
+  if ($op == 'view' &&
+    $file->published == FILE_NOT_PUBLISHED &&
+    !user_access('view any unpublished files', $account) &&
+    !(user_access('view own unpublished files', $account) && $account->uid == $file->uid && $account->uid != 0)) {
+    return FILE_ENTITY_ACCESS_DENY;
+  }
+  return FILE_ENTITY_ACCESS_IGNORE;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for file_entity_admin_file.
+ *
+ * Add a published field to the file administration form.
+ */
+function file_admin_form_file_entity_admin_file_alter(&$form, &$form_state) {
   // Only act if we're in a list display mode.
   // TODO: find a less awkward way to determine the mode.
-  if (is_null(arg(3))) {
-    $limit = variable_get('media_admin_limit', 50);
+  if (is_null(arg(3)) && !empty($form['admin']['files']['#options'])) {
+    $header = &$form['admin']['files']['#header'];
+    $operations_header = array_pop($header);
+    $header['published'] = array('data' => t('Published'), 'field' => 'f.published');
+    $header['operations'] = $operations_header;
 
-    $operations_header = array_pop($form['files']['#header']);
-    $form['files']['#header']['published'] = array('data' => t('Published'), 'field' => 'f.published');
-    $form['files']['#header']['operations'] = $operations_header;
-    $files = $form['files']['#options'];
-
-    $query = db_select('file_managed', 'f')->extend('PagerDefault')->extend('TableSort');
-
-    $result = $query
-     ->fields('f', array('fid', 'published'))
-     ->condition('f.status', FILE_STATUS_PERMANENT)
-     ->limit($limit)
-     ->orderByHeader($form['files']['#header'])
-     ->execute();
-
-    foreach ($result as $file) {
-      $operations_row = array_pop($form['files']['#options'][$file->fid]);
-      $form['files']['#options'][$file->fid]['published'] = $file->published ? t('published') : t('not published');
-      $form['files']['#options'][$file->fid]['operations'] = $operations_row;
+    $files = db_query('SELECT fid, published FROM {file_managed} WHERE fid IN (:fids)', array(':fids' => array_keys($form['admin']['files']['#options'])))->fetchAllAssoc('fid');
+    foreach ($form['admin']['files']['#options'] as $fid => &$option) {
+      $operations_row = array_pop($option);
+      $option['published'] = $files[$fid]->published ? t('published') : t('not published');
+      $option['operations'] = $operations_row;
     }
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for file_entity_edit.
+ *
+ * Add file settings defaults.
+ */
+function file_admin_form_file_entity_file_type_form_alter(&$form, &$form_state) {
+  $file_type = $form['#file_type']->type;
+  $form['additional_settings'] = array(
+    '#type' => 'vertical_tabs',
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'file_admin') . '/file_admin.js'),
+    ),
+  );
+  $form['submission'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Submission form settings'),
+    '#collapsible' => TRUE,
+    '#group' => 'additional_settings',
+  );
+  $form['submission']['help']  = array(
+    '#type' => 'textarea',
+    '#title' => t('Explanation or submission guidelines'),
+    '#default_value' => variable_get('file_admin_help_' . $file_type, ''),
+    '#description' => t('This text will be displayed at the top of the page when creating or editing files of this type.'),
+  );
+  $form['workflow'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Publishing options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+  );
+  $form['workflow']['file_options'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Default options'),
+    '#default_value' => variable_get('file_admin_file_options_' . $file_type, array('published' => 'published')),
+    '#options' => array(
+      'published' => t('Published'),
+      'promote' => t('Promoted'),
+      'sticky' => t('Sticky at top of lists'),
+    ),
+    '#description' => t('Users with the <em>Administer files</em> permission will be able to override these options.'),
+  );
+  $form['display'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Display settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#group' => 'additional_settings',
+  );
+  $form['display']['file_submitted'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display owner and date information.'),
+    '#default_value' => variable_get('file_submitted_' . $file_type, FALSE),
+    '#description' => t('Owner username and upload date will be displayed.'),
+  );
+  $form['submit']['#weight'] = 10;
+  $form['#submit'][] = 'file_admin_file_entity_file_type_form_submit';
+}
+
+/**
+ * Submit handler for file_entity_file_type_form.
+ */
+function file_admin_file_entity_file_type_form_submit($form, &$form_state) {
+  $file_type = $form['#file_type']->type;
+  foreach (array('help', 'file_options') as $variable) {
+    variable_set('file_admin_' . $variable . '_' . $file_type, $form_state['values'][$variable]);
+  }
+  $file_type = $form['#file_type']->type;
+  variable_set('file_submitted_' . $file_type, $form_state['values']['file_submitted']);
 }
 
 /**
@@ -103,85 +192,85 @@ function file_admin_views_api() {
 }
 
 /**
- * Implements hook_form_media_edit_alter().
+ * Helper to build the Workflow fieldset.
+ *
+ * @see file_admin_form_file_entity_edit_alter()
+ * @see file_admin_form_file_entity_add_upload_alter()
+ * @see file_entity_edit()
  */
-function file_admin_form_media_edit_alter(&$form, &$form_state) {
-  $file = file_load($form['fid']['#value']);
-  $user = user_load($file->uid);
-  $file->name = $user->name;
+function _file_admin_add_file_admin_fieldset(&$form, $form_state, $file) {
   $file->date = format_date($file->created, 'custom', 'Y-m-d H:i:s O');
-  if ($help = variable_get('file_admin_help_' . $form['#bundle'], '')) {
-    $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . '<p>' . $help . '</p>';
-  }
 
-  // Basic file information.
-  // These elements are just values so they are not even sent to the client.
-  foreach (array('created', 'uid') as $key) {
-    $form[$key] = array(
-      '#type' => 'value',
-      '#value' => isset($file->$key) ? $file->$key : NULL,
+  if (!isset($form['additional_settings'])) {
+    $form['additional_settings'] = array(
+      '#type' => 'vertical_tabs',
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'file_admin') . '/file_admin.js'),
+      ),
     );
   }
 
-  $form['additional_settings'] = array(
-    '#type' => 'vertical_tabs',
-    '#weight' => 99,
+  // Basic file information.
+  // This element is just a value so it is not even sent to the client.
+  $form['created'] = array(
+    '#type' => 'value',
+    '#value' => isset($file->created) ? $file->created : NULL,
   );
-  // Media author information for administrators
-  $form['author'] = array(
-    '#type' => 'fieldset',
-    '#access' => user_access('administer media'),
-    '#title' => t('Authoring information'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
-    '#attributes' => array(
-      'class' => array('media-form-author'),
-    ),
-    '#attached' => array(
-      'js' => array(
-        drupal_get_path('module', 'file_admin') . '/media.js',
-        array(
-          'type' => 'setting',
-          'data' => array('anonymous' => variable_get('anonymous', t('Anonymous'))),
+  // In some cases this fieldset will be provided by file_entity.
+  // @see file_entity_edit().
+  if (!isset($form['user'])) {
+    // File user information for administrators.
+    $form['user'] = array(
+      '#type' => 'fieldset',
+      '#access' => user_access('administer files'),
+      '#title' => t('User information'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#group' => 'additional_settings',
+      '#attributes' => array(
+        'class' => array('file-form-user'),
+      ),
+      '#attached' => array(
+        'js' => array(
+          drupal_get_path('module', 'file_entity') . '/file_entity.js',
+          array(
+            'type' => 'setting',
+            'data' => array('anonymous' => variable_get('anonymous', t('Anonymous'))),
+          ),
         ),
       ),
-    ),
-    '#weight' => 90,
-  );
-  $form['author']['name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Authored by'),
-    '#maxlength' => 60,
-    '#autocomplete_path' => 'user/autocomplete',
-    '#default_value' => !empty($file->name) ? $file->name : '',
-    '#weight' => -1,
-    '#description' => t('Leave blank for %anonymous.', array('%anonymous' => variable_get('anonymous', t('Anonymous')))),
-  );
-  $form['author']['date'] = array(
+      '#weight' => 90,
+    );
+    $form['user']['name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Associated with'),
+      '#maxlength' => 60,
+      '#autocomplete_path' => 'user/autocomplete',
+      '#default_value' => !empty($file->uid) ? user_load($file->uid)->name : '',
+      '#weight' => -1,
+      '#description' => t('Leave blank for %anonymous.', array('%anonymous' => variable_get('anonymous', t('Anonymous')))),
+    );
+  }
+  $form['user']['date'] = array(
     '#type' => 'textfield',
     '#title' => t('Posted on'),
     '#maxlength' => 25,
     '#description' => t('Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to use the time of form submission.', array('%time' => !empty($file->date) ? date_format(date_create($file->date), 'Y-m-d H:i:s O') : format_date($file->created, 'custom', 'Y-m-d H:i:s O'), '%timezone' => !empty($file->date) ? date_format(date_create($file->date), 'O') : format_date($file->created, 'custom', 'O'))),
     '#default_value' => !empty($file->date) ? $file->date : '',
   );
-  $form['author']['date'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Authored on'),
-    '#maxlength' => 25,
-    '#description' => t('Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC. Leave blank to use the time of form submission.', array('%time' => !empty($file->date) ? date_format(date_create($file->date), 'Y-m-d H:i:s O') : format_date($file->created, 'custom', 'Y-m-d H:i:s O'), '%timezone' => !empty($file->date) ? date_format(date_create($file->date), 'O') : format_date($file->created, 'custom', 'O'))),
-    '#default_value' => !empty($file->date) ? $file->date : '',
-  );
-  // Media options for administrators
+  // File options for administrators.
   $form['options'] = array(
     '#type' => 'fieldset',
-    '#access' => user_access('administer media'),
-    '#title' => t('Publishing options'),
+    '#access' => user_access('administer files'),
+    '#title' => t('Workflow'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#group' => 'additional_settings',
     '#attributes' => array(
-      'class' => array('media-form-options'),
+      'class' => array('file-entity-form-options'),
+    ),
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'file_admin') . '/file_admin.js'),
     ),
     '#weight' => 95,
   );
@@ -200,94 +289,72 @@ function file_admin_form_media_edit_alter(&$form, &$form_state) {
     '#title' => t('Sticky at the top of lists'),
     '#default_value' => $file->sticky,
   );
-  $form['#validate'][] = 'file_admin_media_edit_validate';
+  if (isset($form['actions']['submit']['#validate'])) {
+    $form['actions']['submit']['#validate'][] = 'file_admin_file_entity_edit_validate';
+  }
+  else {
+    $form['#validate'][] = 'file_admin_file_entity_edit_validate';
+  }
 }
 
 /**
- * Validate handler for media_edit form.
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * @see file_entity_edit()
+ */
+function file_admin_form_file_entity_edit_alter(&$form, &$form_state) {
+  $file = file_load($form['fid']['#value']);
+  if ($help = variable_get('file_admin_help_' . $form['#bundle'], '')) {
+    $form['#prefix'] = (isset($form['#prefix']) ? $form['#prefix'] : '') . '<p>' . filter_xss_admin($help) . '</p>';
+  }
+
+  _file_admin_add_file_admin_fieldset($form, $form_state, $file);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * @see file_entity_add_upload()
+ */
+function file_admin_form_file_entity_add_upload_alter(&$form, &$form_state, $form_id) {
+
+  if (isset($form['#step']) && $form['#step'] == 4) {
+    // Default to the settings for the 'image' file type.
+    $file_admin_image_options = variable_get('file_admin_file_options_image', array('published' => 'published'));
+    $file = new stdClass();
+    $file->created = time();
+    foreach (array('published', 'promote', 'sticky') as $property) {
+      $file->$property = !empty($file_admin_image_options[$property]);
+    }
+
+    _file_admin_add_file_admin_fieldset($form, $form_state, $file);
+  }
+}
+
+/**
+ * Validate handler for file_entity_edit form.
  *
  * Prepare additional fields' data for saving to the file entity. Actual saving
- * is handled by media_edit_submit().
+ * is handled by file_entity_edit_submit().
  */
-function file_admin_media_edit_validate($form, &$form_state) {
+function file_admin_file_entity_edit_validate($form, &$form_state) {
   // Validate the "posted on" field.
   if (!empty($form_state['values']['date']) && strtotime($form_state['values']['date']) === FALSE) {
     form_set_error('date', t('You have to specify a valid date.'));
-  }
-  $name = trim($form_state['values']['name']);
-  if (!empty($name) && $user = user_load_by_name($name)) {
-    form_set_value($form['uid'], $user->uid, $form_state);
-  }
-  elseif (empty($name)) {
-    form_set_value($form['uid'], 0, $form_state);
   }
   $created = !empty($form_state['values']['date']) ? strtotime($form_state['values']['date']) : time();
   form_set_value($form['created'], $created, $form_state);
 }
 
 /**
- * Implements hook_form_media_admin_type_manage_form_alter().
+ * Implement hook_file_operations().
  */
-function file_admin_form_media_admin_type_manage_form_alter(&$form, &$form_state) {
-  $type = $form['media_type']['#value'];
-  $form['additional_settings'] = array(
-    '#type' => 'vertical_tabs',
-    '#attached' => array(
-      'js' => array(drupal_get_path('module', 'file_admin') . '/media_types.js'),
-    ),
-  );
-  $form['submission'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Submission form settings'),
-    '#collapsible' => TRUE,
-    '#group' => 'additional_settings',
-  );
-  $form['submission']['help']  = array(
-    '#type' => 'textarea',
-    '#title' => t('Explanation or submission guidelines'),
-    '#default_value' => variable_get('file_admin_help_' . $type, ''),
-    '#description' => t('This text will be displayed at the top of the page when creating or editing content of this type.'),
-  );
-  $form['workflow'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Publishing options'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
-  );
-  $form['workflow']['file_options'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Default options'),
-    '#default_value' => variable_get('file_admin_file_options_' . $type, array('published')),
-    '#options' => array(
-      'published' => t('Published'),
-      'promote' => t('Promoted'),
-      'sticky' => t('Sticky at top of lists'),
-    ),
-    '#description' => t('Users with the <em>Administer media</em> permission will be able to override these options.'),
-  );
-  $form['#submit'][] = 'file_admin_media_admin_type_manage_form_submit';
-}
-
-/**
- * Submit handler for media_admin_type_manage_form form.
- */
-function file_admin_media_admin_type_manage_form_submit($form, &$form_state) {
-  $type = $form_state['values']['media_type'];
-  foreach (array('help', 'file_options') as $variable) {
-    variable_set('file_admin_' . $variable . '_' . $type, $form_state['values'][$variable]);
-  }
-}
-
-/**
- * Implement hook_file_operations_info().
- */
-function file_admin_file_operations_info() {
+function file_admin_file_operations() {
   $operations = array(
     'publish' => array(
       'label' => t('Publish'),
       'callback' => 'file_admin_mass_update',
-      'callback arguments' => array('updates' => array('published' => FILE_NOT_PUBLISHED)),
+      'callback arguments' => array('updates' => array('published' => FILE_PUBLISHED)),
     ),
     'unpublish' => array(
       'label' => t('Unpublish'),
@@ -410,4 +477,3 @@ function _file_mass_update_batch_finished($success, $results, $operations) {
     drupal_set_message($message);
   }
 }
-

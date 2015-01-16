@@ -1,0 +1,113 @@
+/* Contrib Module */
+
+/* Ubercart */
+.cart-block-summary-links ul.links li {
+  border-right: 0;
+}
+
+/* Views */
+.views-view-grid h1 {
+  font-size: 1.25em;
+}
+  
+/* Views slideshow */
+.view-content .skin-default img {}
+.views-slideshow-controls-top,
+.views-slideshow-controls-bottom {}
+.views-slideshow-controls-top {}
+.views-slideshow-controls-bottom {}
+.views-slideshow-controls-top {}
+.views-slideshow-controls-bottom {}
+
+
+
+/* Superfish
+   sf-horizontal - classic drop menu style */
+.nav .block-superfish,
+.sf-horizontal {
+  padding: 0;
+  margin: 0;
+}
+
+
+/* Quicktabs */
+.block-quicktabs .block-inner .block-inner,
+.sidebar .block-quicktabs .block-inner .block-inner {
+}
+.block-quicktabs .block-content,
+.sidebar .block-quicktabs .block-content {
+}
+.block-quicktabs .block-content-inner,
+.sidebar .block-quicktabs .block-content-inner {
+}
+.block-quicktabs ul.quicktabs-tabs {;
+}
+.block-quicktabs ul.quicktabs-tabs li{
+}
+.quicktabs-style-nostyle ul.quicktabs_tabs {
+}
+.quicktabs-style-nostyle ul.quicktabs_tabs li {
+}
+.quicktabs-style-nostyle ul.quicktabs_tabs li a {
+}
+
+/* Date/Calendar */
+.calendar-calendar div.date-nav {
+  border: 0;
+  padding: 1px;
+}
+.calendar-calendar td {
+  text-align: center;
+}
+.calendar-calendar th.days {
+  border: 0;
+}
+.calendar-calendar td.calendar-agenda-hour {
+  border-style: solid none none;
+}
+.calendar-calendar td.calendar-agenda-items {
+  border-style: solid;
+}
+.calendar-calendar td.calendar-agenda-hour {
+  border-style: none none solid solid;
+  border-width: 1px;
+}
+.calendar-calendar td.calendar-agenda-hour .calendar-hour {
+  padding: 0 5px;
+  white-space: nowrap;
+}
+.calendar-calendar div.calendar {
+  font-size: 1em;
+}
+.calendar-calendar td .inner div.calendar div {
+  border: 0;
+  padding: 0 5px;
+}
+.calendar-calendar td .inner div.calendar div a {
+  padding: 0;
+  font-weight: 700;
+  text-decoration: underline;
+}
+.week-view .calendar-calendar td .inner div,
+.week-view .calendar-calendar td .inner div a {
+  border-bottom: 1px solid #fff;
+}
+.calendar-calendar td.empty {
+    background: none;
+}
+.view-content .calendar-calendar ul.inline {
+  padding: 0 0 10px;
+  display: block;
+}
+.view-content .calendar-calendar ul.inline li {
+  margin-right: 2px;
+}
+.block .calendar-calendar .month-view table {
+  border: 2px solid #fff;
+  clear: both;
+  margin: 0;
+  padding: 3px;
+}
+.calendar-calendar .inner {
+  padding: 1px;
+}

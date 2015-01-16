@@ -1,0 +1,366 @@
+/* AT Commerce Settings Styles */
+
+/* Frontpage and Taxonomy Grids */
+#main-content.content-display-grid  article.node  {
+  float: left;
+  margin: 0 0 10px;
+  min-width: 150px; /* this ensures 2cols at 320px and 4 cols at 480px (smartphone displays) and allows for the maximum setting of 8 cols at widths like 1280px or more */
+}
+.content-display-grid article .node-inner {
+  padding: 5px;
+}
+.content-display-grid article .node-inner:hover {}
+.content-display-grid article.node h1{
+  font-size: 1.077em;
+}
+.content-display-grid article .node-content {
+  padding: 0 0 10px;
+}
+.content-display-grid article .node-inner img {
+  padding: 0;
+  height: auto;
+}
+.content-display-grid article .field {
+  margin-bottom: 0;
+}
+.content-display-grid article input.form-submit {
+  margin-left: 0;
+  margin-right: 0;
+}
+body.front.fpcc-2 #main-content article.node,
+body.page-taxonomy.tpcc-2 #main-content article.node {
+  width: 50%;
+}
+body.front.fpcc-3 #main-content article.node,
+body.page-taxonomy.tpcc-3 #main-content article.node {
+  width: 33.33333333333333%;
+}
+body.front.fpcc-4 #block-system-main article.node,
+body.page-taxonomy.tpcc-4 #main-content article.node {
+  width: 25%;
+}
+body.front.fpcc-5 #main-content article.node,
+body.page-taxonomy.tpcc-5 #main-content article.node {
+  width: 20%;
+}
+body.front.fpcc-6 #main-content article.node,
+body.page-taxonomy.tpcc-6 #main-content article.node {
+  width: 16.66666666666667%;
+}
+body.front.fpcc-7 #main-content article.node,
+body.page-taxonomy.tpcc-7 #main-content article.node {
+  width: 14.28571428571429%;
+}
+body.front.fpcc-8 #main-content article.node,
+body.page-taxonomy.tpcc-8 #main-content article.node {
+  width: 12.5%;
+}
+
+/* Draw */
+.hl-l #toggle {
+  float: right;
+  margin-right: 20px;
+}
+.hl-r #toggle {
+  float: left;
+  margin-left: 20px;
+}
+.hl-c #toggle {
+  float: none;
+  margin: auto;
+  text-align: center;
+}
+
+/* HL - Left */
+.hl-l #branding {
+  float: left;
+}
+.hl-l .region-header {
+  float: right;
+  margin: 17px 0 0 20px;
+}
+.hl-l .region-header .block {
+  display: inline-block;
+  clear: none;
+  margin-bottom: 0;
+}
+.hl-l #logo,
+.hl-l .h-group {
+  padding-right: 18px;
+  float: left;
+}
+
+/* HL - Right */
+.hl-r #branding {
+  float: right;
+}
+.hl-r .region-header {
+  float: left;
+  margin: 17px 20px 0 0;
+}
+.hl-r .region-header .block {
+  display: inline;
+  clear: none;
+  margin-bottom: 0;
+}
+.hl-r #logo {
+  float: right;
+  padding-right: 0;
+  padding-left: 18px;
+}
+.hl-r #site-name,
+.hl-r #site-slogan {
+  text-align: right;
+}
+
+/* HL - Centered */
+.hl-c #branding {
+  float: none;
+  margin: auto;
+  text-align: center;
+}
+.hl-c .region-header {
+  display: table;
+  float: none;
+  margin: 15px auto 0;
+  text-align: center;
+}
+.hl-c .region-header .block {
+  clear: none;
+  display: inline;
+  margin: auto;
+  padding: 0 0 20px !important;
+  text-align: left;
+}
+.hl-c .region-header .block-inner {
+  margin: 0 20px;
+}
+.hl-c #logo,
+.hl-c #site-name,
+.hl-c #site-slogan {
+  float: none;
+  margin: 0;
+  padding: 0 0 6px;
+  text-align: center;
+}
+
+/* Main menu alignment */
+.mma-r #menu-bar .block {
+  float: right;
+}
+.mma-c #menu-bar .block {
+  display: table;
+  text-align: center;
+  margin: auto;
+  float: none;
+  clear: both;
+}
+.mma-c #menu-bar .block li a {
+  text-align: left;
+}
+
+/* Image Alignment */
+.ia-l .field-type-image figure,
+.iat-l .field-type-image figure {
+  margin: 4px 15px 4px 0;
+}
+.ia-l .field-type-image figcaption,
+.iat-l .field-type-image figcaption {
+  margin: 4px 0;
+}
+
+.ia-r .field-type-image figure,
+.iat-r .field-type-image figure {
+  margin: 4px 0 4px 15px;
+}
+.ia-r .field-type-image figcaption,
+.iat-r .field-type-image figcaption {
+  margin: 4px 0;
+}
+
+.ia-c .field-type-image figure,
+.ia-n .field-type-image figure,
+.iat-c .field-type-image figure,
+.iat-n .field-type-image figure {
+  border: none;
+  padding: 10px 0;
+}
+
+.field-type-image.field-label-above {
+  margin-top: 0;
+}
+
+.field-type-image .field-label {
+  margin-bottom: 0.5em;
+}
+
+.field-type-image.field-label-inline .field-label {
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+/* Bullets */
+.mb-n ul.menu {
+  padding: 0;
+  margin: 0;
+}
+.mb-n ul li.leaf,
+.mb-n ul li.collapsed,
+.mb-n ul li.expanded {
+  list-style: none;
+  list-style-image: none;
+  margin: 0;
+  padding: 0;
+}
+.mb-ah ul.menu {
+  padding: 0 0 0 1.1em;
+  margin: 0;
+}
+.mb-ah ul li.leaf,
+.mb-ah ul li.collapsed,
+.mb-ah ul li.expanded {
+  list-style-image: url(images/arrow-head.png);
+}
+.mb-ad ul.menu {
+  padding: 0 0 0 1.2em;
+  margin: 0;
+}
+.mb-ad ul li.leaf,
+.mb-ad ul li.collapsed,
+.mb-ad ul li.expanded {
+  list-style-image: url(images/arrow-double.png);
+}
+.mb-ca ul.menu {
+  padding: 0 0 0 1.6em;
+  margin: 0;
+}
+.mb-ca ul li.leaf,
+.mb-ca ul li.collapsed,
+.mb-ca ul li.expanded {
+  list-style-image: url(images/arrow-circle.png);
+}
+.mb-fa ul.menu {
+  padding: 0 0 0 1.6em;
+  margin: 0;
+}
+.mb-fa ul li.leaf,
+.mb-fa ul li.collapsed,
+.mb-fa ul li.expanded {
+  list-style-image: url(images/arrow-fat.png);
+}
+.mb-sa ul.menu {
+  padding: 0 0 0 1.6em;
+  margin: 0;
+}
+.mb-sa ul li.leaf,
+.mb-sa ul li.collapsed,
+.mb-sa ul li.expanded {
+  list-style-image: url(images/arrow-skinny.png);
+}
+
+/* Rounded corners */
+.itrc-2 input.form-text,
+.isrc-2 input.form-submit {
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -khtml-border-radius: 2px;
+  border-radius: 2px;
+}
+.itrc-3 input.form-text,
+.isrc-3 input.form-submit {
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -khtml-border-radius: 3px;
+  border-radius: 3px;
+}
+.itrc-4 input.form-text,
+.isrc-4 input.form-submit {
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -khtml-border-radius: 4px;
+  border-radius: 4px;
+}
+.itrc-6 input.form-text,
+.isrc-6 input.form-submit {
+  -moz-border-radius: 6px;
+  -webkit-border-radius: 6px;
+  -khtml-border-radius: 6px;
+  border-radius: 6px;
+}
+.itrc-8 input.form-text,
+.isrc-8 input.form-submit {
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -khtml-border-radius: 8px;
+  border-radius: 8px;
+}
+.itrc-10 input.form-text,
+.isrc-10 input.form-submit {
+  -moz-border-radius: 10px;
+  -webkit-border-radius: 10px;
+  -khtml-border-radius: 10px;
+  border-radius: 10px;
+}
+.itrc-12 input.form-text,
+.isrc-12 input.form-submit {
+  -moz-border-radius: 12px;
+  -webkit-border-radius: 12px;
+  -khtml-border-radius: 12px;
+  border-radius: 12px;
+}
+
+/* Featured backgrounds */
+#secondary-content-wrapper,
+#secondary-content-wrapper .texture-overlay {
+  min-height: 25px;
+}
+.opera #secondary-content-wrapper {
+  margin-bottom: 15px;
+}
+body.bb-n #secondary-content-wrapper .texture-overlay,
+body.bb-n #quint-panels-wrapper .texture-overlay {
+  background-image: none;
+}
+body.bb-b #secondary-content-wrapper .texture-overlay,
+body.bb-b #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/bubbles.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-hs #secondary-content-wrapper .texture-overlay,
+body.bb-hs #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/hoz-stripe.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-dp #secondary-content-wrapper .texture-overlay,
+body.bb-dp #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/diagonal-pattern.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-dlt #secondary-content-wrapper .texture-overlay,
+body.bb-dlt #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/diagonal-tight.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-dll #secondary-content-wrapper .texture-overlay,
+body.bb-dll #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/diagonal-loose.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-sd #secondary-content-wrapper .texture-overlay,
+body.bb-sd #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/dots-small.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+}
+body.bb-bd #secondary-content-wrapper .texture-overlay,
+body.bb-bd #quint-panels-wrapper .texture-overlay {
+  background-image: url(images/dots-big.png);
+  background-position: 0 0;
+  background-repeat: repeat;
+  min-height: 40px;
+}

@@ -1,0 +1,42 @@
+body {
+  color: #444444;
+}
+
+body {
+  border-color: #375199;
+}
+
+a:link,
+a:visited,
+#menu-bar a:link,
+#menu-bar a:visited {
+  color: #2883DE;
+}
+
+a:hover,
+a:active,
+a:focus,
+#menu-bar ul li:hover li a,
+#menu-bar ul li:hover > a,
+#menu-bar ul li > a:hover,
+#menu-bar ul li li:hover a,
+#menu-bar ul li li a:hover {
+  color: #000000;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #181818;
+}
+
+#header #site-name a {
+  color: #262626;
+}
+
+#header #site-name a:hover {
+  color: #3253ad;
+}
+
+#header #site-slogan {
+  color: #7d7d7d;
+}
+

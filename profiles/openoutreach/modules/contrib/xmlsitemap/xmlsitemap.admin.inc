@@ -348,6 +348,12 @@ function xmlsitemap_settings_form($form, &$form_state) {
     '#title' => t('Enable developer mode to expose additional settings.'),
     '#default_value' => variable_get('xmlsitemap_developer_mode', 0),
   );
+  $form['advanced']['xmlsitemap_disable_cron_regeneration'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable cron generation of sitemap files.'),
+    '#default_value' => variable_get('xmlsitemap_disable_cron_regeneration', 0),
+    '#description' => t('This can be disabled if other methods are being used to generate the sitemap files, like <em>drush xmlsitemap-regenerate</em>.'),
+  );
 
   $form['xmlsitemap_settings'] = array(
     '#type' => 'vertical_tabs',
@@ -355,6 +361,7 @@ function xmlsitemap_settings_form($form, &$form_state) {
   );
 
   $entities = xmlsitemap_get_link_info(NULL, TRUE);
+  module_load_all_includes('inc', 'xmlsitemap');
   foreach ($entities as $entity => $entity_info) {
     $form[$entity] = array(
       '#type' => 'fieldset',

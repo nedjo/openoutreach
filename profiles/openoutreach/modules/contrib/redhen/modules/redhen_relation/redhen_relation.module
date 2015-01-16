@@ -1,0 +1,551 @@
+<?php
+
+define('REDHEN_RELATION_STATUS_FIELD', 'redhen_relation_status');
+define('REDHEN_RELATION_ROLES_FIELD', 'redhen_relation_roles');
+define('REDHEN_RELATION_AFFILIATION', 'redhen_affiliation');
+define('REDHEN_RELATION_CONNECTION', 'redhen_connection');
+
+/**
+ * Implements hook_menu().
+ */
+function redhen_relation_menu() {
+  $items = array();
+
+  // Contact connections.
+  $items['redhen/contact/%redhen_contact/connections'] = array(
+    'title' => 'Connections',
+    'page callback' => 'redhen_relation_connections_page',
+    'page arguments' => array(2, 'redhen_contact'),
+    'access callback' => 'redhen_relation_access',
+    'access arguments' => array('view', 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -5,
+  );
+  $items['redhen/contact/%redhen_contact/connections/add'] = array(
+    'title' => 'Add Connection',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_relation_connection_form', 2),
+    'file' => 'includes/redhen_relation.forms.inc',
+    'access callback' => 'redhen_relation_access',
+    'access arguments' => array('edit', 2),
+    'type' => MENU_LOCAL_ACTION,
+  );
+
+  // Org connections.
+  $items['redhen/org/%redhen_org/connections'] = array(
+    'title' => 'Connections',
+    'page callback' => 'redhen_relation_connections_page',
+    'page arguments' => array(2, 'redhen_org'),
+    'access callback' => 'redhen_relation_access',
+    'access arguments' => array('view', 2),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -5,
+  );
+  $items['redhen/org/%redhen_org/connections/add'] = array(
+    'title' => 'Add Connection',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('redhen_relation_connection_form', 2),
+    'file' => 'includes/redhen_relation.forms.inc',
+    'access callback' => 'redhen_relation_access',
+    'access arguments' => array('edit', 2),
+    'type' => MENU_LOCAL_ACTION,
+  );
+  $items['redhen/relation/autocomplete/%'] = array(
+    'title' => 'Autocomplete for RedHen Relations',
+    'page callback' => 'redhen_relation_autocomplete',
+    'page arguments' => array(3, 4, 5, 6, 7),
+    // @todo Set permissions
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function redhen_relation_menu_alter(&$items) {
+  // Use our own page title callback for relation/X pages.
+  $items['relation/%relation']['title callback'] = 'redhen_relation_page_title';
+}
+
+/**
+ * Custom title callback for relation pages.
+ */
+function redhen_relation_page_title($relation) {
+  $endpoints = field_get_items('relation', $relation, 'endpoints');
+
+  $redhen_entities = array('redhen_contact', 'redhen_org');
+  if (!in_array($endpoints[0]['entity_type'], $redhen_entities) || !in_array($endpoints[1]['entity_type'], $redhen_entities)) {
+    return relation_ui_page_title($relation);
+  }
+
+  $relation_type = relation_type_load($relation->relation_type);
+
+  foreach ($endpoints as $endpoint) {
+    if ($endpoint['r_index'] == 0) {
+      $label1 = entity_load_single($endpoint['entity_type'], $endpoint['entity_id'])->label();
+    }
+    if ($endpoint['r_index'] == 1) {
+      $label2 = entity_load_single($endpoint['entity_type'], $endpoint['entity_id'])->label();
+    }
+  }
+
+  return t('@type between @label1 and @label2', array(
+    '@type' => relation_get_type_label($relation_type),
+    '@label1' => $label1,
+    '@label2' => $label2,
+  ));
+}
+
+/**
+ * Implements hook_permission().
+ */
+function redhen_relation_permission() {
+  return array(
+    'view redhen org connections' => array(
+      'title' => t('Access RedHen Org Connections'),
+      'description' => t('View the connections for an organization.'),
+    ),
+    'view redhen contact connections' => array(
+      'title' => t('Access RedHen Contact Connections'),
+      'description' => t('View the connections for a contact.'),
+    ),
+    'edit redhen org connections' => array(
+      'title' => t('Manage RedHen Org Connections'),
+      'description' => t('Add and edit connections for an organization.'),
+    ),
+    'edit redhen contact connections' => array(
+      'title' => t('Manage RedHen Contact Connections'),
+      'description' => t('Add and edit connections for a contact.'),
+    ),
+    'delete redhen org connections' => array(
+      'title' => t('Manage RedHen Org Connections'),
+      'description' => t('Delete edit connections for an organization.'),
+    ),
+    'delete redhen contact connections' => array(
+      'title' => t('Manage RedHen Contact Connections'),
+      'description' => t('Delete connections for a contact.'),
+    ),
+  );
+}
+
+/**
+ * Access callback for viewing and managing relations.
+ *
+ * @param $op
+ * @param $entity
+ *
+ * @return bool
+ */
+function redhen_relation_access($op, $entity) {
+  $entity_type = $entity->entityType();
+  $type = ($entity_type == 'redhen_contact') ? 'contact' : 'org';
+  if (entity_access($op, $entity_type, $entity) && user_access("$op redhen $type connections")) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Page callback for listing connections.
+ *
+ * @param RedhenContact|RedhenOrg $entity
+ *
+ * @return array|null|string
+ */
+function redhen_relation_connections_page($entity) {
+  $related = redhen_relation_relations($entity);
+  if (!empty($related)) {
+
+    $header = array(
+      'connection' => t('Connection'),
+      'type' => t('Type'),
+      'name' => t('Name'),
+      'status' => t('Status'),
+      'created' => t('Created'),
+      'author' => t('Author'),
+    );
+
+    if ($entity->entityType() == 'redhen_org') {
+      $header['primary'] = t('Primary contact');
+    }
+
+    $header['operations'] = array('data' => t('Operations'));
+
+    $destination = drupal_get_destination();
+    foreach ($related as $relation_id => $related_entities) {
+      $relation = relation_load($relation_id);
+      $relation_uri = entity_uri('relation', $relation);
+
+      $reversed = FALSE;
+      $endpoints = field_get_items('relation', $relation, 'endpoints');
+      foreach ($endpoints as $endpoint) {
+        if ($endpoint['entity_type'] == $entity->entityType() && $endpoint['r_index']) {
+          $reversed = TRUE;
+          break;
+        }
+      }
+
+      foreach ($related_entities as $related_entity) {
+        $object_label = entity_label($related_entity->entityType(), $related_entity);
+        $object_uri = entity_uri($related_entity->entityType(), $related_entity);
+        $author = user_load($relation->uid);
+        if (strpos($relation->relation_type, 'redhen_') === FALSE) {
+          $active = t('NA', array(), array('context' => 'redhen_relation'));
+        }
+        else {
+          $items = field_get_items('relation', $relation, REDHEN_RELATION_STATUS_FIELD);
+          $active = ($items[0]['value']) ? t('Active', array(), array('context' => 'redhen_relation')) : t('Inactive', array(), array('context' => 'redhen_relation'));
+        }
+        $related_entity_info = entity_get_info($related_entity->entityType());
+
+        $data = array(
+          'connection' => array(
+            'data' => array(
+              '#type' => 'link',
+              '#title' => relation_get_type_label($relation, $reversed),
+              '#href' => $relation_uri['path'],
+            ),
+          ),
+          'type' => $related_entity_info['label'],
+          'name' => array(
+            'data' => array(
+              '#type' => 'link',
+              '#title' => $object_label,
+              '#href' => $object_uri['path'],
+            ),
+          ),
+          'active' => $active,
+          'created' => date('m/d/Y', $relation->created),
+          'author' => $author->name,
+        );
+        $row_classes = array();
+
+        // Add primary contact handling for redhen_orgs and contacts.
+        if ($entity->entityType() == 'redhen_org' && $related_entity->entityType() == 'redhen_contact') {
+          if ($entity->primary_contact_id !== $related_entity->contact_id) {
+            $entity_uri = entity_uri('redhen_org', $entity);
+            $data['primary'] = array(
+              'data' => array(
+                '#type' => 'link',
+                '#title' => t('set as primary'),
+                '#href' => $entity_uri['path'] . '/primary/' . $related_entity->contact_id,
+                '#options' => array(
+                  'query' => array($destination),
+                ),
+              ),
+            );
+          }
+          else {
+            $data['primary'] = t('Primary');
+            $row_classes[] = 'primary_contact';
+          }
+        }
+        elseif ($entity->entityType() == 'redhen_org') {
+          $data[] = t('NA', array(), array('context' => 'redhen_relation'));
+        }
+
+        // Build a list of all the accessible operations for the current relation.
+        $ops = array();
+
+        $ops['view'] = array(
+          'title' => t('view'),
+          'href' => $relation_uri['path'],
+        );
+
+        if (redhen_relation_access('edit', $entity)) {
+          $ops['edit'] = array(
+            'title' => t('edit'),
+            'href' => $relation_uri['path'] . '/edit',
+            'query' => $destination,
+          );
+        }
+        if (redhen_relation_access('delete', $entity)) {
+          $ops['delete'] = array(
+            'title' => t('delete'),
+            'href' => $relation_uri['path'] . '/delete',
+            'query' => $destination,
+          );
+        }
+        if (count($ops) > 1) {
+          // Render an unordered list of operations links.
+          $data['operations'] = array(
+            'data' => array(
+              '#theme' => 'links__node_operations',
+              '#links' => $ops,
+              '#attributes' => array('class' => array('links', 'inline')),
+            ),
+          );
+        }
+        elseif (!empty($ops)) {
+          // Render the first and only operation as a link.
+          $link = reset($ops);
+          $data['operations'] = array(
+            'data' => array(
+              '#type' => 'link',
+              '#title' => $link['title'],
+              '#href' => $link['href'],
+              '#options' => array('query' => $link['query']),
+            ),
+          );
+        }
+        else {
+          unset($header['operations']);
+        }
+
+        $rows[$relation_id] = array('data' => $data, 'class' => $row_classes);
+      }
+    }
+
+    return array(
+      '#theme' => 'table',
+      '#header' => $header,
+      '#rows' => $rows,
+    );
+  }
+  else {
+    return t('%name has no connections.', array('%name' => $entity->label()));
+  }
+}
+
+/**
+ * Return entities related to a given entity excluding self and duplicates.
+ *
+ * @param object $entity
+ * @param string $relation_type
+ *   Filter on a given relation type if provided.
+ * @param bool $active
+ *   Optionally limit relations to those that are active.
+ *
+ * @return array
+ *   Keyed by the relation id which contains an array of entities.
+ *   Array (
+ *     1 => array($entity1, $entity2),
+ *     3 => array($entity3, $entity4)
+ *   )
+ */
+function redhen_relation_relations($entity, $relation_type = NULL, $active = FALSE) {
+  $related_entities = &drupal_static(__FUNCTION__ . $entity->entityType() . $entity->internalIdentifier() . $relation_type . $active, array());
+
+  if ($related_entities) {
+    return $related_entities;
+  }
+
+  $query = relation_query($entity->entityType(), $entity->internalIdentifier());
+  if ($relation_type) {
+    $query->propertyCondition('relation_type', $relation_type);
+  }
+
+  // Optionally limit to only active relations.
+  if ($active) {
+    $query->fieldCondition(REDHEN_RELATION_STATUS_FIELD, 'value', TRUE);
+  }
+
+  // this hideous hack is to avoid triggering the node access system which we
+  // need to to in order to avoid infinite recursion in
+  // redhen_org_group:node_grants().
+  // time came from http://drupal.stackexchange.com/questions/3927/how-to-bypass-node-access-when-using-entityfieldquery
+  // ticket pointing to issue http://drupal.org/node/1541236.
+  $query->addMetaData('account', user_load(1));
+
+  $query->addTag('redhen_relation');
+  $results = $query->execute();
+
+  if ($results) {
+    $relations = relation_load_multiple(array_keys($results));
+    foreach ($relations as $relation) {
+      $rid = entity_id('relation', $relation);
+      $related_entities[$rid] = array();
+      // To make sure duplicates of $entity get included in object list.
+      $duplicate = FALSE;
+
+      $endpoints = field_get_items('relation', $relation, 'endpoints');
+      foreach ($endpoints as $endpoint) {
+        // Add all entities that aren't this entity or duplicates, unless the
+        // relation only has this entity as endpoint ($relation->arity = 1).
+        if ($relation->arity > 1 && $endpoint['entity_type'] == $entity->entityType() && $endpoint['entity_id'] == $entity->internalIdentifier() && $duplicate == FALSE) {
+          $duplicate = TRUE;
+        }
+        else {
+          $object_entities = entity_load($endpoint['entity_type'], array($endpoint['entity_id']));
+          $related_entities[$rid][] = reset($object_entities);
+        }
+      }
+    }
+  }
+
+  return $related_entities;
+}
+
+/**
+ * Return a list of entities the given entity can be associated with.
+ *
+ * @param $entity
+ * @param $entity_type_to_relate
+ * @param $relation_type
+ * @param $search
+ * @param $limit
+ *
+ * @return array
+ */
+function redhen_relation_get_available_entities($entity, $entity_type_to_relate, $relation_type, $search = '', $limit = 0) {
+  $entities = array();
+
+  if (!in_array($entity_type_to_relate, array('redhen_contact', 'redhen_org'))) {
+    return $entities;
+  }
+
+  $query = new EntityFieldQuery();
+  $query
+    ->entityCondition('entity_type', $entity_type_to_relate)
+    ->propertyCondition('redhen_state', REDHEN_STATE_ACTIVE);
+
+  // Exclude existing relationships.
+  $existing = redhen_relation_relations($entity, $relation_type);
+  if (!empty($existing)) {
+    $info = entity_get_info($entity_type_to_relate);
+    $id_key = $info['entity keys']['id'];
+    $to_exclude = array();
+    foreach ($existing as $relation_id => $related_entities) {
+      foreach ($related_entities as $related_entity) {
+        $to_exclude[] = entity_id($related_entity->entityType(), $related_entity);
+      }
+    }
+    $query->propertyCondition($id_key, $to_exclude, 'NOT IN');
+  }
+
+  // Keyword search.
+  if ($search != '') {
+    // If we're searching for redhen_contacts, set a query tag so we can alter
+    // the fields that are searched in redhen_contact.
+    if ($entity_type_to_relate == 'redhen_contact') {
+      $query->addTag('redhen_contact_label');
+    }
+
+    $query->propertyCondition('label', $search, 'CONTAINS');
+  }
+
+  if ($limit > 0) {
+    $query->range(0, $limit);
+  }
+
+  if ($result = $query->execute()) {
+    $entities = entity_load($entity_type_to_relate, array_keys($result[$entity_type_to_relate]));
+  }
+  return $entities;
+}
+
+/**
+ * Autocomplete callback for listing available entities for a relation type
+ */
+function redhen_relation_autocomplete($relation_type = '', $entity_type_to_relate = '', $entity_type = '', $entity_id = '', $search = '') {
+  if (empty($relation_type) || empty($entity_type_to_relate) || empty($entity_type) || empty($entity_id)) {
+    exit();
+  }
+
+  $entity = entity_load_single($entity_type, $entity_id);
+
+  $available_entities = redhen_relation_get_available_entities($entity, $entity_type_to_relate, $relation_type, $search, 10);
+
+  foreach ($available_entities as $available_entity) {
+    $entity_id = $available_entity->internalIdentifier();
+    $entity_label = $available_entity->label();
+    $options[check_plain($entity_label) . ' (' . $entity_id . ')'] = check_plain($entity_label);
+  }
+  print drupal_json_encode($options);
+  exit();
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * React to entity updates that require connection states to be changed
+ */
+function redhen_relation_entity_update($entity, $entity_type) {
+  if ($entity_type == 'redhen_contact' || $entity_type == 'redhen_org') {
+    // If the entity is archived, we want to archive their relations.
+    if ($entity->redhen_state != REDHEN_STATE_ACTIVE) {
+      // Get all the relations associated with this entitity.
+      $query = relation_query($entity_type, $entity->internalIdentifier());
+
+      // this hideous hack is to avoid triggering the node access system which we
+      // need to to in order to avoid infinite recursion in
+      // redhen_org_group:node_grants().
+      // time came from http://drupal.stackexchange.com/questions/3927/how-to-bypass-node-access-when-using-entityfieldquery
+      // ticket pointing to issue http://drupal.org/node/1541236.
+      $query->addMetaData('account', user_load(1));
+
+      $query->addTag('redhen_relation');
+      $results = $query->execute();
+
+      if ($results) {
+        $relations = relation_load_multiple(array_keys($results));
+        foreach ($relations as $relation) {
+          $relation->{REDHEN_RELATION_STATUS_FIELD}[LANGUAGE_NONE][0]['value'] = 0;
+          relation_save($relation);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function redhen_relation_entity_info_alter(&$entity_info) {
+  // Add teaser view mode to relations.
+  $entity_info['relation']['view modes']['teaser'] = array(
+    'label' => t('Teaser'),
+    'custom settings' => TRUE,
+  );
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function redhen_relation_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'redhen_relation') . '/includes/views',
+  );
+}
+
+/**
+ * Return only relation types between RedHen entities.
+ *
+ * Wrapper around relation_get_available_types().
+ *
+ * @param $entity_type
+ *   redhen_contact or redhen_org
+ * @param $bundle
+ *
+ * @return array
+ */
+function redhen_relation_get_available_types($entity_type, $bundle) {
+  $relation_types = relation_get_available_types($entity_type, $bundle, 'both');
+
+  foreach ($relation_types as $key => $relation_type) {
+    $redhen_types = array('redhen_contact', 'redhen_org');
+
+    foreach ($relation_type->source_bundles as $source_bundle) {
+      list($source_entity_type) = explode(':', $source_bundle);
+      if (!in_array($source_entity_type, $redhen_types)) {
+        unset($relation_types[$key]);
+        break;
+      }
+    }
+
+    foreach ($relation_type->target_bundles as $target_bundle) {
+      list($target_entity_type) = explode(':', $target_bundle);
+      if (!in_array($target_entity_type, $redhen_types)) {
+        unset($relation_types[$key]);
+        break;
+      }
+    }
+  }
+
+  return $relation_types;
+}

@@ -245,13 +245,18 @@ function advanced_forum_preprocess_forum_submitted(&$variables) {
     $variables['topic_link'] = l($short_topic_title, "node/$nid", array('query' => $query, 'fragment' => $fragment));
   }
 
-  // For items posted more than $cutoff hours ago, offer an actual date.
-  $cutoff = variable_get('advanced_forum_time_ago_cutoff', 48) * 60 * 60;
   if (isset($variables['topic']->created)) {
-    $variables['time'] = format_interval(REQUEST_TIME - $variables['topic']->created);
     $timestamp = $variables['topic']->created;
-    if (REQUEST_TIME - $timestamp > $cutoff) {
-      $variables['date_posted'] = format_date($timestamp, 'small');
+    $interval = REQUEST_TIME - $timestamp;
+    $variables['time'] = format_interval($interval);
+
+    // For items posted more than $cutoff hours ago, offer an actual date.
+    $cutoff = variable_get('advanced_forum_time_ago_cutoff', 48) * 60 * 60;
+    if ($interval > $cutoff) {
+      $variables['date_posted'] = format_date($timestamp, 'short');
+    }
+    else {
+      unset($variables['date_posted']);
     }
   }
 }
@@ -325,8 +330,8 @@ function advanced_forum_preprocess_advanced_forum_statistics(&$variables) {
 
   $authenticated_users = advanced_forum_statistics_online_users();
   $variables['online_users'] = implode(', ', $authenticated_users);
-  $variables['current_users'] = count($authenticated_users);
-  $variables['current_guests'] = db_query('SELECT COUNT(sid) AS count FROM {sessions} WHERE uid = 0 AND timestamp >= :ts', array(':ts' => (REQUEST_TIME - variable_get('user_block_seconds_online', 900))))->fetchField();
+  $variables['current_users'] = advanced_forum_session_count(FALSE);
+  $variables['current_guests'] = 0; // for backwards compatibility
   $variables['current_total'] = $variables['current_users'] + $variables['current_guests'];
 
   $latest_users = advanced_forum_statistics_latest_users();
@@ -358,15 +363,19 @@ function advanced_forum_preprocess_views_view__advanced_forum_topic_list(&$varia
 
   $variables['node_create_list'] = '';
   $variables['forum_tools'] = '';
+  $variables['forum_jump'] = '';
 
   $menu_item = menu_get_item();
 
-  if ($menu_item['map'][0] == 'forum') {
-    $forum = $menu_item['map'][1];
-    if ($forum->vid == variable_get('forum_nav_vocabulary') && $forum->tid > 0 && !variable_get('advanced_forum_forum_disabled', FALSE)) {
-      $variables['node_create_list'] = theme('advanced_forum_node_type_create_list', array('forum_id' => $forum->tid));
-      $variables['forum_description'] = $forum->description;
-      $variables['forum_tools'] = advanced_forum_forum_tools($forum->tid);
+  if (!empty($menu_item) && $menu_item['access']) {
+    if (($menu_item['map'][0] == 'forum') && (!empty($menu_item['map'][1]))) {
+      $forum = $menu_item['map'][1];
+      if ($forum->vid == variable_get('forum_nav_vocabulary') && $forum->tid > 0) {
+        $variables['node_create_list'] = theme('advanced_forum_node_type_create_list', array('forum_id' => $forum->tid));
+        $variables['forum_description'] = $forum->description;
+        $variables['forum_tools'] = advanced_forum_forum_tools($forum->tid);
+        $variables['forum_jump'] = advanced_forum_forum_jump($forum->tid);
+      }
     }
   }
 }
@@ -442,6 +451,10 @@ function advanced_forum_preprocess_advanced_forum_topic_header(&$variables) {
   $variables['last_post_link'] = advanced_forum_last_post_link($node);
 
   // Pager
+  if (isset($variables['node']->comment_count))
+    pager_default_initialize($variables['node']->comment_count, variable_get('comment_default_per_page_' . $variables['node']->type, 50));
+
+
   $variables['pager'] = theme('pager');
 }
 

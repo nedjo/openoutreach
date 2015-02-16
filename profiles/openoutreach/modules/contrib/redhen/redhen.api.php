@@ -98,3 +98,12 @@ function hook_redhen_settings() {
     )
   );
 }
+
+/**
+ * Alter the list of excluded filter field types.
+ *
+ * @param array $blacklist
+ */
+function hook_redhen_filter_form_blacklist_alter(array &$blacklist) {
+  $blacklist[] = 'image';
+}

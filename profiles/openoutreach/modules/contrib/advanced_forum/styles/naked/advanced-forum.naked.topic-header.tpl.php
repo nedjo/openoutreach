@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Theme implementation: Template for forum topic header.
  *
  * - $node: Node object.

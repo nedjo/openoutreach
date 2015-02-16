@@ -372,3 +372,20 @@ function redhen_format_date($timestamp, $type = 'short') {
 
   return $date;
 }
+
+
+/**
+ * Provide an alterable array of field types to exclude from RedHen filters.
+ *
+ * @return array
+ */
+function redhen_filter_form_blacklist() {
+  $black_list = array(
+    'field_collection',
+    'file',
+    'image',
+  );
+
+  drupal_alter('redhen_filter_form_blacklist', $black_list);
+  return $black_list;
+}

@@ -25,6 +25,6 @@ function advanced_forum_default_page_manager_handlers() {
       }
     }
   }
-  
+
   return $handlers;
 }

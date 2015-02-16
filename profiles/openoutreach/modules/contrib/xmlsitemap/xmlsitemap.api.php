@@ -114,6 +114,20 @@ function hook_xmlsitemap_link_update(array $link, array $context) {
 }
 
 /**
+ * Respond to XML sitemap link clearing and rebuilding.
+ *
+ * @param array $types
+ *   An array of link types that are being rebuilt.
+ * @param bool $save_custom
+ *   If links with overridden status and/or priority are being removed or not.
+ */
+function hook_xmlsitemap_rebuild_clear(array $types, $save_custom) {
+  db_delete('mytable')
+    ->condition('link_type', $types, 'IN')
+    ->execute();
+}
+
+/**
  * Index links for the XML sitemaps.
  */
 function hook_xmlsitemap_index_links($limit) {

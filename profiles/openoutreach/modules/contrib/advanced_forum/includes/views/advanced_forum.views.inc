@@ -5,9 +5,8 @@
  * Views integration for advanced_forum.
  */
 
-
 /**
- * Loads the included views
+ * Loads the included views.
  *
  * This function is used instead of views ability to autodiscover a views
  * export .inc because this allows us to put each view in its own file.
@@ -25,16 +24,15 @@ function advanced_forum_views_default_views() {
       $views[$view->name] = $view;
     }
   }
-  
+
   return $views;
 }
 
 /**
- * Use views_data_alter to add items to the node table that are
- * relevant to topic icons.
+ * Use views_data_alter to add items to the node table that are relevant to topic icons.
  */
 function advanced_forum_views_data_alter(&$data) {
-  // Topic icon
+  // Topic icon.
   $data['node']['topic_icon'] = array(
     'title' => t('Topic Icon'),
     'help' => t('Icon that shows new posts, hot, sticky, locked, etc.'),
@@ -53,7 +51,7 @@ function advanced_forum_views_data_alter(&$data) {
 }
 
 /**
- * Implementation of hook_views_plugins
+ * Implements hook_views_plugins().
  */
 function advanced_forum_views_plugins() {
   $path = drupal_get_path('module', 'advanced_forum') . '/includes/views';
@@ -78,13 +76,11 @@ function advanced_forum_views_plugins() {
 }
 
 /**
- * Implementation of hook_views_data()
+ * Implements hook_views_data().
  */
 function advanced_forum_views_data() {
   $data = array();
-  // ----------------------------------------------------------------------
-  // forum table
-
+  // Forum table.
   // Have not defined $data['forum']['table']['group'] since
   // no fields are defined here yet.
   $data['forum']['table']['join'] = array(

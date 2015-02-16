@@ -6,7 +6,6 @@
  * preprocess / theme functions.
  */
 
-// STYLE API ****************************************************************/
 /**
  * Returns the name of the forum style to use.
  */
@@ -14,18 +13,24 @@ function advanced_forum_get_current_style() {
   return variable_get('advanced_forum_style', 'silver_bells');
 }
 
+/**
+ * Returns style.
+ */
 function advanced_forum_get_style($style) {
   ctools_include('plugins');
   return ctools_get_plugins('advanced_forum', 'styles', $style);
 }
 
+/**
+ * Returns all styles.
+ */
 function advanced_forum_get_all_styles() {
-  ctools_include('plugins') ;
+  ctools_include('plugins');
   return ctools_get_plugins('advanced_forum', 'styles');
 }
 
 /**
- * Returns the path to the advanced forum style
+ * Returns the path to the advanced forum style.
  */
 function advanced_forum_path_to_style($requested_style = NULL) {
   // Set a static variable so this is cached after the first call.
@@ -37,7 +42,7 @@ function advanced_forum_path_to_style($requested_style = NULL) {
   }
 
   if (empty($style_path)) {
-    // Get the path information
+    // Get the path information.
     $styles = advanced_forum_get_all_styles();
     foreach ($styles as $key => $style) {
       $style_paths[$key] = $style['path'];
@@ -47,7 +52,7 @@ function advanced_forum_path_to_style($requested_style = NULL) {
 }
 
 /**
- * Starting at a given style, return paths of it and all ancestor styles
+ * Starting at a given style, return paths of it and all ancestor styles.
  */
 function advanced_forum_style_lineage($style = NULL) {
   static $lineages = array();
@@ -62,11 +67,12 @@ function advanced_forum_style_lineage($style = NULL) {
     // Get an array with information from all styles.
     $all_styles = advanced_forum_get_all_styles();
 
-    // Fallback
-    if (empty($all_styles[$style]))
+    // Fallback.
+    if (empty($all_styles[$style])) {
       $style = "silver_bells";
+    }
 
-    // Add the current style to the lineage first
+    // Add the current style to the lineage first.
     $lineage[$style] = $all_styles[$style]['path'];
 
     // Check if there is an "extra style" listed. This allows you to grab the
@@ -100,7 +106,7 @@ function advanced_forum_style_lineage($style = NULL) {
 }
 
 /**
- * Starting at a given style, return path of template file
+ * Starting at a given style, return path of template file.
  */
 function advanced_forum_style_template_path($template_name, $style = NULL) {
   static $styles_files = array();
@@ -113,17 +119,24 @@ function advanced_forum_style_template_path($template_name, $style = NULL) {
 
   $path = '';
   foreach ($lineage as $key => $path) {
-    $template_path ="";
+    $template_path = "";
   }
-    return $path;
+
+  return $path;
 }
 
+/**
+ * Add basename of file.
+ */
 function advanced_forum_template_basename(&$file, $key, $extension) {
   $file->name = basename($file->uri, $extension);
 }
 
+/**
+ * Find style template.
+ */
 function advanced_forum_find_style_templates($style = NULL) {
-  // Get theme engine extension
+  // Get theme engine extension.
   global $theme_engine;
   $extension = '.tpl.php';
   if (isset($theme_engine)) {
@@ -133,26 +146,24 @@ function advanced_forum_find_style_templates($style = NULL) {
     }
   }
 
-  // Most significant style template comes first in lineage array
+  // Most significant style template comes first in lineage array.
   $lineage = array_reverse(advanced_forum_style_lineage($style), TRUE);
 
   $templates = array();
 
-  // Loop through each style folder looking for templates
+  // Loop through each style folder looking for templates.
   foreach ($lineage as $key => $path) {
     $styles_files = file_scan_directory($path, '/' . str_replace('.', '\.', $extension) . '$/', array('key' => 'filename'));
-    // Fix name - file_scan_directory returns template.tpl as name
-    //array_walk($styles_files, 'advanced_forum_template_basename', $extension);
     foreach ($styles_files as $file) {
       $file->name = basename($file->uri, $extension);
       $theme_file = $file->name;
       $theme_path = advanced_forum_path_to_theme();
 
-      // Remove style name from file name
+      // Remove style name from file name.
       $theme_base_file = str_replace(".$key.", "-", $file->name);
 
       // Transform - in filenames to _ to match function naming scheme
-      // and create proper hook name
+      // and create proper hook name.
       $hook = strtr($theme_base_file, '-', '_');
 
       // Check for user theme template override
@@ -164,7 +175,7 @@ function advanced_forum_find_style_templates($style = NULL) {
       elseif (file_exists($theme_path . "/" . $theme_base_file . $extension)) {
         $theme_file = $theme_base_file;
       }
-      // 3. check for advanced_forum/styles/<style>/... template
+      // 3. check for advanced_forum/styles/<style>/... template.
       else {
         $theme_path = dirname($file->uri);
       }
@@ -179,21 +190,19 @@ function advanced_forum_find_style_templates($style = NULL) {
 }
 
 /**
- * Load any .inc files related to the style so that preprocess
- * functions can run as appropriate.
+ * Load any .inc files related to the style so that preprocess functions can run as appropriate.
  */
 function advanced_forum_load_style_includes($style = NULL) {
   $lineage = advanced_forum_style_lineage($style);
   foreach ($lineage as $key => $path) {
     if (file_exists("$path/$key.inc")) {
-      require_once("$path/$key.inc");
+      require_once "$path/$key.inc";
     }
   }
 }
 
 /**
- * Get the info for a style, using an additive notation to
- * include all items from the parent lineage.
+ * Get the info for a style, using an additive notation to include all items from the parent lineage.
  */
 function advanced_forum_style_info($style = NULL) {
   static $info = array();
@@ -206,7 +215,7 @@ function advanced_forum_style_info($style = NULL) {
     $info[$style] = array();
     $lineage = advanced_forum_style_lineage();
     foreach ($lineage as $key => $dir) {
-      // using the + operator is additive but will not overwrite.
+      // Using the + operator is additive but will not overwrite.
       // $lineage comes out as the actual style with each
       // successive style after it, so simply adding the arrays
       // together means that all info will be combined and keys
@@ -219,8 +228,11 @@ function advanced_forum_style_info($style = NULL) {
   return $info[$style];
 }
 
+/**
+ * Returns whether forum is styled.
+ */
 function advanced_forum_is_styled($content, $teaser = FALSE, $type = 'node') {
-  // This is the ID of the topic starting node
+  // This is the ID of the topic starting node.
   static $master_topic_id;
 
   // Give other modules a first crack at making the decision. To keep this
@@ -246,8 +258,8 @@ function advanced_forum_is_styled($content, $teaser = FALSE, $type = 'node') {
           $topic_id = $master_topic_id;
         }
         break;
-      }
     }
+  }
 
   if ($topic_id > 0) {
     // If we have a positive number for the topic ID, then this item is styled.
@@ -267,8 +279,11 @@ function advanced_forum_is_styled($content, $teaser = FALSE, $type = 'node') {
 
 }
 
+/**
+ * Returns whether node is styled.
+ */
 function advanced_forum_node_is_styled($node, $teaser = FALSE) {
-  // Get the list of types that should have the style applied
+  // Get the list of types that should have the style applied.
   $styled_node_types = variable_get('advanced_forum_styled_node_types', array('forum'));
   // If this type is in the list of types that should be styled...
   if (in_array($node->type, $styled_node_types)) {
@@ -295,6 +310,9 @@ function advanced_forum_node_is_styled($node, $teaser = FALSE) {
   }
 }
 
+/**
+ * Returns whether comment is styled.
+ */
 function advanced_forum_comment_is_styled($comment, $master_topic_id) {
   if (isset($master_topic_id) && ($comment->nid == $master_topic_id)) {
     // This comment is on a node we already know is styled, or a previous
@@ -315,10 +333,13 @@ function advanced_forum_comment_is_styled($comment, $master_topic_id) {
     return $comment->nid;
   }
 
-  // Comment doesn't pass any styling test
+  // Comment doesn't pass any styling test.
   return -1;
 }
 
+/**
+ * Returns whether forum is tagged.
+ */
 function advanced_forum_is_forum_tagged($node, $preview = FALSE) {
   // Is this a forum node at all?
   if (empty($node->taxonomy_forums)) {
@@ -326,7 +347,7 @@ function advanced_forum_is_forum_tagged($node, $preview = FALSE) {
   }
   $vid = variable_get('forum_nav_vocabulary');
 
-  // Check for language used
+  // Check for language used.
   if (empty($node->taxonomy_forums[$node->language])) {
     $langcode = LANGUAGE_NONE;
   }
@@ -335,14 +356,14 @@ function advanced_forum_is_forum_tagged($node, $preview = FALSE) {
   }
 
   if ($preview) {
-     foreach ($node->taxonomy_forums[$langcode] as $tforum) {
+    foreach ($node->taxonomy_forums[$langcode] as $tforum) {
       if ($tforum['taxonomy_term']->vid == $vid) {
         return TRUE;
       }
     }
   }
   else {
-    // Get a list of the terms attached to this node
+    // Get a list of the terms attached to this node.
     $terms = $node->taxonomy_forums[$langcode];
     if (count($terms) > 0) {
       return TRUE;
@@ -370,16 +391,15 @@ function advanced_forum_path_to_theme() {
 }
 
 /**
- * Manipulate the template suggestions to add in one for each style as well
- * as the default.
+ * Manipulate the template suggestions to add in one for each style as well as the default.
  */
 function advanced_forum_add_template_suggestions($template, &$variables) {
-  // adjust template name
+  // Adjust template name.
   $template = strtr($template, '-', '_');
   if (strpos($template, 'advanced_forum') === FALSE) {
     $template = "advanced_forum_" . $template;
   }
-  // Set AF template as most significant suggestion
+  // Set AF template as most significant suggestion.
   $variables['theme_hook_suggestion'] = $template;
   $variables['theme_hook_suggestions'][] = $template;
   return;
@@ -387,6 +407,7 @@ function advanced_forum_add_template_suggestions($template, &$variables) {
 
 /**
  * Adds extra files needed for styling.
+ *
  * This is currently just CSS files but was made generic to allow adding
  * javascript in the future.
  */
@@ -411,7 +432,7 @@ function _advanced_forum_add_files() {
         // For each style from the current style on up through each parent
         // style, look for the style specific CSS file first in the active
         // theme and then in the style directory.
-        foreach ($lineage AS $key => $path) {
+        foreach ($lineage as $key => $path) {
           $css_file = "advanced-forum.$key.$css_type";
           if (file_exists("$theme_path/$css_file")) {
             // If the style specific file is in the theme, use that.
@@ -429,8 +450,9 @@ function _advanced_forum_add_files() {
   }
 }
 
-// CTOOLS INTEGRATION FOR STYLES ********************************************/
-
+/**
+ * Ctools integration for styles.
+ */
 function advanced_forum_ctools_plugin_type() {
   return array(
     'styles' => array(

@@ -1,5 +1,5 @@
 <?php
-// $Id $
+
 /**
  * @file
  * Display the topic forum widget

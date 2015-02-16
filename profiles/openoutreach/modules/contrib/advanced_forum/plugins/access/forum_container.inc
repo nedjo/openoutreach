@@ -4,6 +4,7 @@
  * @file
  * Plugin to provide access control based upon term vocabulary
  */
+
 /**
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
@@ -20,7 +21,7 @@ $plugin = array(
 );
 
 /**
- * Settings form for the 'by term_vocabulary' access plugin
+ * Settings form for the 'by term_vocabulary' access plugin.
  */
 function advanced_forum_forum_container_ctools_access_settings($form, &$form_state, $conf) {
   $form['settings']['container'] = array(
@@ -28,7 +29,7 @@ function advanced_forum_forum_container_ctools_access_settings($form, &$form_sta
     '#title' => t('Container'),
     '#options' => array(
       0 => t('Pass if forum is a container'),
-      1 => t('Pass if forum is not a container')
+      1 => t('Pass if forum is not a container'),
     ),
     '#default_value' => $conf['container'],
   );
@@ -53,7 +54,7 @@ function advanced_forum_forum_container_ctools_access_check($conf, $context) {
     return FALSE;
   }
 
-  // xor returns false if the two bools are the same, and true if they are not.
+  // Xor returns false if the two bools are the same, and true if they are not.
   return $context->data->container xor !empty($conf['container']);
 }
 

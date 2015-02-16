@@ -4,6 +4,10 @@
  * @file
  * Installation code for Advanced Forum.
  */
+
+/**
+ * Implements hook_install().
+ */
 function advanced_forum_install() {
   db_update('system')
       ->fields(array('weight' => 15))
@@ -11,6 +15,9 @@ function advanced_forum_install() {
       ->execute();
 }
 
+/**
+ * Implements hook_uninstall().
+ */
 function advanced_forum_uninstall() {
   db_delete('variable')
       ->condition('name', "advanced_forum_%", "LIKE")
@@ -18,6 +25,9 @@ function advanced_forum_uninstall() {
   cache_clear_all('variables', 'cache_bootstrap');
 }
 
+/**
+ * Implements hook_update_N().
+ */
 function advanced_forum_update_5000() {
   db_update('system')
       ->fields(array('weight' => 10))
@@ -25,10 +35,16 @@ function advanced_forum_update_5000() {
       ->execute();
 }
 
+/**
+ * Implements hook_update_N().
+ */
 function advanced_forum_update_5003() {
   db_drop_table('advforum_last_post');
 }
 
+/**
+ * Implements hook_update_N().
+ */
 function advanced_forum_update_5005() {
   db_update('system')
       ->fields(array('weight' => 15))
@@ -36,6 +52,9 @@ function advanced_forum_update_5005() {
       ->execute();
 }
 
+/**
+ * Implements hook_update_N().
+ */
 function advanced_forum_update_7200() {
   if (variable_get('advanced_forum_forum_disabled') == NULL) {
     variable_set('advanced_forum_forum_disabled', FALSE);

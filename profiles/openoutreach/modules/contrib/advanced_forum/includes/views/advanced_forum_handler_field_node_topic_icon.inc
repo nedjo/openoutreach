@@ -5,21 +5,29 @@
  * Field handler to display the topic icon.
  */
 
- class advanced_forum_handler_field_node_topic_icon extends views_handler_field{
-  function construct() {
+// @codingStandardsIgnoreStart
+class advanced_forum_handler_field_node_topic_icon extends views_handler_field {
+  /**
+   * {@inheritdoc}
+   */
+  public function construct() {
     parent::construct();
     $this->additional_fields = array('nid' => 'nid', 'type' => 'type');
   }
 
-  function option_definition() {
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
-
     $options['hot_topic_threshold'] = array('default' => 15);
-
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $form['hot_topic_threshold'] = array(
       '#title' => t('Hot topic threshold'),
@@ -29,20 +37,27 @@
     );
   }
 
-  function query() {
+  /**
+   * {@inheritdoc}
+   */
+  public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
     $this->field_alias = $this->table . '_' . $this->field;
   }
 
-  function render($values) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render($values) {
     $new_posts = advanced_forum_reply_num_new($values->nid);
     return theme('forum_icon', array(
-      'new_posts' => $new_posts,
-      'num_posts' => empty($values->node_comment_statistics_comment_count) ? 1 : $values->node_comment_statistics_comment_count + 1,
-      'comment_mode' => $values->node_comment,
-      'sticky' => $values->node_sticky,
-      'node_type' => $values->node_type,
+        'new_posts' => $new_posts,
+        'num_posts' => empty($values->node_comment_statistics_comment_count) ? 1 : $values->node_comment_statistics_comment_count + 1,
+        'comment_mode' => $values->node_comment,
+        'sticky' => $values->node_sticky,
+        'node_type' => $values->node_type,
     ));
   }
 }
+// @codingStandardsIgnoreEnd

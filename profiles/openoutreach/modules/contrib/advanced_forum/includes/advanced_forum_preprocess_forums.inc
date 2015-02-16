@@ -6,6 +6,9 @@
  * to ease memory requirements and having too much code in one file.
  */
 
+/**
+ * Preprocess forum.
+ */
 function _advanced_forum_preprocess_forums(&$variables) {
   $variables['forums_defined'] = count($variables['forums']) || count($variables['parents']);
 
@@ -39,7 +42,7 @@ function _advanced_forum_preprocess_forums(&$variables) {
     $variables['forum_legend'] = theme('advanced_forum_forum_legend');
   }
   else {
-    // Grab the forum description and make it available to the template file
+    // Grab the forum description and make it available to the template file.
     $forum = taxonomy_term_load($tid);
     $variables['forum_description'] = $forum->description;
 

@@ -1,21 +1,17 @@
 <?php
 
-
 /**
  * @file
  * Allows modules to contribute styles.
  */
 
-// -----------------------------------------------------------------------
-// REQUEST FUNCTIONS
-
 /**
- * Fetch an advanced forum style plugin
+ * Fetch an advanced forum style plugin.
  *
- * @param $style
+ * @param string $style
  *   Name of the style plugin
  *
- * @return
+ * @return array
  *   An array with information about the requested style plugin.
  */
 function advanced_forum_get_style($style) {
@@ -25,7 +21,7 @@ function advanced_forum_get_style($style) {
 /**
  * Collate information about all available advanced_forum styles.
  *
- * @return
+ * @return array
  *   An array with information about the requested forum style.
  */
 function advanced_forum_get_styles() {
@@ -33,17 +29,17 @@ function advanced_forum_get_styles() {
 }
 
 // -----------------------------------------------------------------------
-// MASTER HANDLER
-
+// MASTER HANDLER.
 /**
  * Fetch a group of plugins by name.
  *
- * @param $plugin
+ * @param string $plugin
  *   This is the name of the plugin, and also the name of the directory.
- * @param $hook
+ *
+ * @param string $hook
  *   This is the hook to call to get the info for the plugin.
  *
- * @return
+ * @return array
  *   An array of information arrays about the plugins received.
  */
 function advanced_forum_get_plugins($plugin, $hook, $id = NULL) {
@@ -67,17 +63,13 @@ function advanced_forum_get_plugins($plugin, $hook, $id = NULL) {
   }
 }
 
-// -----------------------------------------------------------------------
-// WORKER/RETRIEVER FUNCTIONS
-
 /**
- * Load plugin info for all hooks; this is handled separately from plugins
- * from files.
+ * Load plugin info for all hooks; this is handled separately from plugins from files.
  *
- * @param $hook
+ * @param string $hook
  *   The hook being invoked.
  *
- * @return
+ * @return array
  *   An array of info supplied by any hook implementations.
  */
 function advanced_forum_load_hooks($hook) {
@@ -94,12 +86,17 @@ function advanced_forum_load_hooks($hook) {
 /**
  * Process a single hook implementation of a advanced_forum plugin.
  *
- * @param $module
+ * @param string $module
  *   The module that owns the hook.
- * @param $identifier
+ *
+ * @param string $identifier
  *   Either the module or 'advanced_forum_' . $file->name
- * @param $hook
+ *
+ * @param string $hook
  *   The name of the hook being invoked.
+ *
+ * @return array|null
+ *   Data about module.
  */
 function _advanced_forum_process_plugin($module, $identifier, $path, $hook) {
   $function = $identifier . '_' . $hook;

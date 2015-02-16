@@ -35,7 +35,22 @@ function relation_endpoint_field_schema() {
   return array(
     'columns' => $columns,
     'indexes' => array(
-      'relation' => array('entity_type', 'entity_id', 'r_index'),
+      'entity_type' => array('entity_type'),
+      'entity_id' => array('entity_id'),
+      'r_index' => array('r_index'),
     ),
   );
+}
+
+/**
+ * Split combined index into separate indexes.
+ */
+function relation_endpoint_update_7001() {
+  // Same index operations are performed to data and revision tables
+  foreach (array('field_data_endpoints', 'field_revision_endpoints') as $table) {
+    db_drop_index($table, 'endpoints_relation');
+    db_add_index($table, 'endpoints_entity_type', array('endpoints_entity_type'));
+    db_add_index($table, 'endpoints_entity_id', array('endpoints_entity_id'));
+    db_add_index($table, 'endpoints_r_index', array('endpoints_r_index'));
+  }
 }

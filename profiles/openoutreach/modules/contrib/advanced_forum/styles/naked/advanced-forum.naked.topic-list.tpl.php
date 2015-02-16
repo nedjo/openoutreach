@@ -45,31 +45,23 @@
 
   <tbody>
   <?php foreach ($topics as $topic): ?>
-    <?php
-    if ($topic->sticky) {
-      // Extra label on sticky topics
-      $topic->title = t('Sticky') . ': ' . $topic->title;
-    }
-    ?>
+    <?php if ($topic->sticky) : ?>
+      <?php $topic->title = t('Sticky') . ': ' . $topic->title; ?>
+    <?php endif; ?>
 
-    <?php
-    // Add "new" or "updated" to title where appropriate.
-    $topic_new = "";
-    if ($topic->new) {
-      if ($topic->new_replies > 0) {
-        $topic_new = ' <span class="marker">' . t('updated') . '</span>';
-      }
-      else {
-        $topic_new = ' <span class="marker">' . t('new') . '</span>';
-      }
-    }
-    ?>
+    <?php /* Add "new" or "updated" to title where appropriate. */ ?>
+    <?php $topic_new = ''; ?>
+    <?php if ($topic->new && $topic->new_replies > 0) : ?>
+      <?php $topic_new = ' <span class="marker">' . t('updated') . '</span>'; ?>
+    <?php elseif ($topic->new && $topic->new_replies <= 0) : ?>
+      <?php $topic_new = ' <span class="marker">' . t('new') . '</span>'; ?>
+    <?php endif; ?>
 
     <tr class="<?php print $topic->zebra;?> <?php print $topic->sticky_class;?>">
       <td class="forum-topic-icon"><div class="forum-icon"><?php print $topic->icon; ?></div></td>
 
       <td class="forum-topic-title">
-      <?php print $topic->title . $topic_new; ?>
+      <?php print check_plain($topic->title) . $topic_new; ?>
       <?php if (!empty($topic->pager)): ?>
          <div class="forum-topic-pager"> <?php print $topic->pager ?> </div>
       <?php endif; ?>

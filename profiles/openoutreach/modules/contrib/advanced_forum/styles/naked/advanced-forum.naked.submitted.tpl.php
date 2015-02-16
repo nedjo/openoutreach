@@ -24,31 +24,31 @@
     <?php if (isset($date_posted)): ?>
       <?php print t(
         '!title<br />by !author<br />@date_posted', array(
-        '!title' => $topic_link,
-        '@date_posted' => $date_posted,
-        '!author' => $author,
-      )); ?>
+          '!title' => $topic_link,
+          '@date_posted' => $date_posted,
+          '!author' => $author,
+        )); ?>
     <?php else: ?>
      <?php print t(
         '!title<br />by !author<br />@time ago', array(
-        '!title' => $topic_link,
-        '@time' => $time,
-        '!author' => $author,
-      )); ?>
+          '!title' => $topic_link,
+          '@time' => $time,
+          '!author' => $author,
+        )); ?>
     <?php endif; ?>
   <?php else: ?>
     <?php if (isset($date_posted)): ?>
       <?php print t(
         'by !author<br />@date_posted', array(
-        '@date_posted' => $date_posted,
-        '!author' => $author,
-      )); ?>
+          '@date_posted' => $date_posted,
+          '!author' => $author,
+        )); ?>
     <?php else: ?>
      <?php print t(
         'by !author<br />@time ago', array(
-        '@time' => $time,
-        '!author' => $author,
-      )); ?>
+          '@time' => $time,
+          '!author' => $author,
+        )); ?>
     <?php endif; ?>
   <?php endif; ?>
 <?php else: ?>

@@ -168,26 +168,12 @@ class RelationFeedsProcessor extends FeedsProcessor {
   }
 
   /**
-   * {@inheritdoc}
+   * Overrides parent::expiryQuery().
    */
-  public function expire($time = NULL) {
-    if ($time === NULL) {
-      $time = $this->expiryTime();
-    }
-    if ($time == FEEDS_EXPIRE_NEVER) {
-      return;
-    }
-    $count = $this->getLimit();
-    $relations = db_query_range("SELECT r.rid FROM {relation} r JOIN {feeds_item} fi ON fi.entity_type = 'relation' AND r.rid = fi.entity_id WHERE fi.id = :id AND r.created < :created", 0, $count, array(':id' => $this->id, ':created' => REQUEST_TIME - $time));
-    $rids = array();
-    foreach ($relations as $relation) {
-      $rids[$relation->rid] = $relation->rid;
-    }
-    $this->entityDeleteMultiple($rids);
-    if (db_query_range("SELECT 1 FROM {relation} r JOIN {feeds_item} fi ON fi.entity_type = 'relation' AND r.rid = fi.entity_id WHERE fi.id = :id AND r.created < :created", 0, 1, array(':id' => $this->id, ':created' => REQUEST_TIME - $time))->fetchField()) {
-      return FEEDS_BATCH_ACTIVE;
-    }
-    return FEEDS_BATCH_COMPLETE;
+  protected function expiryQuery(FeedsSource $source, $time) {
+    $select = parent::expiryQuery($source, $time);
+    $select->condition('e.created', REQUEST_TIME - $time, '<');
+    return $select;
   }
 
   /**
@@ -382,7 +368,8 @@ class RelationFeedsProcessor extends FeedsProcessor {
       catch (FeedsValidationException $f) {
         return 0;
       }
-      $relations = relation_relation_exists($endpoints, $this->config['bundle']);
+      $type = $this->getTypeInfo();
+      $relations = relation_relation_exists($endpoints, $this->config['bundle'], $type->directional);
       if ($relations) {
         return key($relations);
       }

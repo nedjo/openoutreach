@@ -1684,7 +1684,6 @@ function migrate_ui_configure_form($form, &$form_state) {
     // Try running a drush status command to verify it's properly configured.
     $uri = $GLOBALS['base_url'];
     $uid = $GLOBALS['user']->uid;
-    $drush_path = str_replace(' ', '\ ', $drush_path);
     $command = "$drush_path status --user=$uid --uri=$uri --root=" . DRUPAL_ROOT;
     exec($command, $output, $status);
     if ($status == 0) {

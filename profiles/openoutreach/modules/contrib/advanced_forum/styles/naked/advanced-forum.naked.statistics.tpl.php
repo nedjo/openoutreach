@@ -1,7 +1,6 @@
 <?php
 /**
  * @file
- *
  * Theme implementation: Template for each forum forum statistics section.
  *
  * Available variables:
@@ -34,7 +33,12 @@
 
   <div id="forum-statistics-statistics-body" class="forum-statistics-sub-body">
     <div id="forum-statistics-topics">
-      <?php print t('Topics: !topics, Posts: !posts, Users: !users', array('!topics' => $topics, '!posts' => $posts, '!users' => $users)); ?>
+      <?php print t('Topics: !topics, Posts: !posts, Users: !users', array(
+          '!topics' => $topics,
+          '!posts' => $posts,
+          '!users' => $users,
+        )
+      ); ?>
     </div>
     <div id="forum-statistics-latest-users">
       <?php print t('Welcome to our latest members: !users', array('!users' => $latest_users)); ?>

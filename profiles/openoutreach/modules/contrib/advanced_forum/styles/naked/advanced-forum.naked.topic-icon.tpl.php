@@ -24,4 +24,3 @@
   <?php if ($new_posts): ?>
   </a>
 <?php endif; ?>
-

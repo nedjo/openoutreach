@@ -21,7 +21,7 @@ $plugin = array(
 );
 
 /**
- * Settings form for the 'by term_vocabulary' access plugin
+ * Settings form for the 'by term_vocabulary' access plugin.
  */
 function advanced_forum_forum_id_ctools_access_settings($form, &$form_state, $conf) {
   $options = array();
@@ -96,6 +96,9 @@ function advanced_forum_forum_id_ctools_acesss_summary($conf, $context) {
     return t('@identifier is any forum', array('@identifier' => $context->identifier));
   }
 
-  return format_plural(count($names), '@identifier is "@tids"', '@identifier is one of "@tids"', array('@tids' => implode(', ', $names), '@identifier' => $context->identifier));
+  return format_plural(count($names), '@identifier is "@tids"', '@identifier is one of "@tids"', array(
+      '@tids' => implode(', ', $names),
+      '@identifier' => $context->identifier,
+    )
+  );
 }
-

@@ -5,13 +5,20 @@
  * Field handler to display the topic pager.
  */
 
-class advanced_forum_handler_field_node_topic_pager extends views_handler_field{
-  function construct() {
+// @codingStandardsIgnoreStart
+class advanced_forum_handler_field_node_topic_pager extends views_handler_field {
+  /**
+   * {@inheritdoc}
+   */
+  public function construct() {
     parent::construct();
     $this->additional_fields = array('nid' => 'nid', 'type' => 'type');
   }
 
-  function option_definition() {
+  /**
+   * {@inheritdoc}
+   */
+  public function option_definition() {
     $options = parent::option_definition();
 
     $options['total_pages_shown'] = array('default' => 6);
@@ -19,7 +26,10 @@ class advanced_forum_handler_field_node_topic_pager extends views_handler_field{
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
+  /**
+   * {@inheritdoc}
+   */
+  public function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $form['total_pages_shown'] = array(
       '#title' => t('Total pages shown'),
@@ -29,13 +39,19 @@ class advanced_forum_handler_field_node_topic_pager extends views_handler_field{
     );
   }
 
-  function query() {
+  /**
+   * {@inheritdoc}
+   */
+  public function query() {
     $this->ensure_my_table();
     $this->add_additional_fields();
     $this->field_alias = $this->table . '_' . $this->field;
   }
 
-  function render($values) {
+  /**
+   * {@inheritdoc}
+   */
+  public function render($values) {
     // Make a fake topic object with the information that the core one has.
     $topic = new stdClass();
     $topic->nid = $values->nid;
@@ -43,8 +59,9 @@ class advanced_forum_handler_field_node_topic_pager extends views_handler_field{
     $topic->comment_count = $values->node_comment_statistics_comment_count;
 
     return theme('advanced_forum_topic_pager', array(
-      'pagecount' => $this->options['total_pages_shown'], 
-      'topic' => $topic
+      'pagecount' => $this->options['total_pages_shown'],
+      'topic' => $topic,
     ));
   }
 }
+// @codingStandardsIgnoreEnd

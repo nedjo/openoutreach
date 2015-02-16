@@ -86,6 +86,13 @@ abstract class MigrateSource implements Iterator {
   protected $originalHighwater = '';
 
   /**
+   * Used in the case of multiple key sources that need to use idlist.
+   *
+   * @var string
+   */
+  protected $multikeySeparator = ':';
+
+  /**
    * List of source IDs to process.
    *
    * @var array
@@ -296,12 +303,12 @@ abstract class MigrateSource implements Iterator {
       //    highwaters and map rows).
       $prepared = FALSE;
       if (!empty($this->idList)) {
-        if (in_array(reset($this->currentKey), $this->idList)) {
-          // In the list, fall through.
-        }
-        else {
-          // Not in the list, skip it
-          continue;
+        if (!in_array(reset($this->currentKey), $this->idList)) {
+          $compoundKey = implode($this->multikeySeparator, $this->currentKey);
+          if (count($this->currentKey) > 1 && !in_array($compoundKey, $this->idList)) {
+            // Could not find the key, skip.
+            continue;
+          }
         }
       }
       // 2. If the row is not in the map (we have never tried to import it

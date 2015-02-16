@@ -273,6 +273,17 @@ function redhen_contact_menu() {
     'weight' => 5,
   );
 
+  $items['redhen/contact/%redhen_contact/view/unarchive'] = array(
+      'title' => 'Unarchive',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('redhen_contact_contact_unarchive_form', 2),
+      'access callback' => 'redhen_contact_access',
+      'access arguments' => array('unarchive', 2),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/redhen_contact.forms.inc',
+      'weight' => 4,
+  );
+
   if (module_exists('devel')) {
     $items['redhen/contact/%redhen_contact/devel'] = array(
       'title' => 'Devel',
@@ -423,8 +434,11 @@ function redhen_contact_access($op, $contact = NULL, $account = NULL) {
   global $user;
   $account = isset($account) ? $account : $user;
 
-  // If it's already archived, no one can archive it again.
-  if (($op == 'archive') && ($contact->redhen_state == REDHEN_STATE_ARCHIVED)) {
+  if ($op == 'archive' && $contact->redhen_state == REDHEN_STATE_ARCHIVED) {
+    return FALSE;
+  }
+
+  if ($op == 'unarchive' && $contact->redhen_state == REDHEN_STATE_ACTIVE) {
     return FALSE;
   }
 
@@ -448,10 +462,19 @@ function redhen_contact_access($op, $contact = NULL, $account = NULL) {
     return FALSE;
   }
 
-  if ($op == 'view' && user_access('access redhen contacts', $account)) {
-    return TRUE;
+  if ($op == 'view') {
+    if (user_access('access redhen contacts', $account)) {
+      return TRUE;
+    }
+    // Check whether user can view own contact.
+    if (user_access('view own redhen contact', $account) && $contact->uid == $user->uid) {
+      return TRUE;
+    }
   }
 
+  if ($op == 'unarchive' && user_access('manage redhen contacts', $account) && ($contact->redhen_state != REDHEN_STATE_ACTIVE)) {
+    return TRUE;
+  }
   if (($op == 'edit' || $op == 'archive') && user_access('manage redhen contacts', $account) && ($contact->redhen_state != REDHEN_STATE_ARCHIVED)) {
     return TRUE;
   }
@@ -517,8 +540,8 @@ function redhen_contact_permission() {
  * @return array
  *   Render array.
  */
-function redhen_contact_view(RedhenContact $contact, $view_mode = 'full') {
-  return $contact->view($view_mode);
+function redhen_contact_view(RedhenContact $contact, $view_mode = 'full', $langcode = NULL, $page = NULL) {
+  return $contact->view($view_mode, $langcode, $page);
 }
 
 /**
@@ -1210,14 +1233,14 @@ function redhen_contact_property_email_set(RedhenContact $contact, $name, $value
   // Reset the default flag for any existing emails.
   if (!empty($contact->{REDHEN_CONTACT_EMAIL_FIELD})) {
     foreach ($contact->{REDHEN_CONTACT_EMAIL_FIELD}[LANGUAGE_NONE] as $key => $email) {
-      $contact->{REDHEN_CONTACT_EMAIL_FIELD}[LANGUAGE_NONE][$key]['default'] = FALSE;
+      $contact->{REDHEN_CONTACT_EMAIL_FIELD}[LANGUAGE_NONE][$key]['default'] = 0;
     }
   }
 
   // Now set the new email as default.
   $contact->{REDHEN_CONTACT_EMAIL_FIELD}[LANGUAGE_NONE][$key] = array(
     'value' => $value,
-    'default' => TRUE
+    'default' => 1
   );
 }
 

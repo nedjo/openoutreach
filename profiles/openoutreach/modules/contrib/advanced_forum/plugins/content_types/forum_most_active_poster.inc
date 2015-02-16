@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Most active poster.
+ */
 
 /**
  * Callback function to supply a list of content types.
@@ -9,7 +13,9 @@ function advanced_forum_forum_most_active_poster_ctools_content_types() {
       'single' => TRUE,
       'title' => t('Most active forum poster'),
       'icon' => 'icon_forum.png',
-      'description' => t('A block with information about the most active forum poster.'),
+      'description' => t(
+        'A block with information about the most active forum poster.'
+      ),
       'required context' => new ctools_context_required(t('Forum'), 'forum'),
       'category' => t('Forum'),
       'defaults' => array('period' => 'ever', 'exclude' => 0, 'uidone' => TRUE),
@@ -20,15 +26,18 @@ function advanced_forum_forum_most_active_poster_ctools_content_types() {
 /**
  * Render the content.
  */
-function advanced_forum_forum_most_active_poster_content_type_render($subtype, $conf, $panel_args, $context) {
+function advanced_forum_forum_most_active_poster_content_type_render(
+  $subtype,
+  $conf,
+  $panel_args,
+  $context
+) {
   if (!empty($context) && empty($context->data)) {
     return;
   }
 
-  if (empty($context)) {
-    $tid = 0;
-  }
-  else {
+  $tid = 0;
+  if (!empty($context)) {
     $tid = $context->data->tid;
   }
 
@@ -38,15 +47,19 @@ function advanced_forum_forum_most_active_poster_content_type_render($subtype, $
     case 'day':
       $period_arg = 60 * 60 * 24;
       break;
+
     case 'week':
       $period_arg = 60 * 60 * 24 * 7;
       break;
+
     case 'month':
       $period_arg = 60 * 60 * 24 * 30;
       break;
+
     case 'quarter':
       $period_arg = 60 * 60 * 24 * 91;
       break;
+
     case 'year':
       $period_arg = 60 * 60 * 24 * 365;
       break;
@@ -73,7 +86,10 @@ function advanced_forum_forum_most_active_poster_content_type_render($subtype, $
 
   if ($tid) {
     $forum = taxonomy_term_load($tid);
-    $block->title = t('Most active poster in @forum', array('@forum' => $forum->name));
+    $block->title = t(
+      'Most active poster in @forum',
+      array('@forum' => $forum->name)
+    );
     $query .= "AND f.tid = %d ";
     $args = array($tid);
   }
@@ -140,25 +156,32 @@ function advanced_forum_forum_most_active_poster_content_type_render($subtype, $
   $query .= "ORDER BY n.created DESC LIMIT 1";
 
   $last_post = node_load(db_result(db_query($query, $args)));
-  $block->content = theme('advanced_forum_active_poster', array(
-    'forum' => $tid,
-    'account' => $account,
-    'posts' => $info->posts,
-    'topics' => $topics,
-    'last_post' => $last_post
-      ));
+  $block->content = theme(
+    'advanced_forum_active_poster',
+    array(
+      'forum' => $tid,
+      'account' => $account,
+      'posts' => $info->posts,
+      'topics' => $topics,
+      'last_post' => $last_post,
+    )
+  );
   $block->more = array(
     'title' => t('More posts'),
     'href' => 'forum/user/' . $info->uid,
   );
+
   return $block;
 }
 
 /**
  * Returns an edit form for the custom type.
  */
-function advanced_forum_forum_most_active_poster_content_type_edit_form($form, &$form_state) {
-  // make sure conf contains newer defaults. CTools should do this for us:
+function advanced_forum_forum_most_active_poster_content_type_edit_form(
+  $form,
+  &$form_state
+) {
+  // Make sure conf contains newer defaults. CTools should do this for us.
   $conf = $form_state['conf'];
   $conf += $form_state['plugin']['defaults'];
 
@@ -173,7 +196,9 @@ function advanced_forum_forum_most_active_poster_content_type_edit_form($form, &
       'year' => t('In the last year'),
       'ever' => t('Ever'),
     ),
-    '#description' => t('Select what period you want to search for the most active poster.'),
+    '#description' => t(
+      'Select what period you want to search for the most active poster.'
+    ),
     '#default_value' => $conf['period'],
   );
 
@@ -184,27 +209,44 @@ function advanced_forum_forum_most_active_poster_content_type_edit_form($form, &
     '#type' => 'select',
     '#title' => t('Exclude role'),
     '#options' => $roles,
-    '#description' => t('Choose a role that will be excluded from being an active poster.'),
+    '#description' => t(
+      'Choose a role that will be excluded from being an active poster.'
+    ),
     '#default_value' => $conf['exclude'],
   );
 
   $form['uidone'] = array(
     '#type' => 'checkbox',
     '#title' => t('Exclude UID 1'),
-    '#description' => t('If checked the super user will not be a possible most active poster.'),
+    '#description' => t(
+      'If checked the super user will not be a possible most active poster.'
+    ),
     '#default_value' => $conf['uidone'],
   );
 
   return $form;
 }
 
-function advanced_forum_forum_most_active_poster_content_type_edit_form_submit($form, &$form_state) {
+/**
+ * Submit callback.
+ */
+function advanced_forum_forum_most_active_poster_content_type_edit_form_submit(
+  $form,
+  &$form_state
+) {
   // Copy everything from our defaults.
   foreach (array_keys($form_state['plugin']['defaults']) as $key) {
     $form_state['conf'][$key] = $form_state['values'][$key];
   }
 }
 
-function advanced_forum_forum_most_active_poster_content_type_admin_title($subtype, $conf, $context) {
+/**
+ * Callback for admin title.
+ */
+function advanced_forum_forum_most_active_poster_content_type_admin_title(
+  $subtype,
+  $conf,
+  $context
+) {
   return t('"@s" most active poster', array('@s' => $context->identifier));
 }

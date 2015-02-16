@@ -14,9 +14,9 @@ files[] = lib/redhen_org_type.entity.inc
 files[] = lib/redhen_org_type.ui_controller.inc
 files[] = lib/redhen_org.inline_entity_form.inc
 
-; Information added by Drupal.org packaging script on 2014-08-19
-version = "7.x-1.8"
+; Information added by Drupal.org packaging script on 2015-01-26
+version = "7.x-1.9"
 core = "7.x"
 project = "redhen"
-datestamp = "1408492460"
+datestamp = "1422301982"
 

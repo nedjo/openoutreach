@@ -12,9 +12,9 @@ files[] = lib/redhen_note.entity.inc
 files[] = lib/redhen_note.metadata.inc
 files[] = lib/redhen_note.views.inc
 
-; Information added by Drupal.org packaging script on 2014-08-19
-version = "7.x-1.8"
+; Information added by Drupal.org packaging script on 2015-01-26
+version = "7.x-1.9"
 core = "7.x"
 project = "redhen"
-datestamp = "1408492460"
+datestamp = "1422301982"
 

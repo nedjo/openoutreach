@@ -338,6 +338,11 @@ function xmlsitemap_install() {
     ->execute();
 
   // @todo Does the sitemap show up on first install or is it a 404 page?
+
+  // Create the link process the queue.
+  /** @var DrupalReliableQueueInterface $queue */
+  $queue = DrupalQueue::get('xmlsitemap_link_process', TRUE);
+  $queue->createQueue();
 }
 
 /**
@@ -363,6 +368,11 @@ function xmlsitemap_uninstall() {
 
   // Remove the file cache directory.
   xmlsitemap_clear_directory(NULL, TRUE);
+
+  // Remove the queue.
+  /** @var DrupalReliableQueueInterface $queue */
+  $queue = DrupalQueue::get('xmlsitemap_link_process', TRUE);
+  $queue->deleteQueue();
 }
 
 /**

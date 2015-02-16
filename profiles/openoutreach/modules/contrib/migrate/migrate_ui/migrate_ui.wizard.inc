@@ -440,7 +440,9 @@ abstract class MigrateUIWizard {
       $validate_method .= 'Validate';
     }
 
-    call_user_func($validate_method, $form_state);
+    if (is_callable($validate_method)) {
+      call_user_func($validate_method, $form_state);
+    }
   }
 
   /**

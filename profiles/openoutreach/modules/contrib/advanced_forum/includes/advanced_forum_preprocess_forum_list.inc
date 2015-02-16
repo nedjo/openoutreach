@@ -5,10 +5,14 @@
  * Holds the contents of a preprocess function moved into its own file
  * to ease memory requirements and having too much code in one file.
  */
+
+/**
+ * Preprocess forum list.
+ */
 function _advanced_forum_preprocess_forum_list(&$variables) {
   advanced_forum_add_template_suggestions("forum_list", $variables);
 
-  // Added variable for default collapsed configuration
+  // Added variable for default collapsed configuration.
   $variables['collapsed_main_list'] = variable_get('advanced_forum_default_collapsed_list', array());
 
   // Add needed items for the collapsible containers.
@@ -99,7 +103,7 @@ function _advanced_forum_preprocess_forum_list(&$variables) {
     $table_counter = 0;
   }
 
-  // workaround for container-less forums on main page
+  // Workaround for container-less forums on main page.
   $depth_offset = 0;
   foreach ($items as $id => $item) {
     // Get a handle on the parent of this item.
@@ -179,16 +183,17 @@ function _advanced_forum_preprocess_forum_list(&$variables) {
           // container. Start a new generic one. We need a tid so just grab
           // the tid of the current forum for it.
           $table_counter++;
-          if (!isset($tables[$table_counter]['table_info']))
+          if (!isset($tables[$table_counter]['table_info'])) {
             $tables[$table_counter]['table_info'] = new stdClass();
+          }
           $tables[$table_counter]['table_info']->name = t('Forums');
           $tables[$table_counter]['table_info']->description = '';
           $tables[$table_counter]['table_info']->tid = $item->tid;
 
           // Reset the striping.
           advanced_forum_stripe(TRUE);
-          $depth_offset = 1;
         }
+        $depth_offset = 1;
 
         // Set the variable to control the row striping.
         $item->zebra = advanced_forum_stripe();
@@ -230,6 +235,9 @@ function _advanced_forum_preprocess_forum_list(&$variables) {
   unset($variables['zebra']);
 }
 
+/**
+ * Forum stripe.
+ */
 function advanced_forum_stripe($reset = FALSE) {
   static $stripe = 'odd';
 
@@ -362,7 +370,7 @@ function advanced_forum_process_forum($forum) {
   unset($forum->last_post);
   $forum->last_post = theme('forum_submitted', array('topic' => $last_post));
 
-  // Display forum images using Field API
+  // Display forum images using Field API.
   $entity = entity_load('taxonomy_term', array($forum->tid));
   $field_name = variable_get('advanced_forum_forum_image_field', '');
 

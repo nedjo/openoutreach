@@ -121,6 +121,7 @@ function relation_generate_relations($number_relations = 10, $types = array(), $
         }
       }
       $relation = relation_create($type, $entity_keys);
+      $relation->devel_generate = TRUE;
       $new_rids[] = relation_save($relation);
     }
   }

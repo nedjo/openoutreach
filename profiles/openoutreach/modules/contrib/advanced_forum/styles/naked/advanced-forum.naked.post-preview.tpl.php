@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Theme implementation: Template the preview version of a post.
  *
  * All variables available in node.tpl.php and comment.tpl.php for your theme
@@ -17,7 +16,6 @@
  * - $account: User object of the post author.
  * - $name: User name of post author.
  * - $author_pane: Entire contents of advanced_forum-author-pane.tpl.php.
-
  */
 ?>
 
@@ -61,6 +59,7 @@
 
       <div class="forum-post-content">
         <?php
+          // @codingStandardsIgnoreStart
           // We hide the comments and links now so that we can render them later.
           hide($content['taxonomy_forums']);
           hide($content['comments']);
@@ -68,6 +67,7 @@
             hide($content['body']);
           hide($content['links']);
           print render($content);
+          // @codingStandardsIgnoreEnd
         ?>
       </div>
 
@@ -80,7 +80,6 @@
   </div>
 
 	<div class="forum-post-footer clear-block">
-    <?php // Purposely empty on preview just to keep the structure intact. ?>
+    <?php /* Purposely empty on preview just to keep the structure intact. */ ?>
   </div>
-
 </div>

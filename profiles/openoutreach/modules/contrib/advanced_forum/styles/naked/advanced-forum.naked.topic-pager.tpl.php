@@ -1,6 +1,8 @@
 <?php
 
-/* topic pager template
+/**
+ * @file
+ * Topic pager template.
  *
  * $pages: Array of linked numbers for first set of pages
  * $last_page_text: Linked text "Last page" (translatable)

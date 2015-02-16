@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * Theme implementation: Template for each forum post whether node or comment.
  *
  * All variables available in node.tpl.php and comment.tpl.php for your theme
@@ -18,7 +17,6 @@
  * - $name: User name of post author.
  * - $author_pane: Entire contents of the Author Pane template.
  */
-
 ?>
 
 <?php if ($top_post): ?>
@@ -34,7 +32,7 @@
       // This whole section is for printing the "new" marker. With core comment
       // we just need to check a variable. With Node Comment, we need to do
       // extra work to keep the views caching used for Node Comment from
-      //caching the new markers.
+      // caching the new markers.
       ?>
       <?php if (!$top_post): ?>
         <?php if (!empty($new)): ?>
@@ -49,19 +47,20 @@
           <?php print $new_output; ?>
         <?php endif; ?>
       <?php endif; ?>
-    </div>  <?php // End of posted on div ?>
+    </div>
+    <?php /* End of posted on div. */ ?>
 
     <?php if (!empty($in_reply_to)): ?>
    	 <span class="forum-in-reply-to"><?php print $in_reply_to; ?></span>
     <?php endif; ?>
 
-    <?php // Add a note when a post is unpublished so it doesn't rely on theming. ?>
+    <?php /* Add a note when a post is unpublished so it doesn't rely on theming. */ ?>
     <?php if (!$node->status): ?>
       <span class="unpublished-post-note"><?php print t("Unpublished post") ?></span>
     <?php endif; ?>
 
     <span class="forum-post-number"><?php print $permalink; ?></span>
-  </div> <?php // End of post info div ?>
+  </div> <?php /* End of post info div. */ ?>
 
   <div class="forum-post-wrapper">
     <div class="forum-post-panel-sub">
@@ -79,6 +78,7 @@
 
       <div class="forum-post-content">
         <?php
+          // @codingStandardsIgnoreStart
           // We hide the comments and links now so that we can render them later.
           hide($content['taxonomy_forums']);
           hide($content['comments']);
@@ -86,6 +86,7 @@
           if (!$top_post)
             hide($content['body']);
           print render($content);
+          // @codingStandardsIgnoreEnd
         ?>
       </div>
 
@@ -101,7 +102,8 @@
         </div>
       <?php endif; ?>
     </div>
-  </div> <?php // End of post wrapper div ?>
+  </div>
+  <?php /* End of post wrapper div. */ ?>
 
   <div class="forum-post-footer clearfix">
     <div class="forum-jump-links">
@@ -111,7 +113,8 @@
     <div class="forum-post-links">
       <?php print render($content['links']); ?>
     </div>
-  </div> <?php // End of footer div ?>
-</div> <?php // End of main wrapping div ?>
-
+  </div>
+  <?php /* End of footer div. */ ?>
+</div>
+<?php /* End of main wrapping div. */ ?>
 <?php print render($content['comments']); ?>

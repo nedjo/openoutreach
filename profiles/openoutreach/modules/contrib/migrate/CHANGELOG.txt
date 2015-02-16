@@ -1,3 +1,24 @@
+Migrate 2.7
+===========
+
+Bug fixes
+- #2415597 - Make batching of SQL sources optional, and force map_joinable FALSE.
+
+Migrate 2.7 Release Candidate 1
+===============================
+
+Features and enhancements
+- #2296911 - Add a source handler for IBM DB2.
+- #2256761 - Add a destination handler for variables.
+- #2047815 - Support multi-column source keys in idlist.
+- #1751438 - Add spreadsheet source plugin.
+
+Bug fixes
+- #2403593 - SQL batching messes up cases with altered queries, such as idlist.
+- #2298969 - Verify wizard validation function exists.
+- #2268863 - Fix drush --all option.
+- #2410523 - Remove inconsistent escaping of migrate_drush_path.
+
 Migrate 2.6
 ===========
 
@@ -18,19 +39,9 @@ the first parameter and pass it to its parent. This version does support legacy
 migrations which pass a group object, or nothing, but these methods are
 deprecated.
 
-Features and enhancements (since RC2)
+Features and enhancements
 - #2390229 - Make literal strings monolithic.
 - #2391789 - Add extender getter to better support extending wizards.
-
-Bug fixes (since RC2)
-- #2391891 - idlist with XML source causes exception.
-- #2314077 - Don't merge group dependencies into migration dependencies.
-- #2392683 - Set vocabulary name (bundle) explicitly for term reference fields.
-
-Migrate 2.6 Release Candidate 2
-===============================
-
-Features and enhancements
 - #2363015 - Add support for modifying wizards defined by other modules.
 - #2353527 - Add getter/setter for trackLastImported.
 - #2302929 - Explicitly count IDs for JSON source counts.
@@ -49,8 +60,60 @@ Features and enhancements
 - #1890610 - Add a MongoDB source plugin
 - #2065295 - Add ability to disable other module's hooks during migration.
 - #2051547 - Add ability to revert UI-defined field mappings.
+- #1998632 - Extend MigrateItemsXML to handle an array of XML files.
+- #1990612 - Add a row status argument to MigrateException, allowing rows to
+             be cleanly skipped by throwing exceptions.
+- #2017835 - Add MigrateFileUriAsIs file class, and make file migrations more
+             flexible.
+- #2004426 - UI support for editing dependencies; enable setting dependencies
+             through arguments.
+- #1826112 - A new API has been added to support external modules in developing
+             easy-to-use wizard-based UIs.
+- #1833380 - Major refactoring of the UI, breaking groups and migrations
+             (tasks) into separate pages, introducing an advanced permission and
+             presenting a simplified UI to those with only the basic permission.
+- #1860450 - The UI now has the capability of spawning import/rollback operations
+             in drush, with email notifications of completion. The notification
+             ability is available when running drush at the command line, which
+             may be useful for running imports via cron.
+- #1996602 - A default field handler is now provided that should handle many if
+             not most field types without custom handlers.
+- #1901980 - Support encrypting particular arguments saved to the database, to
+             support wizard implementations that may be prompting for secure
+             database credentials.
+- #1896096 - Add ability to define field mappings via arguments at registration
+             time, and use those to override mappings in code.
+- #1961620 - When editing field mappings, allow destination or source fields to
+             be explicitly set DNM.
+- #1996280 - Allow all field/subfields/options to be edited, and indent
+             subfields/options to make the relationship more clear.
+- #1996350 - Allow sourceMigration to be edited.
+- #1996736 - Add support for hook_migrate_api_alter().
+- #1984568 - Add setters to enable constructing migrations according to a
+             dependency injection pattern.
+- #1835822 - Hash source rows to detect changes.
+- #1975180 - Explicitly check dependency existence so missing dependencies aren't
+             reported as circular.
+- #1984534 - Updating/cleanup of examples to reflect current best practices.
+- #1972600 - Add getter for the MigrateXMLReader member of MigrateSourceXML.
+- #1856694 - Allow disabling of uri encoding.
+- #1835142 - Add names-only option to drush ms command.
+- #1892296 - Increase time limit for batch UI migrations.
+- #1839644 - Groups have been extended to record titles and arguments in the db.
+- #1896920 - Remove auto-registration, and make static registration expicit.
+- #1928956 - Clean up registration/instantiation chicken-and-egg problems, by
+             supporting consistent constructor arguments.
+- #1550878 - Added UI for deregistering migrations, including one-button
+             deregistration of orphans.
+- #1792894 - Remove empty field values, permitting proper defaulting.
+- #1903236 - Allow reset of migrate_migrations() cache.
+- #1894344 - Support warn_on_override for bulk unmigrated methods.
+- #1886404 - Allow subfields to be mapped before primary fields.
 
 Bug fixes
+- #2391891 - idlist with XML source causes exception.
+- #2314077 - Don't merge group dependencies into migration dependencies.
+- #2392683 - Set vocabulary name (bundle) explicitly for term reference fields.
 - #2266395 - Check for valid picture file saving users.
 - #2225551 - Add field validation to entity destination plugins.
 - #2285966 - Added exception handling around constructors.
@@ -117,20 +180,6 @@ Bug fixes
 - #2021457 - Coding standard improvements for xml.inc.
 - #2030559 - Add deprecation messages for arguments().
 - #1854382 - Fix handling of terms with leading spaces.
-
-Migrate 2.6 Release Candidate 1
-===============================
-
-Features and enhancements
-- #1998632 - Extend MigrateItemsXML to handle an array of XML files.
-- #1990612 - Add a row status argument to MigrateException, allowing rows to
-             be cleanly skipped by throwing exceptions.
-- #2017835 - Add MigrateFileUriAsIs file class, and make file migrations more
-             flexible.
-- #2004426 - UI support for editing dependencies; enable setting dependencies
-             through arguments.
-
-Bug fixes
 - #2025137 - Ignore --update in the presence of --idlist.
 - #2023813 - Apply defaultValue() for empty XML values.
 - #2023657 - Prevent duplicate aliases when updating nodes.
@@ -150,55 +199,6 @@ Bug fixes
 - #2006158 - Fix warnings on default field handler fields().
 - #1999918 - Move permissions to core Migrate module.
 - #1999290 - Check that an XMLMigration has actually populated $row->xml.
-
-Migrate 2.6 Beta 1
-==================
-
-Features and enhancements
-- #1826112 - A new API has been added to support external modules in developing
-             easy-to-use wizard-based UIs.
-- #1833380 - Major refactoring of the UI, breaking groups and migrations
-             (tasks) into separate pages, introducing an advanced permission and
-             presenting a simplified UI to those with only the basic permission.
-- #1860450 - The UI now has the capability of spawning import/rollback operations
-             in drush, with email notifications of completion. The notification
-             ability is available when running drush at the command line, which
-             may be useful for running imports via cron.
-- #1996602 - A default field handler is now provided that should handle many if
-             not most field types without custom handlers.
-- #1901980 - Support encrypting particular arguments saved to the database, to
-             support wizard implementations that may be prompting for secure
-             database credentials.
-- #1896096 - Add ability to define field mappings via arguments at registration
-             time, and use those to override mappings in code.
-- #1961620 - When editing field mappings, allow destination or source fields to
-             be explicitly set DNM.
-- #1996280 - Allow all field/subfields/options to be edited, and indent
-             subfields/options to make the relationship more clear.
-- #1996350 - Allow sourceMigration to be edited.
-- #1996736 - Add support for hook_migrate_api_alter().
-- #1984568 - Add setters to enable constructing migrations according to a
-             dependency injection pattern.
-- #1835822 - Hash source rows to detect changes.
-- #1975180 - Explicitly check dependency existence so missing dependencies aren't
-             reported as circular.
-- #1984534 - Updating/cleanup of examples to reflect current best practices.
-- #1972600 - Add getter for the MigrateXMLReader member of MigrateSourceXML.
-- #1856694 - Allow disabling of uri encoding.
-- #1835142 - Add names-only option to drush ms command.
-- #1892296 - Increase time limit for batch UI migrations.
-- #1839644 - Groups have been extended to record titles and arguments in the db.
-- #1896920 - Remove auto-registration, and make static registration expicit.
-- #1928956 - Clean up registration/instantiation chicken-and-egg problems, by
-             supporting consistent constructor arguments.
-- #1550878 - Added UI for deregistering migrations, including one-button
-             deregistration of orphans.
-- #1792894 - Remove empty field values, permitting proper defaulting.
-- #1903236 - Allow reset of migrate_migrations() cache.
-- #1894344 - Support warn_on_override for bulk unmigrated methods.
-- #1886404 - Allow subfields to be mapped before primary fields.
-
-Bug fixes
 - #1989012 - Support preserve_files for MigrateFileFid.
 - #1982564 - Properly handle messages for ignored rows.
 - #1989022 - Strip HTML tags from drush fields output.

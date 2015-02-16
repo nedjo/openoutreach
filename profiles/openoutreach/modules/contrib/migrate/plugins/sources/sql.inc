@@ -14,7 +14,7 @@ class MigrateSourceSQL extends MigrateSource {
    *
    * @var SelectQueryInterface
    */
-  protected $originalQuery, $query, $countQuery;
+  protected $originalQuery, $query, $countQuery, $alteredQuery;
 
   /**
    * Return a reference to the base query, in particular so Migration classes
@@ -50,11 +50,12 @@ class MigrateSourceSQL extends MigrateSource {
   protected $batch = 0;
 
   /**
-   * Number of records to fetch from the database during each batch.
+   * Number of records to fetch from the database during each batch. A value
+   * of zero indicates no batching is to be done.
    *
    * @var int
    */
-  protected $batchSize = 1000;
+  protected $batchSize = 0;
 
   /**
    * List of available source fields.
@@ -134,6 +135,8 @@ class MigrateSourceSQL extends MigrateSource {
 
     if (isset($options['batch_size'])) {
       $this->batchSize = $options['batch_size'];
+      // Joining to the map table is incompatible with batching, disable it.
+      $options['map_joinable'] = FALSE;
     }
 
     // If we're tracking changes, then we need to fetch all rows to see if
@@ -285,7 +288,41 @@ class MigrateSourceSQL extends MigrateSource {
     // 1. If idlist is provided, then only process items in that list (AND key
     //    IN (idlist)). Only applicable with single-value keys.
     if ($this->idList) {
-      $this->query->condition($keys[0], $this->idList, 'IN');
+      $simple_ids = array();
+      $compound_ids = array();
+      $key_count = count($keys);
+
+      foreach ($this->idList as $id) {
+        // Look for multi-key separator. If there is only 1 key, ignore.
+        if (strpos($id, $this->multikeySeparator) === FALSE || $key_count == 1) {
+          $simple_ids[] = $id;
+          continue;
+        }
+
+        $compound_ids[] = explode($this->multikeySeparator, $id);
+      }
+
+      // Check for compunded ids. If present add them with subsequent OR statements.
+      if (!empty($compound_ids)) {
+        $condition = db_or();
+        if (!empty($simple_ids)) {
+          $condition->condition($keys[0], $simple_ids, 'IN');
+        }
+
+        foreach ($compound_ids as $values) {
+          $temp_and = db_and();
+          foreach ($values as $pos => $value) {
+            $temp_and->condition($keys[$pos], $value);
+          }
+
+          $condition->condition($temp_and);
+        }
+
+        $this->query->condition($condition);
+      }
+      else {
+        $this->query->condition($keys[0], $simple_ids, 'IN');
+      }
     }
     else {
       // 2. If the map is joinable, join it. We will want to accept all rows
@@ -353,8 +390,13 @@ class MigrateSourceSQL extends MigrateSource {
       }
 
       // 4. Download data in batches for performance.
-      $this->query->range($this->batch * $this->batchSize, $this->batchSize);
+      if ($this->batchSize > 0) {
+        $this->query->range($this->batch * $this->batchSize, $this->batchSize);
+      }
     }
+
+    // Save our fixed-up query so getNextBatch() matches it.
+    $this->alteredQuery = clone $this->query;
 
     migrate_instrument_start('MigrateSourceSQL execute');
     $this->result = $this->query->execute();
@@ -371,7 +413,7 @@ class MigrateSourceSQL extends MigrateSource {
 
     // We might be out of data entirely, or just out of data in the current batch.
     // Attempt to fetch the next batch and see.
-    if (!is_object($row)) {
+    if (!is_object($row) && $this->batchSize > 0) {
       $this->getNextBatch();
       $row = $this->result->fetchObject();
     }
@@ -388,7 +430,7 @@ class MigrateSourceSQL extends MigrateSource {
    */
   protected function getNextBatch() {
     $this->batch++;
-    $query = clone $this->originalQuery;
+    $query = clone $this->alteredQuery;
     $query->range($this->batch * $this->batchSize, $this->batchSize);
     $this->result = $query->execute();
   }

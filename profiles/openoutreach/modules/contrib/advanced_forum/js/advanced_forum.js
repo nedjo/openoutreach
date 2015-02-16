@@ -6,9 +6,9 @@
       // Retrieve the collapsed status from a stored cookie.
       // cookie format is: page1=1,2,3/page2=1,4,5/page3=5,6,1...
       var cookie = $.cookie('Drupal.advanced_forum.collapsed');
-      var pages = cookie ? cookie.split('/') : new Array();
+      var pages = cookie ? cookie.split('/') : [];
       // Create associative array where key=page path and value=comma-separated list of collapsed forum ids
-      Drupal.advanced_forum.collapsed_page = new Array();
+      Drupal.advanced_forum.collapsed_page = [];
       if (pages) {
         for (var i = 0; i < pages.length; i++) {
           var tmp = pages[i].split('=');
@@ -20,7 +20,7 @@
       Drupal.advanced_forum.collapsed_current = Drupal.advanced_forum.collapsed_page[encodeURIComponent(window.location.pathname)];
 
       if (!Drupal.advanced_forum.collapsed_current) {
-        Drupal.advanced_forum.collapsed_current = new Array();
+        Drupal.advanced_forum.collapsed_current = [];
         // For intial load default collapsed state settings needs to checked in init function.
         Drupal.advanced_forum.initial_load = 1;
       }
@@ -54,7 +54,7 @@
 
         // Build cookie string
         cookie = '';
-        for(x in Drupal.advanced_forum.collapsed_page) {
+        for (var x in Drupal.advanced_forum.collapsed_page) {
           cookie += '/' + x + '=' + Drupal.advanced_forum.collapsed_page[x];
         }
         // Save new cookie

@@ -79,6 +79,20 @@ function relation_schema() {
     'indexes' => array(
       'relation_types' => array('relation_type', 'rid'),
     ),
+    'foreign keys' => array(
+      'relation_type' => array(
+        'table' => 'relation_type',
+        'columns' => array('relation_type' => 'relation_type'),
+      ),
+      'relation_revision' => array(
+        'table' => 'relation_revision',
+        'columns' => array('vid' => 'vid'),
+      ),
+      'relation_user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
+    ),
   );
   $schema['relation_revision'] = array(
     'description' => 'Keeps track of relation entities.',
@@ -126,6 +140,20 @@ function relation_schema() {
     'primary key' => array('vid'),
     'indexes' => array(
       'rid_vid' => array('rid', 'vid'),
+    ),
+    'foreign keys' => array(
+      'relation' => array(
+        'table' => 'relation',
+        'columns' => array('rid' => 'rid'),
+      ),
+      'relation_type' => array(
+        'table' => 'relation_type',
+        'columns' => array('relation_type' => 'relation_type'),
+      ),
+      'relation_user' => array(
+        'table' => 'users',
+        'columns' => array('uid' => 'uid'),
+      ),
     ),
   );
   $schema['relation_type'] = array(
@@ -234,6 +262,12 @@ function relation_schema() {
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Direction index for relations: 0=from, 1=to. The index is ignored if the directional column in the relation_type table is 0.',
+      ),
+    ),
+    'foreign keys' => array(
+      'relation_type' => array(
+        'table' => 'relation_type',
+        'columns' => array('relation_type' => 'relation_type'),
       ),
     ),
   );

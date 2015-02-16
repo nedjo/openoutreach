@@ -14,9 +14,9 @@ files[] = includes/redhen_relation.forms.inc
 files[] = includes/views/redhen_relation_handler_field_primary_contact.inc
 files[] = includes/views/redhen_relation_handler_sort_primary_contact.inc
 
-; Information added by Drupal.org packaging script on 2014-08-19
-version = "7.x-1.8"
+; Information added by Drupal.org packaging script on 2015-01-26
+version = "7.x-1.9"
 core = "7.x"
 project = "redhen"
-datestamp = "1408492460"
+datestamp = "1422301982"
 

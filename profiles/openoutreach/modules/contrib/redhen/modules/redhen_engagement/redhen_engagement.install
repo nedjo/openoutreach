@@ -161,6 +161,31 @@ function redhen_engagement_install() {
     'default' => 0,
   );
   db_add_field('redhen_contact', 'engagement_score', $field);
+
+  // Hide engagement_score in non-default view modes for RedHen Contact.
+  $field_settings = array(
+    'extra_fields' => array(
+      'display' => array(
+        'engagement_score' => array(
+          'default' => array(
+            'weight' => 0,
+            'visible' => TRUE,
+          ),
+        ),
+      ),
+    ),
+  );
+
+  $entity_info = entity_get_info('redhen_contact');
+
+  foreach (array_keys($entity_info['view modes']) as $view_mode) {
+    $field_settings['extra_fields']['display']['engagement_score'][$view_mode] = array(
+      'weight' => 0,
+      'visible' => FALSE,
+    );
+  }
+
+  field_bundle_settings('redhen_contact', 'contact', $field_settings);
 }
 
 /**

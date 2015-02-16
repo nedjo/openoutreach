@@ -966,7 +966,7 @@ function drush_migrate_get_migrations($args) {
     $seen = $start === TRUE ? TRUE : FALSE;
 
     foreach ($migration_objects as $name => $migration) {
-      if (!$seen && (drupal_strtolower($start) . 'migration' == drupal_strtolower($name))) {
+      if (!$seen && (drupal_strtolower($start) == drupal_strtolower($name))) {
         // We found our starting migration. $seen is always TRUE now.
         $seen = TRUE;
       }

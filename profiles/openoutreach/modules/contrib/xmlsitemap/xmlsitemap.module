@@ -74,6 +74,7 @@ function xmlsitemap_hook_info() {
     'query_xmlsitemap_generate_alter',
     'query_xmlsitemap_link_bundle_access_alter',
     'form_xmlsitemap_sitemap_edit_form_alter',
+    'xmlsitemap_rebuild_clear',
   );
 
   $hooks = array_combine($hooks, $hooks);
@@ -297,6 +298,7 @@ function xmlsitemap_variables() {
     'xmlsitemap_lastmod_format' => XMLSITEMAP_LASTMOD_MEDIUM,
     'xmlsitemap_gz' => FALSE,
     'xmlsitemap_disable_cron_regeneration' => 0,
+    'xmlsitemap_output_elements' => array('lastmod', 'changefreq', 'priority'),
     // Removed variables are set to NULL so they can still be deleted.
     'xmlsitemap_regenerate_last' => NULL,
     'xmlsitemap_custom_links' => NULL,
@@ -1547,5 +1549,47 @@ function xmlsitemap_get_operation_link($url, $options = array()) {
   }
 
   $link += array('query' => $destination);
+  drupal_alter('xmlsitemap_operation_link', $link);
   return $link;
+}
+
+/**
+ * Implements hook_cron_queue_info().
+ */
+function xmlsitemap_cron_queue_info() {
+  $info['xmlsitemap_link_process'] = array(
+    'worker callback' => 'xmlsitemap_link_queue_process',
+    'time' => 60,
+  );
+
+  return $info;
+}
+
+/**
+ * Queue callback for processing sitemap links.
+ */
+function xmlsitemap_link_queue_process($data) {
+  $info = xmlsitemap_get_link_info($data['type']);
+  $ids = isset($data['ids']) ? $data['ids'] : array($data['id']);
+  if (function_exists($info['xmlsitemap']['process callback'])) {
+    $info['xmlsitemap']['process callback']($ids);
+  }
+}
+
+/**
+ * Enqueue sitemap links to be updated via the xmlsitemap_link_process queue.
+ *
+ * @param string $type
+ *   The link type.
+ * @param array|int $ids
+ *   An array of link IDs or a singular link ID.
+ */
+function xmlsitemap_link_enqueue($type, $ids) {
+  $data = array();
+  $data['type'] = $type;
+  $data['ids'] = is_array($ids) ? $ids : array($ids);
+
+  /** @var DrupalReliableQueueInterface $queue */
+  $queue = DrupalQueue::get('xmlsitemap_link_process');
+  $queue->createItem($data);
 }

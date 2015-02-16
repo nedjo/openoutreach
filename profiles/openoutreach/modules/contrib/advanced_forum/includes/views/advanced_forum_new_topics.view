@@ -453,6 +453,7 @@ $translatables['advanced_forum_new_topics'] = array(
   t('Comment status'),
   t('Show new & updated topics in:'),
   t('Page'),
+  t('New & updated topics'),
 );
 
 // Get rid of the views counter if statistics not enabled.

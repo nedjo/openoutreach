@@ -2,16 +2,16 @@
 
 /**
  * @file
- *
  * Plugin to provide an argument handler for a user id
  */
+
 /**
  * Plugins are described by creating a $plugin array which will be used
  * by the system that includes this file.
  */
 $plugin = array(
   'title' => t("Forum: ID"),
-  // keyword to use for %substitution
+  // Keyword to use for %substitution.
   'keyword' => 'forum',
   'description' => t('Creates a forum context from a forum ID argument.'),
   'context' => 'advanced_forum_argument_forum_id_context',
@@ -54,7 +54,7 @@ function advanced_forum_argument_forum_id_context($arg = NULL, $conf = NULL, $em
 }
 
 /**
- * Settings form for the argument
+ * Settings form for the argument.
  */
 function advanced_forum_forum_id_settings_form(&$form, &$form_state, $conf) {
   $form['settings']['breadcrumb'] = array(

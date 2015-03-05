@@ -1,23 +1,21 @@
 name = Debut Highlighted
 description = Highlighed content type and views slideshow display.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = features
 dependencies[] = link
 dependencies[] = media
 dependencies[] = strongarm
-dependencies[] = views_slideshow
+dependencies[] = views
 dependencies[] = views_slideshow_cycle
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
-features[field][] = node-highlighted-field_content_image
-features[field][] = node-highlighted-field_kicker
-features[field][] = node-highlighted-field_link
+features[features_api][] = api:2
+features[field_base][] = field_kicker
+features[field_instance][] = node-highlighted-field_content_image
+features[field_instance][] = node-highlighted-field_kicker
+features[field_instance][] = node-highlighted-field_link
 features[image][] = highlighted
 features[image][] = highlighted_full
 features[node][] = highlighted
@@ -37,10 +35,13 @@ features[variable][] = node_options_highlighted
 features[variable][] = node_preview_highlighted
 features[variable][] = node_submitted_highlighted
 features[views_view][] = highlighted
+features_exclude[dependencies][views_slideshow] = views_slideshow
+features_exclude[field_base][field_content_image] = field_content_image
+features_exclude[field_base][field_link] = field_link
 
-; Information added by Drupal.org packaging script on 2015-01-08
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_highlighted"
-datestamp = "1420679283"
+datestamp = "1425162487"
 

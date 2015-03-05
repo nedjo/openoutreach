@@ -10,7 +10,7 @@
 function debut_member_menu_default_menu_custom() {
   $menus = array();
 
-  // Exported menu: menu-member
+  // Exported menu: menu-member.
   $menus['menu-member'] = array(
     'menu_name' => 'menu-member',
     'title' => 'Members',

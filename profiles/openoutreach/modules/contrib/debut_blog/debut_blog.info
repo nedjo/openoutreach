@@ -1,28 +1,30 @@
 name = Debut Blog
 description = A blog content type and associated displays.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = captcha
 dependencies[] = context
+dependencies[] = ctools
 dependencies[] = features
+dependencies[] = file_entity
+dependencies[] = image
 dependencies[] = media
+dependencies[] = node
 dependencies[] = strongarm
 dependencies[] = taxonomy
+dependencies[] = text
 dependencies[] = views
 debut[social][node_types][blog] = blog
-debut[media][node_types][blog] = blog
 features[context][] = blog-content-type
 features[ctools][] = context:context:3
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
-features[field][] = node-blog-body
-features[field][] = node-blog-field_content_image
-features[field][] = node-blog-field_tags
+features[features_api][] = api:2
+features[field_instance][] = node-blog-body
+features[field_instance][] = node-blog-field_content_image
+features[field_instance][] = node-blog-field_media
+features[field_instance][] = node-blog-field_tags
 features[node][] = blog
 features[user_permission][] = create blog content
 features[user_permission][] = delete any blog content
@@ -40,10 +42,14 @@ features[variable][] = comment_subject_field_blog
 features[variable][] = node_options_blog
 features[variable][] = pathauto_node_blog_pattern
 features[views_view][] = blog
+features_exclude[field_base][body] = body
+features_exclude[field_base][field_content_image] = field_content_image
+features_exclude[field_base][field_media] = field_media
+features_exclude[field_base][field_tags] = field_tags
 
-; Information added by drupal.org packaging script on 2013-03-05
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.1"
 core = "7.x"
 project = "debut_blog"
-datestamp = "1362443722"
+datestamp = "1425161587"
 

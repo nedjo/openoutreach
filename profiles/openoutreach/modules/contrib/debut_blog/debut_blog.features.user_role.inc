@@ -13,7 +13,7 @@ function debut_blog_user_default_roles() {
   // Exported role: blogger.
   $roles['blogger'] = array(
     'name' => 'blogger',
-    'weight' => '5',
+    'weight' => 5,
   );
 
   return $roles;

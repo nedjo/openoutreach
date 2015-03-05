@@ -1,13 +1,11 @@
 name = Debut Social
 description = Social media integration including share and follow links.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = captcha
 dependencies[] = context
+dependencies[] = ctools
 dependencies[] = features
 dependencies[] = follow
 dependencies[] = forward
@@ -18,7 +16,7 @@ features[context][] = social-follow-site
 features[context][] = social-follow-user
 features[ctools][] = context:context:3
 features[ctools][] = strongarm:strongarm:1
-features[features_api][] = api:1
+features[features_api][] = api:2
 features[user_permission][] = access forward
 features[user_permission][] = access service links
 features[user_permission][] = administer follow
@@ -35,9 +33,9 @@ features[variable][] = service_links_link_view_modes
 features[variable][] = service_links_show
 features[variable][] = service_links_weight
 
-; Information added by drupal.org packaging script on 2013-06-13
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_social"
-datestamp = "1371158456"
+datestamp = "1425164694"
 

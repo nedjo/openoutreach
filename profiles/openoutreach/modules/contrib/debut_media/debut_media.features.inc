@@ -7,12 +7,10 @@
 /**
  * Implements hook_ctools_plugin_api().
  */
-function debut_media_ctools_plugin_api() {
-  list($module, $api) = func_get_args();
+function debut_media_ctools_plugin_api($module = NULL, $api = NULL) {
   if ($module == "context" && $api == "context") {
     return array("version" => "3");
   }
-  list($module, $api) = func_get_args();
   if ($module == "file_entity" && $api == "file_default_displays") {
     return array("version" => "1");
   }
@@ -21,8 +19,8 @@ function debut_media_ctools_plugin_api() {
 /**
  * Implements hook_views_api().
  */
-function debut_media_views_api() {
-  return array("version" => "3.0");
+function debut_media_views_api($module = NULL, $api = NULL) {
+  return array("api" => "3.0");
 }
 
 /**
@@ -45,11 +43,11 @@ function debut_media_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale',
         'data' => array(
-          'width' => '360',
+          'width' => 360,
           'height' => '',
           'upscale' => 0,
         ),
-        'weight' => '1',
+        'weight' => 1,
       ),
     ),
     'label' => 'Medium large',
@@ -69,10 +67,10 @@ function debut_media_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale_and_crop',
         'data' => array(
-          'width' => '100',
-          'height' => '100',
+          'width' => 100,
+          'height' => 100,
         ),
-        'weight' => '1',
+        'weight' => 1,
       ),
     ),
     'label' => 'Small square thumbnail',

@@ -1,19 +1,19 @@
 name = Debut RedHen event registration
 description = Manage event registration with the RedHen CRM.
 core = 7.x
-package = Features
-php = 5.2.4
+package = Debut
+dependencies[] = ctools
 dependencies[] = debut_event
 dependencies[] = debut_redhen
+dependencies[] = entity
 dependencies[] = features
 dependencies[] = redhen_registration
 dependencies[] = registration
 dependencies[] = views
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
-features[field][] = node-event-field_registration
+features[features_api][] = api:2
+features[field_base][] = field_registration
+features[field_instance][] = node-event-field_registration
 features[registration_type][] = standard
 features[user_permission][] = administer registration
 features[user_permission][] = administer standard registration
@@ -25,9 +25,9 @@ features[user_permission][] = update any standard registration
 features[user_permission][] = view standard registration
 features[views_view][] = registration
 
-; Information added by drupal.org packaging script on 2013-03-06
-version = "7.x-1.0-alpha4"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.0"
 core = "7.x"
 project = "debut_redhen"
-datestamp = "1362595517"
+datestamp = "1425164643"
 

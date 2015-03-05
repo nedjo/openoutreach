@@ -1,25 +1,28 @@
 name = Debut Section
 description = A content type suitable for constructing sections and other nested pages along with accompanying displays. Uses the book module.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = book
+dependencies[] = context
+dependencies[] = ctools
 dependencies[] = eva
 dependencies[] = features
+dependencies[] = file_entity
+dependencies[] = image
 dependencies[] = media
+dependencies[] = node
 dependencies[] = strongarm
+dependencies[] = text
 dependencies[] = views
-debut[media][node_types][section] = section
 features[context][] = section-content-type
 features[ctools][] = context:context:3
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
-features[field][] = node-section-body
-features[field][] = node-section-field_content_image
+features[features_api][] = api:2
+features[field_instance][] = node-section-body
+features[field_instance][] = node-section-field_content_image
+features[field_instance][] = node-section-field_media
 features[node][] = section
 features[user_permission][] = access printer-friendly version
 features[user_permission][] = add content to books
@@ -41,10 +44,13 @@ features[variable][] = comment_subject_field_section
 features[variable][] = node_options_section
 features[variable][] = pathauto_node_section_pattern
 features[views_view][] = section_children
+features_exclude[field_base][body] = body
+features_exclude[field_base][field_content_image] = field_content_image
+features_exclude[field_base][field_media] = field_media
 
-; Information added by drupal.org packaging script on 2013-09-17
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_section"
-datestamp = "1379448420"
+datestamp = "1425164650"
 

@@ -10,9 +10,9 @@ files[] = includes/MediaInternetYouTubeHandler.inc
 files[] = includes/MediaYouTubeBrowser.inc
 
 
-; Information added by drush on 2015-02-13
+; Information added by drush on 2015-03-03
 version = "7.x-2.0-rc4+22-dev"
 core = "7.x"
 project = "media_youtube"
-datestamp = "1423853028"
+datestamp = "1425404373"
 

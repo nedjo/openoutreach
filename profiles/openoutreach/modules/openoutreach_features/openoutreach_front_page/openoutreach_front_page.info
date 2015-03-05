@@ -1,8 +1,7 @@
 name = Open Outreach Front Page
 description = Front page layout for Open Outreach
 core = 7.x
-package = Features
-php = 5.2.4
+package = Open Outreach
 dependencies[] = ctools
 dependencies[] = page_manager
 dependencies[] = panels_mini
@@ -13,16 +12,15 @@ features[ctools][] = page_manager:pages_default:1
 features[ctools][] = panels_mini:panels_default:1
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
+features[features_api][] = api:2
 features[page_manager_pages][] = front_page
 features[panels_mini][] = front_page_upper_section
 features[variable][] = site_frontpage
 features[views_view][] = front_page_top_stories
 
-
-; Information added by Drupal.org packaging script on 2015-02-13
-version = "7.x-1.15"
+; Information added by Drupal.org packaging script on 2015-03-03
+version = "7.x-1.16"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1423852999"
+datestamp = "1425404351"
 

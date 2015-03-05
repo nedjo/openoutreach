@@ -23,7 +23,7 @@ function debut_location_openlayers_styles() {
     'strokeColor' => '#222222',
     'strokeWidth' => 4,
     'fillOpacity' => 0.5,
-    'strokeOpacity' => 0.7,
+    'strokeOpacity' => 0.6999999999999999555910790149937383830547332763671875,
     'strokeLinecap' => 'round',
     'strokeDashstyle' => 'solid',
     'graphicOpacity' => 1,

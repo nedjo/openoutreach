@@ -61,6 +61,10 @@ function debut_location_openlayers_maps_alter(&$items) {
       }
     }
   }
+  // Resize the formatter map.
+  if (isset($items['geofield_formatter_map'])) {
+    $items['geofield_formatter_map']->data['width'] = 'auto';
+  }
 }
 
 /**

@@ -7,22 +7,6 @@
  */
 
 /**
- * Implements hook_enable().
- */
-function debut_media_enable() {
-  // Rebuild the features static caches.
-  features_include(TRUE);
-
-  $module = 'debut_media';
-  $feature = feature_load($module);
-  // Retain the order of component types, which is needed for example to ensure
-  // that user roles are created ahead of user permissions that reference them.
-  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
-  _features_restore('enable', $items);
-  _features_restore('rebuild', $items);
-}
-
-/**
  * Implements hook_requirements().
  */
 function debut_media_requirements() {

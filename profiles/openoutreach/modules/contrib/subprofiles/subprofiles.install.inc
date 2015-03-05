@@ -15,18 +15,22 @@
  *   The install task definition.
  */
 function _subprofiles_install_tasks($install_state) {
-  if (isset($install_state['parameters']['profile']) && $info = install_profile_info($install_state['parameters']['profile'])) {
-    $profile = $info['name'];
+  // If there's a custom distibution name, use it.
+  if (isset($install_state['profile_info']['distribution_name']) && $install_state['profile_info']['distribution_name'] != 'Drupal') {
+    $profile = $install_state['profile_info']['distribution_name'];
+  }
+  // Otherwise, if there's a profile name, use it.
+  elseif (isset($install_state['profile_info']['name'])) {
+    $profile = $install_state['profile_info']['name'];
   }
   else {
     $profile = st('profile');
   }
 
-  $args = array('!profile' => $profile);
   $tasks = array(
     // Enable the selected features.
     'subprofiles_install_profile_features' => array(
-      'display_name' => st('Install !profile features', $args),
+      'display_name' => st('Install !profile features', array('!profile' => $profile)),
       'type' => 'batch',
     ),
     // Subprofiles is no longer needed when it's done its work, so disable.
@@ -48,12 +52,14 @@ function _subprofiles_install_tasks($install_state) {
  */
 function subprofiles_install_profile_features(&$install_state) {
   // If the installer was run interactively, specific features may have been selected.
-  $modules = variable_get('subprofiles_install_profile_features', array());
+  $modules = variable_get('subprofiles_install_profile_features', FALSE);
   variable_del('subprofiles_install_profile_features');
 
   // If the install wasn't interactive, use the default features of the
   // subprofile.
-  if (!count($modules)) {
+  // We can't test for empty since there may have been no modules selected in an
+  // interactive install.
+  if ($modules === FALSE) {
     // Determine whether a subprofile was specified via a parameter.
     if (isset($install_state['parameters']['subprofile']) && !empty($install_state['parameters']['subprofile'])) {
       $subprofile_name = $install_state['parameters']['subprofile'];

@@ -1,24 +1,22 @@
 name = Debut SEO
 description = Enhance your site for search engines.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = features
 dependencies[] = globalredirect
 dependencies[] = metatag
+dependencies[] = path
 dependencies[] = pathauto
-features[features_api][] = api:1
+features[features_api][] = api:2
 features[user_permission][] = administer meta tags
 features[user_permission][] = administer pathauto
 features[user_permission][] = create url aliases
 features[user_permission][] = edit meta tags
 
-; Information added by drupal.org packaging script on 2013-03-06
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.1"
 core = "7.x"
 project = "debut_seo"
-datestamp = "1362596119"
+datestamp = "1425164653"
 

@@ -10,33 +10,33 @@
 function debut_wysiwyg_user_default_permissions() {
   $permissions = array();
 
-  // Exported permission: use text format wysiwyg_contributor.
+  // Exported permission: 'use text format wysiwyg_contributor'.
   $permissions['use text format wysiwyg_contributor'] = array(
     'name' => 'use text format wysiwyg_contributor',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'contributor',
-      2 => 'editor',
+      'administrator' => 'administrator',
+      'contributor' => 'contributor',
+      'editor' => 'editor',
     ),
     'module' => 'filter',
   );
 
-  // Exported permission: use text format wysiwyg_editor.
+  // Exported permission: 'use text format wysiwyg_editor'.
   $permissions['use text format wysiwyg_editor'] = array(
     'name' => 'use text format wysiwyg_editor',
     'roles' => array(
-      0 => 'administrator',
-      1 => 'editor',
+      'administrator' => 'administrator',
+      'editor' => 'editor',
     ),
     'module' => 'filter',
   );
 
-  // Exported permission: use text format wysiwyg_public.
+  // Exported permission: 'use text format wysiwyg_public'.
   $permissions['use text format wysiwyg_public'] = array(
     'name' => 'use text format wysiwyg_public',
     'roles' => array(
-      0 => 'anonymous user',
-      1 => 'authenticated user',
+      'anonymous user' => 'anonymous user',
+      'authenticated user' => 'authenticated user',
     ),
     'module' => 'filter',
   );

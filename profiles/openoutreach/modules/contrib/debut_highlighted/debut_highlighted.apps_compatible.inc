@@ -22,6 +22,15 @@ function debut_highlighted_apps_compatible_info() {
         'machine name' => 'contributor',
       ),
     ),
+    // Ensure a set of field bases is created.
+    'field_base' => array(
+      'field_content_image' => array(
+        'machine name' => 'field_content_image',
+      ),
+      'field_link' => array(
+        'machine name' => 'field_link',
+      ),
+    ),
   );
 }
 

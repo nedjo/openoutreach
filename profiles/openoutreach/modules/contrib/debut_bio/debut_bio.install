@@ -6,27 +6,6 @@
  */
 
 /**
- * Implements hook_enable().
- */
-function debut_bio_enable() {
-  // Rebuild the features static caches.
-  features_include(TRUE);
-
-  $module = 'debut_bio';
-  // Refresh entities, since this doesn't happen until just after hook_enable()
-  // is called.
-  // This call is needed to ensure the 'bio' profile2_type is available when
-  // permissions referencing it are created.
-  entity_modules_enabled(array($module));
-  $feature = feature_load($module);
-  // Retain the order of component types, which is needed for example to ensure
-  // that user roles are created ahead of user permissions that reference them.
-  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
-  _features_restore('enable', $items);
-  _features_restore('rebuild', $items);
-}
-
-/**
  * Enable the Apps compatible module.
  */
 function debut_bio_update_7000() {

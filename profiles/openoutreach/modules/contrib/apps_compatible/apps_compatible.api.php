@@ -20,16 +20,13 @@
  *   machine-readable name and each item itself being a sub_array. Valid types:
  *   - "role": an array keyed by role name with the following attribute:
  *      - "machine name": the machine-readable name of the field.
- *   - "field": an array of fields defined by app_compatible for which field
- *      instances should be created, keyed by field machine-readable name and
- *      with the following attributes:
- *      - "machine name": the machine-readable name of the field.
- *      - "entity type": the type of entity the field instance should be
- *         created for.
- *      - "bundle": the bundle the field instance should be created for.
+ *   - "field": an array of field bases defined by app_compatible for which
+ *     fieldbases should be created, keyed by field machine-readable name and
+ *     with the following attribute:
+ *      - "machine name": the machine-readable name of the field base.
  *   - "vocabulary": an array of vocabularies defined by app_compatible to be
- *      created, keyed by vocabulary machine name, with the following
- *      attribute:
+ *     created, keyed by vocabulary machine name, with the following
+ *     attribute:
  *      - "machine name": the machine-readable name of the field.
  */
 function hook_apps_compatible_info() {
@@ -46,15 +43,21 @@ function hook_apps_compatible_info() {
         'machine name' => 'tags',
       ),
     ),
-    /* Planned but not yet implemented.
-    // Create an instance of the specified 'field_media' field, as defined in
-    // apps_compatible, on the specified entity type and bundle.
-    'field' => array(
-      'machine name' => 'field_media',
-      'entity type' => 'node',
-      'bundle' => 'article',
+    // Ensure a set of field bases, as defined in apps_compatible, is created.
+    'field_base' => array(
+      'body' => array(
+        'machine name' => 'body',
+      ),
+      'field_content_image' => array(
+        'machine name' => 'field_content_image',
+      ),
+      'field_media' => array(
+        'machine name' => 'field_media',
+      ),
+      'field_tags' => array(
+        'machine name' => 'field_tags',
+      ),
     ),
-    */
   );
 }
 

@@ -1,15 +1,14 @@
 name = Debut Wysiwyg
 description = Provides a set of What You See Is What You Get (Wysiwyg) editors and accompanying text formats.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = features
+dependencies[] = filter
 dependencies[] = media
+dependencies[] = media_wysiwyg
 dependencies[] = wysiwyg
-features[features_api][] = api:1
+features[features_api][] = api:2
 features[filter][] = wysiwyg_contributor
 features[filter][] = wysiwyg_editor
 features[filter][] = wysiwyg_public
@@ -20,9 +19,9 @@ features[wysiwyg][] = wysiwyg_contributor
 features[wysiwyg][] = wysiwyg_editor
 features[wysiwyg][] = wysiwyg_public
 
-; Information added by Drupal.org packaging script on 2014-05-01
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_wysiwyg"
-datestamp = "1398904133"
+datestamp = "1425165184"
 

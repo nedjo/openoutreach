@@ -1,21 +1,25 @@
 name = Open Outreach core
 description = Provide core components for the Open Outreach distribution.
 core = 7.x
-package = Features
-php = 5.2.4
+package = Open Outreach
 dependencies[] = apps_compatible
 dependencies[] = context
+dependencies[] = ctools
 dependencies[] = features
+dependencies[] = filter
 dependencies[] = image
 dependencies[] = menu
+dependencies[] = node
 dependencies[] = shortcut
 dependencies[] = strongarm
+dependencies[] = system
 dependencies[] = taxonomy
+dependencies[] = user
 features[context][] = powered-by-openoutreach
 features[context][] = shortcut
 features[ctools][] = context:context:3
 features[ctools][] = strongarm:strongarm:1
-features[features_api][] = api:1
+features[features_api][] = api:2
 features[filter][] = filtered_html
 features[filter][] = full_html
 features[user_permission][] = access administration pages
@@ -46,9 +50,9 @@ features[variable][] = user_picture_style
 features[variable][] = user_pictures
 features[variable][] = user_register
 
-; Information added by Drupal.org packaging script on 2015-02-13
-version = "7.x-1.15"
+; Information added by Drupal.org packaging script on 2015-03-03
+version = "7.x-1.16"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1423852999"
+datestamp = "1425404351"
 

@@ -7,8 +7,7 @@
 /**
  * Implements hook_ctools_plugin_api().
  */
-function debut_highlighted_ctools_plugin_api() {
-  list($module, $api) = func_get_args();
+function debut_highlighted_ctools_plugin_api($module = NULL, $api = NULL) {
   if ($module == "strongarm" && $api == "strongarm") {
     return array("version" => "1");
   }
@@ -17,8 +16,8 @@ function debut_highlighted_ctools_plugin_api() {
 /**
  * Implements hook_views_api().
  */
-function debut_highlighted_views_api() {
-  return array("version" => "3.0");
+function debut_highlighted_views_api($module = NULL, $api = NULL) {
+  return array("api" => "3.0");
 }
 
 /**
@@ -42,11 +41,11 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale',
         'data' => array(
-          'width' => '830',
+          'width' => 830,
           'height' => '',
           'upscale' => 0,
         ),
-        'weight' => '1',
+        'weight' => 1,
       ),
       4 => array(
         'label' => 'Crop',
@@ -58,11 +57,11 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_crop',
         'data' => array(
-          'width' => '830',
-          'height' => '360',
+          'width' => 830,
+          'height' => 360,
           'anchor' => 'center-center',
         ),
-        'weight' => '2',
+        'weight' => 2,
       ),
     ),
   );
@@ -82,11 +81,11 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_scale',
         'data' => array(
-          'width' => '1140',
+          'width' => 1140,
           'height' => '',
           'upscale' => 0,
         ),
-        'weight' => '1',
+        'weight' => 1,
       ),
       2 => array(
         'label' => 'Crop',
@@ -98,11 +97,11 @@ function debut_highlighted_image_default_styles() {
         'module' => 'image',
         'name' => 'image_crop',
         'data' => array(
-          'width' => '1140',
-          'height' => '300',
+          'width' => 1140,
+          'height' => 300,
           'anchor' => 'center-center',
         ),
-        'weight' => '2',
+        'weight' => 2,
       ),
     ),
   );
@@ -124,5 +123,6 @@ function debut_highlighted_node_info() {
       'help' => '',
     ),
   );
+  drupal_alter('node_info', $items);
   return $items;
 }

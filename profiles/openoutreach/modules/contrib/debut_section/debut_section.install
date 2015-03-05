@@ -9,25 +9,14 @@
  * Implements hook_enable().
  */
 function debut_section_enable() {
-  //.Ensure section is an allowed book type. We do this here rather than
-  //.in a Strongarm variable to avoid overriding other feature's use
-  //.of book.
+  // Ensure section is an allowed book type. We do this here rather than
+  // in a Strongarm variable to avoid overriding other feature's use
+  // of book.
   $types = variable_get('book_allowed_types', array('book'));
   if (!in_array('section', $types)) {
     $types[] = 'section';
     variable_set('book_allowed_types', $types);
   }
-
-  // Rebuild the features static caches.
-  features_include(TRUE);
-
-  $module = 'debut_section';
-  $feature = feature_load($module);
-  // Retain the order of component types, which is needed for example to ensure
-  // that user roles are created ahead of user permissions that reference them.
-  $items[$module] = array_keys(array_intersect_key(features_get_components(), $feature->info['features']));
-  _features_restore('enable', $items);
-  _features_restore('rebuild', $items);
 }
 
 /**

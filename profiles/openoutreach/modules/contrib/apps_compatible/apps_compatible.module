@@ -6,12 +6,12 @@
  */
 
 /**
- * Implements hook_modules_installed().
+ * Implements hook_modules_enabled().
  *
  * When one or more modules are enabled, install any apps compatible components
  * they require.
  */
-function apps_compatible_modules_installed($modules) {
+function apps_compatible_modules_enabled($modules) {
   // Ensure we have the latest data.
   drupal_static_reset('apps_compatible_info');
   cache_clear_all('apps_compatible_info', 'cache');

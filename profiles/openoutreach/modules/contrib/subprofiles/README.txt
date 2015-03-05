@@ -45,9 +45,13 @@ To add subprofiles support to your installation profile:
      *   The install task definition.
      */
     function example_install_tasks($install_state) {
-      if (module_exists('subprofiles')) {
-        return _subprofiles_install_tasks($install_state);
-      }
+      $tasks = array();
+
+      // Add Subprofiles tasks.
+      require_once(drupal_get_path('module', 'subprofiles') . '/subprofiles.install.inc');
+      $tasks = $tasks + _subprofiles_install_tasks($install_state);
+
+      return $tasks;
     }
    </code>
 

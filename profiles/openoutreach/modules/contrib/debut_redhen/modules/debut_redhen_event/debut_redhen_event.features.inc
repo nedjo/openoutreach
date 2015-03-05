@@ -7,8 +7,8 @@
 /**
  * Implements hook_views_api().
  */
-function debut_redhen_event_views_api() {
-  return array("version" => "3.0");
+function debut_redhen_event_views_api($module = NULL, $api = NULL) {
+  return array("api" => "3.0");
 }
 
 /**

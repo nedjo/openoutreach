@@ -1,6 +1,31 @@
 <?php
 
 /**
+ * Implements hook_modules_enabled().
+ *
+ * When any module is enabled, process any corresponding migrations.
+ */
+function openoutreach_migrate_modules_enabled($modules) {
+  migrate_static_registration();
+  openoutreach_migrate_enable_migrate_support();
+  openoutreach_process_imports($modules);
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Move our hook_modules_enabled() implementation to after that of Features so
+ * that fields are created in time to migrate into them.
+ */
+function openoutreach_migrate_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'modules_enabled') {
+    $group = $implementations['openoutreach_migrate'];
+    unset($implementations['openoutreach_migrate']);
+    $implementations['openoutreach_migrate'] = $group;
+  }
+}
+
+/**
  * Implements hook_migrate_api().
  */
 function openoutreach_migrate_migrate_api() {

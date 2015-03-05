@@ -13,10 +13,9 @@ function debut_link_taxonomy_default_vocabularies() {
       'name' => 'Link terms',
       'machine_name' => 'link_terms',
       'description' => 'For use in classifying resource links.',
-      'hierarchy' => '0',
+      'hierarchy' => 0,
       'module' => 'taxonomy',
-      'weight' => '0',
-      'metatags' => array(),
+      'weight' => 0,
       'rdf_mapping' => array(
         'rdftype' => array(
           0 => 'skos:ConceptScheme',

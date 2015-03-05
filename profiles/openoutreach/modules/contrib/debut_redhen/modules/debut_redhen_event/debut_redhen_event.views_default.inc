@@ -62,11 +62,11 @@ function debut_redhen_event_views_default_views() {
       'empty_column' => 0,
     ),
   );
-  /* Relationship: Registration: User user_uid */
-  $handler->display->display_options['relationships']['user']['id'] = 'user';
-  $handler->display->display_options['relationships']['user']['table'] = 'registration';
-  $handler->display->display_options['relationships']['user']['field'] = 'user';
-  /* Field: Registration: Created */
+  /* Relationship: Registration: Author entity author_uid */
+  $handler->display->display_options['relationships']['author']['id'] = 'author';
+  $handler->display->display_options['relationships']['author']['table'] = 'registration';
+  $handler->display->display_options['relationships']['author']['field'] = 'author';
+  /* Field: Registration: Date created */
   $handler->display->display_options['fields']['created']['id'] = 'created';
   $handler->display->display_options['fields']['created']['table'] = 'registration';
   $handler->display->display_options['fields']['created']['field'] = 'created';
@@ -79,12 +79,6 @@ function debut_redhen_event_views_default_views() {
   $handler->display->display_options['fields']['rendered_entity']['label'] = 'Event';
   $handler->display->display_options['fields']['rendered_entity']['link_to_entity'] = 1;
   $handler->display->display_options['fields']['rendered_entity']['view_mode'] = 'full';
-  /* Field: User: E-mail */
-  $handler->display->display_options['fields']['mail']['id'] = 'mail';
-  $handler->display->display_options['fields']['mail']['table'] = 'users';
-  $handler->display->display_options['fields']['mail']['field'] = 'mail';
-  $handler->display->display_options['fields']['mail']['relationship'] = 'user';
-  $handler->display->display_options['fields']['mail']['label'] = 'Registrant E-mail';
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');

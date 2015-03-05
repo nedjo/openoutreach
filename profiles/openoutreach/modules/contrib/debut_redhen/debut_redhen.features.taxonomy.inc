@@ -13,9 +13,9 @@ function debut_redhen_taxonomy_default_vocabularies() {
       'name' => 'Contact type',
       'machine_name' => 'contact_type',
       'description' => 'Use to classify CRM contacts into types.',
-      'hierarchy' => '0',
+      'hierarchy' => 0,
       'module' => 'taxonomy',
-      'weight' => '0',
+      'weight' => 0,
       'rdf_mapping' => array(
         'rdftype' => array(
           0 => 'skos:ConceptScheme',
@@ -36,9 +36,9 @@ function debut_redhen_taxonomy_default_vocabularies() {
       'name' => 'Organization type',
       'machine_name' => 'org_type',
       'description' => 'Use to classify CRM organizations into types.',
-      'hierarchy' => '0',
+      'hierarchy' => 0,
       'module' => 'taxonomy',
-      'weight' => '0',
+      'weight' => 0,
       'rdf_mapping' => array(
         'rdftype' => array(
           0 => 'skos:ConceptScheme',

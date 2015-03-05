@@ -9,6 +9,7 @@ function node_features_api() {
       'name' => t('Content types'),
       'feature_source' => TRUE,
       'default_hook' => 'node_info',
+      'alter_type' => FEATURES_ALTER_TYPE_INLINE,
     ),
   );
 }
@@ -43,7 +44,7 @@ function node_features_export($data, &$export, $module_name = '') {
 
       $fields = field_info_instances('node', $type);
       foreach ($fields as $name => $field) {
-        $pipe['field'][] = "node-{$field['bundle']}-{$field['field_name']}";
+        $pipe['field_instance'][] = "node-{$field['bundle']}-{$field['field_name']}";
       }
     }
   }
@@ -86,6 +87,7 @@ function node_features_export_render($module, $data, $export = NULL) {
     }
   }
   $output[] = '  );';
+  $output[] = '  drupal_alter(\'node_info\', $items);';
   $output[] = '  return $items;';
   $output = implode("\n", $output);
   return array('node_info' => $output);

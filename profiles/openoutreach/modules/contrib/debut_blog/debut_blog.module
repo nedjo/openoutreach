@@ -103,7 +103,7 @@ function debut_blog_user_default_permissions_alter(&$items) {
   $permissions = array('edit own bio profile', 'view own bio profile');
   foreach ($permissions as $permission) {
     if (isset($items[$permission]) && !apps_compatible_feature_is_recreating('debut_bio')) {
-      $items[$permission]['roles'][] = 'blogger';
+      $items[$permission]['roles']['blogger'] = 'blogger';
     }
   }
 }

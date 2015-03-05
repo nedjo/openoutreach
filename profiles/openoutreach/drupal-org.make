@@ -1,36 +1,13 @@
 api = 2
 core = 7.34
 
-; Includes are now supported on drupal-org.make files.
-; Todo: revert to using the includes, or else simply rename the .make
-; files to remove the .inc extension and add the projects here.
-; See http://drupal.org/node/1427752.
-
-; Debut features.
-; includes[debut_article] = "http://drupalcode.org/project/debut_article.git/blob_plain/refs/heads/7.x-1.x:/debut_article.make.inc"
-; includes[debut_bio] = "http://drupalcode.org/project/debut_bio.git/blob_plain/refs/heads/7.x-1.x:/debut_bio.make.inc"
-; includes[debut_blog] = "http://drupalcode.org/project/debut_blog.git/blob_plain/refs/heads/7.x-1.x:/debut_blog.make.inc"
-; includes[debut_comment] = "http://drupalcode.org/project/debut_comment.git/blob_plain/refs/heads/7.x-1.x:/debut_comment.make.inc"
-; includes[debut_event] = "http://drupalcode.org/project/debut_event.git/blob_plain/refs/heads/7.x-1.x:/debut_event.make.inc"
-; includes[debut_forum] = "http://drupalcode.org/project/debut_forum.git/blob_plain/refs/heads/7.x-1.x:/debut_forum.make.inc"
-; includes[debut_highlighted] = "http://drupalcode.org/project/debut_highlighted.git/blob_plain/refs/heads/7.x-1.x:/debut_highlighted.make.inc"
-; includes[debut_link] = "http://drupalcode.org/project/debut_link.git/blob_plain/refs/heads/7.x-1.x:/debut_link.make.inc"
-; includes[debut_location] = "http://drupalcode.org/project/debut_location.git/blob_plain/refs/heads/7.x-1.x:/debut_location.make.inc"
-; includes[debut_media] = "http://drupalcode.org/project/debut_media.git/blob_plain/refs/heads/7.x-1.x:/debut_media.make.inc"
-; includes[debut_member] = "http://drupalcode.org/project/debut_member.git/blob_plain/refs/heads/7.x-1.x:/debut_member.make.inc"
-; includes[debut_redhen] = "http://drupalcode.org/project/debut_redhen.git/blob_plain/refs/heads/7.x-1.x:/debut_redhen.make.inc"
-; includes[debut_section] = "http://drupalcode.org/project/debut_section.git/blob_plain/refs/heads/7.x-1.x:/debut_section.make.inc"
-; includes[debut_seo] = "http://drupalcode.org/project/debut_seo.git/blob_plain/refs/heads/7.x-1.x:/debut_seo.make.inc"
-; includes[debut_social] = "http://drupalcode.org/project/debut_social.git/blob_plain/refs/heads/7.x-1.x:/debut_social.make.inc"
-; includes[debut_wysiwyg] = "http://drupalcode.org/project/debut_wysiwyg.git/blob_plain/refs/heads/7.x-1.x:/debut_wysiwyg.make.inc"
-
 ; Projects specific to Open Outreach.
 projects[adaptivetheme][subdir] = "contrib"
 projects[adaptivetheme][version] = 3.2
 projects[admin_menu][subdir] = contrib
 projects[admin_menu][version] = 3.0-rc5
 projects[apps_compatible][subdir] = contrib
-projects[apps_compatible][version] = 1.0-alpha3
+projects[apps_compatible][version] = 1.0
 projects[at-commerce][subdir] = contrib
 projects[at-commerce][version] = 3.0
 projects[ctools][subdir] = contrib
@@ -50,7 +27,7 @@ projects[rules][version] = 2.8
 projects[sky][subdir] = contrib
 projects[sky][version] = 3.0
 projects[subprofiles][subdir] = contrib
-projects[subprofiles][version] = 1.1
+projects[subprofiles][version] = 1.2
 projects[superfish][subdir] = contrib
 projects[superfish][version] = 1.9
 
@@ -58,7 +35,6 @@ libraries[superfish][directory_name] = "superfish"
 libraries[superfish][download][type] = "get"
 libraries[superfish][download][url] = "https://github.com/mehrpadin/Superfish-for-Drupal/zipball/master"
 
-; TODO: delete everything below once http://drupal.org/node/1427752 is fixed.
 projects[addressfield][subdir] = contrib
 projects[addressfield][version] = 1.0
 projects[advanced_forum][subdir] = contrib
@@ -82,45 +58,45 @@ projects[date][version] = 2.9-alpha2
 projects[date_ical][subdir] = contrib
 projects[date_ical][version] = 3.3
 projects[debut_article][subdir] = contrib
-projects[debut_article][version] = 1.0
+projects[debut_article][version] = 1.1
 projects[debut_bio][subdir] = contrib
-projects[debut_bio][version] = 1.0
+projects[debut_bio][version] = 1.2
 projects[debut_blog][subdir] = contrib
-projects[debut_blog][version] = 1.0
+projects[debut_blog][version] = 1.1
 projects[debut_comment][subdir] = contrib
-projects[debut_comment][version] = 1.0
+projects[debut_comment][version] = 1.1
 projects[debut_event][subdir] = contrib
-projects[debut_event][version] = 1.0
+projects[debut_event][version] = 1.1
 projects[debut_forum][subdir] = contrib
-projects[debut_forum][version] = 1.0
+projects[debut_forum][version] = 1.1
 projects[debut_highlighted][subdir] = contrib
-projects[debut_highlighted][version] = 1.1
+projects[debut_highlighted][version] = 1.2
 projects[debut_link][subdir] = contrib
-projects[debut_link][version] = 1.0
+projects[debut_link][version] = 1.1
 projects[debut_location][subdir] = contrib
-projects[debut_location][version] = 1.1
+projects[debut_location][version] = 1.2
 projects[debut_media][subdir] = contrib
-projects[debut_media][version] = 1.4
+projects[debut_media][version] = 1.5
 projects[debut_member][subdir] = contrib
-projects[debut_member][version] = 1.0
+projects[debut_member][version] = 1.1
 projects[debut_redhen][subdir] = contrib
-projects[debut_redhen][version] = 1.0-alpha4
+projects[debut_redhen][version] = 1.0
 projects[debut_section][subdir] = contrib
-projects[debut_section][version] = 1.1
+projects[debut_section][version] = 1.2
 projects[debut_seo][subdir] = contrib
-projects[debut_seo][version] = 1.0
+projects[debut_seo][version] = 1.1
 projects[debut_social][subdir] = contrib
-projects[debut_social][version] = 1.1
+projects[debut_social][version] = 1.2
 projects[debut_wysiwyg][subdir] = contrib
-projects[debut_wysiwyg][version] = 1.1
+projects[debut_wysiwyg][version] = 1.2
 projects[entity][subdir] = contrib
-projects[entity][version] = 1.5
+projects[entity][version] = 1.6
 projects[entityreference][subdir] = contrib
 projects[entityreference][version] = 1.1
 projects[eva][subdir] = contrib
 projects[eva][version] = 1.2
 projects[features][subdir] = contrib
-projects[features][version] = 1.0
+projects[features][version] = 2.3
 projects[file_admin][subdir] = contrib
 projects[file_admin][version] = 1.0-beta8
 projects[file_entity][subdir] = contrib
@@ -190,7 +166,7 @@ projects[service_links][patch][http://drupal.org/files/drupal7-service_links-2.2
 projects[strongarm][subdir] = contrib
 projects[strongarm][version] = 2.0
 projects[token][subdir] = contrib
-projects[token][version] = 1.5
+projects[token][version] = 1.6
 projects[transliteration][subdir] = contrib
 projects[transliteration][version] = 3.2
 projects[views_slideshow][subdir] = contrib
@@ -204,7 +180,8 @@ projects[xmlsitemap][version] = 2.2
 
 libraries[ckeditor][directory_name] = "ckeditor"
 libraries[ckeditor][download][type] = "get"
-libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.6.6/ckeditor_3.6.6.zip"
+; Use latest supported version per https://www.drupal.org/node/596966.
+libraries[ckeditor][download][url] = "http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.6.6.1/ckeditor_3.6.6.1.zip"
 libraries[colorbox][directory_name] = "colorbox"
 libraries[colorbox][download][type] = "get"
 libraries[colorbox][download][url] = "https://github.com/jackmoore/colorbox/archive/master.zip"

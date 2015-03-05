@@ -13,13 +13,13 @@ function debut_redhen_user_default_roles() {
   // Exported role: crm manager.
   $roles['crm manager'] = array(
     'name' => 'crm manager',
-    'weight' => '6',
+    'weight' => 6,
   );
 
   // Exported role: crm viewer.
   $roles['crm viewer'] = array(
     'name' => 'crm viewer',
-    'weight' => '7',
+    'weight' => 7,
   );
 
   return $roles;

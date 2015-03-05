@@ -51,7 +51,6 @@ function debut_wysiwyg_wysiwyg_default_profiles() {
       'css_path' => '',
       'css_classes' => '',
     ),
-    'metatags' => array(),
     'rdf_mapping' => array(),
   );
 
@@ -100,7 +99,6 @@ function debut_wysiwyg_wysiwyg_default_profiles() {
       'css_path' => '',
       'css_classes' => '',
     ),
-    'metatags' => array(),
     'rdf_mapping' => array(),
   );
 
@@ -138,7 +136,6 @@ function debut_wysiwyg_wysiwyg_default_profiles() {
       'css_path' => '',
       'css_classes' => '',
     ),
-    'metatags' => array(),
     'rdf_mapping' => array(),
   );
 

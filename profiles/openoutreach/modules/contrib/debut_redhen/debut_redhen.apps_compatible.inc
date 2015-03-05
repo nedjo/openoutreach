@@ -19,6 +19,12 @@ function debut_redhen_apps_compatible_info() {
         'machine name' => 'member',
       ),
     ),
+    // Ensure a set of field bases is created.
+    'field_base' => array(
+      'field_address' => array(
+        'machine name' => 'field_address',
+      ),
+    ),
   );
 }
 

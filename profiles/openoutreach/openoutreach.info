@@ -5,6 +5,7 @@ exclusive = TRUE
 core = "7.x"
 dependencies[] = "admin_menu_toolbar"
 dependencies[] = "advanced_help"
+dependencies[] = "apps_compatible"
 dependencies[] = "block"
 dependencies[] = "color"
 dependencies[] = "comment"
@@ -88,9 +89,9 @@ subprofiles[membership][features][debut_social] = TRUE
 subprofiles[membership][features][debut_wysiwyg] = TRUE
 subprofiles[membership][features][openoutreach_front_page] = TRUE
 
-; Information added by Drupal.org packaging script on 2015-02-13
-version = "7.x-1.15"
+; Information added by Drupal.org packaging script on 2015-03-03
+version = "7.x-1.16"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1423852999"
+datestamp = "1425404351"
 

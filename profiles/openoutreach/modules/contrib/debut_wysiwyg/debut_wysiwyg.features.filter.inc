@@ -14,13 +14,13 @@ function debut_wysiwyg_filter_default_formats() {
   $formats['wysiwyg_contributor'] = array(
     'format' => 'wysiwyg_contributor',
     'name' => 'Wysiwyg contributor',
-    'cache' => '1',
-    'status' => '1',
-    'weight' => '-8',
+    'cache' => 1,
+    'status' => 1,
+    'weight' => -8,
     'filters' => array(
       'filter_html' => array(
-        'weight' => '-10',
-        'status' => '1',
+        'weight' => -10,
+        'status' => 1,
         'settings' => array(
           'allowed_html' => '<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <p> <br> <u> <h2> <h3> <h4> <img>',
           'filter_html_help' => 1,
@@ -28,20 +28,20 @@ function debut_wysiwyg_filter_default_formats() {
         ),
       ),
       'filter_autop' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(),
       ),
       'filter_url' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(
-          'filter_url_length' => '72',
+          'filter_url_length' => 72,
         ),
       ),
       'media_filter' => array(
-        'weight' => '2',
-        'status' => '1',
+        'weight' => 2,
+        'status' => 1,
         'settings' => array(),
       ),
     ),
@@ -51,13 +51,13 @@ function debut_wysiwyg_filter_default_formats() {
   $formats['wysiwyg_editor'] = array(
     'format' => 'wysiwyg_editor',
     'name' => 'Wysiwyg editor',
-    'cache' => '1',
-    'status' => '1',
-    'weight' => '-9',
+    'cache' => 1,
+    'status' => 1,
+    'weight' => -9,
     'filters' => array(
       'filter_html' => array(
-        'weight' => '-10',
-        'status' => '1',
+        'weight' => -10,
+        'status' => 1,
         'settings' => array(
           'allowed_html' => '<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <p> <br> <u> <h2> <h3> <h4> <img> <table> <thead> <tbody> <th> <tr> <td>',
           'filter_html_help' => 1,
@@ -65,20 +65,20 @@ function debut_wysiwyg_filter_default_formats() {
         ),
       ),
       'filter_autop' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(),
       ),
       'filter_url' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(
-          'filter_url_length' => '72',
+          'filter_url_length' => 72,
         ),
       ),
       'media_filter' => array(
-        'weight' => '2',
-        'status' => '1',
+        'weight' => 2,
+        'status' => 1,
         'settings' => array(),
       ),
     ),
@@ -88,13 +88,13 @@ function debut_wysiwyg_filter_default_formats() {
   $formats['wysiwyg_public'] = array(
     'format' => 'wysiwyg_public',
     'name' => 'Wysiwyg public',
-    'cache' => '1',
-    'status' => '1',
-    'weight' => '-7',
+    'cache' => 1,
+    'status' => 1,
+    'weight' => -7,
     'filters' => array(
       'filter_html' => array(
-        'weight' => '-10',
-        'status' => '1',
+        'weight' => -10,
+        'status' => 1,
         'settings' => array(
           'allowed_html' => '<a> <em> <strong> <cite> <blockquote> <code> <ul> <ol> <li> <dl> <dt> <dd> <p> <br>',
           'filter_html_help' => 1,
@@ -102,15 +102,15 @@ function debut_wysiwyg_filter_default_formats() {
         ),
       ),
       'filter_autop' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(),
       ),
       'filter_url' => array(
-        'weight' => '0',
-        'status' => '1',
+        'weight' => 0,
+        'status' => 1,
         'settings' => array(
-          'filter_url_length' => '72',
+          'filter_url_length' => 72,
         ),
       ),
     ),

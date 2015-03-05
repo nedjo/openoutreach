@@ -1,17 +1,6 @@
 <?php
 
 /**
- * Implements hook_modules_enabled().
- *
- * When any module is enabled, process any corresponding migrations.
- */
-function openoutreach_migrate_modules_enabled($modules) {
-  migrate_static_registration();
-  openoutreach_migrate_enable_migrate_support();
-  openoutreach_process_imports($modules);
-}
-
-/**
  * Implements hook_enable().
  *
  * When this module is enabled, process all registered migrations.

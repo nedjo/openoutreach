@@ -1,34 +1,37 @@
 name = Debut Bio
 description = An author bio and associated display.
 core = 7.x
-package = Features
-php = 5.2.4
-author = Chocolate Lily
-author_url = http://chocolatelilyweb.ca
+package = Debut
 dependencies[] = apps_compatible
 dependencies[] = context
-dependencies[] = debut_blog
+dependencies[] = ctools
+dependencies[] = entity
 dependencies[] = features
 dependencies[] = profile2
+dependencies[] = text
 dependencies[] = views
 features[context][] = bio_author
 features[ctools][] = context:context:3
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
-features[features_api][] = api:1
-features[field][] = profile2-bio-field_bio
-features[field][] = profile2-bio-field_first_name
-features[field][] = profile2-bio-field_last_name
+features[features_api][] = api:2
+features[field_base][] = field_bio
+features[field_base][] = field_first_name
+features[field_base][] = field_last_name
+features[field_instance][] = profile2-bio-field_bio
+features[field_instance][] = profile2-bio-field_first_name
+features[field_instance][] = profile2-bio-field_last_name
 features[profile2_type][] = bio
 features[user_permission][] = edit any bio profile
 features[user_permission][] = edit own bio profile
 features[user_permission][] = view any bio profile
 features[user_permission][] = view own bio profile
 features[views_view][] = bio_author
+features_exclude[dependencies][debut_blog] = debut_blog
 
-; Information added by drupal.org packaging script on 2013-03-05
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2015-02-28
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_bio"
-datestamp = "1362443415"
+datestamp = "1425161282"
 

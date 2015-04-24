@@ -141,6 +141,7 @@ function registration_schema() {
       ),
       'reminder_date' => array(
         'description' => 'Date to send the reminder on.',
+        'type' => 'datetime',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
         'sqlite_type' => 'varchar',
@@ -155,6 +156,7 @@ function registration_schema() {
       ),
       'open' => array(
         'description' => 'Date to open registrations. Or NULL to open immediately.',
+        'type' => 'datetime',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
         'sqlite_type' => 'varchar',
@@ -163,6 +165,7 @@ function registration_schema() {
       ),
       'close' => array(
         'description' => 'Date to close registrations. Or NULL to never close automatically.',
+        'type' => 'datetime',
         'mysql_type' => 'datetime',
         'pgsql_type' => 'timestamp',
         'sqlite_type' => 'varchar',
@@ -214,6 +217,12 @@ function registration_schema() {
         'not null' => TRUE,
         'default' => 0,
         'size' => 'tiny',
+      ),
+      'default_state' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'The machine name of the default registration state.',
       ),
       'data' => array(
         'type' => 'text',
@@ -285,6 +294,13 @@ function registration_schema() {
         'default' => 0,
         'size' => 'tiny',
         'description' => 'A flag showing active registration states.',
+      ),
+      'held' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'A flag showing held registration states.',
       ),
       'show_on_form' => array(
         'type' => 'int',
@@ -379,6 +395,7 @@ function registration_install() {
       'description' => 'Registration has been completed.',
       'default_state' => 1,
       'active' => 1,
+      'held' => 0,
       'show_on_form' => 0,
       'weight' => 1,
     ),
@@ -387,6 +404,16 @@ function registration_install() {
       'description' => 'Registration is pending.',
       'default_state' => 0,
       'active' => 0,
+      'held' => 0,
+      'show_on_form' => 0,
+      'weight' => 1,
+    ),
+    'held' => array(
+      'label' => 'Held',
+      'description' => 'Registration is held.',
+      'default_state' => 0,
+      'active' => 0,
+      'held' => 1,
       'show_on_form' => 0,
       'weight' => 1,
     ),
@@ -395,6 +422,7 @@ function registration_install() {
       'description' => 'Registration was cancelled',
       'default_state' => 0,
       'active' => 0,
+      'held' => 0,
       'show_on_form' => 0,
       'weight' => 1,
     ),
@@ -408,6 +436,7 @@ function registration_install() {
         'description' => $state_label['description'],
         'default_state' => $state_label['default_state'],
         'active' => $state_label['active'],
+        'held' => $state_label['held'],
         'show_on_form' => $state_label['show_on_form'],
         'weight' => $state_label['weight'],
       )
@@ -534,11 +563,45 @@ function registration_update_7104(&$sandbox) {
     try {
       field_update_instance($instance);
     }
-    catch(FieldException $e) {
+    catch (FieldException $e) {
       throw new DrupalUpdateException($e->getMessage());
     }
   }
 
   $t = get_t();
   return $t('Registrations settings have been updated.');
+}
+
+/**
+ * Adds column to registration_state table for held property.
+ */
+function registration_update_7105(&$sandbox) {
+  if (!db_field_exists('registration_state', 'held')) {
+    $spec = array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+      'size' => 'tiny',
+      'description' => 'A flag showing held registration states.',
+    );
+
+    db_add_field('registration_state', 'held', $spec);
+  }
+}
+
+/**
+ * Add the new default_state field to the registration_type table
+ */
+
+function registration_update_7106(&$sandbox) {
+  if (!db_field_exists('registration_type', 'default_state')) {
+    db_add_field('registration_type', 'default_state',
+      array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => FALSE,
+        'description' => 'The machine name of the default registration state.',
+      )
+    );
+  }
 }

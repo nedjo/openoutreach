@@ -11,10 +11,12 @@ files[] = tests/date_field.test
 files[] = tests/date_migrate.test
 files[] = tests/date_validation.test
 files[] = tests/date_timezone.test
+files[] = tests/date_views_pager.test
+files[] = tests/date_views_popup.test
 
-; Information added by Drupal.org packaging script on 2014-09-24
-version = "7.x-2.9-alpha2"
+; Information added by Drupal.org packaging script on 2015-03-27
+version = "7.x-2.9-rc1"
 core = "7.x"
 project = "date"
-datestamp = "1411597758"
+datestamp = "1427454188"
 

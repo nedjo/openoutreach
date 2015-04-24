@@ -19,7 +19,7 @@ function openoutreach_block_info() {
   $blocks['powered-by'] = array(
     'info' => t('Powered by Open Outreach'),
     'weight' => '10',
-    'cache' => DRUPAL_NO_CACHE,
+    'cache' => DRUPAL_CACHE_PER_ROLE,
   );
   return $blocks;
 }

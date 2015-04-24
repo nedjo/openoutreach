@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * Registration Type UI controller.
  */
 class RegistrationTypeUIController extends EntityDefaultUIController {

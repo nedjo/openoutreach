@@ -7,7 +7,6 @@ dependencies[] = features
 dependencies[] = link
 dependencies[] = media
 dependencies[] = strongarm
-dependencies[] = views
 dependencies[] = views_slideshow_cycle
 features[ctools][] = strongarm:strongarm:1
 features[ctools][] = views:views_default:3.0
@@ -36,12 +35,13 @@ features[variable][] = node_preview_highlighted
 features[variable][] = node_submitted_highlighted
 features[views_view][] = highlighted
 features_exclude[dependencies][views_slideshow] = views_slideshow
+features_exclude[dependencies][views] = views
 features_exclude[field_base][field_content_image] = field_content_image
 features_exclude[field_base][field_link] = field_link
 
-; Information added by Drupal.org packaging script on 2015-02-28
-version = "7.x-1.2"
+; Information added by Drupal.org packaging script on 2015-04-23
+version = "7.x-1.3"
 core = "7.x"
 project = "debut_highlighted"
-datestamp = "1425162487"
+datestamp = "1429812256"
 

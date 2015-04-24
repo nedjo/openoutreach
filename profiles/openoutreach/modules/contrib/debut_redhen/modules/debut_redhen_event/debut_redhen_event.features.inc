@@ -20,8 +20,9 @@ function debut_redhen_event_default_registration_type() {
     "name" : "standard",
     "label" : "Standard registration",
     "locked" : "0",
-    "weight" : "0",
+    "default_state" : null,
     "data" : null,
+    "weight" : "0",
     "rdf_mapping" : []
   }');
   return $items;

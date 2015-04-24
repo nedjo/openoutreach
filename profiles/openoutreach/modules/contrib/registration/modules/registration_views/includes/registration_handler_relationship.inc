@@ -18,10 +18,19 @@ class registration_handler_relationship extends views_handler_relationship {
   function query() {
     $entity = $this->definition['entity'];
 
-    $this->definition['extra'][] = array(
-      'field' => 'entity_type',
-      'value' => $this->definition['entity'],
-    );
+    if (isset($this->definition['table'])) {
+      $this->definition['extra'][] = array(
+        'table' => $this->definition['table'],
+        'field' => 'entity_type',
+        'value' => $this->definition['entity'],
+      );
+    }
+    else {
+      $this->definition['extra'][] = array(
+        'field' => 'entity_type',
+        'value' => $this->definition['entity'],
+      );
+    }
     parent::query();
   }
 }

@@ -55,6 +55,87 @@ function hook_registration_entity_settings($settings) {
  *     'settings' => $settings,
  *   );
  */
-function hook_registration_even_count_alter($count, $context) {
+function hook_registration_event_count_alter(&$count, $context) {
 
+}
+
+/**
+ * Allow modules to alter registration entity settings prior to sending email
+ * to all registrants.
+ *
+ * This could be used, for example, to allow users to opt-out of broadcast
+ * emails.
+ *
+ * @param array $registrations
+ *
+ * @param array $context
+ *   array(
+ *     'entity_type' => $entity_type,
+ *     'entity_id' => $entity_id,
+ *   );
+ */
+function hook_registration_send_broadcast_alter(&$registrations, $context) {
+  // Loop through each registration.
+  foreach ($registrations as $reg_id => $registration) {
+    // Only send broadcast email for registrations where
+    // user registered themself; not other user or anonymous.
+    if (!($registration->user_uid == $registration->author_uid) ||
+      !empty($registration->anon_mail)) {
+      unset($registrations[$reg_id]);
+    }
+  }
+}
+
+/**
+ * Allow modules to alter registration entity settings for a specific node type
+ * prior to sending email to all registrants.
+ *
+ * This could be used, for example, to allow users to opt-out of broadcast
+ * emails.
+ *
+ * @param array $registrations
+ *
+ * @param array $context
+ *   array(
+ *     'entity_type' => $entity_type,
+ *     'entity_id' => $entity_id,
+ *   );
+ */
+function hook_registration_send_broadcast_ENTITY_TYPE_alter(&$registrations, $context) {
+  // Loop through each registration.
+  foreach ($registrations as $reg_id => $registration) {
+    // Only send broadcast email for registrations where
+    // user registered themself; not other user or anonymous.
+    if (!($registration->user_uid == $registration->author_uid) ||
+      !empty($registration->anon_mail)) {
+      unset($registrations[$reg_id]);
+    }
+  }
+}
+
+/**
+ * Allow modules to alter registration entity settings for a particular entity
+ * type and entity ID prior to sending email to all registrants.
+ *
+ * This could be used, for example, to allow users to opt-out of broadcast
+ * emails.
+ *
+ * @param array $registrations
+ *
+ * @param array $context
+ *   array(
+ *     'entity_type' => $entity_type,
+ *     'entity_id' => $entity_id,
+ *   );
+ */
+function hook_registration_send_broadcast_ENTITY_TYPE_ID_alter(&$registrations, $context) {
+  // Loop through each registration.
+  foreach ($registrations as $reg_id => $registration) {
+    // Only send broadcast email for registrations where
+    // user registered themself; not other user or anonymous.
+    if (!($registration->user_uid == $registration->author_uid) ||
+      !empty($registration->anon_mail)) {
+      unset($registrations[$reg_id]);
+    }
+  }
 }

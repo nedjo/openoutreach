@@ -29,9 +29,9 @@ features[user_permission][] = view own bio profile
 features[views_view][] = bio_author
 features_exclude[dependencies][debut_blog] = debut_blog
 
-; Information added by Drupal.org packaging script on 2015-02-28
-version = "7.x-1.2"
+; Information added by Drupal.org packaging script on 2015-04-23
+version = "7.x-1.3"
 core = "7.x"
 project = "debut_bio"
-datestamp = "1425161282"
+datestamp = "1429811886"
 

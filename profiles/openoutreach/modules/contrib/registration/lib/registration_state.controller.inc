@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * The controller class used for registration state entities
  */
 class RegistrationStateController extends EntityAPIControllerExportable {

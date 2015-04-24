@@ -5,9 +5,9 @@ package = Service Links
 dependencies[] = service_links
 dependencies[] = ds
 
-; Information added by drupal.org packaging script on 2013-06-10
-version = "7.x-2.2"
+; Information added by Drupal.org packaging script on 2015-04-18
+version = "7.x-2.3"
 core = "7.x"
 project = "service_links"
-datestamp = "1370849155"
+datestamp = "1429348386"
 

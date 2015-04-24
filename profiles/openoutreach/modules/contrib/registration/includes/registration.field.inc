@@ -147,18 +147,11 @@ function registration_field_widget_form(&$form, &$form_state, $field, $instance,
  */
 function registration_field_formatter_info() {
   return array(
-    'registration_default' => array(
-      'label' => t('Default'),
-      'field types' => array('registration'),
-      'settings' => array(
-        'label' => ' ',
-      ),
-    ),
     'registration_link' => array(
       'label' => t('Registration Link'),
       'field types' => array('registration'),
       'settings' => array(
-        'label' => ' ',
+        'label' => NULL,
       ),
     ),
     'registration_form' => array(
@@ -177,7 +170,7 @@ function registration_field_formatter_settings_form($field, $instance, $view_mod
 
   $element = array();
 
-  if ($display['type'] == 'registration_default' || $display['type'] == 'registration_link') {
+  if ($display['type'] == 'registration_link') {
     $element['label'] = array(
       '#title' => t('Label'),
       '#type' => 'textfield',
@@ -200,7 +193,7 @@ function registration_field_formatter_settings_summary($field, $instance, $view_
 
   $summary = '';
 
-  if ($display['type'] == 'registration_default' || $display['type'] == 'registration_link') {
+  if ($display['type'] == 'registration_link') {
     if (!empty($settings['label'])) {
       $summary = t('Registration label: @label.', array('@label' => $settings['label']));
     }
@@ -225,9 +218,6 @@ function registration_field_formatter_view($entity_type, $entity, $field, $insta
     $label = !empty($settings['label']) ? $settings['label'] : $reg_type->label;
 
     switch ($display['type']) {
-      case 'registration_default':
-        $element[0] = array('#markup' => $label);
-        break;
       case 'registration_link':
         // Enable registration link if accessible.
         if (registration_register_page_access($entity_type, $entity)) {

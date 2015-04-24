@@ -60,55 +60,100 @@ class Registration extends Entity {
     $host_uri = $host_entity ? entity_uri($this->entity_type, $host_entity) : NULL;
 
     $build['mail'] = array(
-      '#prefix' => '<div class="field registration-mail"><div class="field-label">' . t('Email Address') . '</div>',
-      '#markup' => $wrapper->mail->value(),
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => t('Email Address'),
+      '#items' => array(
+        array(
+          '#markup' => $wrapper->mail->value(),
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
     // Link to host entity.
     $host_entity_link_label = (isset($host_entity_type_info['bundles'][$host_entity_bundle]['label'])) ? '<div class="field-label">' . $host_entity_type_info['bundles'][$host_entity_bundle]['label'] . '</div>' : '';
+
     $build['host_entity_link'] = array(
-      '#prefix' => '<div class="field registration-entity-link">' . $host_entity_link_label,
-      '#markup' => l($host_label, $host_uri['path']),
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => $host_entity_link_label,
+      '#items' => array(
+        array(
+          '#markup' => l($host_label, $host_uri['path']),
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
     $build['created'] = array(
-      '#prefix' => '<div class="field registration-created"><div class="field-label">' . t('Created') . '</div>',
-      '#markup' => format_date($this->created),
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => t('Created'),
+      '#items' => array(
+        array(
+          '#markup' => format_date($this->created),
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
     $build['updated'] = array(
-      '#prefix' => '<div class="field registration-updated"><div class="field-label">' . t('Updated') . '</div>',
-      '#markup' => format_date($this->updated),
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => t('Updated'),
+      '#items' => array(
+        array(
+          '#markup' => format_date($this->updated),
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
     $build['slots'] = array(
-      '#prefix' => '<div class="field registration-slots"><div class="field-label">' . t('Slots Used') . '</div>',
-      '#markup' => $this->count,
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => t('Slots Used'),
+      '#items' => array(
+        array(
+          '#markup' => $this->count,
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
-    $build['author'] = array(
-      '#prefix' => '<div class="field registration-author"><div class="field-label">' . t('Author') . '</div>',
-      '#theme' => 'username',
-      '#account' => $author,
-      '#suffix' => '</div>',
-    );
+    if ($author) {
+      $build['author'] = array(
+        '#theme' => 'registration_property_field',
+        '#label' => t('Author'),
+        '#items' => array(
+          array(
+            '#markup' => theme('username', array('account' => $author)),
+          ),
+        ),
+        '#classes' => 'field field-label-inline clearfix',
+        '#attributes' => '',
+      );
+    }
 
-    $build['user'] = array(
-      '#prefix' => '<div class="field registration-user"><div class="field-label">' . t('User') . '</div>',
-      '#theme' => 'username',
-      '#account' => $user,
-      '#suffix' => '</div>',
-    );
+    if ($user) {
+      $build['user'] = array(
+        '#theme' => 'registration_property_field',
+        '#label' => t('User'),
+        '#items' => array(
+          array(
+            '#markup' => theme('username', array('account' => $user)),
+          ),
+        ),
+        '#classes' => 'field field-label-inline clearfix',
+        '#attributes' => '',
+      );
+    }
 
     $build['state'] = array(
-      '#prefix' => '<div class="field registration-state"><div class="field-label">' . t('State') . '</div>',
-      '#markup' => ($state) ? filter_xss_admin(entity_label('registration_state', $state)) : '',
-      '#suffix' => '</div>',
+      '#theme' => 'registration_property_field',
+      '#label' => t('State'),
+      '#items' => array(
+        array(
+          '#markup' => ($state) ? filter_xss_admin(entity_label('registration_state', $state)) : '',
+        ),
+      ),
+      '#classes' => 'field field-label-inline clearfix',
     );
 
     return $build;
@@ -124,7 +169,7 @@ class Registration extends Entity {
     $wrapper = entity_metadata_wrapper('registration', $this);
     $state = $wrapper->state->value();
     if (!$state) {
-      $default_state = registration_get_default_state();
+      $default_state = registration_get_default_state($wrapper->type->value());
       if ($default_state) {
         $this->state = $default_state->identifier();
       }

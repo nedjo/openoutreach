@@ -87,9 +87,9 @@ features[variable][] = redhen_contact_connect_users
 features_exclude[field_base][field_address] = field_address
 recommends[] = debut_event
 
-; Information added by Drupal.org packaging script on 2015-02-28
-version = "7.x-1.0"
+; Information added by Drupal.org packaging script on 2015-04-23
+version = "7.x-1.1"
 core = "7.x"
 project = "debut_redhen"
-datestamp = "1425164643"
+datestamp = "1429812786"
 

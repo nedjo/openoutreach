@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @file
  * @see hook_entity_property_info()
  */
 class RegistrationMetadataController extends EntityDefaultMetadataController {

@@ -1,9 +1,11 @@
 <?php
 /**
  * @file
- * A standard Views filter for a single date field, using Date API form selectors and sql handling.
+ * A standard Views filter for a single date field,
+ * using Date API form selectors and sql handling.
  */
 
+// @codingStandardsIgnoreStart
 class date_views_filter_handler_simple extends views_handler_filter_date {
   var $date_handler = NULL;
   var $offset = NULL;
@@ -263,7 +265,7 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
   }
 
   function extra_options_validate($form, &$form_state) {
-    if (!preg_match('/^(?:\-[0-9]{1,4}|[0-9]{4}):(?:[\+|\-][0-9]{1,4}|[0-9]{4})$/', $form_state['values']['options']['year_range'])) {
+    if (!preg_match('/^(?:[\+\-][0-9]{1,4}|[0-9]{4}):(?:[\+\-][0-9]{1,4}|[0-9]{4})$/', $form_state['values']['options']['year_range'])) {
       form_error($form['year_range'], t('Date year range must be in the format -9:+9, 2005:2010, -9:2010, or 2005:+9'));
     }
   }
@@ -379,16 +381,9 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
         $form[$prefix]['#dependency'] = array($source => $operator_values);
       }
       if (!isset($form_state['input'][$identifier][$prefix])) {
-        // Use hard-coded date characters and default date creation method as long field format is currently omitted.
-        $formats = array('year' => 'Y', 'month' => 'n', 'day' => 'j', 'hour' => 'H', 'minute' => 'i', 'second' => 's');
-        $default = date_default_date($form[$prefix] + array(
-            '#date_flexible' => FALSE,
-            '#date_increment' => 1,
-            '#date_timezone' => NULL,
-          )
-        );
+        // Ensure these exist.
         foreach ($granularity as $key) {
-          $form_state['input'][$identifier][$prefix][$key] = $default->format($formats[$key]);
+          $form_state['input'][$identifier][$prefix][$key] = NULL;
         }
       }
     }
@@ -540,3 +535,4 @@ class date_views_filter_handler_simple extends views_handler_filter_date {
   }
 
 }
+// @codingStandardsIgnoreEnd

@@ -51,9 +51,9 @@ features_exclude[field_base][field_content_image] = field_content_image
 features_exclude[field_base][field_link] = field_link
 features_exclude[field_base][field_media] = field_media
 
-; Information added by Drupal.org packaging script on 2015-02-28
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2015-04-23
+version = "7.x-1.2"
 core = "7.x"
 project = "debut_link"
-datestamp = "1425162786"
+datestamp = "1429812264"
 

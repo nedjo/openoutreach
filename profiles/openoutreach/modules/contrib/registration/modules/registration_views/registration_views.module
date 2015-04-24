@@ -283,7 +283,9 @@ function registration_views_views_data_alter(&$data) {
       'help' => t('The @entity entity that is associated with the Registration.',
         array('@entity' => $info['label'])),
       'relationship' => array(
-        'handler' => 'views_handler_relationship',
+        'entity' => $entity_type,
+        'table' => 'registration',
+        'handler' => 'registration_handler_relationship',
         'label' => t('@entity from Registration',
           array('@entity' => $entity_type)),
         'base' => $info['base table'],

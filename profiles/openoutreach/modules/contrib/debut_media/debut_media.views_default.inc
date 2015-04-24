@@ -56,7 +56,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['filename']['field'] = 'filename';
   $handler->display->display_options['fields']['filename']['label'] = '';
   $handler->display->display_options['fields']['filename']['element_label_colon'] = FALSE;
-  /* Field: Field: Tags */
+  /* Field: Content: Tags */
   $handler->display->display_options['fields']['field_tags']['id'] = 'field_tags';
   $handler->display->display_options['fields']['field_tags']['table'] = 'field_data_field_tags';
   $handler->display->display_options['fields']['field_tags']['field'] = 'field_tags';
@@ -113,7 +113,7 @@ function debut_media_views_default_views() {
   $handler->display->display_options['fields']['type']['field'] = 'type';
   $handler->display->display_options['fields']['type']['label'] = 'Media type';
   $handler->display->display_options['fields']['type']['machine_name'] = 0;
-  /* Field: Field: Tags */
+  /* Field: Content: Tags */
   $handler->display->display_options['fields']['field_tags']['id'] = 'field_tags';
   $handler->display->display_options['fields']['field_tags']['table'] = 'field_data_field_tags';
   $handler->display->display_options['fields']['field_tags']['field'] = 'field_tags';

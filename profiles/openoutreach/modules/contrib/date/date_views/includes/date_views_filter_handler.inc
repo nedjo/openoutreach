@@ -3,9 +3,11 @@
  * @file
  * A flexible, configurable date filter.
  * This filter combines multiple date filters into a single filter
- * where all fields are controlled by the same date and can be combined with either AND or OR.
+ * where all fields are controlled by the same date and can be combined
+ * with either AND or OR.
  */
 
+// @codingStandardsIgnoreStart
 class date_views_filter_handler extends date_views_filter_handler_simple {
   function init(&$view, &$options) {
     parent::init($view, $options);
@@ -179,3 +181,4 @@ class date_views_filter_handler extends date_views_filter_handler_simple {
     }
   }
 }
+// @codingStandardsIgnoreEnd

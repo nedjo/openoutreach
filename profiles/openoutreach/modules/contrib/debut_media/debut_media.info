@@ -15,15 +15,13 @@ dependencies[] = media_vimeo
 dependencies[] = media_wysiwyg
 dependencies[] = media_youtube
 dependencies[] = taxonomy
-dependencies[] = text
 dependencies[] = views
 features[context][] = media
 features[ctools][] = context:context:3
 features[ctools][] = file_entity:file_default_displays:1
 features[ctools][] = views:views_default:3.0
 features[features_api][] = api:2
-features[file_display][] = video__default__media_youtube_image
-features[file_display][] = video__preview__media_youtube_video
+features[file_display][] = video__full__media_vimeo_video
 features[image][] = medium_large
 features[image][] = small_square_thumbnail
 features[user_permission][] = add media from remote sources
@@ -75,9 +73,9 @@ features_exclude[field_instance][file-video-media_description] = file-video-medi
 recommends[] = media_browser_plus
 recommends[] = transliteration
 
-; Information added by Drupal.org packaging script on 2015-02-28
-version = "7.x-1.5"
+; Information added by Drupal.org packaging script on 2015-04-23
+version = "7.x-1.6"
 core = "7.x"
 project = "debut_media"
-datestamp = "1425163522"
+datestamp = "1429812493"
 

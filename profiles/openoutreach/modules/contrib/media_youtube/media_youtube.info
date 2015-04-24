@@ -9,10 +9,9 @@ files[] = includes/MediaYouTubeStreamWrapper.inc
 files[] = includes/MediaInternetYouTubeHandler.inc
 files[] = includes/MediaYouTubeBrowser.inc
 
-
-; Information added by drush on 2015-03-03
-version = "7.x-2.0-rc4+22-dev"
+; Information added by Drupal.org packaging script on 2015-03-23
+version = "7.x-2.0-rc5"
 core = "7.x"
 project = "media_youtube"
-datestamp = "1425404373"
+datestamp = "1427094782"
 

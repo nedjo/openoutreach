@@ -36,7 +36,7 @@ libraries[superfish][download][type] = "get"
 libraries[superfish][download][url] = "https://github.com/mehrpadin/Superfish-for-Drupal/zipball/master"
 
 projects[addressfield][subdir] = contrib
-projects[addressfield][version] = 1.0
+projects[addressfield][version] = 1.1
 projects[advanced_forum][subdir] = contrib
 projects[advanced_forum][version] = 2.5
 projects[advanced_help][subdir] = contrib
@@ -168,7 +168,7 @@ projects[transliteration][version] = 3.2
 projects[views_slideshow][subdir] = contrib
 projects[views_slideshow][version] = 3.1
 projects[views][subdir] = contrib
-projects[views][version] = 3.10
+projects[views][version] = 3.11
 projects[wysiwyg][subdir] = contrib
 projects[wysiwyg][version] = 2.2
 projects[xmlsitemap][subdir] = contrib

@@ -10,7 +10,7 @@
  * value of the iCal feeds created by Date iCal. It's primarily used for
  * debugging.
  */
-define('DATE_ICAL_VERSION', '3.3');
+define('DATE_ICAL_VERSION', '3.4-dev');
 
 /**
  * Exception class for generic exceptions thrown by this module.

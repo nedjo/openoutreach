@@ -91,7 +91,7 @@ class ParserVcalendar {
       $this->timezones[] = $component;
     }
     
-    // This content array is used by date_ical_import_component_alter() and
+    // This context array is used by date_ical_import_component_alter() and
     // date_ical_import_parsed_data_alter().
     $context2 = array(
       'calendar' => $this->calendar,
@@ -225,12 +225,30 @@ class ParserVcalendar {
     }
     
     if ($text === FALSE) {
-      if ($property_key == 'SUMMARY') {
-        $uid = $vcalendar_component->getProperty('UID');
-        throw new DateIcalParseException(t('The component with UID %uid is invalid because it has no SUMMARY (nodes require a title).', array('%uid' => $uid)));
+      if ($property_key != 'SUMMARY') {
+        return NULL;
       }
-      // If the component doesn't have this property, return NULL.
-      return NULL;
+      else {
+        $uid = $vcalendar_component->getProperty('UID');
+        if ($vcalendar_component->objName == 'vfreebusy') {
+          // FREEBUSY elements can't have SUMMARY, but they can have COMMENT.
+          // So if the feed has been configured to ask for SUMMARY, use COMMENT
+          // instead. If COMMENT is also missing, we can't import.
+          $text = $vcalendar_component->getProperty('COMMENT');
+          if ($text === FALSE) {
+            throw new DateIcalParseException(t('The VFREEBUSY component with UID %uid is invalid because it has no COMMENT.
+              Nodes require a title, and since VFREEBUSY components can\'t have SUMMARY, Date iCal pulls that title from the COMMENT.',
+              array('%uid' => $uid))
+            );
+          }
+        }
+        else {
+          // Non-VFREEBUSY components must have a SUMMARY.
+          throw new DateIcalParseException(t('The component with UID %uid is invalid because it has no SUMMARY (nodes require a title).',
+            array('%uid' => $uid))
+          );
+        }
+      }
     }
     // Convert literal \n and \N into newline characters.
     $text = str_replace(array('\n', '\N'), "\n", $text);

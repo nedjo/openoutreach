@@ -16,8 +16,8 @@ Date iCal has several required dependencies, and an optional one:
 - The Feeds module is optional. It's needed only if you you wish to import iCal
   feeds from other sites.
 
-To install the iCalcreator library, download the project's official zip file:
-https://github.com/iCalcreator/iCalcreator/archive/master.zip
+To install the iCalcreator library, download the project's v2.20.2 zip file:
+https://github.com/iCalcreator/iCalcreator/archive/e3dbec2cb3bb91a8bde989e467567ae8831a4026.zip
 Extract it, and copy iCalcreator.class.php to a folder in your Drupal site
 named sites/all/libraries/iCalcreator (you'll need to create that folder).
 
@@ -91,6 +91,10 @@ HOW TO EXPORT AN ICAL FEED USING THE iCal Entities PLUGIN
     "Format: iCal Feed", and check "Disable webcal://". Then save your View.
     This will make the iCal icon download a .ics file with the events, instead
     of loading the events directly into the user's calendar app.
+17. If events that you expect your feed to include are not appearing when it
+    gets consumed by a calendar app, check the Drupal permissions for your
+    event content type. If anonymous users can't view the event nodes, they
+    won't appear in your feed when it gets loaded by a calendar app.
 
 HOW TO EXPORT AN ICAL FEED USING THE iCal Fields PLUGIN
 1-6.These steps are the same as above.
@@ -238,3 +242,7 @@ date_ical exposes.
 The libraries/windowsZones.json file, which Date iCal uses to map Windows-style
 timezone names to real timezone IDs, is from Version24 of the Unicode CLDR:
 http://cldr.unicode.org/.
+
+The author of iCalcreator made backwards incompatible changes to the library
+in the v2.22 release. Thus Date iCal does not currently support any version of
+iCalcreator after v2.20.2.

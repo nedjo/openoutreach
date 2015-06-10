@@ -67,9 +67,9 @@ class date_ical_plugin_row_ical_entity extends views_plugin_row {
       // The surrounding <div> ensures that the settings dialog expands.
       '#prefix' => '<div style="font-size: 90%">',
       '#suffix' => '</div>',
-      '#markup' => t("Each item's Title and iCal view mode will be included as the SUMMARY and DESCRIPTION elements (respectively) in the VEVENTs output by this View.
+      '#markup' => t("Each item's Title will be the SUMMARY and the rendered iCal view mode will be the DESCRIPTION in the VEVENTs output by this View.
         <br>To change the iCal view mode, configure it on the 'Manage Display' page for each Content Type.
-        Please note that HTML will be stripped from the output (link URLs will become footnotes), to comply with iCal standards."),
+        Please note that all HTML will be stripped from the output, to comply with iCal standards."),
     );
     
     // Build the select dropdown for the text/node_reference field that the user

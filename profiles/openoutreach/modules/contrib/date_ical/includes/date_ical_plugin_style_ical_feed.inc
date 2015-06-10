@@ -291,11 +291,11 @@ class date_ical_plugin_style_ical_feed extends views_plugin_style {
                 'year' =>  $addition_array['year'],
                 'month' => $addition_array['month'],
                 'day' =>   $addition_array['day'],
-                // Use the time information from the start date, since Date
-                // doesn't store time info for RDATEs.
-                'hour' =>   $start['hour'],
-                'min' =>    $start['minute'],
-                'second' => $start['second'],
+                // If the user's copy of Date has support for time in RDATEs,
+                // use that. Otherwise use the time from the start date.
+                'hour' =>   isset($addition_array['hour']) ? $addition_array['hour'] : $start['hour'],
+                'min' =>    isset($addition_array['minute']) ? $addition_array['minute'] : $start['minute'],
+                'second' => isset($addition_array['second']) ? $addition_array['second'] : $start['second'],
                 'tz' =>     $start['tz']->getName(),
               );
               
@@ -308,10 +308,11 @@ class date_ical_plugin_style_ical_feed extends views_plugin_style {
                   'year' =>  $addition_array['year'],
                   'month' => $addition_array['month'],
                   'day' =>   $addition_array['day'],
-                  // Use the time information from the end date.
-                  'hour' =>   $end['hour'],
-                  'min' =>    $end['minute'],
-                  'second' => $end['second'],
+                  // If the user's copy of Date has support for time in RDATEs,
+                  // use that. Otherwise use the time from the end date.
+                  'hour' =>   isset($addition_array['hour']) ? $addition_array['hour'] : $end['hour'],
+                  'min' =>    isset($addition_array['minute']) ? $addition_array['minute'] : $end['minute'],
+                  'second' => isset($addition_array['second']) ? $addition_array['second'] : $end['second'],
                   'tz' =>     $end['tz']->getName(),
                 );
                 $rdate = $rdate_with_end;
@@ -405,7 +406,7 @@ class date_ical_plugin_style_ical_feed extends views_plugin_style {
       }
     }
     
-    // These steps shouldn't be run when during Preview on the View page.
+    // These steps shouldn't be run during Preview on the View page.
     if (empty($this->view->live_preview)) {
       // Prevent devel module from appending queries to ical export.
       $GLOBALS['devel_shutdown'] = FALSE;

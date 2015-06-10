@@ -21,9 +21,9 @@ files[] = includes/date_ical_plugin_style_ical_feed.inc
 ; Includes for iCal feed import using Feeds
 files[] = includes/DateiCalFeedsParser.inc
 
-; Information added by Drupal.org packaging script on 2014-10-08
-version = "7.x-3.3"
+; Information added by Drupal.org packaging script on 2015-05-05
+version = "7.x-3.4"
 core = "7.x"
 project = "date_ical"
-datestamp = "1412727230"
+datestamp = "1430852013"
 

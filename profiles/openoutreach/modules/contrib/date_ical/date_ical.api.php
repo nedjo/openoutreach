@@ -234,6 +234,13 @@ function hook_date_ical_import_timezone_alter(&$tzid, $context) {
  *     description: The description of this field shown in the Mapping page.
  *     date_ical_parse_handler: The function in the ParserVcalendar class
  *       which should be used to parse this iCal property into a Drupal field.
+ *
+ * Available date_ical_parse_handlers are:
+ *   parseTextProperty
+ *   parseDateTimeProperty
+ *   parseRepeatProperty
+ *   parseMultivalueProperty
+ *   parsePropertyParameter
  */
 function hook_date_ical_mapping_sources_alter(&$sources) {
   // Example of what might be done with this alter hook:

@@ -153,7 +153,14 @@ class DateiCalFeedsParser extends FeedsParser {
     $sources = array();
     $sources['SUMMARY'] = array(
       'name' => t('Summary/Title'),
-      'description' => t('The SUMMARY property. A short summary (usually the title) of the event.'),
+      'description' => t('The SUMMARY property. A short summary (usually the title) of the event.
+        A title is required for every node, so you need to include this source and have it mapped to the node title, except under unusual circumstances.'
+      ),
+      'date_ical_parse_handler' => 'parseTextProperty',
+    );
+    $sources['COMMENT'] = array(
+      'name' => t('Comment'),
+      'description' => t('The COMMENT property. A text comment is allowed on most components.'),
       'date_ical_parse_handler' => 'parseTextProperty',
     );
     $sources['DESCRIPTION'] = array(

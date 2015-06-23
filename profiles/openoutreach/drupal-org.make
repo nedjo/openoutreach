@@ -1,5 +1,5 @@
 api = 2
-core = 7.37
+core = 7.38
 
 ; Projects specific to Open Outreach.
 projects[adaptivetheme][subdir] = "contrib"

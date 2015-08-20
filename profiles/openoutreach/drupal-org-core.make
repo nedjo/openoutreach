@@ -1,3 +1,3 @@
 api = 2
-core = 7.38
-projects[drupal] = 7.38
+core = 7.39
+projects[drupal] = 7.39

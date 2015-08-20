@@ -2,6 +2,7 @@ name = Registration
 description = Entity based registration system.
 package = Registration
 core = 7.x
+configure = admin/structure/registration
 
 dependencies[] = entity
 
@@ -11,13 +12,14 @@ files[] = lib/registration.metadata.inc
 files[] = lib/registration_state.controller.inc
 files[] = lib/registration_state.entity.inc
 files[] = lib/registration_state.ui_controller.inc
+files[] = lib/registration_type.controller.inc
 files[] = lib/registration_type.entity.inc
 files[] = lib/registration_type.ui_controller.inc
 
 
-; Information added by Drupal.org packaging script on 2015-04-04
-version = "7.x-1.4"
+; Information added by Drupal.org packaging script on 2015-08-04
+version = "7.x-1.5"
 core = "7.x"
 project = "registration"
-datestamp = "1428110897"
+datestamp = "1438648142"
 

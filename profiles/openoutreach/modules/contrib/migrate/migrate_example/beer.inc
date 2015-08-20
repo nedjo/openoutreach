@@ -424,15 +424,13 @@ class BeerNodeMigration extends BasicExampleMigration {
     // subfields of the same field may be grouped on the same line), and indent
     // subfields to distinguish them from top-level fields.
     $this->addUnmigratedDestinations(array(
-        'body:format', 'body:language',
+        'body:format',
       'changed',
       'comment',
       'created',
-        'field_migrate_example_country:language',
         'field_migrate_example_image:destination_dir',
         'field_migrate_example_image:destination_file',
         'field_migrate_example_image:file_replace',
-        'field_migrate_example_image:language',
         'field_migrate_example_image:preserve_files',
         'field_migrate_example_image:urlencode',
       'is_new',
@@ -515,7 +513,7 @@ class BeerCommentMigration extends BasicExampleMigration {
     // Unmapped destination fields
     $this->addUnmigratedDestinations(array(
       'changed',
-        'comment_body:format', 'comment_body:language',
+        'comment_body:format',
       'created',
       'homepage',
       'hostname',

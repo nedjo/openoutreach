@@ -55,7 +55,9 @@ class RelationFeedsProcessor extends FeedsProcessor {
    */
   protected function map(FeedsSource $source, FeedsParserResult $result, $target_item = NULL) {
     parent::map($source, $result, $target_item);
-    $target_item->endpoints[LANGUAGE_NONE] = $this->mapEndpoints($source, $result);
+    if ($endpoints = $this->mapEndpoints($source, $result)) {
+      $target_item->endpoints[LANGUAGE_NONE] = $endpoints;
+    }
   }
 
   /**

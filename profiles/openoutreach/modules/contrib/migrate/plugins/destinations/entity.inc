@@ -176,4 +176,34 @@ abstract class MigrateDestinationEntity extends MigrateDestination {
       }
     }
   }
+
+  /**
+   * Perform field validation against the field data in an entity. Wraps
+   * field_attach_validate to handle exceptions cleanly and provide maximum
+   * information for identifying the cause of validation errors.
+   *
+   * @param $entity_type
+   *   The type of $entity; e.g. 'node' or 'user'.
+   * @param $entity
+   *   The entity with fields to validate.
+   */
+  static public function fieldAttachValidate($entity_type, $entity) {
+    try {
+      field_attach_validate($entity_type, $entity);
+    }
+    catch (FieldValidationException $e) {
+      $migration = Migration::currentMigration();
+      foreach ($e->errors as $field_name => $field_errors) {
+        foreach ($field_errors as $langcode => $errors) {
+          foreach ($errors as $delta => $error_list) {
+            foreach ($error_list as $index => $error) {
+              $message = $error['message'];
+              $migration->saveMessage(t('Field validation error for !field_name: !message',
+                array('!field_name' => $field_name, '!message' => $message)));
+            }
+          }
+        }
+      }
+    }
+  }
 }

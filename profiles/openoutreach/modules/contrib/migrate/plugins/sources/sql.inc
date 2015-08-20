@@ -376,14 +376,29 @@ class MigrateSourceSQL extends MigrateSource {
       // 3. If we are using highwater marks, also include rows above the mark.
       //    But, include all rows if the highwater mark is not set.
       if (isset($this->highwaterField['name']) && $this->activeMigration->getHighwater() !== '') {
-        if (isset($this->highwaterField['alias'])) {
-          $highwater = $this->highwaterField['alias'] . '.' . $this->highwaterField['name'];
+        // But, if there are any existing items marked as needing update which
+        // fall below the highwater mark, and map_joinable is FALSE, those
+        // items will be skipped. Thus, in that case do not add the highwater
+        // optimization to the query.
+        $add_highwater_condition = TRUE;
+        if (!$this->mapJoinable) {
+          $count_needs_update = db_query('SELECT COUNT(*) FROM {' .
+            $this->activeMap->getQualifiedMapTable() . '} WHERE needs_update = 1')
+            ->fetchField();
+          if ($count_needs_update > 0) {
+            $add_highwater_condition = FALSE;
+          }
         }
-        else {
-          $highwater = $this->highwaterField['name'];
+        if ($add_highwater_condition) {
+          if (isset($this->highwaterField['alias'])) {
+            $highwater = $this->highwaterField['alias'] . '.' . $this->highwaterField['name'];
+          }
+          else {
+            $highwater = $this->highwaterField['name'];
+          }
+          $conditions->condition($highwater, $this->activeMigration->getHighwater(), '>');
+          $condition_added = TRUE;
         }
-        $conditions->condition($highwater, $this->activeMigration->getHighwater(), '>');
-        $condition_added = TRUE;
       }
       if ($condition_added) {
         $this->query->condition($conditions);

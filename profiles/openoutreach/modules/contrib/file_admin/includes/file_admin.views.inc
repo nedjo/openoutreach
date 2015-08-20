@@ -103,7 +103,6 @@ function file_admin_views_data_alter(&$data) {
  */
 function file_admin_views_query_substitutions() {
   return array(
-    '***BYPASS_FILE_ACCESS***' => intval(user_access('bypass file access')),
     '***VIEW_OWN_UNPUBLISHED_FILES***' => intval(user_access('view own unpublished files')),
   );
 }

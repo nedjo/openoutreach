@@ -449,7 +449,7 @@ class WineProducerMigration extends AdvancedExampleMigration {
 
     // Unmapped destination fields
     $this->addUnmigratedDestinations(array(
-        'body:format', 'body:language',
+        'body:format',
       'changed',
       'comment',
       'created',
@@ -550,7 +550,7 @@ class WineProducerXMLMigration extends XMLMigration {
          ->xpath('/producer/description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -663,7 +663,7 @@ class WineProducerNamespaceXMLMigration extends XMLMigration {
          ->xpath('/pr:producer/pr:description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -784,7 +784,7 @@ class WineProducerMultiXMLMigration extends XMLMigration {
          ->xpath('description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -907,7 +907,7 @@ class WineProducerMultiNamespaceXMLMigration extends XMLMigration {
          ->xpath('pr:description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -1012,7 +1012,7 @@ class WineProducerXMLPullMigration extends XMLMigration {
          ->xpath('description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -1119,7 +1119,7 @@ class WineProducerNamespaceXMLPullMigration extends XMLMigration {
          ->xpath('pr:description');
 
     $this->addUnmigratedDestinations(array(
-        'body:summary', 'body:format', 'body:language',
+        'body:summary', 'body:format',
       'changed',
       'comment',
       'created',
@@ -1290,12 +1290,11 @@ class WineWineMigration extends AdvancedExampleMigration {
 
     // Unmapped destination fields
     $this->addUnmigratedDestinations(array(
-        'body:format', 'body:language',
+        'body:format',
       'comment',
         'field_migrate_example_image:destination_dir',
         'field_migrate_example_image:destination_file',
         'field_migrate_example_image:file_class',
-        'field_migrate_example_image:language',
         'field_migrate_example_image:preserve_files',
         'field_migrate_example_image:source_dir',
         'field_migrate_example_image:urlencode',
@@ -1418,7 +1417,7 @@ class WineCommentMigration extends AdvancedExampleMigration {
 
     // Unmapped destination fields
     $this->addUnmigratedDestinations(array(
-        'comment_body:format', 'comment_body:language',
+        'comment_body:format',
       'language',
       'thread',
     ));
@@ -1551,14 +1550,13 @@ class WineUpdatesMigration extends AdvancedExampleMigration {
     $this->addFieldMapping('created');
     $this->addFieldMapping('changed');
     $this->addUnmigratedDestinations(array(
-      'body:format', 'body:summary', 'body:language',
+      'body:format', 'body:summary',
       'comment',
         'field_migrate_example_image:alt',
         'field_migrate_example_image:destination_dir',
         'field_migrate_example_image:destination_file',
         'field_migrate_example_image:file_class',
         'field_migrate_example_image:file_replace',
-        'field_migrate_example_image:language',
         'field_migrate_example_image:preserve_files',
         'field_migrate_example_image:source_dir',
         'field_migrate_example_image:title',
@@ -1623,7 +1621,7 @@ class WineCommentUpdatesMigration extends AdvancedExampleMigration {
     // Unmapped destination fields
     $this->addUnmigratedDestinations(array(
       'changed',
-      'comment_body', 'comment_body:format', 'comment_body:language',
+      'comment_body', 'comment_body:format',
       'created',
       'homepage',
       'hostname',

@@ -48,6 +48,7 @@ subprofiles[standard][features][debut_link] = TRUE
 subprofiles[standard][features][debut_location] = FALSE
 subprofiles[standard][features][debut_media] = TRUE
 subprofiles[standard][features][debut_member] = FALSE
+subprofiles[standard][features][debut_newsletter] = FALSE
 subprofiles[standard][features][debut_redhen] = FALSE
 subprofiles[standard][features][debut_section] = TRUE
 subprofiles[standard][features][debut_seo] = TRUE
@@ -65,6 +66,7 @@ subprofiles[mapping][features][debut_highlighted] = TRUE
 subprofiles[mapping][features][debut_link] = TRUE
 subprofiles[mapping][features][debut_location] = TRUE
 subprofiles[mapping][features][debut_media] = TRUE
+subprofiles[mapping][features][debut_newsletter] = FALSE
 subprofiles[mapping][features][debut_section] = TRUE
 subprofiles[mapping][features][debut_seo] = TRUE
 subprofiles[mapping][features][debut_social] = FALSE
@@ -82,6 +84,7 @@ subprofiles[membership][features][debut_highlighted] = TRUE
 subprofiles[membership][features][debut_link] = TRUE
 subprofiles[membership][features][debut_location] = FALSE
 subprofiles[membership][features][debut_media] = TRUE
+subprofiles[membership][features][debut_newsletter] = FALSE
 subprofiles[membership][features][debut_redhen] = TRUE
 subprofiles[membership][features][debut_section] = TRUE
 subprofiles[membership][features][debut_seo] = TRUE
@@ -89,9 +92,9 @@ subprofiles[membership][features][debut_social] = TRUE
 subprofiles[membership][features][debut_wysiwyg] = TRUE
 subprofiles[membership][features][openoutreach_front_page] = TRUE
 
-; Information added by Drupal.org packaging script on 2015-06-18
-version = "7.x-1.21"
+; Information added by Drupal.org packaging script on 2015-08-20
+version = "7.x-1.23"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1434651781"
+datestamp = "1440031741"
 

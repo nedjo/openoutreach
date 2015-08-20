@@ -106,7 +106,7 @@ class Registration extends Entity {
       '#classes' => 'field field-label-inline clearfix',
     );
 
-    $build['slots'] = array(
+    $build['spaces'] = array(
       '#theme' => 'registration_property_field',
       '#label' => t('Slots Used'),
       '#items' => array(

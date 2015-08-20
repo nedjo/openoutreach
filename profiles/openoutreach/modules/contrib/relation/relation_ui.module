@@ -68,8 +68,8 @@ function relation_ui_menu() {
     'description' => 'Add new relation types.',
   );
   $items['admin/structure/relation/import'] = array(
-    'title' => 'Import  relation type',
-    'access arguments' => array('administer relation types'),
+    'title' => 'Import relation type',
+    'access arguments' => array('use relation import'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('relation_ui_type_import'),
     'type' => MENU_LOCAL_ACTION,

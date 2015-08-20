@@ -7,9 +7,9 @@ dependencies[] = migrate
 files[] = openoutreach_migrate.migrate.inc
 files[] = plugins/destinations/fields.inc
 
-; Information added by Drupal.org packaging script on 2015-06-18
-version = "7.x-1.21"
+; Information added by Drupal.org packaging script on 2015-08-20
+version = "7.x-1.23"
 core = "7.x"
 project = "openoutreach"
-datestamp = "1434651781"
+datestamp = "1440031741"
 

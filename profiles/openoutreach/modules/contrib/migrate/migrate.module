@@ -93,11 +93,18 @@ function migrate_migrations($reset = NULL) {
     $final_migrations[$name] = array();
   }
 
-  // Fill in the grouped list
+  // Fill in the grouped list.
   foreach ($migrations as $machine_name => $migration) {
-    $final_migrations[$migration->getGroup()->getName()][$machine_name] = $migration;
+    if (!method_exists($migration, 'getGroup')) {
+      MigrationBase::displayMessage(t('Migration !machine_name is not a valid Migration dependency.', array(
+        '!machine_name' => $machine_name,
+      )));
+    }
+    else {
+      $final_migrations[$migration->getGroup()->getName()][$machine_name] = $migration;
+    }
   }
-  // Then flatten the list
+  // Flatten the grouped list.
   $migrations = array();
   foreach ($final_migrations as $group_name => $group_migrations) {
     foreach ($group_migrations as $machine_name => $migration) {

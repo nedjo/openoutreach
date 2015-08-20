@@ -21,7 +21,7 @@ function relation_entity_info() {
     'fieldable' => TRUE,
     'controller class' => 'RelationController',
     'save callback' => 'relation_save',
-    'creation callback' => 'relation_rules_create',
+    'creation callback' => 'relation_entity_create',
     'deletion callback' => 'relation_delete',
     'access callback' => 'relation_rules_access',
     'uri callback' => 'relation_uri',
@@ -162,6 +162,10 @@ function relation_permission() {
     ),
     'export relation types' => array(
       'title' => t('Export Relation types'),
+    ),
+    'use relation import' => array(
+      'title' => t('Use Relation import'),
+      'restrict access' => TRUE,
     ),
     'access relations' => array(
       'title' => t('View Relations'),
@@ -994,4 +998,16 @@ class RelationController extends DrupalDefaultEntityController {
     $query->addField('revision', 'changed', 'changed');
     return $query;
   }
+}
+
+/**
+ * Callback to create a relation.
+ */
+function relation_entity_create($values = array()) {
+  $relation = relation_create($values['relation_type'], array());
+  foreach ($values as $key => $value) {
+    $relation->{$key} = $value;
+  }
+
+  return $relation;
 }

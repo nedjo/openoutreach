@@ -48,6 +48,17 @@ function relation_endpoint_field_schema() {
 function relation_endpoint_update_7001() {
   // Same index operations are performed to data and revision tables
   foreach (array('field_data_endpoints', 'field_revision_endpoints') as $table) {
+    // Do not touch any indexes if field data table doesn't exist. This might
+    // happen if there aren't any relation types created yet.
+    if (!db_table_exists($table)) {
+      continue;
+    }
+    // If old style index does not exist do not attempt to drop it and create
+    // new indexes as these are probably already created by other means.
+    // (eg. shared database)
+    if (!db_index_exists($table, 'endpoints_relation')) {
+      continue;
+    }
     db_drop_index($table, 'endpoints_relation');
     db_add_index($table, 'endpoints_entity_type', array('endpoints_entity_type'));
     db_add_index($table, 'endpoints_entity_id', array('endpoints_entity_id'));

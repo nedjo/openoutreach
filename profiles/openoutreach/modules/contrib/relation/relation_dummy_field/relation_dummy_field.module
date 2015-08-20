@@ -198,7 +198,7 @@ function relation_dummy_field_field_formatter_view($entity_type, $entity, $field
         }
         $element[$delta]['relation'] = array(
           '#theme' => 'item_list',
-          '#items' => array($subject . $predicate . $objects),
+          '#items' => array(check_plain($subject . $predicate) . $objects),
         );
       }
       break;

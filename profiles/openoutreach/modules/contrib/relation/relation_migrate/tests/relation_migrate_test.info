@@ -10,9 +10,9 @@ dependencies[] = entityreference
 dependencies[] = views
 
 
-; Information added by Drupal.org packaging script on 2015-02-11
-version = "7.x-1.0-rc7"
+; Information added by Drupal.org packaging script on 2015-08-11
+version = "7.x-1.0"
 core = "7.x"
 project = "relation"
-datestamp = "1423640902"
+datestamp = "1439290741"
 

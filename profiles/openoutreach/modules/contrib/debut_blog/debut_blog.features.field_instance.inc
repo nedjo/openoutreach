@@ -115,20 +115,22 @@ function debut_blog_field_default_field_instances() {
       'min_resolution' => '',
       'title_field' => 0,
       'user_register_form' => FALSE,
-    ),
-    'widget' => array(
+    ),   
+      'widget' => array(
       'active' => 1,
       'module' => 'media',
       'settings' => array(
         'allowed_schemes' => array(
-          0 => 'public',
-          1 => 'private',
+          'public' => 'public',
+          'youtube' => 0,
         ),
         'allowed_types' => array(
-          0 => 'image',
+          'audio' => 0,
+          'default' => 0,
+          'image' => 'image',
+          'video' => 0,
         ),
         'browser_plugins' => array(),
-        'preview_image_style' => 'thumbnail',
         'progress_indicator' => 'throbber',
       ),
       'type' => 'media_generic',

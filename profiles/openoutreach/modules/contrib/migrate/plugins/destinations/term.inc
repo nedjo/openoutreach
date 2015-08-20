@@ -258,7 +258,7 @@ class MigrateDestinationTerm extends MigrateDestinationEntity {
     }
 
     // Validate field data prior to saving.
-    field_attach_validate('taxonomy_term', $term);
+    MigrateDestinationEntity::fieldAttachValidate('taxonomy_term', $term);
 
     migrate_instrument_start('taxonomy_term_save');
     $status = taxonomy_term_save($term);

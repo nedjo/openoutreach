@@ -9,6 +9,7 @@ module_load_include('inc', 'registration', 'includes/registration.field');
 module_load_include('inc', 'registration', 'includes/registration.forms');
 
 define('REGISTRATION_STATE_ONE', 1);
+define('REGISTRATION_INSUFFICIENT_SPACES_MESSAGE', 'Insufficient spaces remaining.');
 
 /**
  * If user has access to create registrations for his account.
@@ -68,7 +69,7 @@ function registration_entity_info() {
     'registration_type' => array(
       'label' => t('Registration type'),
       'entity class' => 'RegistrationType',
-      'controller class' => 'EntityAPIControllerExportable',
+      'controller class' => 'RegistrationTypeController',
       'base table' => 'registration_type',
       'fieldable' => FALSE,
       'bundle of' => 'registration',
@@ -194,10 +195,11 @@ function registration_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // entity local tasks
+  // Entity local tasks.
   foreach (registration_get_registration_instances() as $instance) {
     $type = $instance['entity_type'];
     if (!in_array($type, array('registration', 'registration_type'))) {
+      $hide_register_tab = isset($instance['settings']['hide_register_tab']) && $instance['settings']['hide_register_tab'];
       $items[$type . '/%entity_object/register'] = array(
         'load arguments' => array($type),
         'title' => 'Register',
@@ -205,7 +207,7 @@ function registration_menu() {
         'page arguments' => array(0, 1),
         'access callback' => 'registration_register_page_access',
         'access arguments' => array(0, 1),
-        'type' => MENU_LOCAL_TASK,
+        'type' => $hide_register_tab ? MENU_CALLBACK : MENU_LOCAL_TASK,
       );
       $items[$type . '/%entity_object/registrations'] = array(
         'load arguments' => array($type),
@@ -363,8 +365,12 @@ function registration_permission_list($info) {
     "delete any $type registration" => array(
       'title' => t('%type_name: Delete any registrations', array('%type_name' => $label)),
     ),
+    "create $type registration self" => array(
+      'title' => t('%type_name: Register self', array('%type_name' => $label)),
+    ),
     "create $type registration other users" => array(
       'title' => t('%type_name: Register other accounts', array('%type_name' => $label)),
+      'description' => t("Register other users by username. Note that giving this permission to Anonymous is not recommended, as it can expose a user's registration status to a site visitor who knows their username."),
     ),
     "create $type registration other anonymous" => array(
       'title' => t('%type_name: Register other people', array('%type_name' => $label)),
@@ -571,7 +577,7 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('id'),
       'field' => 'registration_id',
       'type' => 'property',
-      'specifier' => 'registration_id'
+      'specifier' => 'registration_id',
     ),
     array(
       'data' => t('Email'),
@@ -580,32 +586,32 @@ function registration_registrations_page($entity_type, $entity) {
       'data' => t('User'),
       'field' => 'user_uid',
       'type' => 'property',
-      'specifier' => 'user_uid'
+      'specifier' => 'user_uid',
     ),
     array(
       'data' => t('Created By'),
       'field' => 'author_uid',
       'type' => 'property',
-      'specifier' => 'author_uid'
+      'specifier' => 'author_uid',
     ),
     array(
       'data' => t('Count'),
       'field' => 'count',
       'type' => 'property',
-      'specifier' => 'count'
+      'specifier' => 'count',
     ),
     array(
       'data' => t('Created'),
       'field' => 'created',
       'sort' => 'desc',
       'type' => 'property',
-      'specifier' => 'created'
+      'specifier' => 'created',
     ),
     array(
       'data' => t('State'),
       'field' => 'state',
       'type' => 'property',
-      'specifier' => 'state'
+      'specifier' => 'state',
     ),
     array('data' => t('Actions')),
   );
@@ -613,7 +619,7 @@ function registration_registrations_page($entity_type, $entity) {
   list($entity_id) = entity_extract_ids($entity_type, $entity);
   $label = entity_label($entity_type, $entity);
 
-  $query = new EntityFieldQuery;
+  $query = new EntityFieldQuery();
   $result = $query
     ->entityCondition('entity_type', 'registration')
     ->propertyCondition('entity_id', $entity_id)
@@ -765,7 +771,7 @@ function registration_event_count($entity_type, $entity_id, $registration_id = N
     if ($registration_id != NULL) {
       $query->condition('registration_id', $registration_id, '<>');
     }
-    $active_held_states = registration_states(array('held' => TRUE, 'active' => TRUE));
+    $active_held_states = array_merge(registration_get_active_states(), registration_get_held_states());
     if (!empty($active_held_states)) {
       $query->condition('state', $active_held_states, 'IN');
     }
@@ -1217,7 +1223,7 @@ function registration_status($entity_type, $entity_id, $reset = FALSE, $spaces =
     // check capacity
     if (!registration_has_room($entity_type, $entity_id, $spaces, $registration_id, $reset)) {
       $status = FALSE;
-      $errors[] = t('Insufficient spaces remaining.');
+      $errors[] = t(REGISTRATION_INSUFFICIENT_SPACES_MESSAGE);
     }
     // check open date range
     if (isset($open) && ($now < $open)) {
@@ -1438,21 +1444,27 @@ function registration_access_people(Registration $registration, $account = NULL)
   $account = isset($account) ? $account : $GLOBALS['user'];
   $people = array();
 
-  // Me
+  // Me:
   $settings = registration_entity_settings($registration->entity_type, $registration->entity_id);
   $allow_multiple = !empty($settings['settings']['multiple_registrations']) && $settings['settings']['multiple_registrations'];
-  if ($account->uid && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
+  if ($account->uid && (user_access("create $registration->type registration self", $account)) && ($account->uid === $registration->user_uid || (!registration_is_registered($registration, NULL, $account->uid) || $allow_multiple))) {
     $people[REGISTRATION_REGISTRANT_TYPE_ME] = t('Myself');
   }
 
-  // Other users
+  // Other users:
   if (user_access("create $registration->type registration other users", $account)) {
     $people[REGISTRATION_REGISTRANT_TYPE_USER] = t('Other account');
   }
 
-  // Anonymous people
-  if (user_access("create $registration->type registration other anonymous", $account)) {
-    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = (empty($account->uid) && $account->uid != 0) ? t('Myself') : t('Other person');
+  $user_is_anonymous = (empty($account->uid) || $account->uid == 0);
+  // Other anonymous people:
+  if (user_access("create $registration->type registration other anonymous", $account) && !$user_is_anonymous) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Other person');
+  }
+
+  // Anonymous self-registration:
+  if ($user_is_anonymous && user_access("create $registration->type registration")) {
+    $people[REGISTRATION_REGISTRANT_TYPE_ANON] = t('Myself');
   }
 
   return $people;
@@ -1934,4 +1946,66 @@ function registration_type_delete(RegistrationType $type) {
  */
 function registration_state_access($op, $entity = NULL, $account = NULL, $entity_type = NULL) {
   return user_access('administer registration states', $account);
+}
+
+/**
+ * Implements hook_i18n_string_info().
+ */
+function registration_i18n_string_info() {
+  $groups = array();
+
+  $groups['registration'] = array(
+    'title' => t('Entity registration'),
+    'description' => t('Translatable registration settings.'),
+    'format' => FALSE,
+    'list' => TRUE,
+  );
+
+  return $groups;
+}
+
+/**
+ * Translates a config string to the current language or to a given language.
+ *
+ * @param $name string
+ *   A key *without* a textgroup (this module's textgroup will be prefixed
+ *   automatically).
+ * @param $string string
+ *   A user-entered configuration string in the default language. The default
+ *   language may or may not be English.
+ * @param $langcode string
+ *   The language code. Defaults to NULL.
+ *
+ * @return string
+ *   The translated string, if i18n_string() is available. Otherwise, returns
+ *   $string.
+ *
+ * @see https://drupal.org/node/1114010
+ * @see i18n_string()
+ */
+function _registration_translate($name, $string, $langcode = NULL) {
+  return function_exists('i18n_string') ? i18n_string('registration:' . $name, $string, array('langcode' => $langcode)) : $string;
+}
+
+/**
+ * Registers a config string so it can later be translated.
+ *
+ * @param $name string
+ *   A key *without* a textgroup (this module's textgroup will be prefixed
+ *   automatically).
+ * @param $string string
+ *   A user-entered configuration string in the default language. The default
+ *   language may or may not be English.
+ * @param $langcode string
+ *   The language code. Defaults to NULL.
+ *
+ * @return string
+ *   The translated string, if i18n_string() is available. Otherwise, returns
+ *   $string.
+ *
+ * @see https://drupal.org/node/1114010
+ * @see i18n_string()
+ */
+function _registration_translate_update($name, $string, $langcode = NULL) {
+  return function_exists('i18n_string') ? i18n_string('registration:' . $name, $string, array('update' => TRUE, 'langcode' => $langcode)) : FALSE;
 }

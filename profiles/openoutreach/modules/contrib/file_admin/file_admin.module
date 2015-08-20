@@ -377,6 +377,72 @@ function file_admin_file_operations() {
 }
 
 /**
+ * Implements hook_action_info().
+ */
+function file_admin_action_info() {
+  return array(
+    'file_admin_publish_action' => array(
+      'type' => 'file',
+      'label' => t('Publish file'),
+      'configurable' => FALSE,
+      'triggers' => array('entity_presave'),
+    ),
+    'file_admin_unpublish_action' => array(
+      'type' => 'file',
+      'label' => t('Unpublish file'),
+      'configurable' => FALSE,
+      'triggers' => array('entity_presave'),
+    ),
+  );
+}
+
+
+/**
+ * Sets the published field of a file to 1 (published).
+ *
+ * @param file_entity $file_entity
+ *   A file entity object.
+ * @param array $context
+ *   (optional) Array of additional information about what triggered the action.
+ *   Not used for this action.
+ *
+ * @ingroup actions
+ */
+function file_admin_publish_action($file_entity, $context = array()) {
+  file_admin_mass_update(array('fid' => $file_entity->fid), array('published' => FILE_PUBLISHED));
+  if (!empty($file_entity->title)) {
+    $title = $file_entity->title;
+  }
+  else {
+    $title = $file_entity->filename;
+  }
+  watchdog('action', 'Set @type %title to published.', array('@type' => file_get_type($file_entity), '%title' => $title));
+}
+
+/**
+ * Sets the published field of a file to 0 (unpublished).
+ *
+ * @param file_entity $file_entity
+ *   A file entity object.
+ * @param array $context
+ *   (optional) Array of additional information about what triggered the action.
+ *   Not used for this action.
+ *
+ * @ingroup actions
+ */
+function file_admin_unpublish_action($file_entity, $context = array()) {
+  file_admin_mass_update(array('fid' => $file_entity->fid), array('published' => FILE_NOT_PUBLISHED));
+  if (!empty($file_entity->title)) {
+    $title = $file_entity->title;
+  }
+  else {
+    $title = $file_entity->filename;
+  }
+  watchdog('action', 'Set @type %title to unpublished.', array('@type' => file_get_type($file_entity), '%title' => $title));
+}
+
+
+/**
  * Make mass update of files, changing all files in the $files array
  * to update them with the field values in $updates.
  *

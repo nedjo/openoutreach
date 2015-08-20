@@ -19,9 +19,9 @@ files[] = includes/registration_handler_field_entity_datetime.inc
 files[] = includes/registration_handler_field_entity_settings_link.inc
 files[] = includes/registration_handler_field_entity_registration_status.inc
 
-; Information added by Drupal.org packaging script on 2015-04-04
-version = "7.x-1.4"
+; Information added by Drupal.org packaging script on 2015-08-04
+version = "7.x-1.5"
 core = "7.x"
 project = "registration"
-datestamp = "1428110897"
+datestamp = "1438648142"
 

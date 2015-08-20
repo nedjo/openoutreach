@@ -198,8 +198,8 @@ class MigrateSourceList extends MigrateSource {
           list(, $id) = each($ids);
           $row->$key_name = $id;
         }
+        break;
       }
-      break;
     }
     return $row;
   }

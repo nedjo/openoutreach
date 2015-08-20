@@ -450,6 +450,7 @@ class ParserVcalendar {
     // Due to a few bugs and limitations with Date Repeat, we need to massage
     // the RRULE a bit.
     if (count($vcalendar_component->rrule) > 1) {
+      // TODO: Is Date Repeat still limited to 1 RRULE with Feeds 2.0-beta1?
       $msg = 'The event with UID %uid has multiple RRULEs, but the Date Repeat module only supports one. Only the first RRULE in the event will be used.
         If your events need to have a complex repeat pattern, using RDATEs should help.';
       watchdog('date_ical', $msg, array('%uid' => $uid), 'warning');
@@ -462,6 +463,7 @@ class ParserVcalendar {
     }
     foreach ($vcalendar_component->rrule as &$rrule_data) {
       // RRULEs must have an INTERVAL, or Date Repeat will throw errors.
+      // TODO: Is this still true with Feeds 2.0-beta1?
       if (!isset($rrule_data['value']['INTERVAL'])) {
         $rrule_data['value']['INTERVAL'] = '1';
       }

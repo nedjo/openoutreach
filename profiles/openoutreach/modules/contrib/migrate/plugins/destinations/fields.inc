@@ -342,8 +342,11 @@ class MigrateTextFieldHandler extends MigrateFieldHandler {
       $fields['format'] = t('Subfield: <a href="@doc">Text format for the field</a>',
         array('@doc' => 'http://drupal.org/node/1224042#format'));
     }
-    $fields['language'] = t('Subfield: <a href="@doc">Language for the field</a>',
-        array('@doc' => 'http://drupal.org/node/1224042#language'));
+    $field = field_info_field($instance['field_name']);
+    if (field_is_translatable($instance['entity_type'], $field)) {
+      $fields['language'] = t('Subfield: <a href="@doc">Language for the field</a>',
+          array('@doc' => 'http://drupal.org/node/1224042#language'));
+    }
     return $fields;
   }
 
@@ -469,7 +472,7 @@ class MigrateTaxonomyTermReferenceFieldHandler extends MigrateFieldHandler {
     else {
       $arguments = array();
     }
-    if (empty($values[0])) {
+    if (count($values) == 1 && empty($values[0])) {
       $values = array();
     }
 
@@ -530,7 +533,7 @@ class MigrateTaxonomyTermReferenceFieldHandler extends MigrateFieldHandler {
           // This term is being created with no fields, but we should still call
           // field_attach_validate() before saving, as that invokes
           // hook_field_attach_validate().
-          field_attach_validate('taxonomy_term', $new_term);
+          MigrateDestinationEntity::fieldAttachValidate('taxonomy_term', $new_term);
 
           taxonomy_term_save($new_term);
           $tids[] = $new_term->tid;
@@ -588,8 +591,12 @@ abstract class MigrateFileFieldBaseHandler extends MigrateFieldHandler {
     $fields = array(
       'file_class' => t('Option: <a href="@doc">Implementation of MigrateFile to use</a>',
         array('@doc' => 'http://drupal.org/node/1540106#file_class')),
-      'language' => t('Subfield: Language for the field'),
     );
+
+    $field = field_info_field($instance['field_name']);
+    if (field_is_translatable($instance['entity_type'], $field)) {
+      $fields['language'] = t('Subfield: Language for the field');
+    }
 
     // If we can identify the file class mapped to this field, pick up the
     // subfields specific to that class.

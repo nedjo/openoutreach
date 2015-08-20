@@ -187,8 +187,8 @@ class MigrateSourceMultiItems extends MigrateSource {
         $sourceKey = $this->activeMap->getSourceKey();
         $key_name = key($sourceKey);
         $row->$key_name = $id;
+        break;
       }
-      break;
     }
     return $row;
   }

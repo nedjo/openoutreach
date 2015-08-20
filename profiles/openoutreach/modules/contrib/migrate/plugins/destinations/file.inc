@@ -389,14 +389,15 @@ class MigrateFileUri extends MigrateFile {
       // Perform the copy operation, with a cleaned-up path.
       $this->sourcePath = self::urlencode($this->sourcePath);
     }
-    if (!@copy($this->sourcePath, $destination)) {
-      $migration = Migration::currentMigration();
-      $migration->saveMessage(t('The specified file %file could not be copied to %destination.',
-              array('%file' => $this->sourcePath, '%destination' => $destination)));
-      return FALSE;
-    }
-    else {
+    try {
+      copy($this->sourcePath, $destination);
       return TRUE;
+    }
+    catch (Exception $e) {
+      $migration = Migration::currentMigration();
+      $migration->saveMessage(t('The specified file %file could not be copied to %destination: "%exception_msg"',
+              array('%file' => $this->sourcePath, '%destination' => $destination, '%exception_msg' => $e->getMessage())));
+      return FALSE;
     }
   }
 

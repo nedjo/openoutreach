@@ -1,11 +1,31 @@
-Migrate 2.7
+Migrate 2.8
 ===========
 
-Bug fixes
-- #2415597 - Make batching of SQL sources optional, and force map_joinable FALSE.
+Features and enhancements
+- #2379289 - Better handle interaction of --update with highwater marks.
+- #2403643 - Support an additional level of subfields.
+- #2472045 - Add language subfields only if field is translatable.
+- #2474809 - Provide better message for bad dependencies.
+- #2397791 - Provide detailed field validation errors.
+- #2309563 - Add support for running migrations via wildcard name.
+- #2095841 - Abstract mail system disablement for more flexibility.
+- #2419373 - Provide ability to cache map lookups.
+- #2141687 - Provide detailed message on file copy error.
 
-Migrate 2.7 Release Candidate 1
-===============================
+Bug fixes
+  Field sanitization added to prevent possibility of XSS - see security advisory
+  https://security.drupal.org/node/155268.
+- #2447115 - Add xpath handling to the field mapping editor.
+- #2497015 - Term reference handler would ignore all terms if one was NULL.
+- #2488560 - MigrateSourceList/MigrateSourceMultiItems iterators prematurely
+             return.
+- #2446105 - Keep coded DNM source field mappings from overriding UI mappings.
+- #2415977 - Use temporary:// instead of /tmp for drush logging.
+- #2475473 - Fix handling of --idlist when map not joined.
+- #2465387 - Fix handling of --stop option on migrate-import.
+
+Migrate 2.7
+===========
 
 Features and enhancements
 - #2296911 - Add a source handler for IBM DB2.
@@ -14,6 +34,7 @@ Features and enhancements
 - #1751438 - Add spreadsheet source plugin.
 
 Bug fixes
+- #2415597 - Make batching of SQL sources optional, and force map_joinable FALSE.
 - #2403593 - SQL batching messes up cases with altered queries, such as idlist.
 - #2298969 - Verify wizard validation function exists.
 - #2268863 - Fix drush --all option.

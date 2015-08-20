@@ -302,6 +302,11 @@ abstract class MigrationBase {
   }
 
   /**
+   * An array to track 'mail_system' variable if disabled.
+   */
+  protected $mailSystem = array();
+
+  /**
    * Have we already warned about obsolete constructor argumentss on this request?
    *
    * @var bool
@@ -432,16 +437,11 @@ abstract class MigrationBase {
     // Record the time limit
     $this->timeLimit = ini_get('max_execution_time');
 
-    // Prevent any emails from being sent out on migration
-    global $conf;
-    if (!empty($conf['mail_system'])) {
-      foreach ($conf['mail_system'] as $system => $class) {
-        $conf['mail_system'][$system] = 'MigrateMailIgnore';
-      }
-    }
-    else {
-      $conf['mail_system']['default-system'] = 'MigrateMailIgnore';
-    }
+    // Save the current mail system, prior to disabling emails.
+    $this->saveMailSystem();
+
+    // Prevent emails from being sent out during migrations.
+    $this->disableMailSystem();
 
     // Make sure we clear our semaphores in case of abrupt exit
     drupal_register_shutdown_function(array($this, 'endProcess'));
@@ -1354,6 +1354,39 @@ abstract class MigrationBase {
       }
     }
     return $time;
+  }
+
+  /**
+   * Saves the current mail system, or set a system default if there is none.
+   */
+  protected function saveMailSystem() {
+    global $conf;
+    if (empty($conf['mail_system'])) {
+      $conf['mail_system']['default-system'] = 'MigrateMailIgnore';
+    }
+    else {
+      $this->mailSystem = $conf['mail_system'];
+    }
+  }
+
+  /**
+   * Disables mail system to prevent emails from being sent during migrations.
+   */
+  public function disableMailSystem() {
+    global $conf;
+    if (!empty($conf['mail_system'])) {
+      foreach ($conf['mail_system'] as $system => $class) {
+        $conf['mail_system'][$system] = 'MigrateMailIgnore';
+      }
+    }
+  }
+
+  /**
+   * Restores the original saved mail system for migrations that require it.
+   */
+  public function restoreMailSystem() {
+    global $conf;
+    $conf['mail_system'] = $this->mailSystem;
   }
 }
 

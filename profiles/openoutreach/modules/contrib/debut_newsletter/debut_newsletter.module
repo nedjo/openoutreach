@@ -1,0 +1,26 @@
+<?php
+/**
+ * @file
+ * Code for the Debut Newsletter feature.
+ */
+
+require_once 'debut_newsletter.features.inc';
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Add an action link to 'node/add/simplenews' on 'newsletter' page.
+ */
+function debut_newsletter_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'newsletter') {
+    $item = menu_get_item('node/add/simplenews');
+    if ($item['access']) {
+      $item['title'] = t('Add a new newsletter');
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+

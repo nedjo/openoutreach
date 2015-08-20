@@ -303,9 +303,11 @@ abstract class MigrateSource implements Iterator {
       //    highwaters and map rows).
       $prepared = FALSE;
       if (!empty($this->idList)) {
+        // Check first source key.
         if (!in_array(reset($this->currentKey), $this->idList)) {
+          // If this is a compound source key, check the full key.
           $compoundKey = implode($this->multikeySeparator, $this->currentKey);
-          if (count($this->currentKey) > 1 && !in_array($compoundKey, $this->idList)) {
+          if (count($this->currentKey) == 1 || !in_array($compoundKey, $this->idList)) {
             // Could not find the key, skip.
             continue;
           }

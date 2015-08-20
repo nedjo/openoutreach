@@ -174,8 +174,14 @@ class DrupalTextMetaTag extends DrupalDefaultMetaTag {
       '#maxlength' => 1024,
     );
 
+    // Optional handling for items that allow multiple values.
     if (!empty($this->info['multiple'])) {
       $form['value']['#description'] .= ' ' . t('Multiple values may be used, separated by a comma. Note: Tokens that return multiple values will be handled automatically.');
+    }
+
+    // Optional handling for images.
+    if (!empty($this->info['image'])) {
+      $form['value']['#description'] .= ' ' . t('This will be able to extract the URL from an image field.');
     }
 
     // Optional support for select_or_other.
@@ -222,6 +228,28 @@ class DrupalTextMetaTag extends DrupalDefaultMetaTag {
       drupal_alter('metatag_pattern', $value, $options['token data'], $this->info['name']);
       $value = token_replace($value, $options['token data'], $options);
     }
+
+    // Special handling for images.
+    if (!empty($this->info['image'])) {
+      // If this contains embedded image tags, extract the image URLs.
+      if (strip_tags($value) != $value) {
+        if (!empty($this->info['multiple'])) {
+          $values = explode(',', $value);
+        }
+        else {
+          $values = array($value);
+        }
+        foreach ($values as $key => $val) {
+          $matches = array();
+          preg_match('/src="([^"]*)"/', $val, $matches);
+          if (!empty($matches[1])) {
+            $values[$key] = $matches[1];
+          }
+        }
+        $value = implode(',', $values);
+      }
+    }
+
     return $this->tidyValue($value);
   }
 }
